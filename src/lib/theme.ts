@@ -80,10 +80,10 @@ export const DARK: ThemeColors = {
   cardAlt: '#26262e',
   border: '#2c2c35',
   rowBorder: '#2a2a32',
-  text: '#f3f3f6',
-  textSecondary: '#b6b6c0',
-  textMuted: '#8c8c98',
-  placeholder: '#6b6b76',
+  text: '#ffffff',
+  textSecondary: '#f0f0f4',
+  textMuted: '#d3d3db',
+  placeholder: '#8a8a94',
   primary: '#c9a96e',      // gold reads better than navy on a near-black bg
   onPrimary: '#1a1a2e',
   navy: '#3a3a5c',         // lightened so switch tracks / accents stay visible
