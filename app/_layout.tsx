@@ -9,8 +9,11 @@ import { STRIPE_PUBLISHABLE_KEY, STRIPE_MERCHANT_ID } from '../src/lib/stripeCon
 import { ToastProvider } from '../src/components/Toast';
 import { ConfirmProvider } from '../src/components/Confirm';
 import { useThemeColors } from '../src/lib/theme';
+import { useSettings } from '../src/lib/settingsStore';
+import { installFontScaling } from '../src/lib/fontScale';
 
 SplashScreen.preventAutoHideAsync();
+installFontScaling();
 
 function ThemedStatusBar() {
   const c = useThemeColors();
@@ -19,6 +22,9 @@ function ThemedStatusBar() {
 
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({ DMSans_400Regular, DMSans_600SemiBold, DMSans_700Bold, PlayfairDisplay_700Bold, PlayfairDisplay_400Regular_Italic, PlayfairDisplay_400Regular });
+  // Re-render the tree when Appearance settings change (e.g. Text Size) so the
+  // font-scaling patch re-applies with the new factor.
+  const settings = useSettings();
   useEffect(() => { if (fontsLoaded) SplashScreen.hideAsync(); }, [fontsLoaded]);
   if (!fontsLoaded) return null;
   return (
