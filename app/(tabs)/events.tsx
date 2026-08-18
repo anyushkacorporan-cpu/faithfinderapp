@@ -5,7 +5,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Header from '../../src/components/Header';
-import { COLORS, EVENTS } from '../../src/lib/constants';
+import { EVENTS } from '../../src/lib/constants';
+import { useThemeColors, ThemeColors } from '../../src/lib/theme';
 import { getUser } from '../../src/lib/userStore';
 import * as Location from 'expo-location';
 import { useEvents } from '../../src/lib/eventsStore';
@@ -51,6 +52,8 @@ const STATE_LIST = [
 ];
 
 export default function EventsScreen() {
+  const c = useThemeColors();
+  const s = makeStyles(c);
   const appSettings = useSettings();
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState('List');
@@ -84,7 +87,7 @@ export default function EventsScreen() {
   const [shareMessage, setShareMessage] = useState('');
   const [sharedToast, setSharedToast] = useState(false);
 
-  const allEvents = useMemo(() => 
+  const allEvents = useMemo(() =>
     userEvents.filter(e => e.status !== 'draft')
   , [userEvents]);
 
@@ -171,24 +174,24 @@ export default function EventsScreen() {
 
       {/* Location */}
       <View style={s.locationRow}>
-        <Ionicons name="location-outline" size={16} color={COLORS.gold} />
+        <Ionicons name="location-outline" size={16} color={c.gold} />
         <Text style={s.locationTxt}>{locationLabel}</Text>
       </View>
 
       {/* Search + Filter */}
       <View style={s.searchRow}>
         <View style={s.searchBar}>
-          <Ionicons name="search-outline" size={17} color={COLORS.gold} />
+          <Ionicons name="search-outline" size={17} color={c.gold} />
           <TextInput
             style={s.searchInput}
             placeholder="Search by name, city, state, venue..."
-            placeholderTextColor="#bbb"
+            placeholderTextColor={c.placeholder}
             value={search}
             onChangeText={setSearch}
           />
           {search.length > 0 && (
             <TouchableOpacity onPress={() => setSearch('')}>
-              <Ionicons name="close-circle" size={17} color="#ccc" />
+              <Ionicons name="close-circle" size={17} color={c.placeholder} />
             </TouchableOpacity>
           )}
         </View>
@@ -196,12 +199,12 @@ export default function EventsScreen() {
           style={[s.filterBtn, activeFilters.length > 0 && s.filterBtnActive]}
           onPress={() => setShowFilter(true)}
         >
-          <Ionicons name="options-outline" size={15} color={activeFilters.length > 0 ? COLORS.white : '#555'} />
-          <Text style={[s.filterBtnTxt, activeFilters.length > 0 && {color: COLORS.white}]}>
+          <Ionicons name="options-outline" size={15} color={activeFilters.length > 0 ? c.onPrimary : c.textSecondary} />
+          <Text style={[s.filterBtnTxt, activeFilters.length > 0 && {color: c.onPrimary}]}>
             Filter{activeFilters.length > 0 ? ` (${activeFilters.length})` : ''}
           </Text>
         </TouchableOpacity>
-        
+
       </View>
 
       {/* Active filter pills */}
@@ -210,7 +213,7 @@ export default function EventsScreen() {
           {activeFilters.map(f => (
             <TouchableOpacity key={f} style={s.activePill} onPress={() => toggleFilter(f)}>
               <Text style={s.activePillTxt}>{FILTER_OPTIONS.find(o => o.id === f)?.label || f}</Text>
-              <Ionicons name="close" size={12} color={COLORS.navy} />
+              <Ionicons name="close" size={12} color={c.text} />
             </TouchableOpacity>
           ))}
           <TouchableOpacity style={s.clearAllPill} onPress={() => setActiveFilters([])}>
@@ -239,12 +242,12 @@ export default function EventsScreen() {
           <View>
             <View style={{flexDirection:'row',alignItems:'center',justifyContent:'space-between',paddingHorizontal:16,paddingTop:16,paddingBottom:8}}>
               <View style={{flexDirection:'row',alignItems:'center',gap:6}}>
-                <View style={{width:28,height:28,borderRadius:14,backgroundColor:COLORS.lightGreen,alignItems:'center',justifyContent:'center'}}>
-                  <Ionicons name="location" size={14} color={COLORS.green} />
+                <View style={{width:28,height:28,borderRadius:14,backgroundColor:c.lightGreen,alignItems:'center',justifyContent:'center'}}>
+                  <Ionicons name="location" size={14} color={c.green} />
                 </View>
-                <Text style={{fontSize:15,fontWeight:'700',color:COLORS.navy}}>Nearby Events</Text>
+                <Text style={{fontSize:15,fontWeight:'700',color:c.text}}>Nearby Events</Text>
               </View>
-              <Text style={{fontSize:12,color:'#aaa'}}>{nearbyEvents.length} found</Text>
+              <Text style={{fontSize:12,color:c.textMuted}}>{nearbyEvents.length} found</Text>
             </View>
             {nearbyEvents.map((event: any) => {
               const gradient = (event.bannerColor || GRADIENTS[event.type] || GRADIENTS['Other']) as [string,string];
@@ -252,14 +255,14 @@ export default function EventsScreen() {
                 <TouchableOpacity key={'nb-'+event.id} style={s.card} activeOpacity={0.92} onPress={() => router.push({pathname:'/event-detail',params:{id:event.id,title:event.title,date:event.date,location:event.location,type:event.type,price:event.price,organizer:event.organizer||'',description:event.description||event.summary||''}})}>
                   {event.bannerImage ? (
                     <ImageBackground source={{uri: event.bannerImage}} style={s.cardBanner} resizeMode="cover">
-                    <View style={{position:'absolute',top:12,right:12,backgroundColor:COLORS.green,borderRadius:6,paddingHorizontal:10,paddingVertical:4}}>
-                      <Text style={{color:COLORS.white,fontSize:11,fontWeight:'700',letterSpacing:0.5}}>NEARBY</Text>
+                    <View style={{position:'absolute',top:12,right:12,backgroundColor:c.green,borderRadius:6,paddingHorizontal:10,paddingVertical:4}}>
+                      <Text style={{color:'#fff',fontSize:11,fontWeight:'700',letterSpacing:0.5}}>NEARBY</Text>
                     </View>
                     </ImageBackground>
                   ) : (
                     <LinearGradient colors={gradient} style={s.cardBanner} start={{x:0,y:0}} end={{x:1,y:1}}>
-                    <View style={{position:'absolute',top:12,right:12,backgroundColor:COLORS.green,borderRadius:6,paddingHorizontal:10,paddingVertical:4}}>
-                      <Text style={{color:COLORS.white,fontSize:11,fontWeight:'700',letterSpacing:0.5}}>NEARBY</Text>
+                    <View style={{position:'absolute',top:12,right:12,backgroundColor:c.green,borderRadius:6,paddingHorizontal:10,paddingVertical:4}}>
+                      <Text style={{color:'#fff',fontSize:11,fontWeight:'700',letterSpacing:0.5}}>NEARBY</Text>
                     </View>
                     </LinearGradient>
                   )}
@@ -275,12 +278,12 @@ export default function EventsScreen() {
                     {!!event.organizer&&<Text style={s.eventOrganizer}>by {event.organizer}</Text>}
                     <View style={s.eventMeta}>
                       <View style={s.eventMetaItem}>
-                        <Ionicons name="calendar-outline" size={13} color="#bbb"/>
+                        <Ionicons name="calendar-outline" size={13} color={c.textMuted}/>
                         <Text style={s.eventMetaTxt}>{event.date}</Text>
                       </View>
                       {!!(event.city||event.location)&&(
                         <View style={s.eventMetaItem}>
-                          <Ionicons name="location-outline" size={13} color="#bbb"/>
+                          <Ionicons name="location-outline" size={13} color={c.textMuted}/>
                           <Text style={s.eventMetaTxt}>{event.city||event.location}{event.state?', '+event.state:''}</Text>
                         </View>
                       )}
@@ -288,7 +291,7 @@ export default function EventsScreen() {
                     <View style={s.cardDivider}/>
                     <View style={s.cardFooter}>
                       <TouchableOpacity style={s.saveBtn} onPress={() => toggleSaveEvent(event.id)}>
-                        <Ionicons name={saved.includes(event.id)?'heart':'heart-outline'} size={18} color={saved.includes(event.id)?COLORS.red:'#ccc'}/>
+                        <Ionicons name={saved.includes(event.id)?'heart':'heart-outline'} size={18} color={saved.includes(event.id)?c.red:c.textMuted}/>
                       </TouchableOpacity>
                       <TouchableOpacity style={s.ticketBtn} onPress={() => router.push({pathname:'/event-detail',params:{id:event.id,title:event.title,price:event.price,date:event.date,location:event.location||event.city||'',type:event.type||'',organizer:event.organizer||'',description:event.description||event.summary||''}})}>
                         <Text style={s.ticketBtnTxt}>{t('register')}</Text>
@@ -302,21 +305,21 @@ export default function EventsScreen() {
         )}
 
         {/* All Events Header */}
-        <View style={{flexDirection:'row',alignItems:'center',justifyContent:'space-between',paddingHorizontal:16,paddingTop:20,paddingBottom:10,borderTopWidth:nearbyEvents.length>0?1:0,borderTopColor:'#f0ede8',marginTop:nearbyEvents.length>0?8:0}}>
+        <View style={{flexDirection:'row',alignItems:'center',justifyContent:'space-between',paddingHorizontal:16,paddingTop:20,paddingBottom:10,borderTopWidth:nearbyEvents.length>0?1:0,borderTopColor:c.border,marginTop:nearbyEvents.length>0?8:0}}>
           <View style={{flexDirection:'row',alignItems:'center',gap:6}}>
-            <View style={{width:24,height:24,borderRadius:8,backgroundColor:'rgba(201,169,110,0.15)',alignItems:'center',justifyContent:'center'}}>
-              <Ionicons name="calendar" size={14} color={COLORS.gold} />
+            <View style={{width:24,height:24,borderRadius:8,backgroundColor:'rgba(201,169,110,0.18)',alignItems:'center',justifyContent:'center'}}>
+              <Ionicons name="calendar" size={14} color={c.gold} />
             </View>
-            <Text style={{fontSize:16,fontWeight:'700',color:COLORS.navy}}>All Events</Text>
+            <Text style={{fontSize:16,fontWeight:'700',color:c.text}}>All Events</Text>
           </View>
-          <Text style={{fontSize:12,color:'#aaa',fontWeight:'600'}}>{filtered.length} found</Text>
+          <Text style={{fontSize:12,color:c.textMuted,fontWeight:'600'}}>{filtered.length} found</Text>
         </View>
 
         <Text style={{display:'none'}}>{filtered.length} event{filtered.length !== 1 ? 's' : ''} found</Text>
 
         {filtered.length === 0 && (
           <View style={s.empty}>
-            <Ionicons name="calendar-outline" size={44} color="#ddd" />
+            <Ionicons name="calendar-outline" size={44} color={c.placeholder} />
             <Text style={s.emptyTxt}>
               {activeTab === 'Saved' ? t('noSavedEvents') :
                activeTab === 'Attending' ? t('noEventsYet') :
@@ -356,16 +359,16 @@ export default function EventsScreen() {
               {event.bannerImage ? (
                 <ImageBackground source={{uri: event.bannerImage}} style={s.cardBanner} resizeMode="cover">
                 {nearbyEvents.some((ne) => ne.id === event.id) && (
-                <View style={{position:'absolute',top:12,right:12,backgroundColor:COLORS.green,borderRadius:6,paddingHorizontal:10,paddingVertical:4}}>
-                    <Text style={{color:COLORS.white,fontSize:11,fontWeight:'700',letterSpacing:0.5}}>NEARBY</Text>
+                <View style={{position:'absolute',top:12,right:12,backgroundColor:c.green,borderRadius:6,paddingHorizontal:10,paddingVertical:4}}>
+                    <Text style={{color:'#fff',fontSize:11,fontWeight:'700',letterSpacing:0.5}}>NEARBY</Text>
                   </View>
                 )}
                 </ImageBackground>
               ) : (
                 <LinearGradient colors={gradient} style={s.cardBanner} start={{x:0,y:0}} end={{x:1,y:1}}>
                 {nearbyEvents.some((ne) => ne.id === event.id) && (
-                <View style={{position:'absolute',top:12,right:12,backgroundColor:COLORS.green,borderRadius:6,paddingHorizontal:10,paddingVertical:4}}>
-                    <Text style={{color:COLORS.white,fontSize:11,fontWeight:'700',letterSpacing:0.5}}>NEARBY</Text>
+                <View style={{position:'absolute',top:12,right:12,backgroundColor:c.green,borderRadius:6,paddingHorizontal:10,paddingVertical:4}}>
+                    <Text style={{color:'#fff',fontSize:11,fontWeight:'700',letterSpacing:0.5}}>NEARBY</Text>
                   </View>
                 )}
                 </LinearGradient>
@@ -383,11 +386,11 @@ export default function EventsScreen() {
                 {!!event.organizer && <Text style={s.eventOrganizer}>by {event.organizer}</Text>}
                 <View style={s.eventMeta}>
                   <View style={s.metaRow}>
-                    <Ionicons name="calendar-outline" size={13} color="#888" />
+                    <Ionicons name="calendar-outline" size={13} color={c.textMuted} />
                     <Text style={s.metaTxt}>{event.date}</Text>
                   </View>
                   <View style={s.metaRow}>
-                    <Ionicons name="location-outline" size={13} color="#888" />
+                    <Ionicons name="location-outline" size={13} color={c.textMuted} />
                     <Text style={s.metaTxt} numberOfLines={1}>{event.location}</Text>
                   </View>
                 </View>
@@ -395,7 +398,7 @@ export default function EventsScreen() {
                 <View style={s.cardFooter}>
                   <View style={s.footerLeft}>
                     <TouchableOpacity style={s.footerIconBtn} onPress={e => { e.stopPropagation(); toggleSaveEvent(event.id); }}>
-                      <Ionicons name={isSaved ? 'heart' : 'heart-outline'} size={18} color={isSaved ? COLORS.red : '#888'} />
+                      <Ionicons name={isSaved ? 'heart' : 'heart-outline'} size={18} color={isSaved ? c.red : c.textMuted} />
                     </TouchableOpacity>
 
                   </View>
@@ -474,7 +477,7 @@ export default function EventsScreen() {
               <View style={s.composerRow}>
                 <View style={s.composerAvatarWrap}>
                   <View style={s.composerAvatar}>
-                    <Ionicons name="person" size={18} color={COLORS.white} />
+                    <Ionicons name="person" size={18} color={c.onPrimary} />
                   </View>
                   <View style={s.composerAvatarLine} />
                 </View>
@@ -482,7 +485,7 @@ export default function EventsScreen() {
                   <TextInput
                     style={s.composerInput}
                     placeholder="Add your thoughts about this event..."
-                    placeholderTextColor="#bbb"
+                    placeholderTextColor={c.placeholder}
                     value={shareMessage}
                     onChangeText={setShareMessage}
                     multiline
@@ -493,16 +496,16 @@ export default function EventsScreen() {
                     <View style={s.quotedCard}>
                       <View style={s.quotedTop}>
                         <View style={s.quotedIconWrap}>
-                          <Ionicons name="calendar" size={14} color={COLORS.gold} />
+                          <Ionicons name="calendar" size={14} color={c.gold} />
                         </View>
                         <Text style={s.quotedTitle} numberOfLines={1}>{shareEvent.title}</Text>
                       </View>
                       <View style={s.quotedRow}>
-                        <Ionicons name="calendar-outline" size={11} color="#888" />
+                        <Ionicons name="calendar-outline" size={11} color={c.textMuted} />
                         <Text style={s.quotedTxt}>{shareEvent.date}</Text>
                       </View>
                       <View style={s.quotedRow}>
-                        <Ionicons name="location-outline" size={11} color="#888" />
+                        <Ionicons name="location-outline" size={11} color={c.textMuted} />
                         <Text style={s.quotedTxt} numberOfLines={1}>{shareEvent.location}</Text>
                       </View>
                       <View style={s.quotedFooter}>
@@ -514,9 +517,9 @@ export default function EventsScreen() {
               </View>
 
               <View style={{flexDirection:'row',alignItems:'center',gap:12,paddingHorizontal:16,marginVertical:16}}>
-                <View style={{flex:1,height:1,backgroundColor:'#f0ede8'}}/>
-                <Text style={{fontSize:12,color:'#bbb'}}>or share outside FaithFinder</Text>
-                <View style={{flex:1,height:1,backgroundColor:'#f0ede8'}}/>
+                <View style={{flex:1,height:1,backgroundColor:c.border}}/>
+                <Text style={{fontSize:12,color:c.textMuted}}>or share outside FaithFinder</Text>
+                <View style={{flex:1,height:1,backgroundColor:c.border}}/>
               </View>
 
               <View style={{flexDirection:'row',justifyContent:'space-around',paddingHorizontal:20,paddingBottom:30}}>
@@ -529,7 +532,7 @@ export default function EventsScreen() {
                   <View style={{width:54,height:54,borderRadius:16,backgroundColor:'#e8f8f0',alignItems:'center',justifyContent:'center'}}>
                     <Ionicons name="chatbubble-outline" size={22} color="#2ecc71"/>
                   </View>
-                  <Text style={{fontSize:12,color:'#111',fontWeight:'600'}}>Messages</Text>
+                  <Text style={{fontSize:12,color:c.text,fontWeight:'600'}}>Messages</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={{alignItems:'center',gap:8}} onPress={() => {
                   const ev = shareEvent;
@@ -540,7 +543,7 @@ export default function EventsScreen() {
                   <View style={{width:54,height:54,borderRadius:16,backgroundColor:'#eaf4fb',alignItems:'center',justifyContent:'center'}}>
                     <Ionicons name="mail-outline" size={22} color="#3498db"/>
                   </View>
-                  <Text style={{fontSize:12,color:'#111',fontWeight:'600'}}>Email</Text>
+                  <Text style={{fontSize:12,color:c.text,fontWeight:'600'}}>Email</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={{alignItems:'center',gap:8}} onPress={() => {
                   const ev = shareEvent;
@@ -553,7 +556,7 @@ export default function EventsScreen() {
                   <View style={{width:54,height:54,borderRadius:16,backgroundColor:'#f5eefb',alignItems:'center',justifyContent:'center'}}>
                     <Ionicons name="share-social-outline" size={22} color="#9b59b6"/>
                   </View>
-                  <Text style={{fontSize:12,color:'#111',fontWeight:'600'}}>More Options</Text>
+                  <Text style={{fontSize:12,color:c.text,fontWeight:'600'}}>More Options</Text>
                 </TouchableOpacity>
               </View>
             </ScrollView>
@@ -563,13 +566,13 @@ export default function EventsScreen() {
 
       {/* Shared Toast */}
       {sharedToast && (
-        <View style={{position:'absolute',bottom:100,left:16,right:16,backgroundColor:'#fff',borderRadius:16,padding:16,flexDirection:'row',alignItems:'center',gap:12,shadowColor:'#000',shadowOffset:{width:0,height:8},shadowOpacity:0.15,shadowRadius:16,zIndex:999,borderWidth:1,borderColor:'#f0ede8'}}>
-          <View style={{width:44,height:44,borderRadius:22,backgroundColor:'#e8f5e9',alignItems:'center',justifyContent:'center'}}>
-            <Ionicons name="checkmark-circle" size={28} color={COLORS.green} />
+        <View style={{position:'absolute',bottom:100,left:16,right:16,backgroundColor:c.card,borderRadius:16,padding:16,flexDirection:'row',alignItems:'center',gap:12,shadowColor:'#000',shadowOffset:{width:0,height:8},shadowOpacity:0.15,shadowRadius:16,zIndex:999,borderWidth:1,borderColor:c.border}}>
+          <View style={{width:44,height:44,borderRadius:22,backgroundColor:c.lightGreen,alignItems:'center',justifyContent:'center'}}>
+            <Ionicons name="checkmark-circle" size={28} color={c.green} />
           </View>
-          <Text style={{flex:1,fontSize:15,fontWeight:'700',color:COLORS.navy}}>Shared to Community</Text>
+          <Text style={{flex:1,fontSize:15,fontWeight:'700',color:c.text}}>Shared to Community</Text>
           <TouchableOpacity onPress={() => setSharedToast(false)}>
-            <Ionicons name="close" size={18} color="#aaa" />
+            <Ionicons name="close" size={18} color={c.textMuted} />
           </TouchableOpacity>
         </View>
       )}
@@ -580,7 +583,7 @@ export default function EventsScreen() {
           <View style={s.filterHdr}>
             <Text style={s.filterTitle}>Filter Events</Text>
             <TouchableOpacity style={s.filterCloseBtn} onPress={() => setShowFilter(false)}>
-              <Ionicons name="close" size={20} color={COLORS.navy} />
+              <Ionicons name="close" size={20} color={c.text} />
             </TouchableOpacity>
           </View>
           <ScrollView contentContainerStyle={s.filterScroll}>
@@ -594,7 +597,7 @@ export default function EventsScreen() {
                       style={[s.filterPill, activeFilters.includes(opt.id) && s.filterPillActive]}
                       onPress={() => toggleFilter(opt.id)}
                     >
-                      {activeFilters.includes(opt.id) && <Ionicons name="checkmark" size={13} color={COLORS.white} />}
+                      {activeFilters.includes(opt.id) && <Ionicons name="checkmark" size={13} color={c.onPrimary} />}
                       <Text style={[s.filterPillTxt, activeFilters.includes(opt.id) && s.filterPillTxtActive]}>{opt.label}</Text>
                     </TouchableOpacity>
                   ))}
@@ -615,19 +618,19 @@ export default function EventsScreen() {
 
       {/* State Filter Modal */}
       <Modal visible={showStateFilter} animationType="slide" presentationStyle="pageSheet">
-        <SafeAreaView style={{flex:1,backgroundColor:COLORS.white}} edges={['top']}>
-          <View style={{flexDirection:'row',alignItems:'center',justifyContent:'space-between',paddingHorizontal:16,paddingVertical:14,borderBottomWidth:1,borderBottomColor:'#f0ede8'}}>
-            
-            <Text style={{fontSize:16,fontWeight:'700',color:COLORS.navy}}>Filter by State</Text>
+        <SafeAreaView style={{flex:1,backgroundColor:c.bg}} edges={['top']}>
+          <View style={{flexDirection:'row',alignItems:'center',justifyContent:'space-between',paddingHorizontal:16,paddingVertical:14,borderBottomWidth:1,borderBottomColor:c.border}}>
+
+            <Text style={{fontSize:16,fontWeight:'700',color:c.text}}>Filter by State</Text>
             <TouchableOpacity onPress={() => { setFilterState(''); setFilterCity(''); setShowStateFilter(false); }}>
-              <Text style={{fontSize:15,color:COLORS.gold,fontWeight:'600'}}>Clear</Text>
+              <Text style={{fontSize:15,color:c.gold,fontWeight:'600'}}>Clear</Text>
             </TouchableOpacity>
           </View>
           <View style={{paddingHorizontal:16,paddingVertical:12}}>
             <TextInput
-              style={{borderWidth:1.5,borderColor:'#f0ede8',borderRadius:12,paddingHorizontal:14,paddingVertical:10,fontSize:14,color:COLORS.navy,marginBottom:12}}
+              style={{borderWidth:1.5,borderColor:c.border,borderRadius:12,paddingHorizontal:14,paddingVertical:10,fontSize:14,color:c.text,marginBottom:12}}
               placeholder="Filter by city..."
-              placeholderTextColor="#bbb"
+              placeholderTextColor={c.placeholder}
               value={filterCity}
               onChangeText={setFilterCity}
             />
@@ -637,20 +640,20 @@ export default function EventsScreen() {
               {STATE_LIST.map(state => (
                 <TouchableOpacity
                   key={state}
-                  style={{paddingHorizontal:16,paddingVertical:10,borderRadius:100,borderWidth:1.5,borderColor:filterState===state?COLORS.navy:'#f0ede8',backgroundColor:filterState===state?COLORS.navy:'transparent'}}
+                  style={{paddingHorizontal:16,paddingVertical:10,borderRadius:100,borderWidth:1.5,borderColor:filterState===state?c.primary:c.border,backgroundColor:filterState===state?c.primary:'transparent'}}
                   onPress={() => { setFilterState(filterState===state?'':state); }}
                 >
-                  <Text style={{fontSize:13,fontWeight:'600',color:filterState===state?COLORS.white:COLORS.navy}}>{state}</Text>
+                  <Text style={{fontSize:13,fontWeight:'600',color:filterState===state?c.onPrimary:c.text}}>{state}</Text>
                 </TouchableOpacity>
               ))}
             </View>
           </ScrollView>
-          <View style={{padding:16,borderTopWidth:1,borderTopColor:'#f0ede8'}}>
+          <View style={{padding:16,borderTopWidth:1,borderTopColor:c.border}}>
             <TouchableOpacity
-              style={{backgroundColor:COLORS.navy,borderRadius:14,paddingVertical:14,alignItems:'center'}}
+              style={{backgroundColor:c.primary,borderRadius:14,paddingVertical:14,alignItems:'center'}}
               onPress={() => setShowStateFilter(false)}
             >
-              <Text style={{color:COLORS.white,fontSize:15,fontWeight:'700'}}>Apply Filter</Text>
+              <Text style={{color:c.onPrimary,fontSize:15,fontWeight:'700'}}>Apply Filter</Text>
             </TouchableOpacity>
           </View>
         </SafeAreaView>
@@ -659,120 +662,113 @@ export default function EventsScreen() {
   );
 }
 
-const s = StyleSheet.create({
-  root:{flex:1,backgroundColor:COLORS.white},
-  card:{marginHorizontal:16,marginBottom:12,borderRadius:18,overflow:'hidden'},
+const makeStyles = (c: ThemeColors) => StyleSheet.create({
+  root:{flex:1,backgroundColor:c.bg},
   cardGradient:{padding:16,minHeight:120,justifyContent:'flex-start',gap:6},
   cardTop:{flexDirection:'row',alignItems:'center',justifyContent:'space-between'},
   cardTypePill:{backgroundColor:'rgba(255,255,255,0.2)',borderRadius:100,paddingHorizontal:10,paddingVertical:4,alignSelf:'flex-start'},
   cardTypeTxt:{color:'#fff',fontSize:11,fontWeight:'700'},
   cardTitle:{fontSize:16,fontWeight:'700',color:'#fff',lineHeight:22},
   cardMeta:{fontSize:12,color:'rgba(255,255,255,0.8)'},
-  card:{marginHorizontal:16,marginBottom:12,borderRadius:18,overflow:'hidden'},
-  cardGradient:{padding:16,minHeight:120,justifyContent:'flex-start',gap:6},
-  cardTop:{flexDirection:'row',alignItems:'center',justifyContent:'space-between'},
-  cardTypePill:{backgroundColor:'rgba(255,255,255,0.2)',borderRadius:100,paddingHorizontal:10,paddingVertical:4,alignSelf:'flex-start'},
-  cardTypeTxt:{color:'#fff',fontSize:11,fontWeight:'700'},
-  cardTitle:{fontSize:16,fontWeight:'700',color:'#fff',lineHeight:22},
-  cardMeta:{fontSize:12,color:'rgba(255,255,255,0.8)'},
-  verseBar:{paddingHorizontal:20,paddingVertical:10,borderBottomWidth:1,borderBottomColor:COLORS.border},
-  verseTxt:{fontFamily:'PlayfairDisplay_400Regular_Italic',fontSize:12,color:'#999',textAlign:'center',lineHeight:18},
-  searchRow:{flexDirection:'row',alignItems:'center',gap:8,paddingHorizontal:16,paddingVertical:10,borderBottomWidth:1,borderBottomColor:COLORS.border},
-  searchBar:{flex:1,flexDirection:'row',alignItems:'center',gap:8,backgroundColor:COLORS.white,borderRadius:100,paddingHorizontal:14,paddingVertical:11,borderWidth:1.5,borderColor:'#e8e3da'},
-  searchInput:{flex:1,fontSize:13,color:COLORS.navy},
-  filterBtn:{flexDirection:'row',alignItems:'center',gap:5,backgroundColor:COLORS.lightBg,borderWidth:1.5,borderColor:'#e8e3da',borderRadius:100,paddingHorizontal:14,paddingVertical:11},
-  filterBtnActive:{backgroundColor:COLORS.navy,borderColor:COLORS.navy},
-  filterBtnTxt:{fontSize:12,fontWeight:'600',color:'#555'},
-  activePillsRow:{backgroundColor:COLORS.white,borderBottomWidth:1,borderBottomColor:COLORS.border,maxHeight:44},
+  verseBar:{paddingHorizontal:20,paddingVertical:10,borderBottomWidth:1,borderBottomColor:c.border},
+  verseTxt:{fontFamily:'PlayfairDisplay_400Regular_Italic',fontSize:12,color:c.textMuted,textAlign:'center',lineHeight:18},
+  searchRow:{flexDirection:'row',alignItems:'center',gap:8,paddingHorizontal:16,paddingVertical:10,borderBottomWidth:1,borderBottomColor:c.border},
+  searchBar:{flex:1,flexDirection:'row',alignItems:'center',gap:8,backgroundColor:c.card,borderRadius:100,paddingHorizontal:14,paddingVertical:11,borderWidth:1.5,borderColor:c.border},
+  searchInput:{flex:1,fontSize:13,color:c.text},
+  filterBtn:{flexDirection:'row',alignItems:'center',gap:5,backgroundColor:c.cardAlt,borderWidth:1.5,borderColor:c.border,borderRadius:100,paddingHorizontal:14,paddingVertical:11},
+  filterBtnActive:{backgroundColor:c.primary,borderColor:c.primary},
+  filterBtnTxt:{fontSize:12,fontWeight:'600',color:c.textSecondary},
+  activePillsRow:{backgroundColor:c.card,borderBottomWidth:1,borderBottomColor:c.border,maxHeight:44},
   activePillsContent:{paddingHorizontal:16,paddingVertical:8,gap:8,flexDirection:'row',alignItems:'center'},
-  activePill:{flexDirection:'row',alignItems:'center',gap:5,backgroundColor:'rgba(26,26,46,0.08)',borderRadius:100,paddingHorizontal:12,paddingVertical:5},
-  activePillTxt:{fontSize:12,fontWeight:'600',color:COLORS.navy},
+  activePill:{flexDirection:'row',alignItems:'center',gap:5,backgroundColor:c.cardAlt,borderRadius:100,paddingHorizontal:12,paddingVertical:5},
+  activePillTxt:{fontSize:12,fontWeight:'600',color:c.text},
   clearAllPill:{borderRadius:100,paddingHorizontal:12,paddingVertical:5},
-  clearAllTxt:{fontSize:12,fontWeight:'600',color:COLORS.red},
-  tabsWrap:{paddingHorizontal:16,paddingVertical:10,backgroundColor:COLORS.white,borderBottomWidth:1,borderBottomColor:COLORS.border},
-  tabsToggle:{flexDirection:'row',backgroundColor:'#f0ede8',borderRadius:100,padding:3},
+  clearAllTxt:{fontSize:12,fontWeight:'600',color:c.red},
+  tabsWrap:{paddingHorizontal:16,paddingVertical:10,backgroundColor:c.card,borderBottomWidth:1,borderBottomColor:c.border},
+  tabsToggle:{flexDirection:'row',backgroundColor:c.cardAlt,borderRadius:100,padding:3},
   tabBtn:{flex:1,paddingVertical:8,borderRadius:100,alignItems:'center'},
-  tabBtnActive:{backgroundColor:COLORS.white,shadowColor:'#000',shadowOffset:{width:0,height:1},shadowOpacity:0.1,shadowRadius:3},
-  tabTxt:{fontSize:12,fontWeight:'600',color:'#888'},
-  tabTxtActive:{color:COLORS.navy,fontWeight:'700'},
-  scroll:{flex:1,backgroundColor:COLORS.white},
-  resultCount:{fontSize:11,fontWeight:'700',color:'#bbb',letterSpacing:0.5,textTransform:'uppercase',paddingHorizontal:16,paddingTop:12,paddingBottom:8},
+  tabBtnActive:{backgroundColor:c.card,shadowColor:'#000',shadowOffset:{width:0,height:1},shadowOpacity:0.1,shadowRadius:3},
+  tabTxt:{fontSize:12,fontWeight:'600',color:c.textMuted},
+  tabTxtActive:{color:c.text,fontWeight:'700'},
+  scroll:{flex:1,backgroundColor:c.bg},
+  resultCount:{fontSize:11,fontWeight:'700',color:c.textMuted,letterSpacing:0.5,textTransform:'uppercase',paddingHorizontal:16,paddingTop:12,paddingBottom:8},
   empty:{paddingVertical:50,alignItems:'center',gap:10,paddingHorizontal:32},
-  emptyTxt:{fontSize:15,color:'#bbb',fontWeight:'700'},
-  emptySub:{fontSize:13,color:'#ddd',textAlign:'center'},
-  card:{backgroundColor:COLORS.white,marginHorizontal:16,marginBottom:16,borderRadius:20,overflow:'hidden',borderWidth:1,borderColor:COLORS.border,shadowColor:'#000',shadowOffset:{width:0,height:2},shadowOpacity:0.06,shadowRadius:8},
+  emptyTxt:{fontSize:15,color:c.textMuted,fontWeight:'700'},
+  emptySub:{fontSize:13,color:c.placeholder,textAlign:'center'},
+  card:{backgroundColor:c.card,marginHorizontal:16,marginBottom:16,borderRadius:20,overflow:'hidden',borderWidth:1,borderColor:c.border,shadowColor:'#000',shadowOffset:{width:0,height:2},shadowOpacity:0.06,shadowRadius:8},
   cardBanner:{aspectRatio:16/9,justifyContent:'flex-start',padding:14},
   heartBtn:{alignSelf:'flex-end',width:36,height:36,borderRadius:18,backgroundColor:'rgba(255,255,255,0.15)',alignItems:'center',justifyContent:'center'},
   bannerBadges:{flexDirection:'row',gap:6,flexWrap:'wrap'},
   badgeType:{backgroundColor:'rgba(0,0,0,0.5)',borderRadius:8,paddingHorizontal:10,paddingVertical:4},
-  badgeTypeTxt:{color:COLORS.white,fontSize:11,fontWeight:'700'},
-  badgeFree:{backgroundColor:COLORS.green,borderRadius:8,paddingHorizontal:10,paddingVertical:4},
-  badgeFreeTxt:{color:COLORS.white,fontSize:11,fontWeight:'700'},
+  badgeTypeTxt:{color:'#fff',fontSize:11,fontWeight:'700'},
+  badgeFree:{backgroundColor:c.green,borderRadius:8,paddingHorizontal:10,paddingVertical:4},
+  badgeFreeTxt:{color:'#fff',fontSize:11,fontWeight:'700'},
   badgePaid:{backgroundColor:'#e65100',borderRadius:8,paddingHorizontal:10,paddingVertical:4},
-  badgePaidTxt:{color:COLORS.white,fontSize:11,fontWeight:'700'},
+  badgePaidTxt:{color:'#fff',fontSize:11,fontWeight:'700'},
   badgeAttending:{flexDirection:'row',alignItems:'center',gap:4,backgroundColor:'rgba(46,125,50,0.8)',borderRadius:8,paddingHorizontal:10,paddingVertical:4},
-  badgeAttendingTxt:{color:COLORS.white,fontSize:11,fontWeight:'700'},
+  badgeAttendingTxt:{color:'#fff',fontSize:11,fontWeight:'700'},
   cardBody:{padding:14},
-  eventTitle:{fontFamily:'PlayfairDisplay_700Bold',fontSize:18,color:COLORS.navy,marginBottom:3},
-  eventOrganizer:{fontSize:12,color:COLORS.gold,fontWeight:'600',marginBottom:8},
+  eventTitle:{fontFamily:'PlayfairDisplay_700Bold',fontSize:18,color:c.text,marginBottom:3},
+  eventOrganizer:{fontSize:12,color:c.gold,fontWeight:'600',marginBottom:8},
   eventMeta:{gap:5,marginBottom:10},
   eventMetaItem:{flexDirection:'row',alignItems:'center',gap:6},
-  eventMetaTxt:{fontSize:12,color:'#888'},
+  eventMetaTxt:{fontSize:12,color:c.textMuted},
   metaRow:{flexDirection:'row',alignItems:'center',gap:6},
-  metaTxt:{fontSize:12,color:'#666',flex:1},
-  cardDivider:{height:1,backgroundColor:COLORS.border,marginBottom:10},
+  metaTxt:{fontSize:12,color:c.textSecondary,flex:1},
+  cardDivider:{height:1,backgroundColor:c.border,marginBottom:10},
   cardFooter:{flexDirection:'row',alignItems:'center',justifyContent:'space-between'},
   footerLeft:{flexDirection:'row',gap:4},
-  footerIconBtn:{width:36,height:36,borderRadius:18,borderWidth:1,borderColor:COLORS.border,alignItems:'center',justifyContent:'center'},
-  ticketBtn:{backgroundColor:COLORS.navy,borderRadius:100,paddingHorizontal:20,paddingVertical:10},
-  ticketBtnTxt:{color:COLORS.white,fontSize:13,fontWeight:'700'},
+  footerIconBtn:{width:36,height:36,borderRadius:18,borderWidth:1,borderColor:c.border,alignItems:'center',justifyContent:'center'},
+  saveBtn:{width:36,height:36,borderRadius:18,borderWidth:1,borderColor:c.border,alignItems:'center',justifyContent:'center'},
+  ticketBtn:{backgroundColor:c.primary,borderRadius:100,paddingHorizontal:20,paddingVertical:10},
+  ticketBtnTxt:{color:c.onPrimary,fontSize:13,fontWeight:'700'},
   // Filter modal
-  filterRoot:{flex:1,backgroundColor:COLORS.white},
-  filterHdr:{flexDirection:'row',justifyContent:'space-between',alignItems:'center',paddingHorizontal:20,paddingVertical:16,borderBottomWidth:1,borderBottomColor:COLORS.border},
-  filterTitle:{fontSize:20,fontWeight:'700',color:COLORS.navy},
-  filterCloseBtn:{width:34,height:34,borderRadius:17,backgroundColor:COLORS.lightBg,alignItems:'center',justifyContent:'center'},
+  filterRoot:{flex:1,backgroundColor:c.bg},
+  filterHdr:{flexDirection:'row',justifyContent:'space-between',alignItems:'center',paddingHorizontal:20,paddingVertical:16,borderBottomWidth:1,borderBottomColor:c.border},
+  filterTitle:{fontSize:20,fontWeight:'700',color:c.text},
+  filterCloseBtn:{width:34,height:34,borderRadius:17,backgroundColor:c.cardAlt,alignItems:'center',justifyContent:'center'},
   filterScroll:{padding:20},
   filterGroup:{marginBottom:20},
-  filterGroupTitle:{fontSize:12,fontWeight:'700',color:'#aaa',textTransform:'uppercase',letterSpacing:0.5,marginBottom:10},
+  filterGroupTitle:{fontSize:12,fontWeight:'700',color:c.textMuted,textTransform:'uppercase',letterSpacing:0.5,marginBottom:10},
   filterPills:{flexDirection:'row',flexWrap:'wrap',gap:8},
-  filterPill:{flexDirection:'row',alignItems:'center',gap:5,borderWidth:1.5,borderColor:COLORS.border,borderRadius:100,paddingHorizontal:14,paddingVertical:8,backgroundColor:COLORS.white},
-  filterPillActive:{backgroundColor:COLORS.navy,borderColor:COLORS.navy},
-  filterPillTxt:{fontSize:13,fontWeight:'600',color:'#555'},
-  filterPillTxtActive:{color:COLORS.white},
-  filterFooter:{flexDirection:'row',gap:10,padding:16,borderTopWidth:1,borderTopColor:COLORS.border},
-  filterClearBtn:{flex:1,borderWidth:1.5,borderColor:COLORS.border,borderRadius:14,paddingVertical:14,alignItems:'center'},
-  filterClearTxt:{fontSize:14,fontWeight:'700',color:'#888'},
-  filterApplyBtn:{flex:2,backgroundColor:COLORS.navy,borderRadius:14,paddingVertical:14,alignItems:'center'},
-  filterApplyTxt:{fontSize:14,fontWeight:'700',color:COLORS.white},
-  shareModalRoot:{flex:1,backgroundColor:COLORS.white},
-  shareHdr:{flexDirection:'row',alignItems:'center',justifyContent:'space-between',paddingHorizontal:16,paddingVertical:14,borderBottomWidth:1,borderBottomColor:COLORS.border},
+  filterPill:{flexDirection:'row',alignItems:'center',gap:5,borderWidth:1.5,borderColor:c.border,borderRadius:100,paddingHorizontal:14,paddingVertical:8,backgroundColor:c.card},
+  filterPillActive:{backgroundColor:c.primary,borderColor:c.primary},
+  filterPillTxt:{fontSize:13,fontWeight:'600',color:c.textSecondary},
+  filterPillTxtActive:{color:c.onPrimary},
+  filterFooter:{flexDirection:'row',gap:10,padding:16,borderTopWidth:1,borderTopColor:c.border},
+  filterClearBtn:{flex:1,borderWidth:1.5,borderColor:c.border,borderRadius:14,paddingVertical:14,alignItems:'center'},
+  filterClearTxt:{fontSize:14,fontWeight:'700',color:c.textMuted},
+  filterApplyBtn:{flex:2,backgroundColor:c.primary,borderRadius:14,paddingVertical:14,alignItems:'center'},
+  filterApplyTxt:{fontSize:14,fontWeight:'700',color:c.onPrimary},
+  shareModalRoot:{flex:1,backgroundColor:c.bg},
+  shareHdr:{flexDirection:'row',alignItems:'center',justifyContent:'space-between',paddingHorizontal:16,paddingVertical:14,borderBottomWidth:1,borderBottomColor:c.border},
   shareCancelBtn:{paddingVertical:4},
-  shareCancelTxt:{fontSize:15,color:'#888',fontWeight:'500'},
-  shareHdrTitle:{fontSize:16,fontWeight:'700',color:COLORS.navy},
-  sharePostBtn:{backgroundColor:COLORS.navy,borderRadius:100,paddingHorizontal:20,paddingVertical:9},
-  sharePostBtnTxt:{color:'#fff',fontSize:14,fontWeight:'700'},
+  shareCancelTxt:{fontSize:15,color:c.textMuted,fontWeight:'500'},
+  shareHdrTitle:{fontSize:16,fontWeight:'700',color:c.text},
+  sharePostBtn:{backgroundColor:c.primary,borderRadius:100,paddingHorizontal:20,paddingVertical:9},
+  sharePostBtnTxt:{color:c.onPrimary,fontSize:14,fontWeight:'700'},
   shareScroll:{flex:1},
   composerRow:{flexDirection:'row',paddingHorizontal:16,paddingTop:16,paddingBottom:8},
   composerAvatarWrap:{alignItems:'center',marginRight:12},
-  composerAvatar:{width:42,height:42,borderRadius:21,backgroundColor:COLORS.navy,alignItems:'center',justifyContent:'center'},
-  composerAvatarLine:{width:2,flex:1,backgroundColor:'#f0ede8',marginTop:8,borderRadius:1},
+  composerAvatar:{width:42,height:42,borderRadius:21,backgroundColor:c.navy,alignItems:'center',justifyContent:'center'},
+  composerAvatarLine:{width:2,flex:1,backgroundColor:c.border,marginTop:8,borderRadius:1},
   composerRight:{flex:1},
-  composerInput:{fontSize:16,color:COLORS.navy,minHeight:50,textAlignVertical:'top',marginBottom:10,lineHeight:24,paddingTop:4},
-  quotedCard:{borderWidth:1.5,borderColor:COLORS.border,borderRadius:14,padding:10,marginBottom:10,backgroundColor:COLORS.lightBg},
+  composerInput:{fontSize:16,color:c.text,minHeight:50,textAlignVertical:'top',marginBottom:10,lineHeight:24,paddingTop:4},
+  quotedCard:{borderWidth:1.5,borderColor:c.border,borderRadius:14,padding:10,marginBottom:10,backgroundColor:c.cardAlt},
   quotedTop:{flexDirection:'row',alignItems:'center',gap:6,marginBottom:6},
-  quotedIconWrap:{width:22,height:22,borderRadius:6,backgroundColor:COLORS.navy,alignItems:'center',justifyContent:'center'},
-  quotedTitle:{flex:1,fontSize:14,fontWeight:'700',color:COLORS.navy},
+  quotedIconWrap:{width:22,height:22,borderRadius:6,backgroundColor:c.navy,alignItems:'center',justifyContent:'center'},
+  quotedTitle:{flex:1,fontSize:14,fontWeight:'700',color:c.text},
   quotedRow:{flexDirection:'row',alignItems:'center',gap:4,marginBottom:4},
-  quotedTxt:{fontSize:12,color:'#888',flex:1},
-  quotedFooter:{borderTopWidth:1,borderTopColor:COLORS.border,paddingTop:8,marginTop:4},
-  quotedLink:{fontSize:12,color:COLORS.gold,fontWeight:'700'},
+  quotedTxt:{fontSize:12,color:c.textMuted,flex:1},
+  quotedFooter:{borderTopWidth:1,borderTopColor:c.border,paddingTop:8,marginTop:4},
+  quotedLink:{fontSize:12,color:c.gold,fontWeight:'700'},
 
-  locationRow:{flexDirection:'row',alignItems:'center',gap:6,paddingHorizontal:16,paddingVertical:8,backgroundColor:COLORS.white},
-  locationTxt:{fontSize:13,color:'#666',fontWeight:'600'},
-  toggleRow:{paddingHorizontal:16,paddingVertical:10,backgroundColor:COLORS.white,borderBottomWidth:1,borderBottomColor:'#f0ede8'},
-  toggle:{flexDirection:'row',backgroundColor:'#f0ede8',borderRadius:100,padding:3},
+  locationRow:{flexDirection:'row',alignItems:'center',gap:6,paddingHorizontal:16,paddingVertical:8,backgroundColor:c.card},
+  locationTxt:{fontSize:13,color:c.textSecondary,fontWeight:'600'},
+  toggleRow:{paddingHorizontal:16,paddingVertical:10,backgroundColor:c.card,borderBottomWidth:1,borderBottomColor:c.border},
+  toggle:{flexDirection:'row',backgroundColor:c.cardAlt,borderRadius:100,padding:3},
   toggleBtn:{flex:1,paddingVertical:8,borderRadius:100,alignItems:'center'},
-  toggleBtnActive:{backgroundColor:COLORS.white,shadowColor:'#000',shadowOffset:{width:0,height:1},shadowOpacity:0.08,shadowRadius:3},
-  toggleTxt:{fontSize:13,fontWeight:'600',color:'#999'},
-  toggleTxtActive:{color:COLORS.navy,fontWeight:'700'},
+  toggleBtnActive:{backgroundColor:c.card,shadowColor:'#000',shadowOffset:{width:0,height:1},shadowOpacity:0.08,shadowRadius:3},
+  toggleTxt:{fontSize:13,fontWeight:'600',color:c.textMuted},
+  toggleTxtActive:{color:c.text,fontWeight:'700'},
 });

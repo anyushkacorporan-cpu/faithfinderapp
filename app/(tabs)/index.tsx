@@ -6,7 +6,8 @@ import * as Location from 'expo-location';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Header from '../../src/components/Header';
-import { COLORS, CHURCHES } from '../../src/lib/constants';
+import { CHURCHES } from '../../src/lib/constants';
+import { useThemeColors, ThemeColors } from '../../src/lib/theme';
 import { useSavedChurches, toggleSavedChurch } from '../../src/lib/store';
 import { DENOMINATIONS, STATES } from '../../src/lib/filters';
 import { useSettings } from '../../src/lib/settingsStore';
@@ -63,6 +64,8 @@ async function searchByState(stateCode: string) {
 }
 
 export default function ChurchesScreen() {
+  const c = useThemeColors();
+  const s = makeStyles(c);
   const appSettings = useSettings();
   const { t } = useTranslation();
   const [search, setSearch] = useState('');
@@ -173,10 +176,7 @@ export default function ChurchesScreen() {
     CHURCHES.forEach(c => pool.set(c.id, c));
     (nearbyChurches || []).forEach((c: any) => pool.set(c.id, c));
     (searchResults || []).forEach((c: any) => pool.set(c.id, c));
-    console.log('DEBUG saved:', saved);
-    console.log('DEBUG pool size:', pool.size, 'pool keys sample:', Array.from(pool.keys()).slice(0,5));
     displayed = saved.map(id => pool.get(id)).filter(Boolean);
-    console.log('DEBUG displayed:', displayed.length);
   } else if (searchResults !== null) {
     displayed = searchResults;
     if (activeDenom !== 'All') {
@@ -221,21 +221,21 @@ export default function ChurchesScreen() {
             <Ionicons
               name={saved.includes(church.id) ? 'heart' : 'heart-outline'}
               size={16}
-              color={saved.includes(church.id) ? COLORS.red : '#fff'}
+              color={saved.includes(church.id) ? c.red : '#fff'}
             />
           </TouchableOpacity>
         </View>
         <View style={s.cardBody}>
           <Text style={s.churchName}>{church.name}</Text>
           <View style={s.addrRow}>
-            <Ionicons name="location-outline" size={13} color="#999" />
+            <Ionicons name="location-outline" size={13} color={c.textMuted} />
             <Text style={s.addrTxt} numberOfLines={1}>{church.address}</Text>
           </View>
           <View style={s.cardFooter}>
             <Text style={s.websiteTxt} numberOfLines={1}>{church.website || ''}</Text>
             <View style={s.detailsRow}>
               <Text style={s.detailsBtn}>{t('details')}</Text>
-              <Ionicons name="chevron-forward" size={13} color={COLORS.gold} />
+              <Ionicons name="chevron-forward" size={13} color={c.gold} />
             </View>
           </View>
         </View>
@@ -248,30 +248,30 @@ export default function ChurchesScreen() {
       <Header />
       <View style={s.searchSection}>
         <View style={s.locationRow}>
-          <Ionicons name="location-outline" size={16} color={COLORS.gold} />
+          <Ionicons name="location-outline" size={16} color={c.gold} />
           <Text style={s.locationTxt}>{locationLabel}</Text>
-          {loadingNearby && <ActivityIndicator size="small" color={COLORS.gold} style={{ marginLeft: 8 }} />}
+          {loadingNearby && <ActivityIndicator size="small" color={c.gold} style={{ marginLeft: 8 }} />}
         </View>
         <View style={s.searchRow}>
           <View style={s.searchBar}>
-            <Ionicons name="search-outline" size={18} color={COLORS.gold} />
+            <Ionicons name="search-outline" size={18} color={c.gold} />
             <TextInput
               style={s.searchInput}
               placeholder="Search city, state, zip, denomination..."
-              placeholderTextColor={COLORS.placeholder}
+              placeholderTextColor={c.placeholder}
               value={search}
               onChangeText={setSearch}
               returnKeyType="search"
             />
-            {searching && <ActivityIndicator size="small" color={COLORS.gold} />}
+            {searching && <ActivityIndicator size="small" color={c.gold} />}
             {search.length > 0 && !searching && (
               <TouchableOpacity onPress={() => { setSearch(''); setSearchResults(null); }}>
-                <Ionicons name="close-circle" size={18} color="#ccc" />
+                <Ionicons name="close-circle" size={18} color={c.placeholder} />
               </TouchableOpacity>
             )}
           </View>
           <TouchableOpacity style={[s.filterBtn, hasActiveFilter && s.filterBtnActive]} onPress={() => setFilterVisible(true)}>
-            <Ionicons name="options-outline" size={14} color={hasActiveFilter ? COLORS.white : '#555'} />
+            <Ionicons name="options-outline" size={14} color={hasActiveFilter ? c.onPrimary : c.textSecondary} />
             <Text style={[s.filterTxt, hasActiveFilter && s.filterTxtActive]}>
               Filter{activeFilterCount > 0 ? ` (${activeFilterCount})` : ''}
             </Text>
@@ -291,7 +291,7 @@ export default function ChurchesScreen() {
 
       <ScrollView style={s.scroll} showsVerticalScrollIndicator={false}>
         <View style={s.sectionHdr}>
-          <View style={s.greenPin}><Ionicons name="location" size={14} color={COLORS.green} /></View>
+          <View style={s.greenPin}><Ionicons name="location" size={14} color={c.green} /></View>
           <Text style={s.sectionTitle}>
             {activeTab === 'Saved' ? t('savedChurches') : searchResults !== null ? `${t('resultsFor')} "${search || activeState}"` : nearbyChurches !== null ? t('nearbyChurches') : t('allChurches')}
           </Text>
@@ -300,20 +300,20 @@ export default function ChurchesScreen() {
 
         {hasActiveFilter && activeState !== 'All States' && (
           <View style={s.activeFilterBar}>
-            <Ionicons name="filter" size={14} color={COLORS.gold} />
+            <Ionicons name="filter" size={14} color={c.gold} />
             <Text style={s.activeFilterTxt}>
               {activeState !== 'All States' ? activeState.split(' - ')[1] : ''}
               {activeDenom !== 'All' ? (activeState !== 'All States' ? ' · ' : '') + activeDenom : ''}
             </Text>
             <TouchableOpacity onPress={resetFilters}>
-              <Ionicons name="close-circle" size={16} color={COLORS.gold} />
+              <Ionicons name="close-circle" size={16} color={c.gold} />
             </TouchableOpacity>
           </View>
         )}
 
         {displayed.length === 0 && !searching && !loadingNearby && (
           <View style={s.emptyState}>
-            <Ionicons name={activeTab === 'Saved' ? 'heart-outline' : 'search-outline'} size={48} color="#ddd" />
+            <Ionicons name={activeTab === 'Saved' ? 'heart-outline' : 'search-outline'} size={48} color={c.placeholder} />
             <Text style={s.emptyTxt}>{activeTab === 'Saved' ? 'No saved churches yet' : 'No churches found'}</Text>
             <Text style={s.emptySub}>{activeTab === 'Saved' ? 'Tap the heart on a church to save it' : 'Try a different search'}</Text>
           </View>
@@ -364,7 +364,7 @@ export default function ChurchesScreen() {
               {STATES.map(state => (
                 <TouchableOpacity key={state} style={[s.stateRow, activeState===state && s.stateRowActive]} onPress={() => setActiveState(state)}>
                   <Text style={[s.stateTxt, activeState===state && s.stateTxtActive]}>{state}</Text>
-                  {activeState===state && <Ionicons name="checkmark" size={18} color={COLORS.gold} />}
+                  {activeState===state && <Ionicons name="checkmark" size={18} color={c.gold} />}
                 </TouchableOpacity>
               ))}
             </ScrollView>
@@ -379,74 +379,74 @@ export default function ChurchesScreen() {
   );
 }
 
-const s = StyleSheet.create({
-  root:{flex:1,backgroundColor:COLORS.white},
-  verseBar:{paddingHorizontal:20,paddingVertical:12,borderBottomWidth:1,borderBottomColor:COLORS.border},
-  verseTxt:{fontFamily:'PlayfairDisplay_400Regular_Italic',fontSize:13,color:'#888',textAlign:'center',lineHeight:20},
-  searchSection:{backgroundColor:COLORS.white,paddingHorizontal:16,paddingTop:12},
+const makeStyles = (c: ThemeColors) => StyleSheet.create({
+  root:{flex:1,backgroundColor:c.bg},
+  verseBar:{paddingHorizontal:20,paddingVertical:12,borderBottomWidth:1,borderBottomColor:c.border},
+  verseTxt:{fontFamily:'PlayfairDisplay_400Regular_Italic',fontSize:13,color:c.textMuted,textAlign:'center',lineHeight:20},
+  searchSection:{backgroundColor:c.card,paddingHorizontal:16,paddingTop:12},
   locationRow:{flexDirection:'row',alignItems:'center',gap:5,marginBottom:10},
-  locationTxt:{fontSize:13,color:'#666',fontWeight:'600'},
+  locationTxt:{fontSize:13,color:c.textSecondary,fontWeight:'600'},
   searchRow:{flexDirection:'row',gap:8,alignItems:'center',marginBottom:12},
-  searchBar:{flex:1,flexDirection:'row',alignItems:'center',gap:8,backgroundColor:COLORS.white,borderRadius:100,paddingHorizontal:14,paddingVertical:12,borderWidth:1.5,borderColor:'#e8e3da'},
-  searchInput:{flex:1,fontSize:13,color:COLORS.navy},
-  filterBtn:{flexDirection:'row',alignItems:'center',gap:5,backgroundColor:COLORS.lightBg,borderWidth:1.5,borderColor:'#e8e3da',borderRadius:100,paddingHorizontal:14,paddingVertical:12},
-  filterBtnActive:{backgroundColor:COLORS.navy,borderColor:COLORS.navy},
-  filterTxt:{fontSize:12,fontWeight:'600',color:'#555'},
-  filterTxtActive:{color:COLORS.white},
-  toggleRow:{paddingHorizontal:16,paddingBottom:12,backgroundColor:COLORS.white,borderBottomWidth:1,borderBottomColor:COLORS.border},
-  toggle:{flexDirection:'row',backgroundColor:'#f0ede8',borderRadius:100,padding:3,alignSelf:'center'},
+  searchBar:{flex:1,flexDirection:'row',alignItems:'center',gap:8,backgroundColor:c.card,borderRadius:100,paddingHorizontal:14,paddingVertical:12,borderWidth:1.5,borderColor:c.border},
+  searchInput:{flex:1,fontSize:13,color:c.text},
+  filterBtn:{flexDirection:'row',alignItems:'center',gap:5,backgroundColor:c.cardAlt,borderWidth:1.5,borderColor:c.border,borderRadius:100,paddingHorizontal:14,paddingVertical:12},
+  filterBtnActive:{backgroundColor:c.primary,borderColor:c.primary},
+  filterTxt:{fontSize:12,fontWeight:'600',color:c.textSecondary},
+  filterTxtActive:{color:c.onPrimary},
+  toggleRow:{paddingHorizontal:16,paddingBottom:12,backgroundColor:c.card,borderBottomWidth:1,borderBottomColor:c.border},
+  toggle:{flexDirection:'row',backgroundColor:c.cardAlt,borderRadius:100,padding:3,alignSelf:'center'},
   toggleBtn:{paddingHorizontal:32,paddingVertical:8,borderRadius:100},
-  toggleBtnActive:{backgroundColor:COLORS.white,shadowColor:'#000',shadowOffset:{width:0,height:1},shadowOpacity:0.1,shadowRadius:3},
-  toggleTxt:{fontSize:13,fontWeight:'600',color:'#888'},
-  toggleTxtActive:{color:COLORS.navy,fontWeight:'700'},
-  scroll:{flex:1,backgroundColor:COLORS.white},
+  toggleBtnActive:{backgroundColor:c.card,shadowColor:'#000',shadowOffset:{width:0,height:1},shadowOpacity:0.1,shadowRadius:3},
+  toggleTxt:{fontSize:13,fontWeight:'600',color:c.textMuted},
+  toggleTxtActive:{color:c.text,fontWeight:'700'},
+  scroll:{flex:1,backgroundColor:c.bg},
   sectionHdr:{flexDirection:'row',alignItems:'center',gap:8,paddingHorizontal:16,paddingVertical:14},
-  greenPin:{width:28,height:28,backgroundColor:COLORS.lightGreen,borderRadius:14,alignItems:'center',justifyContent:'center'},
-  sectionTitle:{fontSize:15,fontWeight:'700',color:COLORS.navy,flex:1},
-  sectionSub:{fontSize:13,color:'#999'},
-  activeFilterBar:{flexDirection:'row',alignItems:'center',gap:8,marginHorizontal:16,marginBottom:8,backgroundColor:'rgba(201,169,110,0.1)',borderRadius:10,paddingHorizontal:12,paddingVertical:8},
-  activeFilterTxt:{flex:1,fontSize:13,color:COLORS.gold,fontWeight:'600'},
+  greenPin:{width:28,height:28,backgroundColor:c.lightGreen,borderRadius:14,alignItems:'center',justifyContent:'center'},
+  sectionTitle:{fontSize:15,fontWeight:'700',color:c.text,flex:1},
+  sectionSub:{fontSize:13,color:c.textMuted},
+  activeFilterBar:{flexDirection:'row',alignItems:'center',gap:8,marginHorizontal:16,marginBottom:8,backgroundColor:'rgba(201,169,110,0.12)',borderRadius:10,paddingHorizontal:12,paddingVertical:8},
+  activeFilterTxt:{flex:1,fontSize:13,color:c.gold,fontWeight:'600'},
   emptyState:{alignItems:'center',paddingVertical:60,gap:10},
-  emptyTxt:{fontSize:16,fontWeight:'700',color:'#bbb'},
-  emptySub:{fontSize:13,color:'#ddd',textAlign:'center',paddingHorizontal:40},
-  card:{backgroundColor:COLORS.white,marginHorizontal:16,marginBottom:16,borderRadius:16,overflow:'hidden',borderWidth:1,borderColor:COLORS.border,shadowColor:'#000',shadowOffset:{width:0,height:2},shadowOpacity:0.06,shadowRadius:8,elevation:2},
+  emptyTxt:{fontSize:16,fontWeight:'700',color:c.textMuted},
+  emptySub:{fontSize:13,color:c.placeholder,textAlign:'center',paddingHorizontal:40},
+  card:{backgroundColor:c.card,marginHorizontal:16,marginBottom:16,borderRadius:16,overflow:'hidden',borderWidth:1,borderColor:c.border,shadowColor:'#000',shadowOffset:{width:0,height:2},shadowOpacity:0.06,shadowRadius:8,elevation:2},
   banner:{height:200,position:'relative'},
   bannerImg:{width:'100%',height:'100%'},
   loadingWrap:{flex:1,alignItems:'center',justifyContent:'center'},
-  nearbyBadge:{position:'absolute',top:12,right:12,backgroundColor:COLORS.green,borderRadius:6,paddingHorizontal:10,paddingVertical:4},
-  nearbyTxt:{color:COLORS.white,fontSize:11,fontWeight:'700',letterSpacing:0.5},
+  nearbyBadge:{position:'absolute',top:12,right:12,backgroundColor:c.green,borderRadius:6,paddingHorizontal:10,paddingVertical:4},
+  nearbyTxt:{color:'#fff',fontSize:11,fontWeight:'700',letterSpacing:0.5},
   ratingBadge:{position:'absolute',bottom:10,left:12,backgroundColor:'rgba(0,0,0,0.55)',borderRadius:8,paddingHorizontal:10,paddingVertical:5},
-  ratingTxt:{color:COLORS.white,fontSize:13,fontWeight:'700'},
+  ratingTxt:{color:'#fff',fontSize:13,fontWeight:'700'},
   savedIndicator:{position:'absolute',top:12,left:12,width:30,height:30,borderRadius:15,backgroundColor:'rgba(0,0,0,0.3)',alignItems:'center',justifyContent:'center'},
   cardBody:{padding:16},
-  churchName:{fontSize:18,fontWeight:'700',color:COLORS.navy,marginBottom:8},
+  churchName:{fontSize:18,fontWeight:'700',color:c.text,marginBottom:8},
   addrRow:{flexDirection:'row',alignItems:'center',gap:6,marginBottom:10},
-  addrTxt:{fontSize:13,color:'#666',flex:1},
-  cardFooter:{flexDirection:'row',justifyContent:'space-between',alignItems:'center',paddingTop:10,borderTopWidth:1,borderTopColor:COLORS.border},
-  websiteTxt:{fontSize:12,color:'#bbb',flex:1},
+  addrTxt:{fontSize:13,color:c.textSecondary,flex:1},
+  cardFooter:{flexDirection:'row',justifyContent:'space-between',alignItems:'center',paddingTop:10,borderTopWidth:1,borderTopColor:c.border},
+  websiteTxt:{fontSize:12,color:c.textMuted,flex:1},
   detailsRow:{flexDirection:'row',alignItems:'center',gap:2},
-  detailsBtn:{fontSize:13,fontWeight:'700',color:COLORS.gold},
-  overlay:{flex:1,backgroundColor:'rgba(0,0,0,0.4)'},
-  sheet:{backgroundColor:COLORS.white,borderTopLeftRadius:24,borderTopRightRadius:24,padding:24,paddingBottom:40,maxHeight:'85%'},
-  handle:{width:40,height:4,backgroundColor:'#ddd',borderRadius:2,alignSelf:'center',marginBottom:16},
+  detailsBtn:{fontSize:13,fontWeight:'700',color:c.gold},
+  overlay:{flex:1,backgroundColor:c.overlay},
+  sheet:{backgroundColor:c.card,borderTopLeftRadius:24,borderTopRightRadius:24,padding:24,paddingBottom:40,maxHeight:'85%'},
+  handle:{width:40,height:4,backgroundColor:c.border,borderRadius:2,alignSelf:'center',marginBottom:16},
   sheetHdr:{flexDirection:'row',justifyContent:'space-between',alignItems:'center',marginBottom:16},
-  sheetTitle:{fontSize:20,fontWeight:'700',color:COLORS.navy},
-  resetTxt:{fontSize:14,color:COLORS.gold,fontWeight:'600'},
-  sectionTabs:{flexDirection:'row',backgroundColor:'#f0ede8',borderRadius:100,padding:3,marginBottom:16},
+  sheetTitle:{fontSize:20,fontWeight:'700',color:c.text},
+  resetTxt:{fontSize:14,color:c.gold,fontWeight:'600'},
+  sectionTabs:{flexDirection:'row',backgroundColor:c.cardAlt,borderRadius:100,padding:3,marginBottom:16},
   sectionTab:{flex:1,paddingVertical:9,borderRadius:100,alignItems:'center'},
-  sectionTabActive:{backgroundColor:COLORS.white,shadowColor:'#000',shadowOffset:{width:0,height:1},shadowOpacity:0.1,shadowRadius:3},
-  sectionTabTxt:{fontSize:14,fontWeight:'600',color:'#888'},
-  sectionTabTxtActive:{color:COLORS.navy,fontWeight:'700'},
+  sectionTabActive:{backgroundColor:c.card,shadowColor:'#000',shadowOffset:{width:0,height:1},shadowOpacity:0.1,shadowRadius:3},
+  sectionTabTxt:{fontSize:14,fontWeight:'600',color:c.textMuted},
+  sectionTabTxtActive:{color:c.text,fontWeight:'700'},
   filterScroll:{maxHeight:320},
   denomGrid:{flexDirection:'row',flexWrap:'wrap',gap:8,paddingBottom:16},
-  denomBtn:{borderWidth:1.5,borderColor:COLORS.border,borderRadius:100,paddingHorizontal:14,paddingVertical:7},
-  denomBtnActive:{backgroundColor:COLORS.navy,borderColor:COLORS.navy},
-  denomTxt:{fontSize:13,fontWeight:'600',color:'#555'},
-  denomTxtActive:{color:COLORS.white},
-  stateRow:{flexDirection:'row',justifyContent:'space-between',alignItems:'center',paddingVertical:13,borderBottomWidth:1,borderBottomColor:'#f5f3ef'},
-  stateRowActive:{backgroundColor:'rgba(201,169,110,0.08)'},
-  stateTxt:{fontSize:15,color:'#444'},
-  stateTxtActive:{color:COLORS.navy,fontWeight:'700'},
-  applyBtn:{backgroundColor:COLORS.navy,borderRadius:100,paddingVertical:16,alignItems:'center',marginTop:16},
-  applyTxt:{color:COLORS.white,fontSize:15,fontWeight:'700'},
+  denomBtn:{borderWidth:1.5,borderColor:c.border,borderRadius:100,paddingHorizontal:14,paddingVertical:7},
+  denomBtnActive:{backgroundColor:c.primary,borderColor:c.primary},
+  denomTxt:{fontSize:13,fontWeight:'600',color:c.textSecondary},
+  denomTxtActive:{color:c.onPrimary},
+  stateRow:{flexDirection:'row',justifyContent:'space-between',alignItems:'center',paddingVertical:13,borderBottomWidth:1,borderBottomColor:c.rowBorder},
+  stateRowActive:{backgroundColor:'rgba(201,169,110,0.10)'},
+  stateTxt:{fontSize:15,color:c.textSecondary},
+  stateTxtActive:{color:c.text,fontWeight:'700'},
+  applyBtn:{backgroundColor:c.primary,borderRadius:100,paddingVertical:16,alignItems:'center',marginTop:16},
+  applyTxt:{color:c.onPrimary,fontSize:15,fontWeight:'700'},
 });

@@ -6,7 +6,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import Header from '../../src/components/Header';
-import { COLORS } from '../../src/lib/constants';
+import { useThemeColors, ThemeColors } from '../../src/lib/theme';
 import { useUser, setUser, getUser } from '../../src/lib/userStore';
 import { useActivity } from '../../src/lib/activityStore';
 import { useConnections, useConnectionCount, removeConnection } from '../../src/lib/connectionsStore';
@@ -35,6 +35,8 @@ const CHURCH_TABS = ['Posts', 'Events', 'Members'];
 const PERSONAL_TABS = ['Community Sharing'];
 
 export default function ProfileScreen() {
+  const c = useThemeColors();
+  const s = makeStyles(c);
   const user = useUser();
   const appSettings = useSettings();
   const { t } = useTranslation();
@@ -177,17 +179,17 @@ export default function ProfileScreen() {
                 {user.photos.map((_: any, i: number) => <View key={i} style={[s.dot, i===activePhoto && s.dotActive]} />)}
               </View>
               <TouchableOpacity style={s.addMorePhotosBtn} onPress={handleAddPhotoOptions}>
-                <Ionicons name="camera" size={16} color={COLORS.white} />
+                <Ionicons name="camera" size={16} color="#fff" />
                 <Text style={s.addMorePhotosTxt}>{t('addPhotos')}</Text>
               </TouchableOpacity>
             </View>
           ) : (
             <View style={{position:'relative'}}>
               <TouchableOpacity style={s.photoBanner} onPress={handleAddPhotoOptions} activeOpacity={0.85}>
-                <LinearGradient colors={[COLORS.navy, '#2d2240']} style={StyleSheet.absoluteFill} start={{x:0,y:0}} end={{x:1,y:1}} />
+                <LinearGradient colors={['#1a1a2e', '#2d2240']} style={StyleSheet.absoluteFill} start={{x:0,y:0}} end={{x:1,y:1}} />
                 <View style={s.photoUploadWrap}>
                   <View style={s.photoUploadIcon}>
-                    <Ionicons name="camera" size={28} color={COLORS.gold} />
+                    <Ionicons name="camera" size={28} color={c.gold} />
                   </View>
                   <Text style={s.photoUploadTitle}>{t('addChurchPhotos')}</Text>
                   <Text style={s.photoUploadSub}>{t('showChurchToCommunity')}</Text>
@@ -201,14 +203,14 @@ export default function ProfileScreen() {
           <View style={s.actionsRow}>
             <TouchableOpacity onPress={() => router.push('/edit-church-profile')}>
               <View style={s.editProfileBtn}>
-                <Ionicons name="pencil-outline" size={16} color={COLORS.navy} />
+                <Ionicons name="pencil-outline" size={16} color={c.text} />
                 <Text style={s.editProfileTxt}>{t('editProfile')}</Text>
               </View>
             </TouchableOpacity>
             <View style={s.actionIcons}>
               {user.verificationStatus === 'pending' && (
                 <View style={s.pendingBadge}>
-                  <Ionicons name="time-outline" size={12} color={COLORS.gold} />
+                  <Ionicons name="time-outline" size={12} color={c.gold} />
                   <Text style={s.pendingBadgeTxt}>{t('pending')}</Text>
                 </View>
               )}
@@ -227,8 +229,8 @@ export default function ProfileScreen() {
               {user.avatar ? (
                 <Image source={{uri:user.avatar}} style={s.churchAvatar} resizeMode="cover" />
               ) : (
-                <LinearGradient colors={[COLORS.navy, '#2d2240']} style={s.churchAvatar} start={{x:0,y:0}} end={{x:1,y:1}}>
-                  <Ionicons name="home" size={28} color={COLORS.gold} />
+                <LinearGradient colors={['#1a1a2e', '#2d2240']} style={s.churchAvatar} start={{x:0,y:0}} end={{x:1,y:1}}>
+                  <Ionicons name="home" size={28} color={c.gold} />
                 </LinearGradient>
               )}
               <View style={s.churchNames}>
@@ -236,7 +238,7 @@ export default function ProfileScreen() {
                 {!!user.denomination && <Text style={s.churchDenom}>{user.denomination}</Text>}
                 {appSettings.privacy.showLocation && (
                 <View style={s.locationRow}>
-                  <Ionicons name="location-outline" size={13} color="#888" />
+                  <Ionicons name="location-outline" size={13} color={c.textMuted} />
                   <Text style={s.locationTxt} numberOfLines={1}>{user.address || user.location || ''}</Text>
                 </View>
                 )}
@@ -246,7 +248,7 @@ export default function ProfileScreen() {
 
           {/* Stars */}
           <View style={s.starsRow}>
-            {[1,2,3,4,5].map(i => <Ionicons key={i} name="star-outline" size={18} color={COLORS.gold} />)}
+            {[1,2,3,4,5].map(i => <Ionicons key={i} name="star-outline" size={18} color={c.gold} />)}
             <Text style={s.ratingTxt}>{t('noReviewsYet')}</Text>
           </View>
 
@@ -259,7 +261,7 @@ export default function ProfileScreen() {
                 <View style={s.sectionHdr}>
                   <Text style={s.sectionTitle}>{t('about')}</Text>
                 </View>
-                <Text style={{fontSize:14,color:'#555',lineHeight:20}}>{user.bio}</Text>
+                <Text style={{fontSize:14,color:c.textSecondary,lineHeight:20}}>{user.bio}</Text>
               </View>
               <View style={s.divider} />
             </>
@@ -274,7 +276,7 @@ export default function ProfileScreen() {
 
               {/* Address */}
               <View style={s.infoRow}>
-                <View style={s.infoIconWrap}><Ionicons name="location-outline" size={18} color={user.address ? COLORS.navy : '#bbb'} /></View>
+                <View style={s.infoIconWrap}><Ionicons name="location-outline" size={18} color={user.address ? c.text : c.placeholder} /></View>
                 <View style={s.infoContent}>
                   <Text style={s.infoLabel}>{t('address')}</Text>
                   {!!user.address && <Text style={s.infoValue}>{user.address}</Text>}
@@ -289,7 +291,7 @@ export default function ProfileScreen() {
 
               {/* Phone */}
               <TouchableOpacity style={s.infoRow} onPress={handlePhone} activeOpacity={user.phone ? 0.7 : 1}>
-                <View style={s.infoIconWrap}><Ionicons name="call-outline" size={18} color={user.phone ? COLORS.navy : '#bbb'} /></View>
+                <View style={s.infoIconWrap}><Ionicons name="call-outline" size={18} color={user.phone ? c.text : c.placeholder} /></View>
                 <View style={s.infoContent}>
                   <Text style={s.infoLabel}>{t('phone')}</Text>
                   {!!user.phone && <Text style={[s.infoValue, s.tappable]}>{user.phone}</Text>}
@@ -300,7 +302,7 @@ export default function ProfileScreen() {
 
               {/* Website */}
               <TouchableOpacity style={s.infoRow} onPress={handleWebsite} activeOpacity={user.website ? 0.7 : 1}>
-                <View style={s.infoIconWrap}><Ionicons name="globe-outline" size={18} color={user.website ? COLORS.navy : '#bbb'} /></View>
+                <View style={s.infoIconWrap}><Ionicons name="globe-outline" size={18} color={user.website ? c.text : c.placeholder} /></View>
                 <View style={s.infoContent}>
                   <Text style={s.infoLabel}>{t('website')}</Text>
                   {!!user.website && <Text style={[s.infoValue, s.goldTxt]} numberOfLines={1}>{user.website.replace(/^https?:\/\//,'').replace(/\/$/,'')}</Text>}
@@ -311,7 +313,7 @@ export default function ProfileScreen() {
 
               {/* Email */}
               <TouchableOpacity style={s.infoRow} onPress={handleEmail} activeOpacity={user.churchEmail ? 0.7 : 1}>
-                <View style={s.infoIconWrap}><Ionicons name="mail-outline" size={18} color={user.churchEmail ? COLORS.navy : '#bbb'} /></View>
+                <View style={s.infoIconWrap}><Ionicons name="mail-outline" size={18} color={user.churchEmail ? c.text : c.placeholder} /></View>
                 <View style={s.infoContent}>
                   <Text style={s.infoLabel}>{t('email')}</Text>
                   {!!user.churchEmail && <Text style={[s.infoValue, s.tappable]}>{user.churchEmail}</Text>}
@@ -322,7 +324,7 @@ export default function ProfileScreen() {
 
               {/* Service Times */}
               <View style={s.infoRow}>
-                <View style={s.infoIconWrap}><Ionicons name="time-outline" size={18} color={user.serviceTimes ? COLORS.navy : '#bbb'} /></View>
+                <View style={s.infoIconWrap}><Ionicons name="time-outline" size={18} color={user.serviceTimes ? c.text : c.placeholder} /></View>
                 <View style={s.infoContent}>
                   <Text style={s.infoLabel}>{t('serviceTimes')}</Text>
                   {!!user.serviceTimes && user.serviceTimes.split('\n').map((line: string, i: number) => {
@@ -330,7 +332,7 @@ export default function ProfileScreen() {
                     return (
                       <View key={i} style={{marginBottom: i < user.serviceTimes.split('\n').length - 1 ? 6 : 0}}>
                         <Text style={s.infoValue}>{timePart}</Text>
-                        {!!notePart && <Text style={{fontSize:12,color:'#999',marginTop:1}}>{notePart}</Text>}
+                        {!!notePart && <Text style={{fontSize:12,color:c.textMuted,marginTop:1}}>{notePart}</Text>}
                       </View>
                     );
                   })}
@@ -351,13 +353,13 @@ export default function ProfileScreen() {
                 <View style={s.chipsWrap}>
                   {(user.ministries || []).map((name: string) => (
                     <View key={`ministry-${name}`} style={s.chip}>
-                      <Ionicons name="pricetag-outline" size={14} color={COLORS.navy} />
+                      <Ionicons name="pricetag-outline" size={14} color={c.text} />
                       <Text style={s.chipTxt}>{name}</Text>
                     </View>
                   ))}
                   {AMENITY_LIST.filter(item => !!user.amenities?.[item.key]).map(item => (
                     <View key={`amenity-${item.key}`} style={s.chip}>
-                      <Ionicons name={item.icon as any} size={14} color={COLORS.navy} />
+                      <Ionicons name={item.icon as any} size={14} color={c.text} />
                       <Text style={s.chipTxt}>{item.label}</Text>
                     </View>
                   ))}
@@ -390,7 +392,7 @@ export default function ProfileScreen() {
             const result = await ImagePicker.launchImageLibraryAsync({mediaTypes:ImagePicker.MediaTypeOptions.Images,allowsEditing:true,aspect:[16,9],quality:0.8});
             if (!result.canceled) setUser({coverPhoto:result.assets[0].uri});
           }}>
-            <Ionicons name="camera-outline" size={14} color={COLORS.white} />
+            <Ionicons name="camera-outline" size={14} color="#fff" />
             <Text style={s.addCoverTxt}>{user.coverPhoto ? 'Change cover' : 'Add cover'}</Text>
           </TouchableOpacity>
           <View style={s.avatarWrap}>
@@ -406,8 +408,8 @@ export default function ProfileScreen() {
                     <Text style={s.avatarTxt}>{user.firstName?.[0]?.toUpperCase()||'A'}{user.lastName?.[0]?.toUpperCase()||'J'}</Text>
                   </View>
               }
-              <View style={{position:'absolute',bottom:0,right:0,width:24,height:24,borderRadius:12,backgroundColor:COLORS.navy,borderWidth:2,borderColor:COLORS.white,alignItems:'center',justifyContent:'center'}}>
-                <Ionicons name="camera" size={12} color={COLORS.white}/>
+              <View style={{position:'absolute',bottom:0,right:0,width:24,height:24,borderRadius:12,backgroundColor:c.navy,borderWidth:2,borderColor:c.card,alignItems:'center',justifyContent:'center'}}>
+                <Ionicons name="camera" size={12} color="#fff"/>
               </View>
             </TouchableOpacity>
           </View>
@@ -415,19 +417,19 @@ export default function ProfileScreen() {
         <View style={s.personalInfo}>
           <Text style={s.name}>{user.firstName || 'Annie'} {user.lastName || 'Johnson'}</Text>
           {!!user.bio && (
-            <Text style={{fontSize:14,color:'#555',textAlign:'center',lineHeight:20,marginTop:4,marginBottom:14,paddingHorizontal:8}}>{user.bio}</Text>
+            <Text style={{fontSize:14,color:c.textSecondary,textAlign:'center',lineHeight:20,marginTop:4,marginBottom:14,paddingHorizontal:8}}>{user.bio}</Text>
           )}
           <View style={{flexDirection:'row',alignItems:'center',gap:16,marginBottom:14}}>
             <TouchableOpacity style={{flexDirection:'row',alignItems:'center',gap:5}} onPress={() => router.push('/connections' as any)}>
-              <Ionicons name="people-outline" size={14} color="#888" />
-              <Text style={{fontSize:13,color:'#888'}}>{connectionCount}</Text>
+              <Ionicons name="people-outline" size={14} color={c.textMuted} />
+              <Text style={{fontSize:13,color:c.textMuted}}>{connectionCount}</Text>
             </TouchableOpacity>
             {appSettings.privacy.showLocation && !!user.location && (
               <>
-                <View style={{width:1,height:12,backgroundColor:'#e5e0d8'}} />
+                <View style={{width:1,height:12,backgroundColor:c.border}} />
                 <View style={{flexDirection:'row',alignItems:'center',gap:4}}>
-                  <Ionicons name="location-outline" size={14} color="#888" />
-                  <Text style={{fontSize:13,color:'#888'}}>{user.location.split(',').slice(0,2).join(',').trim()}</Text>
+                  <Ionicons name="location-outline" size={14} color={c.textMuted} />
+                  <Text style={{fontSize:13,color:c.textMuted}}>{user.location.split(',').slice(0,2).join(',').trim()}</Text>
                 </View>
               </>
             )}
@@ -440,7 +442,7 @@ export default function ProfileScreen() {
             </View>
           )}
           <TouchableOpacity style={s.editBtn} onPress={() => router.push('/edit-profile' as any)}>
-            <Ionicons name="pencil-outline" size={16} color={COLORS.navy}/>
+            <Ionicons name="pencil-outline" size={16} color={c.text}/>
             <Text style={s.editTxt}>{t('editProfile')}</Text>
           </TouchableOpacity>
 
@@ -452,7 +454,7 @@ export default function ProfileScreen() {
           </View>
 
           <TouchableOpacity onPress={() => router.push('/activity' as any)} style={{marginTop:14}}>
-            <Text style={{fontSize:13,fontWeight:'600',color:COLORS.gold}}>{t('seeActivity')}</Text>
+            <Text style={{fontSize:13,fontWeight:'600',color:c.gold}}>{t('seeActivity')}</Text>
           </TouchableOpacity>
         </View>
 
@@ -463,7 +465,7 @@ export default function ProfileScreen() {
             <View style={s.section}>
               <View style={s.sectionHdr}>
                 <View style={{flexDirection:'row',alignItems:'center'}}>
-                  <Ionicons name="images-outline" size={16} color={COLORS.navy} style={{marginRight:6}} />
+                  <Ionicons name="images-outline" size={16} color={c.text} style={{marginRight:6}} />
                   <Text style={s.sectionTitle}>{t('faithGallery')}</Text>
                 </View>
               </View>
@@ -473,14 +475,14 @@ export default function ProfileScreen() {
                   const fullIndex = galleryPhotos.indexOf(uri);
                   return (
                     <TouchableOpacity key={uri} onPress={() => { setPhotoViewerIndex(fullIndex); setPhotoViewerVisible(true); }} activeOpacity={0.85}>
-                      <Image source={{uri}} style={{width:thumbSize,height:thumbSize,borderRadius:8,backgroundColor:'#f5f3ef'}} resizeMode="cover" />
+                      <Image source={{uri}} style={{width:thumbSize,height:thumbSize,borderRadius:8,backgroundColor:c.cardAlt}} resizeMode="cover" />
                     </TouchableOpacity>
                   );
                 })}
               </View>
               {galleryPhotos.length > 3 && (
                 <TouchableOpacity onPress={() => setShowAllGallery(!showAllGallery)} style={{marginTop:10,alignSelf:'flex-start'}}>
-                  <Text style={{fontSize:13,fontWeight:'600',color:COLORS.gold}}>
+                  <Text style={{fontSize:13,fontWeight:'600',color:c.gold}}>
                     {showAllGallery ? 'Show Less' : `See More (${galleryPhotos.length - 3})`}
                   </Text>
                 </TouchableOpacity>
@@ -557,7 +559,7 @@ export default function ProfileScreen() {
         {(
           myPosts.length === 0 ? (
             <View style={s.emptyState}>
-              <Ionicons name="book-outline" size={40} color="#ddd" />
+              <Ionicons name="book-outline" size={40} color={c.placeholder} />
               <Text style={s.emptyTxt}>{t('nothingSharedYet')}</Text>
               <Text style={s.emptySub}>Scriptures, testimonies, and reflections you share will appear here</Text>
             </View>
@@ -588,6 +590,7 @@ export default function ProfileScreen() {
 
 
 function ActivityTabContent() {
+  const c = useThemeColors();
   const activity = useActivity();
   const { attending: myAttendingEvents } = useEventActions();
   const allEvents = useEvents ? useEvents() : [];
@@ -596,7 +599,7 @@ function ActivityTabContent() {
   const TYPE_CONFIG = {
     like: { icon: 'heart', color: '#e74c6f', label: 'Liked a post' },
     comment: { icon: 'chatbubble', color: '#667eea', label: 'Commented on a post' },
-    attending: { icon: 'calendar', color: COLORS.gold, label: 'Attending an event' },
+    attending: { icon: 'calendar', color: c.gold, label: 'Attending an event' },
   };
 
   // Merge likes/comments with attended events into one chronological list
@@ -616,9 +619,9 @@ function ActivityTabContent() {
   if (allActivity.length === 0) {
     return (
       <View style={{ paddingVertical: 60, alignItems: 'center', gap: 10 }}>
-        <Ionicons name="pulse-outline" size={40} color="#ddd" />
-        <Text style={{ fontSize: 15, fontWeight: '600', color: '#999' }}>{t('noActivityYet')}</Text>
-        <Text style={{ fontSize: 13, color: '#bbb', textAlign: 'center', paddingHorizontal: 40 }}>
+        <Ionicons name="pulse-outline" size={40} color={c.placeholder} />
+        <Text style={{ fontSize: 15, fontWeight: '600', color: c.textMuted }}>{t('noActivityYet')}</Text>
+        <Text style={{ fontSize: 13, color: c.textMuted, textAlign: 'center', paddingHorizontal: 40 }}>
           Like posts, leave comments, or attend events to see your activity here.
         </Text>
       </View>
@@ -630,14 +633,14 @@ function ActivityTabContent() {
       {allActivity.map(item => {
         if (item.type === 'attending') {
           return (
-            <View key={item.id} style={{ marginHorizontal: 14, marginBottom: 14, backgroundColor: COLORS.white, borderRadius: 22, padding: 18, shadowColor: '#1a1a2e', shadowOffset: {width:0,height:2}, shadowOpacity: 0.06, shadowRadius: 10 }}>
+            <View key={item.id} style={{ marginHorizontal: 14, marginBottom: 14, backgroundColor: c.card, borderRadius: 22, padding: 18, shadowColor: '#000', shadowOffset: {width:0,height:2}, shadowOpacity: 0.06, shadowRadius: 10 }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                <View style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: 'rgba(201,169,110,0.12)', alignItems: 'center', justifyContent: 'center' }}>
-                  <Ionicons name="calendar" size={18} color={COLORS.gold} />
+                <View style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: 'rgba(201,169,110,0.16)', alignItems: 'center', justifyContent: 'center' }}>
+                  <Ionicons name="calendar" size={18} color={c.gold} />
                 </View>
                 <View style={{ flex: 1 }}>
-                  <Text style={{ fontSize: 13, color: '#888', marginBottom: 2 }}>{t('attendingEvent')}</Text>
-                  <Text style={{ fontSize: 14, fontWeight: '700', color: COLORS.navy }}>{item.eventTitle}</Text>
+                  <Text style={{ fontSize: 13, color: c.textMuted, marginBottom: 2 }}>{t('attendingEvent')}</Text>
+                  <Text style={{ fontSize: 14, fontWeight: '700', color: c.text }}>{item.eventTitle}</Text>
                 </View>
               </View>
             </View>
@@ -661,8 +664,8 @@ function ActivityTabContent() {
   );
 }
 
-const s = StyleSheet.create({
-  root:{flex:1,backgroundColor:COLORS.white},
+const makeStyles = (c: ThemeColors) => StyleSheet.create({
+  root:{flex:1,backgroundColor:c.bg},
   // Gallery
   coverIconBtn:{width:36,height:36,borderRadius:18,backgroundColor:'rgba(0,0,0,0.4)',alignItems:'center',justifyContent:'center'},
   galleryWrap:{height:320,position:'relative'},
@@ -670,112 +673,112 @@ const s = StyleSheet.create({
   dot:{width:6,height:6,borderRadius:3,backgroundColor:'rgba(255,255,255,0.4)'},
   dotActive:{backgroundColor:'#fff',width:18},
   addMorePhotosBtn:{position:'absolute',top:12,right:12,flexDirection:'row',alignItems:'center',gap:6,backgroundColor:'rgba(0,0,0,0.5)',borderRadius:12,paddingHorizontal:12,paddingVertical:7},
-  addMorePhotosTxt:{color:COLORS.white,fontSize:12,fontWeight:'600'},
+  addMorePhotosTxt:{color:'#fff',fontSize:12,fontWeight:'600'},
   photoBanner:{height:380,alignItems:'center',justifyContent:'center'},
   photoUploadWrap:{alignItems:'center',gap:8},
   photoUploadIcon:{width:64,height:64,borderRadius:18,backgroundColor:'rgba(201,169,110,0.2)',alignItems:'center',justifyContent:'center'},
-  photoUploadTitle:{fontSize:16,fontWeight:'700',color:COLORS.white},
+  photoUploadTitle:{fontSize:16,fontWeight:'700',color:'#fff'},
   photoUploadSub:{fontSize:13,color:'rgba(255,255,255,0.6)'},
   // Actions row
   actionsRow:{flexDirection:'row',justifyContent:'space-between',alignItems:'center',paddingHorizontal:16,paddingVertical:12},
-  editProfileBtn:{flexDirection:'row',alignItems:'center',gap:7,borderWidth:1.5,borderColor:COLORS.border,borderRadius:12,paddingHorizontal:16,paddingVertical:9},
-  editProfileTxt:{fontSize:14,fontWeight:'700',color:COLORS.navy},
+  editProfileBtn:{flexDirection:'row',alignItems:'center',gap:7,borderWidth:1.5,borderColor:c.border,borderRadius:12,paddingHorizontal:16,paddingVertical:9},
+  editProfileTxt:{fontSize:14,fontWeight:'700',color:c.text},
   actionIcons:{flexDirection:'row',alignItems:'center',gap:10},
-  actionIconBtn:{width:38,height:38,borderRadius:12,borderWidth:1.5,borderColor:COLORS.border,alignItems:'center',justifyContent:'center'},
-  pendingBadge:{flexDirection:'row',alignItems:'center',gap:4,backgroundColor:'rgba(201,169,110,0.12)',borderRadius:100,paddingHorizontal:10,paddingVertical:5},
-  pendingBadgeTxt:{fontSize:11,fontWeight:'700',color:COLORS.gold},
-  verifiedBadge:{flexDirection:'row',alignItems:'center',gap:4,backgroundColor:COLORS.green,borderRadius:100,paddingHorizontal:10,paddingVertical:5},
+  actionIconBtn:{width:38,height:38,borderRadius:12,borderWidth:1.5,borderColor:c.border,alignItems:'center',justifyContent:'center'},
+  pendingBadge:{flexDirection:'row',alignItems:'center',gap:4,backgroundColor:'rgba(201,169,110,0.16)',borderRadius:100,paddingHorizontal:10,paddingVertical:5},
+  pendingBadgeTxt:{fontSize:11,fontWeight:'700',color:c.gold},
+  verifiedBadge:{flexDirection:'row',alignItems:'center',gap:4,backgroundColor:c.green,borderRadius:100,paddingHorizontal:10,paddingVertical:5},
   verifiedBadgeTxt:{fontSize:11,fontWeight:'700',color:'#fff'},
   // Church identity
   churchIdentity:{paddingHorizontal:16,paddingBottom:12},
   churchAvatarRow:{flexDirection:'row',alignItems:'flex-start',gap:14,marginBottom:16},
   churchAvatar:{width:72,height:72,borderRadius:18,alignItems:'center',justifyContent:'center'},
   churchNames:{flex:1},
-  churchName:{fontFamily:'PlayfairDisplay_700Bold',fontSize:20,color:COLORS.navy,marginBottom:3},
-  churchDenom:{fontSize:13,color:COLORS.gold,fontWeight:'600',marginBottom:4},
+  churchName:{fontFamily:'PlayfairDisplay_700Bold',fontSize:20,color:c.text,marginBottom:3},
+  churchDenom:{fontSize:13,color:c.gold,fontWeight:'600',marginBottom:4},
   locationRow:{flexDirection:'row',alignItems:'center',justifyContent:'center',gap:4,alignSelf:'center'},
-  locationTxt:{fontSize:13,color:'#888',flex:1},
-  statsRow:{flexDirection:'row',backgroundColor:COLORS.lightBg,borderRadius:16,paddingVertical:12},
+  locationTxt:{fontSize:13,color:c.textMuted,flex:1},
+  statsRow:{flexDirection:'row',backgroundColor:c.cardAlt,borderRadius:16,paddingVertical:12},
   stat:{flex:1,alignItems:'center'},
-  statN:{fontSize:18,fontWeight:'700',color:COLORS.navy},
-  statL:{fontSize:10,color:'#aaa'},
+  statN:{fontSize:18,fontWeight:'700',color:c.text},
+  statL:{fontSize:10,color:c.textMuted},
   // Stars
   starsRow:{flexDirection:'row',alignItems:'center',gap:4,paddingHorizontal:16,marginBottom:8,flexWrap:'wrap'},
-  ratingTxt:{fontSize:13,color:'#aaa',marginLeft:4},
+  ratingTxt:{fontSize:13,color:c.textMuted,marginLeft:4},
   writeReviewBtn:{marginLeft:'auto'},
-  writeReviewTxt:{fontSize:13,color:COLORS.gold,fontWeight:'700'},
-  divider:{height:1,backgroundColor:COLORS.border,marginHorizontal:16,marginVertical:16},
+  writeReviewTxt:{fontSize:13,color:c.gold,fontWeight:'700'},
+  divider:{height:1,backgroundColor:c.border,marginHorizontal:16,marginVertical:16},
   // Section
   section:{paddingHorizontal:16,marginBottom:4},
   sectionHdr:{flexDirection:'row',justifyContent:'space-between',alignItems:'center',marginBottom:14},
-  sectionTitle:{fontSize:17,fontWeight:'700',color:COLORS.navy},
-  sectionSub:{fontSize:12,color:'#bbb'},
-  editLink:{fontSize:13,color:COLORS.gold,fontWeight:'700'},
+  sectionTitle:{fontSize:17,fontWeight:'700',color:c.text},
+  sectionSub:{fontSize:12,color:c.textMuted},
+  editLink:{fontSize:13,color:c.gold,fontWeight:'700'},
   // Info card
-  infoCard:{borderWidth:1,borderColor:COLORS.border,borderRadius:16,overflow:'hidden'},
+  infoCard:{borderWidth:1,borderColor:c.border,borderRadius:16,overflow:'hidden'},
   infoRow:{flexDirection:'row',alignItems:'center',paddingHorizontal:16,paddingVertical:14,gap:12},
-  infoDivider:{height:1,backgroundColor:'#f5f3ef',marginLeft:62},
-  infoIconWrap:{width:36,height:36,borderRadius:10,backgroundColor:COLORS.lightBg,alignItems:'center',justifyContent:'center'},
+  infoDivider:{height:1,backgroundColor:c.rowBorder,marginLeft:62},
+  infoIconWrap:{width:36,height:36,borderRadius:10,backgroundColor:c.cardAlt,alignItems:'center',justifyContent:'center'},
   infoContent:{flex:1},
-  infoLabel:{fontSize:11,color:'#bbb',fontWeight:'600',textTransform:'uppercase',letterSpacing:0.4,marginBottom:2},
-  infoValue:{fontSize:14,color:COLORS.navy,fontWeight:'500'},
-  tappable:{color:COLORS.navy,fontWeight:'600'},
-  goldTxt:{color:COLORS.gold},
-  muted:{color:'#bbb',fontSize:13},
-  infoBadge:{backgroundColor:COLORS.navy,borderRadius:100,paddingHorizontal:12,paddingVertical:7},
-  infoBadgeTxt:{color:'#fff',fontSize:12,fontWeight:'700'},
-  callBadge:{backgroundColor:'#e8f5e9',borderRadius:100,paddingHorizontal:12,paddingVertical:7},
-  callBadgeTxt:{color:COLORS.green,fontSize:12,fontWeight:'700'},
-  visitBadge:{backgroundColor:'rgba(201,169,110,0.12)',borderRadius:100,paddingHorizontal:12,paddingVertical:7},
-  visitBadgeTxt:{color:COLORS.gold,fontSize:12,fontWeight:'700'},
+  infoLabel:{fontSize:11,color:c.textMuted,fontWeight:'600',textTransform:'uppercase',letterSpacing:0.4,marginBottom:2},
+  infoValue:{fontSize:14,color:c.text,fontWeight:'500'},
+  tappable:{color:c.text,fontWeight:'600'},
+  goldTxt:{color:c.gold},
+  muted:{color:c.textMuted,fontSize:13},
+  infoBadge:{backgroundColor:c.primary,borderRadius:100,paddingHorizontal:12,paddingVertical:7},
+  infoBadgeTxt:{color:c.onPrimary,fontSize:12,fontWeight:'700'},
+  callBadge:{backgroundColor:c.lightGreen,borderRadius:100,paddingHorizontal:12,paddingVertical:7},
+  callBadgeTxt:{color:c.green,fontSize:12,fontWeight:'700'},
+  visitBadge:{backgroundColor:'rgba(201,169,110,0.16)',borderRadius:100,paddingHorizontal:12,paddingVertical:7},
+  visitBadgeTxt:{color:c.gold,fontSize:12,fontWeight:'700'},
   // Amenities
-  amenitiesCard:{borderWidth:1,borderColor:COLORS.border,borderRadius:16,overflow:'hidden'},
+  amenitiesCard:{borderWidth:1,borderColor:c.border,borderRadius:16,overflow:'hidden'},
   amenityRow:{flexDirection:'row',alignItems:'center',justifyContent:'space-between',paddingHorizontal:16,paddingVertical:14},
-  amenityBorder:{borderBottomWidth:1,borderBottomColor:'#f5f3ef'},
+  amenityBorder:{borderBottomWidth:1,borderBottomColor:c.rowBorder},
   amenityLeft:{flexDirection:'row',alignItems:'center',gap:12},
-  amenityIconWrap:{width:36,height:36,borderRadius:10,backgroundColor:COLORS.lightBg,alignItems:'center',justifyContent:'center'},
-  amenityIconWrapActive:{backgroundColor:'rgba(26,26,46,0.08)'},
-  amenityTxt:{fontSize:14,color:COLORS.navy,fontWeight:'500'},
-  amenityTxtInactive:{color:'#bbb'},
+  amenityIconWrap:{width:36,height:36,borderRadius:10,backgroundColor:c.cardAlt,alignItems:'center',justifyContent:'center'},
+  amenityIconWrapActive:{backgroundColor:'rgba(124,131,255,0.14)'},
+  amenityTxt:{fontSize:14,color:c.text,fontWeight:'500'},
+  amenityTxtInactive:{color:c.textMuted},
   // Ministries & Amenities chips
   chipsWrap:{flexDirection:'row',flexWrap:'wrap',gap:8},
-  chip:{flexDirection:'row',alignItems:'center',gap:6,paddingHorizontal:14,paddingVertical:8,borderRadius:100,backgroundColor:COLORS.lightBg,borderWidth:1,borderColor:COLORS.border},
-  chipTxt:{fontSize:13,fontWeight:'600',color:COLORS.navy},
+  chip:{flexDirection:'row',alignItems:'center',gap:6,paddingHorizontal:14,paddingVertical:8,borderRadius:100,backgroundColor:c.cardAlt,borderWidth:1,borderColor:c.border},
+  chipTxt:{fontSize:13,fontWeight:'600',color:c.text},
   // Tabs
-  tabsRow:{flexDirection:'row',borderTopWidth:1,borderBottomWidth:1,borderColor:COLORS.border},
+  tabsRow:{flexDirection:'row',borderTopWidth:1,borderBottomWidth:1,borderColor:c.border},
   tab:{flex:1,paddingVertical:14,alignItems:'center',borderBottomWidth:2,borderBottomColor:'transparent'},
-  tabActive:{borderBottomColor:COLORS.navy},
-  tabTxt:{fontSize:14,fontWeight:'600',color:'#999'},
-  tabTxtActive:{color:COLORS.navy,fontWeight:'700'},
+  tabActive:{borderBottomColor:c.primary},
+  tabTxt:{fontSize:14,fontWeight:'600',color:c.textMuted},
+  tabTxtActive:{color:c.text,fontWeight:'700'},
   emptyState:{paddingVertical:40,alignItems:'center',gap:8,paddingHorizontal:40},
-  emptyTxt:{fontSize:15,color:'#bbb',fontWeight:'600'},
-  emptySub:{fontSize:13,color:'#ddd',textAlign:'center',lineHeight:18},
+  emptyTxt:{fontSize:15,color:c.textMuted,fontWeight:'600'},
+  emptySub:{fontSize:13,color:c.placeholder,textAlign:'center',lineHeight:18},
   // Personal
   coverWrap:{position:'relative',height:220,marginBottom:50,overflow:'visible'},
-  cover:{width:'100%',height:200,backgroundColor:COLORS.navy},
+  cover:{width:'100%',height:200,backgroundColor:c.navy},
   addCoverBtn:{position:'absolute',bottom:50,left:12,flexDirection:'row',alignItems:'center',gap:5,backgroundColor:'rgba(0,0,0,0.4)',borderRadius:8,paddingHorizontal:10,paddingVertical:5},
-  addCoverTxt:{color:COLORS.white,fontSize:12},
+  addCoverTxt:{color:'#fff',fontSize:12},
   avatarWrap:{position:'absolute',bottom:-45,left:0,right:0,alignItems:'center'},
-  avatar:{width:90,height:90,borderRadius:45,backgroundColor:COLORS.navy,borderWidth:3,borderColor:COLORS.white,alignItems:'center',justifyContent:'center',shadowColor:'#000',shadowOffset:{width:0,height:2},shadowOpacity:0.15,shadowRadius:6},
-  avatarTxt:{color:COLORS.white,fontSize:32,fontWeight:'700'},
+  avatar:{width:90,height:90,borderRadius:45,backgroundColor:c.navy,borderWidth:3,borderColor:c.card,alignItems:'center',justifyContent:'center',shadowColor:'#000',shadowOffset:{width:0,height:2},shadowOpacity:0.15,shadowRadius:6},
+  avatarTxt:{color:'#fff',fontSize:32,fontWeight:'700'},
   personalInfo:{paddingHorizontal:16,alignItems:'center',paddingBottom:16},
-  name:{fontFamily:'PlayfairDisplay_700Bold',fontSize:22,color:COLORS.navy,marginBottom:4},
+  name:{fontFamily:'PlayfairDisplay_700Bold',fontSize:22,color:c.text,marginBottom:4},
   connectionsRow:{flexDirection:'row',alignItems:'center',marginBottom:16},
-  connectionsNum:{fontSize:15,fontWeight:'700',color:COLORS.navy},
-  connectionsTxt:{fontSize:15,color:'#888'},
-  churchPill:{flexDirection:'row',alignItems:'center',gap:8,backgroundColor:COLORS.lightBg,borderRadius:100,paddingHorizontal:16,paddingVertical:10,marginBottom:12,borderWidth:1,borderColor:COLORS.border},
-  churchPillTxt:{fontSize:14,color:COLORS.navy,fontWeight:'600'},
+  connectionsNum:{fontSize:15,fontWeight:'700',color:c.text},
+  connectionsTxt:{fontSize:15,color:c.textMuted},
+  churchPill:{flexDirection:'row',alignItems:'center',gap:8,backgroundColor:c.cardAlt,borderRadius:100,paddingHorizontal:16,paddingVertical:10,marginBottom:12,borderWidth:1,borderColor:c.border},
+  churchPillTxt:{fontSize:14,color:c.text,fontWeight:'600'},
   ministriesRow:{flexDirection:'row',flexWrap:'wrap',gap:10,marginBottom:14},
-  ministryTag:{borderWidth:1.5,borderColor:COLORS.gold,borderRadius:100,paddingHorizontal:16,paddingVertical:6},
-  ministryTagTxt:{fontSize:13,color:COLORS.gold,fontWeight:'600'},
-  editBtn:{flexDirection:'row',alignItems:'center',gap:8,borderWidth:1,borderColor:COLORS.border,borderRadius:12,paddingHorizontal:20,paddingVertical:12,marginBottom:16,width:'100%',justifyContent:'center'},
-  activityBtn:{flexDirection:'row',alignItems:'center',justifyContent:'space-between',borderWidth:1,borderColor:COLORS.border,borderRadius:16,paddingHorizontal:16,paddingVertical:16},
-  editTxt:{fontSize:15,fontWeight:'700',color:COLORS.navy},
+  ministryTag:{borderWidth:1.5,borderColor:c.gold,borderRadius:100,paddingHorizontal:16,paddingVertical:6},
+  ministryTagTxt:{fontSize:13,color:c.gold,fontWeight:'600'},
+  editBtn:{flexDirection:'row',alignItems:'center',gap:8,borderWidth:1,borderColor:c.border,borderRadius:12,paddingHorizontal:20,paddingVertical:12,marginBottom:16,width:'100%',justifyContent:'center'},
+  activityBtn:{flexDirection:'row',alignItems:'center',justifyContent:'space-between',borderWidth:1,borderColor:c.border,borderRadius:16,paddingHorizontal:16,paddingVertical:16},
+  editTxt:{fontSize:15,fontWeight:'700',color:c.text},
   verseWrap:{alignItems:'center',paddingHorizontal:16},
-  verseItalic:{fontFamily:'PlayfairDisplay_400Regular_Italic',fontSize:14,color:'#555',textAlign:'center',lineHeight:22,marginBottom:4},
+  verseItalic:{fontFamily:'PlayfairDisplay_400Regular_Italic',fontSize:14,color:c.textSecondary,textAlign:'center',lineHeight:22,marginBottom:4},
   verseRefRow:{flexDirection:'row',alignItems:'center',gap:6},
-  verseRef:{fontSize:13,color:COLORS.gold,fontWeight:'700'},
+  verseRef:{fontSize:13,color:c.gold,fontWeight:'700'},
   // Sign out
-  signOutBtn:{flexDirection:'row',alignItems:'center',justifyContent:'center',gap:8,marginHorizontal:16,marginTop:16,padding:14,borderRadius:16,borderWidth:1,borderColor:'#fee2e2',backgroundColor:'#fff5f5'},
-  signOutTxt:{fontSize:14,fontWeight:'700',color:COLORS.red},
+  signOutBtn:{flexDirection:'row',alignItems:'center',justifyContent:'center',gap:8,marginHorizontal:16,marginTop:16,padding:14,borderRadius:16,borderWidth:1,borderColor:'rgba(231,76,111,0.3)',backgroundColor:'rgba(231,76,111,0.08)'},
+  signOutTxt:{fontSize:14,fontWeight:'700',color:c.red},
 });
