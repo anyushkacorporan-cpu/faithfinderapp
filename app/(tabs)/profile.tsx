@@ -433,6 +433,15 @@ export default function ProfileScreen() {
                 </View>
               </>
             )}
+            {!appSettings.privacy.publicProfile && (
+              <>
+                <View style={{width:1,height:12,backgroundColor:c.border}} />
+                <View style={{flexDirection:'row',alignItems:'center',gap:4}}>
+                  <Ionicons name="lock-closed" size={13} color={c.gold} />
+                  <Text style={{fontSize:13,color:c.gold,fontWeight:'600'}}>Private</Text>
+                </View>
+              </>
+            )}
           </View>
           {user.ministries && user.ministries.length > 0 && (
             <View style={s.ministriesRow}>

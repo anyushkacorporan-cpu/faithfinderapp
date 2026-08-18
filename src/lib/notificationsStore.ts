@@ -1,4 +1,24 @@
 import { useState, useEffect } from 'react';
+import { getSettings, useSettings, NotificationPrefs } from './settingsStore';
+
+// Maps each notification type to the preference toggle that controls it
+// (Settings → Notification Preferences). When a toggle is off, notifications
+// of that type are hidden from the list and the unread badge, and no new ones
+// of that type are created.
+const TYPE_PREF: Record<Notification['type'], keyof NotificationPrefs> = {
+  like: 'likes',
+  comment: 'comments',
+  share: 'shares',
+  church_post: 'churchPosts',
+  event: 'events',
+  invite: 'invites',
+  verification: 'verification',
+};
+
+function isTypeEnabled(type: Notification['type'], prefs = getSettings().notifications): boolean {
+  const key = TYPE_PREF[type];
+  return key ? prefs[key] !== false : true;
+}
 
 export type Notification = {
   id: string;
@@ -97,28 +117,32 @@ export function markAllRead() {
 }
 
 export function addNotification(notif: Omit<Notification, 'id' | 'read'>) {
+  // Respect the user's notification preferences: skip types they've turned off.
+  if (!isTypeEnabled(notif.type)) return;
   notifications = [{ ...notif, id: Date.now().toString(), read: false }, ...notifications];
   notify();
 }
 
 export function useNotifications() {
+  const settings = useSettings(); // re-render when preferences change
   const [state, setState] = useState(getNotifications());
   useEffect(() => {
     const fn = () => setState(getNotifications());
     listeners.push(fn);
     return () => { const i = listeners.indexOf(fn); if (i > -1) listeners.splice(i, 1); };
   }, []);
-  return state;
+  return state.filter(n => isTypeEnabled(n.type, settings.notifications));
 }
 
 export function useUnreadCount() {
-  const [count, setCount] = useState(getUnreadCount());
+  const settings = useSettings(); // re-render when preferences change
+  const [notifs, setNotifs] = useState(getNotifications());
   useEffect(() => {
-    const fn = () => setCount(getUnreadCount());
+    const fn = () => setNotifs(getNotifications());
     listeners.push(fn);
     return () => { const i = listeners.indexOf(fn); if (i > -1) listeners.splice(i, 1); };
   }, []);
-  return count;
+  return notifs.filter(n => isTypeEnabled(n.type, settings.notifications) && !n.read).length;
 }
 
 export function clearAllNotifications() {

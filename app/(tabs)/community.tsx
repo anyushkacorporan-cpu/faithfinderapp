@@ -42,11 +42,18 @@ export default function CommunityScreen() {
   const initials = (user.accountType === 'church'
     ? (user.churchName?.[0] || 'C')
     : ((user.firstName?.[0] || 'Y') + (user.lastName?.[0] || ''))).toUpperCase();
+  // When "Public Profile" is off, the user's own posts are kept out of the
+  // public Discover feed (strangers can't see them) — they still show under
+  // "For You" for the user and their connections.
+  const isPublicProfile = appSettings.privacy.publicProfile;
   const posts = activeTab === 'foryou'
     ? allPosts.filter(p =>
         p.authorName === displayName || connectedNames.includes(p.authorName)
       )
-    : allPosts.filter(p => p.feed === 'discover' || p.feed === 'both');
+    : allPosts.filter(p =>
+        (p.feed === 'discover' || p.feed === 'both') &&
+        !(!isPublicProfile && p.authorName === displayName)
+      );
 
   const [showCreate, setShowCreate] = useState(false);
   const [menuPost, setMenuPost] = useState<Post | null>(null);
