@@ -1,7 +1,7 @@
 import { createContext, useContext, useState } from 'react';
 import { View, Text, TouchableOpacity, Modal, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { COLORS } from '../lib/constants';
+import { useThemeColors, ThemeColors } from '../lib/theme';
 
 type ConfirmButton = {
   text: string;
@@ -26,6 +26,8 @@ export function useConfirm() {
 }
 
 export function ConfirmProvider({ children }: { children: React.ReactNode }) {
+  const c = useThemeColors();
+  const s = makeStyles(c);
   const [options, setOptions] = useState<ConfirmOptions | null>(null);
 
   function showConfirm(opts: ConfirmOptions) {
@@ -45,7 +47,7 @@ export function ConfirmProvider({ children }: { children: React.ReactNode }) {
           <View style={s.card}>
             {options?.buttons.some(b => b.style === 'destructive') && (
               <View style={s.iconWrap}>
-                <Ionicons name="alert-circle" size={28} color={COLORS.red} />
+                <Ionicons name="alert-circle" size={28} color={c.red} />
               </View>
             )}
             <Text style={s.title}>{options?.title}</Text>
@@ -78,22 +80,23 @@ export function ConfirmProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
-const s = StyleSheet.create({
-  overlay: { flex: 1, backgroundColor: 'rgba(26,26,46,0.45)', alignItems: 'center', justifyContent: 'center', padding: 24 },
+const makeStyles = (c: ThemeColors) => StyleSheet.create({
+  overlay: { flex: 1, backgroundColor: c.overlay, alignItems: 'center', justifyContent: 'center', padding: 24 },
   card: {
-    backgroundColor: COLORS.white, borderRadius: 24, padding: 24, width: '100%', maxWidth: 340,
+    backgroundColor: c.card, borderRadius: 24, padding: 24, width: '100%', maxWidth: 340,
     alignItems: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.2, shadowRadius: 24,
+    borderWidth: c.isDark ? 1 : 0, borderColor: c.border,
   },
-  iconWrap: { width: 52, height: 52, borderRadius: 26, backgroundColor: 'rgba(231,76,111,0.1)', alignItems: 'center', justifyContent: 'center', marginBottom: 12 },
-  title: { fontSize: 17, fontWeight: '700', color: COLORS.navy, textAlign: 'center', marginBottom: 6 },
-  message: { fontSize: 14, color: '#777', textAlign: 'center', lineHeight: 20, marginBottom: 20 },
+  iconWrap: { width: 52, height: 52, borderRadius: 26, backgroundColor: 'rgba(231,76,111,0.12)', alignItems: 'center', justifyContent: 'center', marginBottom: 12 },
+  title: { fontSize: 17, fontWeight: '700', color: c.text, textAlign: 'center', marginBottom: 6 },
+  message: { fontSize: 14, color: c.textSecondary, textAlign: 'center', lineHeight: 20, marginBottom: 20 },
   btnRow: { flexDirection: 'row', gap: 10, width: '100%', marginTop: 4 },
   btn: { flex: 1, paddingVertical: 13, borderRadius: 14, alignItems: 'center' },
-  btnDefault: { backgroundColor: COLORS.navy },
-  btnCancel: { backgroundColor: '#f0ede8' },
-  btnDestructive: { backgroundColor: '#fee2e2' },
+  btnDefault: { backgroundColor: c.primary },
+  btnCancel: { backgroundColor: c.cardAlt },
+  btnDestructive: { backgroundColor: 'rgba(231,76,111,0.15)' },
   btnTxt: { fontSize: 15, fontWeight: '700' },
-  btnTxtDefault: { color: COLORS.white },
-  btnTxtCancel: { color: COLORS.navy },
-  btnTxtDestructive: { color: COLORS.red },
+  btnTxtDefault: { color: c.onPrimary },
+  btnTxtCancel: { color: c.text },
+  btnTxtDestructive: { color: c.red },
 });

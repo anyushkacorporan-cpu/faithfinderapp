@@ -3,7 +3,7 @@ import { Swipeable, GestureHandlerRootView } from 'react-native-gesture-handler'
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { COLORS } from '../src/lib/constants';
+import { useThemeColors, ThemeColors } from '../src/lib/theme';
 import { useNotifications, useUnreadCount, markRead, markAllRead, clearAllNotifications, clearNotification } from '../src/lib/notificationsStore';
 
 const TYPE_LABELS: Record<string, string> = {
@@ -12,6 +12,8 @@ const TYPE_LABELS: Record<string, string> = {
 };
 
 export default function NotificationsScreen() {
+  const c = useThemeColors();
+  const s = makeStyles(c);
   const notifications = useNotifications();
   const unread = useUnreadCount();
 
@@ -31,7 +33,7 @@ export default function NotificationsScreen() {
     <SafeAreaView style={s.root} edges={['top']}>
       <View style={s.hdr}>
         <TouchableOpacity style={s.backBtn} onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={22} color={COLORS.navy} />
+          <Ionicons name="arrow-back" size={22} color={c.text} />
         </TouchableOpacity>
         <Text style={s.hdrTitle}>Notifications</Text>
         <View style={s.hdrRight}>
@@ -50,7 +52,7 @@ export default function NotificationsScreen() {
 
       {notifications.length === 0 ? (
         <View style={s.emptyNotifs}>
-          <Ionicons name="notifications-outline" size={48} color="#ddd" />
+          <Ionicons name="notifications-outline" size={48} color={c.placeholder} />
           <Text style={s.emptyNotifsTxt}>No notifications yet</Text>
         </View>
       ) : (
@@ -87,7 +89,7 @@ export default function NotificationsScreen() {
                     <Text style={s.notifTime}>{n.time}</Text>
                   </View>
                 </View>
-                <Ionicons name="chevron-forward" size={16} color="#ddd" />
+                <Ionicons name="chevron-forward" size={16} color={c.placeholder} />
               </TouchableOpacity>
             </Swipeable>
           ))}
@@ -99,30 +101,30 @@ export default function NotificationsScreen() {
   );
 }
 
-const s = StyleSheet.create({
-  root:{flex:1,backgroundColor:COLORS.white},
-  hdr:{flexDirection:'row',alignItems:'center',justifyContent:'space-between',paddingHorizontal:16,paddingVertical:12,borderBottomWidth:1,borderBottomColor:COLORS.border},
-  backBtn:{width:36,height:36,borderRadius:12,backgroundColor:COLORS.lightBg,alignItems:'center',justifyContent:'center'},
-  hdrTitle:{fontSize:18,fontWeight:'700',color:COLORS.navy},
+const makeStyles = (c: ThemeColors) => StyleSheet.create({
+  root:{flex:1,backgroundColor:c.card},
+  hdr:{flexDirection:'row',alignItems:'center',justifyContent:'space-between',paddingHorizontal:16,paddingVertical:12,borderBottomWidth:1,borderBottomColor:c.border},
+  backBtn:{width:36,height:36,borderRadius:12,backgroundColor:c.cardAlt,alignItems:'center',justifyContent:'center'},
+  hdrTitle:{fontSize:18,fontWeight:'700',color:c.text},
   hdrRight:{flexDirection:'row',alignItems:'center',gap:8},
-  markAllBtn:{backgroundColor:COLORS.lightBg,borderRadius:100,paddingHorizontal:10,paddingVertical:6},
-  markAllTxt:{fontSize:11,fontWeight:'600',color:COLORS.navy},
+  markAllBtn:{backgroundColor:c.cardAlt,borderRadius:100,paddingHorizontal:10,paddingVertical:6},
+  markAllTxt:{fontSize:11,fontWeight:'600',color:c.text},
   clearAllBtn:{backgroundColor:'rgba(231,76,111,0.1)',borderRadius:100,paddingHorizontal:10,paddingVertical:6},
-  clearAllTxt:{fontSize:11,fontWeight:'600',color:COLORS.red},
+  clearAllTxt:{fontSize:11,fontWeight:'600',color:c.red},
   emptyNotifs:{flex:1,alignItems:'center',justifyContent:'center',gap:10,paddingBottom:100},
-  emptyNotifsTxt:{fontSize:14,color:'#bbb',fontWeight:'600'},
-  notifRow:{flexDirection:'row',alignItems:'center',gap:12,paddingVertical:14,borderBottomWidth:1,borderBottomColor:'#f5f3ef'},
+  emptyNotifsTxt:{fontSize:14,color:c.textMuted,fontWeight:'600'},
+  notifRow:{flexDirection:'row',alignItems:'center',gap:12,paddingVertical:14,borderBottomWidth:1,borderBottomColor:c.cardAlt},
   deleteAction:{backgroundColor:'#ef4444',justifyContent:'center',alignItems:'center',width:80,gap:4},
   deleteActionTxt:{color:'#fff',fontSize:11,fontWeight:'700'},
   notifRowUnread:{backgroundColor:'rgba(201,169,110,0.04)'},
   notifIconWrap:{width:46,height:46,borderRadius:14,alignItems:'center',justifyContent:'center',flexShrink:0},
   notifContent:{flex:1},
   notifTopRow:{flexDirection:'row',alignItems:'center',gap:6,marginBottom:3},
-  notifTitle:{fontSize:14,fontWeight:'700',color:COLORS.navy,flex:1},
-  unreadDot:{width:8,height:8,borderRadius:4,backgroundColor:COLORS.gold,flexShrink:0},
-  notifBody:{fontSize:13,color:'#666',lineHeight:18,marginBottom:6},
+  notifTitle:{fontSize:14,fontWeight:'700',color:c.text,flex:1},
+  unreadDot:{width:8,height:8,borderRadius:4,backgroundColor:c.gold,flexShrink:0},
+  notifBody:{fontSize:13,color:c.textSecondary,lineHeight:18,marginBottom:6},
   notifBottomRow:{flexDirection:'row',alignItems:'center',justifyContent:'space-between'},
   typePill:{borderRadius:100,paddingHorizontal:8,paddingVertical:3},
   typePillTxt:{fontSize:10,fontWeight:'700'},
-  notifTime:{fontSize:11,color:'#bbb'},
+  notifTime:{fontSize:11,color:c.textMuted},
 });

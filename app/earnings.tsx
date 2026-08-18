@@ -4,7 +4,7 @@ import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { COLORS } from '../src/lib/constants';
+import { useThemeColors, ThemeColors } from '../src/lib/theme';
 import { useUserEvents, getEarnings } from '../src/lib/eventsStore';
 
 function formatCurrency(n: number): string {
@@ -17,6 +17,8 @@ const WITHDRAWAL_HISTORY = [
 ];
 
 export default function EarningsScreen() {
+  const c = useThemeColors();
+  const s = makeStyles(c);
   const events = useUserEvents();
   const earnings = getEarnings();
   const [activeTab, setActiveTab] = useState('Overview');
@@ -36,7 +38,7 @@ export default function EarningsScreen() {
     <SafeAreaView style={s.root} edges={['top']}>
       <View style={s.hdr}>
         <TouchableOpacity style={s.backBtn} onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={20} color={COLORS.navy} />
+          <Ionicons name="arrow-back" size={20} color={c.text} />
         </TouchableOpacity>
         <Text style={s.hdrTitle}>Earnings</Text>
         <View style={{width:36}} />
@@ -56,7 +58,7 @@ export default function EarningsScreen() {
         {activeTab === 'Overview' && (
           <>
             {/* Total earnings hero */}
-            <LinearGradient colors={[COLORS.navy, '#2d2240']} style={s.heroCard} start={{x:0,y:0}} end={{x:1,y:1}}>
+            <LinearGradient colors={[c.navy, '#2d2240']} style={s.heroCard} start={{x:0,y:0}} end={{x:1,y:1}}>
               <Text style={s.heroLabel}>Total Net Revenue</Text>
               <Text style={s.heroAmount}>${earnings.netRevenue.toFixed(2)}</Text>
               <View style={s.heroRow}>
@@ -81,11 +83,11 @@ export default function EarningsScreen() {
             <View style={s.statsGrid}>
               {[
                 { label: 'Gross Revenue', value: formatCurrency(earnings.grossRevenue), icon: 'trending-up', color: '#667eea' },
-                { label: 'Platform Fees', value: formatCurrency(earnings.totalFees), icon: 'remove-circle', color: COLORS.red },
-                { label: 'Net Revenue', value: formatCurrency(earnings.netRevenue), icon: 'checkmark-circle', color: COLORS.green },
-                { label: 'Pending Payout', value: formatCurrency(earnings.pendingPayout), icon: 'time', color: COLORS.gold },
+                { label: 'Platform Fees', value: formatCurrency(earnings.totalFees), icon: 'remove-circle', color: c.red },
+                { label: 'Net Revenue', value: formatCurrency(earnings.netRevenue), icon: 'checkmark-circle', color: c.green },
+                { label: 'Pending Payout', value: formatCurrency(earnings.pendingPayout), icon: 'time', color: c.gold },
                 { label: 'Completed Payout', value: formatCurrency(earnings.completedPayout), icon: 'wallet', color: '#43e97b' },
-                { label: 'Total Events', value: String(events.length), icon: 'calendar', color: COLORS.navy },
+                { label: 'Total Events', value: String(events.length), icon: 'calendar', color: c.text },
               ].map((stat, i) => (
                 <View key={i} style={s.statCard}>
                   <View style={[s.statIcon, {backgroundColor: stat.color + '18'}]}>
@@ -118,7 +120,7 @@ export default function EarningsScreen() {
 
             {events.length === 0 && (
               <View style={s.empty}>
-                <Ionicons name="cash-outline" size={48} color="#ddd" />
+                <Ionicons name="cash-outline" size={48} color={c.placeholder} />
                 <Text style={s.emptyTxt}>No earnings yet</Text>
                 <Text style={s.emptySub}>Create a paid event to start earning</Text>
                 <TouchableOpacity style={s.createBtn} onPress={() => router.push('/create-event')}>
@@ -135,7 +137,7 @@ export default function EarningsScreen() {
               <Text style={s.balanceLbl}>Available Balance</Text>
               <Text style={s.balanceAmt}>${earnings.pendingPayout.toFixed(2)}</Text>
               <TouchableOpacity style={s.withdrawBtn} onPress={handleWithdraw}>
-                <Ionicons name="arrow-up-circle" size={18} color={COLORS.white} />
+                <Ionicons name="arrow-up-circle" size={18} color={c.onPrimary} />
                 <Text style={s.withdrawBtnTxt}>Request Withdrawal</Text>
               </TouchableOpacity>
             </View>
@@ -144,7 +146,7 @@ export default function EarningsScreen() {
             {WITHDRAWAL_HISTORY.map(w => (
               <View key={w.id} style={s.withdrawalRow}>
                 <View style={[s.withdrawalIcon, {backgroundColor: w.status === 'completed' ? '#e8f5e9' : '#fff3e0'}]}>
-                  <Ionicons name={w.status === 'completed' ? 'checkmark-circle' : 'time'} size={20} color={w.status === 'completed' ? COLORS.green : COLORS.gold} />
+                  <Ionicons name={w.status === 'completed' ? 'checkmark-circle' : 'time'} size={20} color={w.status === 'completed' ? c.green : c.gold} />
                 </View>
                 <View style={s.withdrawalInfo}>
                   <Text style={s.withdrawalMethod}>{w.method}</Text>
@@ -153,7 +155,7 @@ export default function EarningsScreen() {
                 <View style={s.withdrawalRight}>
                   <Text style={s.withdrawalAmt}>${w.amount.toFixed(2)}</Text>
                   <View style={[s.withdrawalStatus, {backgroundColor: w.status === 'completed' ? '#e8f5e9' : '#fff3e0'}]}>
-                    <Text style={[s.withdrawalStatusTxt, {color: w.status === 'completed' ? COLORS.green : COLORS.gold}]}>{w.status}</Text>
+                    <Text style={[s.withdrawalStatusTxt, {color: w.status === 'completed' ? c.green : c.gold}]}>{w.status}</Text>
                   </View>
                 </View>
               </View>
@@ -167,7 +169,7 @@ export default function EarningsScreen() {
             <View style={s.payoutCard}>
               <View style={s.payoutCardHdr}>
                 <View style={[s.payoutIcon, {backgroundColor:'#e8f5e9'}]}>
-                  <Ionicons name="business-outline" size={22} color={COLORS.green} />
+                  <Ionicons name="business-outline" size={22} color={c.green} />
                 </View>
                 <View>
                   <Text style={s.payoutCardTitle}>Bank Account</Text>
@@ -185,7 +187,7 @@ export default function EarningsScreen() {
                     <TextInput
                       style={s.payoutInput}
                       placeholder={field.placeholder}
-                      placeholderTextColor={COLORS.placeholder}
+                      placeholderTextColor={c.placeholder}
                       value={field.value}
                       onChangeText={field.onChange}
                       secureTextEntry={field.label !== 'Bank Name'}
@@ -201,7 +203,7 @@ export default function EarningsScreen() {
 
             <View style={s.stripeConnectCard}>
               <View style={s.stripeConnectHdr}>
-                <Ionicons name="card-outline" size={24} color={COLORS.gold} />
+                <Ionicons name="card-outline" size={24} color={c.gold} />
                 <View style={{flex:1}}>
                   <Text style={s.stripeConnectTitle}>Connect Stripe Account</Text>
                   <Text style={s.stripeConnectSub}>For instant, secure payouts</Text>
@@ -210,7 +212,7 @@ export default function EarningsScreen() {
               </View>
               <Text style={s.stripeConnectDesc}>Connect your Stripe account to receive automatic payouts within 2-3 business days after each event.</Text>
               <TouchableOpacity style={s.stripeConnectBtn} onPress={() => Alert.alert('Connect Stripe', 'You will be redirected to Stripe to connect your account.')}>
-                <Ionicons name="link-outline" size={16} color={COLORS.white} />
+                <Ionicons name="link-outline" size={16} color={c.onPrimary} />
                 <Text style={s.stripeConnectBtnTxt}>Connect Stripe Account</Text>
               </TouchableOpacity>
             </View>
@@ -225,76 +227,76 @@ export default function EarningsScreen() {
 
 import { TextInput } from 'react-native';
 
-const s = StyleSheet.create({
-  root:{flex:1,backgroundColor:'#f8f7f4'},
-  hdr:{flexDirection:'row',alignItems:'center',justifyContent:'space-between',paddingHorizontal:16,paddingVertical:12,borderBottomWidth:1,borderBottomColor:COLORS.border,backgroundColor:COLORS.white},
-  backBtn:{width:36,height:36,borderRadius:18,backgroundColor:COLORS.lightBg,alignItems:'center',justifyContent:'center'},
-  hdrTitle:{fontSize:16,fontWeight:'700',color:COLORS.navy},
-  tabsRow:{flexDirection:'row',backgroundColor:COLORS.white,borderBottomWidth:1,borderBottomColor:COLORS.border},
+const makeStyles = (c: ThemeColors) => StyleSheet.create({
+  root:{flex:1,backgroundColor:c.bg},
+  hdr:{flexDirection:'row',alignItems:'center',justifyContent:'space-between',paddingHorizontal:16,paddingVertical:12,borderBottomWidth:1,borderBottomColor:c.border,backgroundColor:c.card},
+  backBtn:{width:36,height:36,borderRadius:18,backgroundColor:c.cardAlt,alignItems:'center',justifyContent:'center'},
+  hdrTitle:{fontSize:16,fontWeight:'700',color:c.text},
+  tabsRow:{flexDirection:'row',backgroundColor:c.card,borderBottomWidth:1,borderBottomColor:c.border},
   tab:{flex:1,paddingVertical:12,alignItems:'center',borderBottomWidth:2,borderBottomColor:'transparent'},
-  tabActive:{borderBottomColor:COLORS.navy},
-  tabTxt:{fontSize:13,fontWeight:'600',color:'#aaa'},
-  tabTxtActive:{color:COLORS.navy,fontWeight:'700'},
+  tabActive:{borderBottomColor:c.navy},
+  tabTxt:{fontSize:13,fontWeight:'600',color:c.textMuted},
+  tabTxtActive:{color:c.text,fontWeight:'700'},
   scroll:{flex:1},
   heroCard:{margin:16,borderRadius:20,padding:20},
   heroLabel:{fontSize:12,color:'rgba(255,255,255,0.7)',fontWeight:'600',textTransform:'uppercase',letterSpacing:0.5,marginBottom:4},
-  heroAmount:{fontSize:36,fontWeight:'700',color:COLORS.white,marginBottom:16,fontFamily:'PlayfairDisplay_700Bold'},
+  heroAmount:{fontSize:36,fontWeight:'700',color:c.onPrimary,marginBottom:16,fontFamily:'PlayfairDisplay_700Bold'},
   heroRow:{flexDirection:'row',alignItems:'center'},
   heroStat:{flex:1,alignItems:'center'},
-  heroStatVal:{fontSize:18,fontWeight:'700',color:COLORS.white},
+  heroStatVal:{fontSize:18,fontWeight:'700',color:c.onPrimary},
   heroStatLbl:{fontSize:11,color:'rgba(255,255,255,0.6)',marginTop:2},
   heroStatDivider:{width:1,height:30,backgroundColor:'rgba(255,255,255,0.2)'},
   statsGrid:{flexDirection:'row',flexWrap:'wrap',paddingHorizontal:16,gap:10,marginBottom:8},
-  statCard:{width:'47%',backgroundColor:COLORS.white,borderRadius:14,padding:14,borderWidth:1,borderColor:COLORS.border,alignItems:'center',gap:6},
+  statCard:{width:'47%',backgroundColor:c.card,borderRadius:14,padding:14,borderWidth:1,borderColor:c.border,alignItems:'center',gap:6},
   statIcon:{width:36,height:36,borderRadius:10,alignItems:'center',justifyContent:'center'},
-  statVal:{fontSize:16,fontWeight:'700',color:COLORS.navy},
-  statLbl:{fontSize:10,color:'#aaa',textAlign:'center'},
+  statVal:{fontSize:16,fontWeight:'700',color:c.text},
+  statLbl:{fontSize:10,color:c.textMuted,textAlign:'center'},
   section:{paddingHorizontal:16,marginBottom:16},
-  sectionTitle:{fontSize:16,fontWeight:'700',color:COLORS.navy,paddingHorizontal:16,marginBottom:12,marginTop:4},
-  eventRow:{flexDirection:'row',alignItems:'center',backgroundColor:COLORS.white,borderRadius:12,padding:14,marginBottom:8,borderWidth:1,borderColor:COLORS.border},
+  sectionTitle:{fontSize:16,fontWeight:'700',color:c.text,paddingHorizontal:16,marginBottom:12,marginTop:4},
+  eventRow:{flexDirection:'row',alignItems:'center',backgroundColor:c.card,borderRadius:12,padding:14,marginBottom:8,borderWidth:1,borderColor:c.border},
   eventRowInfo:{flex:1},
-  eventRowTitle:{fontSize:14,fontWeight:'700',color:COLORS.navy},
-  eventRowDate:{fontSize:12,color:'#aaa',marginTop:2},
+  eventRowTitle:{fontSize:14,fontWeight:'700',color:c.text},
+  eventRowDate:{fontSize:12,color:c.textMuted,marginTop:2},
   eventRowStats:{alignItems:'flex-end'},
-  eventRowTickets:{fontSize:12,color:'#aaa'},
-  eventRowRevenue:{fontSize:15,fontWeight:'700',color:COLORS.green},
+  eventRowTickets:{fontSize:12,color:c.textMuted},
+  eventRowRevenue:{fontSize:15,fontWeight:'700',color:c.green},
   empty:{paddingVertical:50,alignItems:'center',gap:10},
-  emptyTxt:{fontSize:16,fontWeight:'700',color:'#bbb'},
-  emptySub:{fontSize:13,color:'#ddd'},
-  createBtn:{marginTop:8,backgroundColor:COLORS.navy,borderRadius:100,paddingHorizontal:24,paddingVertical:12},
-  createBtnTxt:{color:COLORS.white,fontWeight:'700',fontSize:14},
-  balanceCard:{margin:16,backgroundColor:COLORS.navy,borderRadius:20,padding:20,alignItems:'center'},
+  emptyTxt:{fontSize:16,fontWeight:'700',color:c.textMuted},
+  emptySub:{fontSize:13,color:c.placeholder},
+  createBtn:{marginTop:8,backgroundColor:c.primary,borderRadius:100,paddingHorizontal:24,paddingVertical:12},
+  createBtnTxt:{color:c.onPrimary,fontWeight:'700',fontSize:14},
+  balanceCard:{margin:16,backgroundColor:c.primary,borderRadius:20,padding:20,alignItems:'center'},
   balanceLbl:{fontSize:13,color:'rgba(255,255,255,0.7)',marginBottom:8},
-  balanceAmt:{fontSize:40,fontWeight:'700',color:COLORS.white,marginBottom:20,fontFamily:'PlayfairDisplay_700Bold'},
+  balanceAmt:{fontSize:40,fontWeight:'700',color:c.onPrimary,marginBottom:20,fontFamily:'PlayfairDisplay_700Bold'},
   withdrawBtn:{flexDirection:'row',alignItems:'center',gap:8,backgroundColor:'rgba(255,255,255,0.15)',borderRadius:100,paddingHorizontal:24,paddingVertical:12},
-  withdrawBtnTxt:{color:COLORS.white,fontSize:15,fontWeight:'700'},
-  withdrawalRow:{flexDirection:'row',alignItems:'center',gap:12,backgroundColor:COLORS.white,borderRadius:12,padding:14,marginHorizontal:16,marginBottom:8,borderWidth:1,borderColor:COLORS.border},
+  withdrawBtnTxt:{color:c.onPrimary,fontSize:15,fontWeight:'700'},
+  withdrawalRow:{flexDirection:'row',alignItems:'center',gap:12,backgroundColor:c.card,borderRadius:12,padding:14,marginHorizontal:16,marginBottom:8,borderWidth:1,borderColor:c.border},
   withdrawalIcon:{width:40,height:40,borderRadius:12,alignItems:'center',justifyContent:'center'},
   withdrawalInfo:{flex:1},
-  withdrawalMethod:{fontSize:14,fontWeight:'600',color:COLORS.navy},
-  withdrawalDate:{fontSize:12,color:'#aaa',marginTop:2},
+  withdrawalMethod:{fontSize:14,fontWeight:'600',color:c.text},
+  withdrawalDate:{fontSize:12,color:c.textMuted,marginTop:2},
   withdrawalRight:{alignItems:'flex-end'},
-  withdrawalAmt:{fontSize:15,fontWeight:'700',color:COLORS.navy,marginBottom:4},
+  withdrawalAmt:{fontSize:15,fontWeight:'700',color:c.text,marginBottom:4},
   withdrawalStatus:{borderRadius:100,paddingHorizontal:8,paddingVertical:3},
   withdrawalStatusTxt:{fontSize:11,fontWeight:'700'},
-  payoutCard:{margin:16,backgroundColor:COLORS.white,borderRadius:16,padding:16,borderWidth:1,borderColor:COLORS.border},
+  payoutCard:{margin:16,backgroundColor:c.card,borderRadius:16,padding:16,borderWidth:1,borderColor:c.border},
   payoutCardHdr:{flexDirection:'row',alignItems:'center',gap:12,marginBottom:16},
   payoutIcon:{width:44,height:44,borderRadius:12,alignItems:'center',justifyContent:'center'},
-  payoutCardTitle:{fontSize:15,fontWeight:'700',color:COLORS.navy},
-  payoutCardSub:{fontSize:12,color:'#888',marginTop:2},
+  payoutCardTitle:{fontSize:15,fontWeight:'700',color:c.text},
+  payoutCardSub:{fontSize:12,color:c.textMuted,marginTop:2},
   payoutField:{marginBottom:14},
-  payoutFieldLabel:{fontSize:13,fontWeight:'600',color:'#444',marginBottom:8},
-  payoutInputWrap:{borderWidth:1.5,borderColor:COLORS.border,borderRadius:12,overflow:'hidden'},
-  payoutInput:{paddingHorizontal:14,paddingVertical:13,fontSize:14,color:COLORS.navy},
-  savePayoutBtn:{backgroundColor:COLORS.navy,borderRadius:12,paddingVertical:14,alignItems:'center',marginTop:4},
-  savePayoutBtnTxt:{color:COLORS.white,fontSize:14,fontWeight:'700'},
-  stripeConnectCard:{margin:16,backgroundColor:COLORS.white,borderRadius:16,padding:16,borderWidth:1,borderColor:COLORS.border},
+  payoutFieldLabel:{fontSize:13,fontWeight:'600',color:c.textSecondary,marginBottom:8},
+  payoutInputWrap:{borderWidth:1.5,borderColor:c.border,borderRadius:12,overflow:'hidden'},
+  payoutInput:{paddingHorizontal:14,paddingVertical:13,fontSize:14,color:c.text},
+  savePayoutBtn:{backgroundColor:c.primary,borderRadius:12,paddingVertical:14,alignItems:'center',marginTop:4},
+  savePayoutBtnTxt:{color:c.onPrimary,fontSize:14,fontWeight:'700'},
+  stripeConnectCard:{margin:16,backgroundColor:c.card,borderRadius:16,padding:16,borderWidth:1,borderColor:c.border},
   stripeConnectHdr:{flexDirection:'row',alignItems:'center',gap:12,marginBottom:10},
-  stripeConnectTitle:{fontSize:15,fontWeight:'700',color:COLORS.navy},
-  stripeConnectSub:{fontSize:12,color:'#888'},
+  stripeConnectTitle:{fontSize:15,fontWeight:'700',color:c.text},
+  stripeConnectSub:{fontSize:12,color:c.textMuted},
   stripeBadge:{backgroundColor:'rgba(201,169,110,0.12)',borderRadius:100,paddingHorizontal:8,paddingVertical:3},
-  stripeBadgeTxt:{fontSize:10,fontWeight:'700',color:COLORS.gold},
-  stripeConnectDesc:{fontSize:13,color:'#666',lineHeight:20,marginBottom:14},
-  stripeConnectBtn:{flexDirection:'row',alignItems:'center',justifyContent:'center',gap:8,backgroundColor:COLORS.navy,borderRadius:12,paddingVertical:13},
-  stripeConnectBtnTxt:{color:COLORS.white,fontSize:14,fontWeight:'700'},
+  stripeBadgeTxt:{fontSize:10,fontWeight:'700',color:c.gold},
+  stripeConnectDesc:{fontSize:13,color:c.textSecondary,lineHeight:20,marginBottom:14},
+  stripeConnectBtn:{flexDirection:'row',alignItems:'center',justifyContent:'center',gap:8,backgroundColor:c.primary,borderRadius:12,paddingVertical:13},
+  stripeConnectBtnTxt:{color:c.onPrimary,fontSize:14,fontWeight:'700'},
 });

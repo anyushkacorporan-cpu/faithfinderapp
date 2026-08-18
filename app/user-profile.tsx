@@ -4,13 +4,15 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Header from '../src/components/Header';
-import { COLORS } from '../src/lib/constants';
+import { useThemeColors, ThemeColors } from '../src/lib/theme';
 import { usePosts, toggleLike } from '../src/lib/postsStore';
 import { useUser } from '../src/lib/userStore';
 import { useConnectionCount } from '../src/lib/connectionsStore';
 import { PostCard } from '../src/components/PostCard';
 
 export default function OtherUserProfileScreen() {
+  const c = useThemeColors();
+  const s = makeStyles(c);
   const params = useLocalSearchParams<{
     id?: string; name?: string; initials?: string; color?: string;
     type?: string; city?: string; state?: string; photo?: string;
@@ -19,7 +21,7 @@ export default function OtherUserProfileScreen() {
   const allPosts = usePosts();
   const displayName = params.name || 'User';
   const initials = params.initials || displayName.slice(0,2).toUpperCase();
-  const color = params.color || COLORS.gold;
+  const color = params.color || c.gold;
   const isChurch = params.type === 'church';
   const userPosts = allPosts.filter(p => p.authorName === displayName);
   const galleryPhotos = userPosts.filter(p => !!p.image).map(p => p.image as string);
@@ -46,7 +48,7 @@ export default function OtherUserProfileScreen() {
   const [photoViewerIndex, setPhotoViewerIndex] = useState(0);
 
   if (isSelf) {
-    return <View style={{flex:1,backgroundColor:COLORS.white}} />;
+    return <View style={{flex:1,backgroundColor:c.card}} />;
   }
 
   return (
@@ -59,7 +61,7 @@ export default function OtherUserProfileScreen() {
             : <View style={s.cover} />
           }
           <TouchableOpacity style={s.backBtn} onPress={() => router.back()}>
-            <Ionicons name="arrow-back" size={20} color={COLORS.white} />
+            <Ionicons name="arrow-back" size={20} color={c.onPrimary} />
           </TouchableOpacity>
           <View style={s.avatarWrap}>
             {(isSelf && currentUser.profilePhoto) || params.photo
@@ -79,20 +81,20 @@ export default function OtherUserProfileScreen() {
 
           {!!(params.city && params.state) && (
             <View style={{flexDirection:'row',alignItems:'center',gap:4,marginTop:10}}>
-              <Ionicons name="location-outline" size={14} color="#888" />
-              <Text style={{fontSize:13,color:'#888'}}>{params.city}, {params.state}</Text>
+              <Ionicons name="location-outline" size={14} color={c.textMuted} />
+              <Text style={{fontSize:13,color:c.textMuted}}>{params.city}, {params.state}</Text>
             </View>
           )}
 
           {isSelf && (
             <TouchableOpacity style={{flexDirection:'row',alignItems:'center',gap:5,marginTop:10}} onPress={() => router.push('/connections' as any)}>
-              <Ionicons name="people-outline" size={14} color="#888" />
-              <Text style={{fontSize:13,color:'#888'}}>{connectionCount} Connections</Text>
+              <Ionicons name="people-outline" size={14} color={c.textMuted} />
+              <Text style={{fontSize:13,color:c.textMuted}}>{connectionCount} Connections</Text>
             </TouchableOpacity>
           )}
 
           {isSelf && !!currentUser.bio && (
-            <Text style={{fontSize:14,color:'#555',textAlign:'center',lineHeight:20,marginTop:12,paddingHorizontal:8}}>{currentUser.bio}</Text>
+            <Text style={{fontSize:14,color:c.textSecondary,textAlign:'center',lineHeight:20,marginTop:12,paddingHorizontal:8}}>{currentUser.bio}</Text>
           )}
         </View>
 
@@ -102,7 +104,7 @@ export default function OtherUserProfileScreen() {
             <View style={s.section}>
               <View style={s.sectionHdr}>
                 <View style={{flexDirection:'row',alignItems:'center'}}>
-                  <Ionicons name="book-outline" size={16} color={COLORS.gold} style={{marginRight:6}} />
+                  <Ionicons name="book-outline" size={16} color={c.gold} style={{marginRight:6}} />
                   <Text style={s.sectionTitle}>Favorite Bible Verse</Text>
                 </View>
               </View>
@@ -110,7 +112,7 @@ export default function OtherUserProfileScreen() {
                 <Text style={{fontSize:15,fontStyle:'italic',color:'#333',lineHeight:22,textAlign:'center'}}>"{currentUser.lifeVerse}"</Text>
               )}
               {!!currentUser.lifeVerseRef && (
-                <Text style={{fontSize:13,fontWeight:'700',color:COLORS.gold,textAlign:'center',marginTop:8}}>{currentUser.lifeVerseRef}</Text>
+                <Text style={{fontSize:13,fontWeight:'700',color:c.gold,textAlign:'center',marginTop:8}}>{currentUser.lifeVerseRef}</Text>
               )}
             </View>
           </>
@@ -123,7 +125,7 @@ export default function OtherUserProfileScreen() {
             <View style={s.section}>
               <View style={s.sectionHdr}>
                 <View style={{flexDirection:'row',alignItems:'center'}}>
-                  <Ionicons name="images-outline" size={16} color={COLORS.navy} style={{marginRight:6}} />
+                  <Ionicons name="images-outline" size={16} color={c.text} style={{marginRight:6}} />
                   <Text style={s.sectionTitle}>Faith Gallery</Text>
                 </View>
               </View>
@@ -133,14 +135,14 @@ export default function OtherUserProfileScreen() {
                   const fullIndex = combinedGalleryPhotos.indexOf(uri);
                   return (
                     <TouchableOpacity key={uri} onPress={() => { setPhotoViewerIndex(fullIndex); setPhotoViewerVisible(true); }} activeOpacity={0.85}>
-                      <Image source={{uri}} style={{width:thumbSize,height:thumbSize,borderRadius:8,backgroundColor:'#f5f3ef'}} resizeMode="cover" />
+                      <Image source={{uri}} style={{width:thumbSize,height:thumbSize,borderRadius:8,backgroundColor:c.cardAlt}} resizeMode="cover" />
                     </TouchableOpacity>
                   );
                 })}
               </View>
               {combinedGalleryPhotos.length > 3 && (
                 <TouchableOpacity onPress={() => setShowAllGallery(!showAllGallery)} style={{marginTop:10,alignSelf:'flex-start'}}>
-                  <Text style={{fontSize:13,fontWeight:'600',color:COLORS.gold}}>
+                  <Text style={{fontSize:13,fontWeight:'600',color:c.gold}}>
                     {showAllGallery ? 'Show Less' : `See More (${combinedGalleryPhotos.length - 3})`}
                   </Text>
                 </TouchableOpacity>
@@ -155,24 +157,24 @@ export default function OtherUserProfileScreen() {
             <View style={s.section}>
               <View style={s.sectionHdr}>
                 <View style={{flexDirection:'row',alignItems:'center'}}>
-                  <Ionicons name="business-outline" size={16} color={COLORS.navy} style={{marginRight:6}} />
+                  <Ionicons name="business-outline" size={16} color={c.text} style={{marginRight:6}} />
                   <Text style={s.sectionTitle}>Churches Shared</Text>
                 </View>
               </View>
               {churchesShared.map((church, i) => (
                 <TouchableOpacity
                   key={`${church.id}-${i}`}
-                  style={{flexDirection:'row',alignItems:'center',gap:10,paddingVertical:10,borderBottomWidth:i<churchesShared.length-1?1:0,borderBottomColor:'#f5f3ef'}}
+                  style={{flexDirection:'row',alignItems:'center',gap:10,paddingVertical:10,borderBottomWidth:i<churchesShared.length-1?1:0,borderBottomColor:c.cardAlt}}
                   onPress={() => router.push({ pathname: '/church-detail' as any, params: { placeId: church.id } })}
                 >
-                  <View style={{width:36,height:36,borderRadius:10,backgroundColor:COLORS.lightBg,alignItems:'center',justifyContent:'center'}}>
-                    <Ionicons name="business" size={16} color={COLORS.navy} />
+                  <View style={{width:36,height:36,borderRadius:10,backgroundColor:c.cardAlt,alignItems:'center',justifyContent:'center'}}>
+                    <Ionicons name="business" size={16} color={c.text} />
                   </View>
                   <View style={{flex:1}}>
-                    <Text style={{fontSize:14,fontWeight:'600',color:COLORS.navy}}>{church.name}</Text>
-                    <Text style={{fontSize:12,color:'#999'}}>{church.address}</Text>
+                    <Text style={{fontSize:14,fontWeight:'600',color:c.text}}>{church.name}</Text>
+                    <Text style={{fontSize:12,color:c.textMuted}}>{church.address}</Text>
                   </View>
-                  <Ionicons name="chevron-forward" size={16} color="#ddd" />
+                  <Ionicons name="chevron-forward" size={16} color={c.placeholder} />
                 </TouchableOpacity>
               ))}
             </View>
@@ -237,7 +239,7 @@ export default function OtherUserProfileScreen() {
 
         {userPosts.length === 0 ? (
           <View style={s.emptyState}>
-            <Ionicons name="document-text-outline" size={40} color="#ddd" />
+            <Ionicons name="document-text-outline" size={40} color={c.placeholder} />
             <Text style={s.emptyTxt}>No posts yet</Text>
           </View>
         ) : (
@@ -262,27 +264,27 @@ export default function OtherUserProfileScreen() {
   );
 }
 
-const s = StyleSheet.create({
-  root:{flex:1,backgroundColor:COLORS.white},
+const makeStyles = (c: ThemeColors) => StyleSheet.create({
+  root:{flex:1,backgroundColor:c.card},
   coverWrap:{position:'relative'},
-  cover:{width:'100%',height:160,backgroundColor:COLORS.navy},
+  cover:{width:'100%',height:160,backgroundColor:c.primary},
   backBtn:{position:'absolute',top:14,left:14,width:36,height:36,borderRadius:18,backgroundColor:'rgba(0,0,0,0.35)',alignItems:'center',justifyContent:'center'},
   avatarWrap:{position:'absolute',bottom:-40,left:0,right:0,alignItems:'center'},
-  avatar:{width:80,height:80,borderRadius:40,alignItems:'center',justifyContent:'center',borderWidth:3,borderColor:COLORS.white,shadowColor:'#000',shadowOffset:{width:0,height:2},shadowOpacity:0.15,shadowRadius:6},
-  avatarTxt:{color:COLORS.white,fontWeight:'700',fontSize:22},
+  avatar:{width:80,height:80,borderRadius:40,alignItems:'center',justifyContent:'center',borderWidth:3,borderColor:c.card,shadowColor:'#000',shadowOffset:{width:0,height:2},shadowOpacity:0.15,shadowRadius:6},
+  avatarTxt:{color:c.onPrimary,fontWeight:'700',fontSize:22},
   personalInfo:{paddingHorizontal:16,alignItems:'center',paddingTop:48,paddingBottom:16},
-  name:{fontSize:19,fontWeight:'700',color:COLORS.navy,fontFamily:undefined},
+  name:{fontSize:19,fontWeight:'700',color:c.text,fontFamily:undefined},
   churchBadge:{backgroundColor:'rgba(201,169,110,0.12)',borderRadius:100,paddingHorizontal:8,paddingVertical:2},
-  churchBadgeTxt:{fontSize:10,fontWeight:'700',color:COLORS.gold},
+  churchBadgeTxt:{fontSize:10,fontWeight:'700',color:c.gold},
   divider:{height:8,backgroundColor:'#faf9f7'},
   section:{paddingHorizontal:16,paddingVertical:16},
   sectionHdr:{flexDirection:'row',justifyContent:'space-between',alignItems:'center',marginBottom:14},
-  sectionTitle:{fontSize:16,fontWeight:'700',color:COLORS.navy},
-  tabsRow:{flexDirection:'row',borderTopWidth:1,borderBottomWidth:1,borderColor:COLORS.border},
+  sectionTitle:{fontSize:16,fontWeight:'700',color:c.text},
+  tabsRow:{flexDirection:'row',borderTopWidth:1,borderBottomWidth:1,borderColor:c.border},
   tab:{flex:1,alignItems:'center',paddingVertical:12},
-  tabActive:{borderBottomWidth:2,borderBottomColor:COLORS.navy},
-  tabTxt:{fontSize:14,fontWeight:'600',color:'#999'},
-  tabTxtActive:{color:COLORS.navy,fontWeight:'700'},
+  tabActive:{borderBottomWidth:2,borderBottomColor:c.navy},
+  tabTxt:{fontSize:14,fontWeight:'600',color:c.textMuted},
+  tabTxtActive:{color:c.text,fontWeight:'700'},
   emptyState:{paddingVertical:40,alignItems:'center',gap:8,paddingHorizontal:40},
-  emptyTxt:{fontSize:15,fontWeight:'600',color:'#999'},
+  emptyTxt:{fontSize:15,fontWeight:'600',color:c.textMuted},
 });

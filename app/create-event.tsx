@@ -9,7 +9,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from 'expo-linear-gradient';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { COLORS } from '../src/lib/constants';
+import { useThemeColors, ThemeColors } from '../src/lib/theme';
 import { addEvent } from '../src/lib/eventsStore';
 import { getUser } from '../src/lib/userStore';
 import { useTranslation } from '../src/lib/i18n';
@@ -49,6 +49,8 @@ function formatTime(d: Date) {
 }
 
 export default function CreateEventScreen() {
+  const c = useThemeColors();
+  const s = makeStyles(c);
   const { t } = useTranslation();
   const user = getUser();
   const [step, setStep] = useState(0);
@@ -250,12 +252,12 @@ export default function CreateEventScreen() {
       {/* Header */}
       <View style={s.hdr}>
         <TouchableOpacity style={s.backBtn} onPress={()=>step===0?router.back():prevStep()}>
-          <Ionicons name="arrow-back" size={20} color={COLORS.navy} />
+          <Ionicons name="arrow-back" size={20} color={c.text} />
         </TouchableOpacity>
         <Text style={s.hdrTitle}>{t('createEventTitle')}</Text>
         <View style={s.hdrRight}>
           <TouchableOpacity style={s.previewIconBtn} onPress={()=>setShowPreview(true)}>
-            <Ionicons name="eye-outline" size={20} color={COLORS.gold} />
+            <Ionicons name="eye-outline" size={20} color={c.gold} />
           </TouchableOpacity>
           <TouchableOpacity onPress={()=>handlePublish(true)}>
             <Text style={s.draftTxt}>{t('draft')}</Text>
@@ -269,7 +271,7 @@ export default function CreateEventScreen() {
           <TouchableOpacity key={i} style={s.stepWrap} onPress={()=>i<step&&setStep(i)}>
             <View style={[s.stepDot, i===step&&s.stepDotActive, i<step&&s.stepDotDone]}>
               {i<step
-                ?<Ionicons name="checkmark" size={11} color={COLORS.white}/>
+                ?<Ionicons name="checkmark" size={11} color={c.onPrimary}/>
                 :<Text style={[s.stepNum,i===step&&s.stepNumActive]}>{i+1}</Text>}
             </View>
             <Text style={[s.stepLbl,i===step&&s.stepLblActive]}>{label}</Text>
@@ -297,24 +299,24 @@ export default function CreateEventScreen() {
               </TouchableOpacity>
 
               <LField label="Event Title *" error={errors.title}>
-                <TextInput style={[s.input,!!errors.title&&s.inputErr]} placeholder="Women of Purpose Conference" placeholderTextColor={COLORS.placeholder} value={title} onChangeText={v=>{setTitle(v);setErrors(e=>({...e,title:''}));}}/>
+                <TextInput style={[s.input,!!errors.title&&s.inputErr]} placeholder="Women of Purpose Conference" placeholderTextColor={c.placeholder} value={title} onChangeText={v=>{setTitle(v);setErrors(e=>({...e,title:''}));}}/>
               </LField>
 
               <LField label="Organizer">
-                <TextInput style={s.input} placeholder="Grace Community Church" placeholderTextColor={COLORS.placeholder} value={organizer} onChangeText={setOrganizer}/>
+                <TextInput style={s.input} placeholder="Grace Community Church" placeholderTextColor={c.placeholder} value={organizer} onChangeText={setOrganizer}/>
               </LField>
 
               <LField label="Event Type *" error={errors.eventType}>
                 <TouchableOpacity style={[s.picker,!!errors.eventType&&s.inputErr]} onPress={()=>setShowTypes(!showTypes)}>
                   <Text style={[s.pickerTxt,!eventType&&s.pickerPH]}>{eventType||'Select type'}</Text>
-                  <Ionicons name={showTypes?'chevron-up':'chevron-down'} size={17} color="#bbb"/>
+                  <Ionicons name={showTypes?'chevron-up':'chevron-down'} size={17} color={c.textMuted}/>
                 </TouchableOpacity>
                 {showTypes&&(
                   <View style={s.dropList}>
                     {EVENT_TYPES.map(t=>(
                       <TouchableOpacity key={t} style={[s.dropItem,eventType===t&&s.dropItemActive]} onPress={()=>{setEventType(t);setShowTypes(false);setErrors(e=>({...e,eventType:''}));}}>
-                        <Text style={[s.dropTxt,eventType===t&&{color:COLORS.navy,fontWeight:'700'}]}>{t}</Text>
-                        {eventType===t&&<Ionicons name="checkmark" size={15} color={COLORS.gold}/>}
+                        <Text style={[s.dropTxt,eventType===t&&{color:c.text,fontWeight:'700'}]}>{t}</Text>
+                        {eventType===t&&<Ionicons name="checkmark" size={15} color={c.gold}/>}
                       </TouchableOpacity>
                     ))}
                   </View>
@@ -329,7 +331,7 @@ export default function CreateEventScreen() {
                   <View style={s.scheduleBtnsRow}>
                     <TouchableOpacity style={[s.schedulePicker, startDate && s.schedulePickerFilled, !!errors.startDate && s.schedulePickerErr]} onPress={()=>openPicker('startDate')}>
                       <View style={[s.scheduleIconWrap, startDate && s.scheduleIconWrapFilled]}>
-                        <Ionicons name="calendar" size={16} color={startDate ? COLORS.white : '#aaa'}/>
+                        <Ionicons name="calendar" size={16} color={startDate ? c.white : c.textMuted}/>
                       </View>
                       <View style={s.schedulePickerInfo}>
                         <Text style={s.schedulePickerLabel}>{t('dateLabel')}</Text>
@@ -337,11 +339,11 @@ export default function CreateEventScreen() {
                           {startDate ? startDate.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : 'Tap to select'}
                         </Text>
                       </View>
-                      <Ionicons name="chevron-forward" size={16} color={startDate ? COLORS.navy : '#ddd'}/>
+                      <Ionicons name="chevron-forward" size={16} color={startDate ? c.navy : c.placeholder}/>
                     </TouchableOpacity>
                     <TouchableOpacity style={[s.schedulePicker, startTime && s.schedulePickerFilled]} onPress={()=>openPicker('startTime')}>
                       <View style={[s.scheduleIconWrap, startTime && s.scheduleIconWrapFilledTime]}>
-                        <Ionicons name="time" size={16} color={startTime ? COLORS.white : '#aaa'}/>
+                        <Ionicons name="time" size={16} color={startTime ? c.white : c.textMuted}/>
                       </View>
                       <View style={s.schedulePickerInfo}>
                         <Text style={s.schedulePickerLabel}>{t('timeLabel')}</Text>
@@ -349,7 +351,7 @@ export default function CreateEventScreen() {
                           {startTime ? formatTime(startTime) : 'Tap to select'}
                         </Text>
                       </View>
-                      <Ionicons name="chevron-forward" size={16} color={startTime ? COLORS.navy : '#ddd'}/>
+                      <Ionicons name="chevron-forward" size={16} color={startTime ? c.navy : c.placeholder}/>
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -361,7 +363,7 @@ export default function CreateEventScreen() {
                   <View style={s.scheduleBtnsRow}>
                     <TouchableOpacity style={[s.schedulePicker, endDate && s.schedulePickerFilled]} onPress={()=>openPicker('endDate')}>
                       <View style={[s.scheduleIconWrap, endDate && s.scheduleIconWrapFilled]}>
-                        <Ionicons name="calendar" size={16} color={endDate ? COLORS.white : '#aaa'}/>
+                        <Ionicons name="calendar" size={16} color={endDate ? c.white : c.textMuted}/>
                       </View>
                       <View style={s.schedulePickerInfo}>
                         <Text style={s.schedulePickerLabel}>{t('dateLabel')}</Text>
@@ -369,11 +371,11 @@ export default function CreateEventScreen() {
                           {endDate ? endDate.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : 'Tap to select'}
                         </Text>
                       </View>
-                      <Ionicons name="chevron-forward" size={16} color={endDate ? COLORS.navy : '#ddd'}/>
+                      <Ionicons name="chevron-forward" size={16} color={endDate ? c.navy : c.placeholder}/>
                     </TouchableOpacity>
                     <TouchableOpacity style={[s.schedulePicker, endTime && s.schedulePickerFilled]} onPress={()=>openPicker('endTime')}>
                       <View style={[s.scheduleIconWrap, endTime && s.scheduleIconWrapFilledTime]}>
-                        <Ionicons name="time" size={16} color={endTime ? COLORS.white : '#aaa'}/>
+                        <Ionicons name="time" size={16} color={endTime ? c.white : c.textMuted}/>
                       </View>
                       <View style={s.schedulePickerInfo}>
                         <Text style={s.schedulePickerLabel}>{t('timeLabel')}</Text>
@@ -381,7 +383,7 @@ export default function CreateEventScreen() {
                           {endTime ? formatTime(endTime) : 'Tap to select'}
                         </Text>
                       </View>
-                      <Ionicons name="chevron-forward" size={16} color={endTime ? COLORS.navy : '#ddd'}/>
+                      <Ionicons name="chevron-forward" size={16} color={endTime ? c.navy : c.placeholder}/>
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -391,7 +393,7 @@ export default function CreateEventScreen() {
               {/* Schedule preview */}
               {startDate&&(
                 <View style={s.schedulePreview}>
-                  <Ionicons name="calendar" size={16} color={COLORS.gold}/>
+                  <Ionicons name="calendar" size={16} color={c.gold}/>
                   <Text style={s.schedulePreviewTxt}>{displayDate}{displayTime?' · '+displayTime:''}</Text>
                 </View>
               )}
@@ -412,13 +414,13 @@ export default function CreateEventScreen() {
           {step===1&&(
             <>
               <LField label="Event Summary">
-                <TextInput style={[s.input,s.multiline]} placeholder="What is this event about?" placeholderTextColor={COLORS.placeholder} value={summary} onChangeText={setSummary} multiline/>
+                <TextInput style={[s.input,s.multiline]} placeholder="What is this event about?" placeholderTextColor={c.placeholder} value={summary} onChangeText={setSummary} multiline/>
               </LField>
               <LField label="What Will Happen" hint="(one per line)">
-                <TextInput style={[s.input,s.multilineLg]} placeholder={'Worship\nMessage\nPrayer\nFellowship'} placeholderTextColor={COLORS.placeholder} value={experience} onChangeText={setExperience} multiline/>
+                <TextInput style={[s.input,s.multilineLg]} placeholder={'Worship\nMessage\nPrayer\nFellowship'} placeholderTextColor={c.placeholder} value={experience} onChangeText={setExperience} multiline/>
               </LField>
               <LField label="Target Audience">
-                <TextInput style={s.input} placeholder="All ages, families welcome" placeholderTextColor={COLORS.placeholder} value={audience} onChangeText={setAudience}/>
+                <TextInput style={s.input} placeholder="All ages, families welcome" placeholderTextColor={c.placeholder} value={audience} onChangeText={setAudience}/>
               </LField>
 
               <Text style={s.fieldLbl}>{t('speakersGuests')}</Text>
@@ -432,19 +434,19 @@ export default function CreateEventScreen() {
                     <Text style={s.speakerRole}>{sp.role}</Text>
                   </View>
                   <TouchableOpacity onPress={()=>setSpeakers(p=>p.filter((_,idx)=>idx!==i))}>
-                    <Ionicons name="close-circle" size={20} color="#ddd"/>
+                    <Ionicons name="close-circle" size={20} color={c.placeholder}/>
                   </TouchableOpacity>
                 </View>
               ))}
               <View style={s.addRow}>
-                <TextInput style={[s.input,{flex:2,marginRight:8}]} placeholder="Name" placeholderTextColor={COLORS.placeholder} value={speakerName} onChangeText={setSpeakerName}/>
-                <TextInput style={[s.input,{flex:1,marginRight:8}]} placeholder="Role" placeholderTextColor={COLORS.placeholder} value={speakerRole} onChangeText={setSpeakerRole}/>
+                <TextInput style={[s.input,{flex:2,marginRight:8}]} placeholder="Name" placeholderTextColor={c.placeholder} value={speakerName} onChangeText={setSpeakerName}/>
+                <TextInput style={[s.input,{flex:1,marginRight:8}]} placeholder="Role" placeholderTextColor={c.placeholder} value={speakerRole} onChangeText={setSpeakerRole}/>
                 <TouchableOpacity style={s.addBtn} onPress={addSpeaker}>
-                  <Ionicons name="add" size={22} color={COLORS.white}/>
+                  <Ionicons name="add" size={22} color={c.onPrimary}/>
                 </TouchableOpacity>
               </View>
               <LField label="Additional Notes">
-                <TextInput style={[s.input,s.multiline]} placeholder="Any other information..." placeholderTextColor={COLORS.placeholder} value={notes} onChangeText={setNotes} multiline/>
+                <TextInput style={[s.input,s.multiline]} placeholder="Any other information..." placeholderTextColor={c.placeholder} value={notes} onChangeText={setNotes} multiline/>
               </LField>
             </>
           )}
@@ -456,8 +458,8 @@ export default function CreateEventScreen() {
               <View style={s.venueRow}>
                 {VENUE_TYPES.map(v=>(
                   <TouchableOpacity key={v.id} style={[s.venueBtn,venueType===v.id&&s.venueBtnActive]} onPress={()=>setVenueType(v.id)}>
-                    <Ionicons name={v.icon as any} size={20} color={venueType===v.id?COLORS.white:'#888'}/>
-                    <Text style={[s.venueTxt,venueType===v.id&&{color:COLORS.white}]}>{v.label}</Text>
+                    <Ionicons name={v.icon as any} size={20} color={venueType===v.id?c.white:c.textMuted}/>
+                    <Text style={[s.venueTxt,venueType===v.id&&{color:c.onPrimary}]}>{v.label}</Text>
                   </TouchableOpacity>
                 ))}
               </View>
@@ -465,33 +467,33 @@ export default function CreateEventScreen() {
               {(venueType==='in-person'||venueType==='hybrid')&&(
                 <>
                   <LField label="Venue Name">
-                    <TextInput style={s.input} placeholder="Grace Community Church" placeholderTextColor={COLORS.placeholder} value={venueName} onChangeText={setVenueName}/>
+                    <TextInput style={s.input} placeholder="Grace Community Church" placeholderTextColor={c.placeholder} value={venueName} onChangeText={setVenueName}/>
                   </LField>
                   <LField label="Street Address *" error={errors.venueAddress}>
-                    <TextInput style={[s.input,!!errors.venueAddress&&s.inputErr]} placeholder="123 Faith Ave" placeholderTextColor={COLORS.placeholder} value={venueAddress} onChangeText={v=>{setVenueAddress(v);setErrors(e=>({...e,venueAddress:''}));}}/>
+                    <TextInput style={[s.input,!!errors.venueAddress&&s.inputErr]} placeholder="123 Faith Ave" placeholderTextColor={c.placeholder} value={venueAddress} onChangeText={v=>{setVenueAddress(v);setErrors(e=>({...e,venueAddress:''}));}}/>
                   </LField>
                   <View style={{flexDirection:'row',gap:8}}>
                     <View style={{flex:2}}>
                       <LField label="City">
-                        <TextInput style={s.input} placeholder="New York" placeholderTextColor={COLORS.placeholder} value={city} onChangeText={setCity}/>
+                        <TextInput style={s.input} placeholder="New York" placeholderTextColor={c.placeholder} value={city} onChangeText={setCity}/>
                       </LField>
                     </View>
                     <View style={{flex:1}}>
                       <LField label="State">
-                        <TextInput style={s.input} placeholder="NY" placeholderTextColor={COLORS.placeholder} value={stateName} onChangeText={setStateName}/>
+                        <TextInput style={s.input} placeholder="NY" placeholderTextColor={c.placeholder} value={stateName} onChangeText={setStateName}/>
                       </LField>
                     </View>
                     <View style={{flex:1}}>
                       <LField label="Zip">
-                        <TextInput style={s.input} placeholder="10001" placeholderTextColor={COLORS.placeholder} value={zip} onChangeText={setZip} keyboardType="number-pad"/>
+                        <TextInput style={s.input} placeholder="10001" placeholderTextColor={c.placeholder} value={zip} onChangeText={setZip} keyboardType="number-pad"/>
                       </LField>
                     </View>
                   </View>
                   <LField label="Parking">
-                    <TextInput style={s.input} placeholder="Free parking on site" placeholderTextColor={COLORS.placeholder} value={parking} onChangeText={setParking}/>
+                    <TextInput style={s.input} placeholder="Free parking on site" placeholderTextColor={c.placeholder} value={parking} onChangeText={setParking}/>
                   </LField>
                   <LField label="Venue Instructions">
-                    <TextInput style={[s.input,s.multiline]} placeholder="Enter through main doors..." placeholderTextColor={COLORS.placeholder} value={venueInstructions} onChangeText={setVenueInstructions} multiline/>
+                    <TextInput style={[s.input,s.multiline]} placeholder="Enter through main doors..." placeholderTextColor={c.placeholder} value={venueInstructions} onChangeText={setVenueInstructions} multiline/>
                   </LField>
                 </>
               )}
@@ -501,33 +503,33 @@ export default function CreateEventScreen() {
                   <LField label="Platform">
                     <TouchableOpacity style={s.picker} onPress={()=>setShowPlatforms(!showPlatforms)}>
                       <Text style={[s.pickerTxt,!platform&&s.pickerPH]}>{platform||'Select platform'}</Text>
-                      <Ionicons name={showPlatforms?'chevron-up':'chevron-down'} size={17} color="#bbb"/>
+                      <Ionicons name={showPlatforms?'chevron-up':'chevron-down'} size={17} color={c.textMuted}/>
                     </TouchableOpacity>
                     {showPlatforms&&(
                       <View style={s.dropList}>
                         {PLATFORMS.map(p=>(
                           <TouchableOpacity key={p} style={[s.dropItem,platform===p&&s.dropItemActive]} onPress={()=>{setPlatform(p);setShowPlatforms(false);}}>
-                            <Text style={[s.dropTxt,platform===p&&{color:COLORS.navy,fontWeight:'700'}]}>{p}</Text>
+                            <Text style={[s.dropTxt,platform===p&&{color:c.text,fontWeight:'700'}]}>{p}</Text>
                           </TouchableOpacity>
                         ))}
                       </View>
                     )}
                   </LField>
                   <LField label="Livestream URL">
-                    <TextInput style={s.input} placeholder="https://youtube.com/live/..." placeholderTextColor={COLORS.placeholder} value={liveStreamUrl} onChangeText={setLiveStreamUrl} autoCapitalize="none"/>
+                    <TextInput style={s.input} placeholder="https://youtube.com/live/..." placeholderTextColor={c.placeholder} value={liveStreamUrl} onChangeText={setLiveStreamUrl} autoCapitalize="none"/>
                   </LField>
                   <LField label="Meeting URL">
-                    <TextInput style={s.input} placeholder="https://zoom.us/j/..." placeholderTextColor={COLORS.placeholder} value={meetingUrl} onChangeText={setMeetingUrl} autoCapitalize="none"/>
+                    <TextInput style={s.input} placeholder="https://zoom.us/j/..." placeholderTextColor={c.placeholder} value={meetingUrl} onChangeText={setMeetingUrl} autoCapitalize="none"/>
                   </LField>
                 </>
               )}
 
-              <Text style={s.fieldLbl}>Venue Map / Layout <Text style={{fontWeight:'400',color:'#bbb',fontSize:11}}>(Optional)</Text></Text>
+              <Text style={s.fieldLbl}>Venue Map / Layout <Text style={{fontWeight:'400',color:c.textMuted,fontSize:11}}>(Optional)</Text></Text>
               <TouchableOpacity style={s.uploadBox} onPress={handlePickVenueLayout}>
                 {venueLayoutImage
                   ?<Image source={{uri:venueLayoutImage}} style={s.venueLayoutImg} resizeMode="contain"/>
                   :<View style={s.uploadBoxInner}>
-                    <Ionicons name="map-outline" size={28} color="#bbb"/>
+                    <Ionicons name="map-outline" size={28} color={c.textMuted}/>
                     <Text style={s.uploadBoxTxt}>{t('uploadSeatingChart')}</Text>
                   </View>}
               </TouchableOpacity>
@@ -549,22 +551,22 @@ export default function CreateEventScreen() {
                       <View style={s.agendaDot}/>
                       <Text style={s.agendaActTxt}>{item.activity}</Text>
                       <TouchableOpacity onPress={()=>setAgendaItems(p=>p.filter((_,idx)=>idx!==i))}>
-                        <Ionicons name="close-circle" size={18} color="#ddd"/>
+                        <Ionicons name="close-circle" size={18} color={c.placeholder}/>
                       </TouchableOpacity>
                     </View>
                   ))}
                 </View>
               )}
               <View style={s.addRow}>
-                <TextInput style={[s.input,{width:90,marginRight:8}]} placeholder="6:00 PM" placeholderTextColor={COLORS.placeholder} value={agendaTime} onChangeText={setAgendaTime}/>
-                <TextInput style={[s.input,{flex:1,marginRight:8}]} placeholder="Worship" placeholderTextColor={COLORS.placeholder} value={agendaActivity} onChangeText={setAgendaActivity}/>
+                <TextInput style={[s.input,{width:90,marginRight:8}]} placeholder="6:00 PM" placeholderTextColor={c.placeholder} value={agendaTime} onChangeText={setAgendaTime}/>
+                <TextInput style={[s.input,{flex:1,marginRight:8}]} placeholder="Worship" placeholderTextColor={c.placeholder} value={agendaActivity} onChangeText={setAgendaActivity}/>
                 <TouchableOpacity style={s.addBtn} onPress={addAgendaItem}>
-                  <Ionicons name="add" size={22} color={COLORS.white}/>
+                  <Ionicons name="add" size={22} color={c.onPrimary}/>
                 </TouchableOpacity>
               </View>
               {agendaItems.length===0&&(
                 <View style={s.emptyAgenda}>
-                  <Ionicons name="time-outline" size={40} color="#ddd"/>
+                  <Ionicons name="time-outline" size={40} color={c.placeholder}/>
                   <Text style={s.emptyAgendaTxt}>{t('noAgendaYet')}</Text>
                   <Text style={s.emptyAgendaSub}>Add a time + activity above</Text>
                 </View>
@@ -577,13 +579,13 @@ export default function CreateEventScreen() {
             <>
               <View style={s.ticketRow}>
                 <TouchableOpacity style={[s.ticketBtn,!isPaid&&s.ticketBtnFree]} onPress={()=>setIsPaid(false)}>
-                  <Ionicons name="checkmark-circle" size={20} color={!isPaid?COLORS.green:'#ddd'}/>
-                  <Text style={[s.ticketBtnTxt,!isPaid&&{color:COLORS.green}]}>{t('freeEvent')}</Text>
+                  <Ionicons name="checkmark-circle" size={20} color={!isPaid?c.green:c.placeholder}/>
+                  <Text style={[s.ticketBtnTxt,!isPaid&&{color:c.green}]}>{t('freeEvent')}</Text>
                   <Text style={s.ticketBtnSub}>{t('noPayment')}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={[s.ticketBtn,isPaid&&s.ticketBtnPaid]} onPress={()=>setIsPaid(true)}>
-                  <Ionicons name="card-outline" size={20} color={isPaid?COLORS.white:'#ddd'}/>
-                  <Text style={[s.ticketBtnTxt,isPaid&&{color:COLORS.white}]}>{t('paidEvent')}</Text>
+                  <Ionicons name="card-outline" size={20} color={isPaid?c.white:c.placeholder}/>
+                  <Text style={[s.ticketBtnTxt,isPaid&&{color:c.onPrimary}]}>{t('paidEvent')}</Text>
                   <Text style={[s.ticketBtnSub,isPaid&&{color:'rgba(255,255,255,0.6)'}]}>{t('setPrice')}</Text>
                 </TouchableOpacity>
               </View>
@@ -593,15 +595,15 @@ export default function CreateEventScreen() {
                   <LField label="Ticket Price (USD) *" error={errors.ticketPrice}>
                     <View style={{flexDirection:'row',alignItems:'center',gap:8}}>
                       <Text style={s.dollar}>$</Text>
-                      <TextInput style={[s.input,{flex:1},!!errors.ticketPrice&&s.inputErr]} placeholder="0.00" placeholderTextColor={COLORS.placeholder} value={ticketPrice} onChangeText={v=>{setTicketPrice(v);setErrors(e=>({...e,ticketPrice:''}));}} keyboardType="decimal-pad"/>
+                      <TextInput style={[s.input,{flex:1},!!errors.ticketPrice&&s.inputErr]} placeholder="0.00" placeholderTextColor={c.placeholder} value={ticketPrice} onChangeText={v=>{setTicketPrice(v);setErrors(e=>({...e,ticketPrice:''}));}} keyboardType="decimal-pad"/>
                     </View>
                   </LField>
                   {price>0&&(
                     <View style={s.feeCard}>
                       <Text style={s.feeCardTitle}>{t('revenueBreakdown')}</Text>
                       <View style={s.feeRow}><Text style={s.feeLbl}>{t('ticketPriceLabel')}</Text><Text style={s.feeVal}>${price.toFixed(2)}</Text></View>
-                      <View style={s.feeRow}><Text style={s.feeLbl}>Platform Fee (1.5%)</Text><Text style={[s.feeVal,{color:COLORS.red}]}>-${platformFee.toFixed(2)}</Text></View>
-                      <View style={[s.feeRow,s.feeTotalRow]}><Text style={s.feeTotalLbl}>{t('youReceive')}</Text><Text style={[s.feeVal,{color:COLORS.green,fontWeight:'700',fontSize:17}]}>${creatorPayout.toFixed(2)}</Text></View>
+                      <View style={s.feeRow}><Text style={s.feeLbl}>Platform Fee (1.5%)</Text><Text style={[s.feeVal,{color:c.red}]}>-${platformFee.toFixed(2)}</Text></View>
+                      <View style={[s.feeRow,s.feeTotalRow]}><Text style={s.feeTotalLbl}>{t('youReceive')}</Text><Text style={[s.feeVal,{color:c.green,fontWeight:'700',fontSize:17}]}>${creatorPayout.toFixed(2)}</Text></View>
                     </View>
                   )}
                 </>
@@ -628,7 +630,7 @@ export default function CreateEventScreen() {
           <View style={s.navRow}>
             {step>0&&(
               <TouchableOpacity style={s.prevBtn} onPress={prevStep}>
-                <Ionicons name="arrow-back" size={17} color={COLORS.navy}/>
+                <Ionicons name="arrow-back" size={17} color={c.text}/>
                 <Text style={s.prevBtnTxt}>{t('back')}</Text>
               </TouchableOpacity>
             )}
@@ -638,7 +640,7 @@ export default function CreateEventScreen() {
               disabled={submitting}
             >
               <Text style={s.nextBtnTxt}>{step===STEPS.length-1?(submitting?'Publishing...':'Publish Event'):'Next'}</Text>
-              <Ionicons name={step===STEPS.length-1?'checkmark-circle':'arrow-forward'} size={17} color={COLORS.white}/>
+              <Ionicons name={step===STEPS.length-1?'checkmark-circle':'arrow-forward'} size={17} color={c.onPrimary}/>
             </TouchableOpacity>
           </View>
           <View style={{height:40}}/>
@@ -666,7 +668,7 @@ export default function CreateEventScreen() {
                 display="spinner"
                 onChange={handlePickerChange}
                 minimumDate={pickerMode==='date' ? new Date() : undefined}
-                textColor={COLORS.navy}
+                textColor={c.navy}
                 themeVariant="light"
               />
             </View>
@@ -676,11 +678,11 @@ export default function CreateEventScreen() {
 
       {/* Full Preview Modal */}
       <Modal visible={showPreview} animationType="slide" presentationStyle="pageSheet">
-        <SafeAreaView style={{flex:1,backgroundColor:'#f8f7f4'}} edges={['top']}>
+        <SafeAreaView style={{flex:1,backgroundColor:c.bg}} edges={['top']}>
           <View style={s.previewModalHdr}>
             <Text style={s.previewModalTitle}>{t('eventPreview')}</Text>
             <TouchableOpacity style={s.previewCloseBtn} onPress={()=>setShowPreview(false)}>
-              <Ionicons name="close" size={20} color={COLORS.navy}/>
+              <Ionicons name="close" size={20} color={c.text}/>
             </TouchableOpacity>
           </View>
           <Text style={s.previewModalSub}>{t('previewHintUsers')}</Text>
@@ -707,6 +709,8 @@ export default function CreateEventScreen() {
 function EventPreviewCard({title,date,time,location,organizer,type,price,bannerImage,gradient,fullSize=false}:{
   title:string;date:string;time:string;location:string;organizer:string;type:string;price:string;bannerImage:string;gradient:[string,string];fullSize?:boolean;
 }) {
+  const c = useThemeColors();
+  const pc = makePc(c);
   return (
     <View style={pc.card}>
       {bannerImage
@@ -725,159 +729,160 @@ function EventPreviewCard({title,date,time,location,organizer,type,price,bannerI
             :<View style={pc.paidBadge}><Text style={pc.paidBadgeTxt}>{price}</Text></View>}
         </View>
         {!!organizer&&<Text style={pc.organizerTxt}>by {organizer}</Text>}
-        {!!date&&<View style={pc.infoRow}><Ionicons name="calendar-outline" size={13} color="#888"/><Text style={pc.infoTxt}>{date}{time?' · '+time:''}</Text></View>}
-        {!!location&&<View style={pc.infoRow}><Ionicons name="location-outline" size={13} color="#888"/><Text style={pc.infoTxt} numberOfLines={1}>{location}</Text></View>}
+        {!!date&&<View style={pc.infoRow}><Ionicons name="calendar-outline" size={13} color={c.textMuted}/><Text style={pc.infoTxt}>{date}{time?' · '+time:''}</Text></View>}
+        {!!location&&<View style={pc.infoRow}><Ionicons name="location-outline" size={13} color={c.textMuted}/><Text style={pc.infoTxt} numberOfLines={1}>{location}</Text></View>}
       </View>
     </View>
   );
 }
-const pc = StyleSheet.create({
-  card:{backgroundColor:COLORS.white,borderRadius:16,overflow:'hidden',borderWidth:1,borderColor:COLORS.border,shadowColor:'#000',shadowOffset:{width:0,height:2},shadowOpacity:0.06,shadowRadius:8},
+const makePc = (c: ThemeColors) => StyleSheet.create({
+  card:{backgroundColor:c.card,borderRadius:16,overflow:'hidden',borderWidth:1,borderColor:c.border,shadowColor:'#000',shadowOffset:{width:0,height:2},shadowOpacity:0.06,shadowRadius:8},
   banner:{height:140,justifyContent:'flex-end',padding:14},
   bannerLg:{height:200},
   bannerContent:{gap:6},
   typePill:{alignSelf:'flex-start',backgroundColor:'rgba(255,255,255,0.2)',borderRadius:100,paddingHorizontal:10,paddingVertical:4},
-  typePillTxt:{color:COLORS.white,fontSize:11,fontWeight:'700'},
-  bannerTitle:{fontFamily:'PlayfairDisplay_700Bold',fontSize:18,color:COLORS.white,lineHeight:24},
+  typePillTxt:{color:c.onPrimary,fontSize:11,fontWeight:'700'},
+  bannerTitle:{fontFamily:'PlayfairDisplay_700Bold',fontSize:18,color:c.onPrimary,lineHeight:24},
   body:{padding:14},
   topRow:{flexDirection:'row',alignItems:'center',justifyContent:'space-between',marginBottom:4},
-  titleTxt:{fontFamily:'PlayfairDisplay_700Bold',fontSize:16,color:COLORS.navy,flex:1,marginRight:8},
+  titleTxt:{fontFamily:'PlayfairDisplay_700Bold',fontSize:16,color:c.text,flex:1,marginRight:8},
   freeBadge:{backgroundColor:'#e8f5e9',borderRadius:8,paddingHorizontal:10,paddingVertical:4},
-  freeBadgeTxt:{fontSize:11,fontWeight:'700',color:COLORS.green},
+  freeBadgeTxt:{fontSize:11,fontWeight:'700',color:c.green},
   paidBadge:{backgroundColor:'#fff3e0',borderRadius:8,paddingHorizontal:10,paddingVertical:4},
   paidBadgeTxt:{fontSize:11,fontWeight:'700',color:'#e65100'},
-  organizerTxt:{fontSize:12,color:COLORS.gold,fontWeight:'600',marginBottom:6},
+  organizerTxt:{fontSize:12,color:c.gold,fontWeight:'600',marginBottom:6},
   infoRow:{flexDirection:'row',alignItems:'center',gap:5,marginBottom:4},
-  infoTxt:{fontSize:12,color:'#666',flex:1},
+  infoTxt:{fontSize:12,color:c.textSecondary,flex:1},
 });
 
 function LField({label,hint,error,children}:{label:string;hint?:string;error?:string;children:React.ReactNode}) {
+  const c = useThemeColors();
   return (
     <View style={{marginBottom:14}}>
-      <Text style={{fontSize:13,fontWeight:'600',color:'#444',marginBottom:8}}>{label}{hint&&<Text style={{fontWeight:'400',color:'#bbb',fontSize:11}}> {hint}</Text>}</Text>
+      <Text style={{fontSize:13,fontWeight:'600',color:c.textSecondary,marginBottom:8}}>{label}{hint&&<Text style={{fontWeight:'400',color:c.textMuted,fontSize:11}}> {hint}</Text>}</Text>
       {children}
-      {!!error&&<Text style={{fontSize:12,color:COLORS.red,marginTop:4}}>{error}</Text>}
+      {!!error&&<Text style={{fontSize:12,color:c.red,marginTop:4}}>{error}</Text>}
     </View>
   );
 }
 
-const s = StyleSheet.create({
-  root:{flex:1,backgroundColor:COLORS.white},
-  hdr:{flexDirection:'row',alignItems:'center',justifyContent:'space-between',paddingHorizontal:16,paddingVertical:12,borderBottomWidth:1,borderBottomColor:COLORS.border},
-  backBtn:{width:36,height:36,borderRadius:18,backgroundColor:COLORS.lightBg,alignItems:'center',justifyContent:'center'},
-  hdrTitle:{fontSize:16,fontWeight:'700',color:COLORS.navy},
+const makeStyles = (c: ThemeColors) => StyleSheet.create({
+  root:{flex:1,backgroundColor:c.card},
+  hdr:{flexDirection:'row',alignItems:'center',justifyContent:'space-between',paddingHorizontal:16,paddingVertical:12,borderBottomWidth:1,borderBottomColor:c.border},
+  backBtn:{width:36,height:36,borderRadius:18,backgroundColor:c.cardAlt,alignItems:'center',justifyContent:'center'},
+  hdrTitle:{fontSize:16,fontWeight:'700',color:c.text},
   hdrRight:{flexDirection:'row',alignItems:'center',gap:12},
   previewIconBtn:{width:36,height:36,borderRadius:18,backgroundColor:'rgba(201,169,110,0.12)',alignItems:'center',justifyContent:'center'},
-  draftTxt:{fontSize:14,color:COLORS.gold,fontWeight:'600'},
+  draftTxt:{fontSize:14,color:c.gold,fontWeight:'600'},
   stepsRow:{flexDirection:'row',paddingHorizontal:16,paddingTop:14,paddingBottom:8},
   stepWrap:{flex:1,alignItems:'center',gap:4},
-  stepDot:{width:26,height:26,borderRadius:13,backgroundColor:COLORS.lightBg,borderWidth:1.5,borderColor:COLORS.border,alignItems:'center',justifyContent:'center'},
-  stepDotActive:{backgroundColor:COLORS.navy,borderColor:COLORS.navy},
-  stepDotDone:{backgroundColor:COLORS.green,borderColor:COLORS.green},
-  stepNum:{fontSize:11,fontWeight:'700',color:'#aaa'},
-  stepNumActive:{color:COLORS.white},
-  stepLbl:{fontSize:9,color:'#bbb',fontWeight:'600',textAlign:'center'},
-  stepLblActive:{color:COLORS.navy},
-  progressBar:{height:3,backgroundColor:COLORS.lightBg,marginHorizontal:16,borderRadius:2,marginBottom:16},
-  progressFill:{height:3,backgroundColor:COLORS.navy,borderRadius:2},
+  stepDot:{width:26,height:26,borderRadius:13,backgroundColor:c.cardAlt,borderWidth:1.5,borderColor:c.border,alignItems:'center',justifyContent:'center'},
+  stepDotActive:{backgroundColor:c.primary,borderColor:c.primary},
+  stepDotDone:{backgroundColor:c.green,borderColor:c.green},
+  stepNum:{fontSize:11,fontWeight:'700',color:c.textMuted},
+  stepNumActive:{color:c.onPrimary},
+  stepLbl:{fontSize:9,color:c.textMuted,fontWeight:'600',textAlign:'center'},
+  stepLblActive:{color:c.text},
+  progressBar:{height:3,backgroundColor:c.cardAlt,marginHorizontal:16,borderRadius:2,marginBottom:16},
+  progressFill:{height:3,backgroundColor:c.primary,borderRadius:2},
   scroll:{paddingHorizontal:20},
   bannerPicker:{height:160,borderRadius:16,overflow:'hidden',marginBottom:20},
   bannerImg:{width:'100%',height:'100%'},
   bannerGradient:{flex:1,alignItems:'center',justifyContent:'center',gap:6},
   bannerTxt:{fontSize:14,fontWeight:'600',color:'rgba(255,255,255,0.9)'},
   bannerSub:{fontSize:11,color:'rgba(255,255,255,0.6)'},
-  fieldLbl:{fontSize:13,fontWeight:'600',color:'#444',marginBottom:8},
-  input:{borderWidth:1.5,borderColor:COLORS.border,borderRadius:12,paddingHorizontal:14,paddingVertical:12,fontSize:14,color:COLORS.navy},
-  inputErr:{borderColor:COLORS.red},
+  fieldLbl:{fontSize:13,fontWeight:'600',color:c.textSecondary,marginBottom:8},
+  input:{borderWidth:1.5,borderColor:c.border,borderRadius:12,paddingHorizontal:14,paddingVertical:12,fontSize:14,color:c.text},
+  inputErr:{borderColor:c.red},
   multiline:{height:80,textAlignVertical:'top',paddingTop:12},
   multilineLg:{height:110,textAlignVertical:'top',paddingTop:12},
-  picker:{flexDirection:'row',alignItems:'center',justifyContent:'space-between',borderWidth:1.5,borderColor:COLORS.border,borderRadius:12,paddingHorizontal:14,paddingVertical:13},
-  pickerTxt:{fontSize:14,color:COLORS.navy},
-  pickerPH:{color:COLORS.placeholder},
-  dropList:{borderWidth:1.5,borderColor:COLORS.border,borderRadius:12,marginTop:4,overflow:'hidden'},
-  dropItem:{flexDirection:'row',alignItems:'center',justifyContent:'space-between',paddingHorizontal:14,paddingVertical:12,borderBottomWidth:1,borderBottomColor:COLORS.border},
+  picker:{flexDirection:'row',alignItems:'center',justifyContent:'space-between',borderWidth:1.5,borderColor:c.border,borderRadius:12,paddingHorizontal:14,paddingVertical:13},
+  pickerTxt:{fontSize:14,color:c.text},
+  pickerPH:{color:c.placeholder},
+  dropList:{borderWidth:1.5,borderColor:c.border,borderRadius:12,marginTop:4,overflow:'hidden'},
+  dropItem:{flexDirection:'row',alignItems:'center',justifyContent:'space-between',paddingHorizontal:14,paddingVertical:12,borderBottomWidth:1,borderBottomColor:c.border},
   dropItemActive:{backgroundColor:'rgba(201,169,110,0.06)'},
-  dropTxt:{fontSize:14,color:'#555'},
-  scheduleCard:{borderWidth:1.5,borderColor:COLORS.border,borderRadius:16,overflow:'hidden',marginBottom:8},
+  dropTxt:{fontSize:14,color:c.textSecondary},
+  scheduleCard:{borderWidth:1.5,borderColor:c.border,borderRadius:16,overflow:'hidden',marginBottom:8},
   scheduleRow:{padding:14},
-  scheduleSectionLbl:{fontSize:10,fontWeight:'700',color:'#aaa',letterSpacing:1,textTransform:'uppercase',marginBottom:10},
+  scheduleSectionLbl:{fontSize:10,fontWeight:'700',color:c.textMuted,letterSpacing:1,textTransform:'uppercase',marginBottom:10},
   scheduleBtnsRow:{gap:8},
-  schedulePicker:{flexDirection:'row',alignItems:'center',gap:12,borderWidth:1,borderColor:COLORS.border,borderRadius:12,padding:12,backgroundColor:COLORS.white},
-  schedulePickerFilled:{borderColor:'rgba(26,26,46,0.15)',backgroundColor:COLORS.lightBg},
-  schedulePickerErr:{borderColor:COLORS.red},
-  scheduleIconWrap:{width:36,height:36,borderRadius:10,backgroundColor:COLORS.lightBg,alignItems:'center',justifyContent:'center'},
-  scheduleIconWrapFilled:{backgroundColor:COLORS.navy},
+  schedulePicker:{flexDirection:'row',alignItems:'center',gap:12,borderWidth:1,borderColor:c.border,borderRadius:12,padding:12,backgroundColor:c.card},
+  schedulePickerFilled:{borderColor:'rgba(26,26,46,0.15)',backgroundColor:c.cardAlt},
+  schedulePickerErr:{borderColor:c.red},
+  scheduleIconWrap:{width:36,height:36,borderRadius:10,backgroundColor:c.cardAlt,alignItems:'center',justifyContent:'center'},
+  scheduleIconWrapFilled:{backgroundColor:c.primary},
   scheduleIconWrapFilledTime:{backgroundColor:'#667eea'},
   schedulePickerInfo:{flex:1},
-  schedulePickerLabel:{fontSize:10,fontWeight:'700',color:'#aaa',textTransform:'uppercase',letterSpacing:0.5,marginBottom:2},
-  schedulePickerValue:{fontSize:14,fontWeight:'600',color:COLORS.navy},
-  schedulePickerPH:{color:'#bbb',fontWeight:'400'},
-  scheduleDivider:{height:1,backgroundColor:COLORS.border},
-  datePickerBtn:{flexDirection:'row',alignItems:'center',gap:6,borderWidth:1.5,borderColor:COLORS.border,borderRadius:12,paddingHorizontal:12,paddingVertical:12,width:'48%'},
-  datePickerTxt:{fontSize:13,color:COLORS.navy,flex:1},
-  datePickerPH:{color:COLORS.placeholder},
-  errTxt:{fontSize:12,color:COLORS.red,marginBottom:8},
+  schedulePickerLabel:{fontSize:10,fontWeight:'700',color:c.textMuted,textTransform:'uppercase',letterSpacing:0.5,marginBottom:2},
+  schedulePickerValue:{fontSize:14,fontWeight:'600',color:c.text},
+  schedulePickerPH:{color:c.textMuted,fontWeight:'400'},
+  scheduleDivider:{height:1,backgroundColor:c.border},
+  datePickerBtn:{flexDirection:'row',alignItems:'center',gap:6,borderWidth:1.5,borderColor:c.border,borderRadius:12,paddingHorizontal:12,paddingVertical:12,width:'48%'},
+  datePickerTxt:{fontSize:13,color:c.text,flex:1},
+  datePickerPH:{color:c.placeholder},
+  errTxt:{fontSize:12,color:c.red,marginBottom:8},
   schedulePreview:{flexDirection:'row',alignItems:'center',gap:8,backgroundColor:'rgba(201,169,110,0.1)',borderRadius:10,padding:12,marginBottom:16},
-  schedulePreviewTxt:{fontSize:13,color:COLORS.navy,fontWeight:'600',flex:1},
-  recBtn:{flexDirection:'row',alignItems:'center',gap:5,borderWidth:1.5,borderColor:COLORS.border,borderRadius:100,paddingHorizontal:14,paddingVertical:8,marginRight:8},
-  recBtnActive:{borderColor:COLORS.navy,backgroundColor:COLORS.navy},
-  recTxt:{fontSize:12,fontWeight:'600',color:'#888'},
-  recTxtActive:{color:COLORS.white},
+  schedulePreviewTxt:{fontSize:13,color:c.text,fontWeight:'600',flex:1},
+  recBtn:{flexDirection:'row',alignItems:'center',gap:5,borderWidth:1.5,borderColor:c.border,borderRadius:100,paddingHorizontal:14,paddingVertical:8,marginRight:8},
+  recBtnActive:{borderColor:c.primary,backgroundColor:c.primary},
+  recTxt:{fontSize:12,fontWeight:'600',color:c.textMuted},
+  recTxtActive:{color:c.onPrimary},
   venueRow:{flexDirection:'row',gap:8,marginBottom:16},
-  venueBtn:{flex:1,alignItems:'center',gap:6,borderWidth:1.5,borderColor:COLORS.border,borderRadius:12,paddingVertical:14},
-  venueBtnActive:{borderColor:COLORS.navy,backgroundColor:COLORS.navy},
-  venueTxt:{fontSize:12,fontWeight:'700',color:'#888'},
-  uploadBox:{height:130,borderRadius:14,borderWidth:1.5,borderColor:COLORS.border,borderStyle:'dashed',overflow:'hidden',marginBottom:16},
-  uploadBoxInner:{flex:1,alignItems:'center',justifyContent:'center',gap:8,backgroundColor:COLORS.lightBg},
-  uploadBoxTxt:{fontSize:13,color:'#bbb'},
+  venueBtn:{flex:1,alignItems:'center',gap:6,borderWidth:1.5,borderColor:c.border,borderRadius:12,paddingVertical:14},
+  venueBtnActive:{borderColor:c.primary,backgroundColor:c.primary},
+  venueTxt:{fontSize:12,fontWeight:'700',color:c.textMuted},
+  uploadBox:{height:130,borderRadius:14,borderWidth:1.5,borderColor:c.border,borderStyle:'dashed',overflow:'hidden',marginBottom:16},
+  uploadBoxInner:{flex:1,alignItems:'center',justifyContent:'center',gap:8,backgroundColor:c.cardAlt},
+  uploadBoxTxt:{fontSize:13,color:c.textMuted},
   venueLayoutImg:{width:'100%',height:'100%'},
-  agendaDesc:{fontSize:14,color:'#888',marginBottom:16,lineHeight:20},
+  agendaDesc:{fontSize:14,color:c.textMuted,marginBottom:16,lineHeight:20},
   agendaList:{marginBottom:16},
   agendaItem:{flexDirection:'row',alignItems:'center',gap:8,marginBottom:10},
-  agendaTimeWrap:{backgroundColor:COLORS.navy,borderRadius:8,paddingHorizontal:10,paddingVertical:5,minWidth:72,alignItems:'center'},
-  agendaTimeTxt:{fontSize:11,fontWeight:'700',color:COLORS.white},
-  agendaLine:{width:16,height:1,backgroundColor:COLORS.border},
-  agendaDot:{width:8,height:8,borderRadius:4,backgroundColor:COLORS.gold},
-  agendaActTxt:{flex:1,fontSize:14,color:COLORS.navy},
+  agendaTimeWrap:{backgroundColor:c.primary,borderRadius:8,paddingHorizontal:10,paddingVertical:5,minWidth:72,alignItems:'center'},
+  agendaTimeTxt:{fontSize:11,fontWeight:'700',color:c.onPrimary},
+  agendaLine:{width:16,height:1,backgroundColor:c.border},
+  agendaDot:{width:8,height:8,borderRadius:4,backgroundColor:c.gold},
+  agendaActTxt:{flex:1,fontSize:14,color:c.text},
   emptyAgenda:{paddingVertical:30,alignItems:'center',gap:6},
-  emptyAgendaTxt:{fontSize:14,color:'#bbb',fontWeight:'600'},
-  emptyAgendaSub:{fontSize:12,color:'#ddd'},
+  emptyAgendaTxt:{fontSize:14,color:c.textMuted,fontWeight:'600'},
+  emptyAgendaSub:{fontSize:12,color:c.placeholder},
   addRow:{flexDirection:'row',alignItems:'center',marginBottom:14},
-  addBtn:{width:44,height:44,borderRadius:12,backgroundColor:COLORS.navy,alignItems:'center',justifyContent:'center'},
-  speakerTag:{flexDirection:'row',alignItems:'center',gap:10,padding:12,borderWidth:1,borderColor:COLORS.border,borderRadius:12,marginBottom:8},
+  addBtn:{width:44,height:44,borderRadius:12,backgroundColor:c.primary,alignItems:'center',justifyContent:'center'},
+  speakerTag:{flexDirection:'row',alignItems:'center',gap:10,padding:12,borderWidth:1,borderColor:c.border,borderRadius:12,marginBottom:8},
   speakerAvt:{width:38,height:38,borderRadius:19,alignItems:'center',justifyContent:'center'},
-  speakerAvtTxt:{color:COLORS.white,fontWeight:'700',fontSize:13},
-  speakerName:{fontSize:14,fontWeight:'700',color:COLORS.navy},
-  speakerRole:{fontSize:12,color:'#888'},
+  speakerAvtTxt:{color:c.onPrimary,fontWeight:'700',fontSize:13},
+  speakerName:{fontSize:14,fontWeight:'700',color:c.text},
+  speakerRole:{fontSize:12,color:c.textMuted},
   ticketRow:{flexDirection:'row',gap:10,marginBottom:16},
-  ticketBtn:{flex:1,alignItems:'center',gap:4,borderWidth:1.5,borderColor:COLORS.border,borderRadius:14,paddingVertical:16},
-  ticketBtnFree:{borderColor:COLORS.green,backgroundColor:'#e8f5e9'},
-  ticketBtnPaid:{borderColor:COLORS.navy,backgroundColor:COLORS.navy},
-  ticketBtnTxt:{fontSize:14,fontWeight:'700',color:'#aaa'},
-  ticketBtnSub:{fontSize:11,color:'#bbb'},
-  dollar:{fontSize:20,fontWeight:'700',color:COLORS.navy},
-  feeCard:{backgroundColor:COLORS.lightBg,borderRadius:14,padding:16,marginBottom:16},
-  feeCardTitle:{fontSize:11,fontWeight:'700',color:COLORS.navy,textTransform:'uppercase',letterSpacing:0.5,marginBottom:12},
+  ticketBtn:{flex:1,alignItems:'center',gap:4,borderWidth:1.5,borderColor:c.border,borderRadius:14,paddingVertical:16},
+  ticketBtnFree:{borderColor:c.green,backgroundColor:'#e8f5e9'},
+  ticketBtnPaid:{borderColor:c.primary,backgroundColor:c.primary},
+  ticketBtnTxt:{fontSize:14,fontWeight:'700',color:c.textMuted},
+  ticketBtnSub:{fontSize:11,color:c.textMuted},
+  dollar:{fontSize:20,fontWeight:'700',color:c.text},
+  feeCard:{backgroundColor:c.cardAlt,borderRadius:14,padding:16,marginBottom:16},
+  feeCardTitle:{fontSize:11,fontWeight:'700',color:c.text,textTransform:'uppercase',letterSpacing:0.5,marginBottom:12},
   feeRow:{flexDirection:'row',justifyContent:'space-between',marginBottom:8},
-  feeLbl:{fontSize:14,color:'#666'},
-  feeVal:{fontSize:14,color:COLORS.navy,fontWeight:'600'},
-  feeTotalRow:{borderTopWidth:1,borderTopColor:COLORS.border,paddingTop:10,marginTop:4},
-  feeTotalLbl:{fontSize:15,fontWeight:'700',color:COLORS.navy},
-  previewHint:{fontSize:12,color:'#aaa',marginBottom:12,marginTop:-4},
+  feeLbl:{fontSize:14,color:c.textSecondary},
+  feeVal:{fontSize:14,color:c.text,fontWeight:'600'},
+  feeTotalRow:{borderTopWidth:1,borderTopColor:c.border,paddingTop:10,marginTop:4},
+  feeTotalLbl:{fontSize:15,fontWeight:'700',color:c.text},
+  previewHint:{fontSize:12,color:c.textMuted,marginBottom:12,marginTop:-4},
   navRow:{flexDirection:'row',gap:10,marginBottom:16},
-  prevBtn:{flex:1,flexDirection:'row',alignItems:'center',justifyContent:'center',gap:6,borderWidth:1.5,borderColor:COLORS.border,borderRadius:14,paddingVertical:14},
-  prevBtnTxt:{fontSize:15,fontWeight:'700',color:COLORS.navy},
-  nextBtn:{flex:2,flexDirection:'row',alignItems:'center',justifyContent:'center',gap:8,backgroundColor:COLORS.navy,borderRadius:14,paddingVertical:14},
-  nextBtnTxt:{fontSize:15,fontWeight:'700',color:COLORS.white},
+  prevBtn:{flex:1,flexDirection:'row',alignItems:'center',justifyContent:'center',gap:6,borderWidth:1.5,borderColor:c.border,borderRadius:14,paddingVertical:14},
+  prevBtnTxt:{fontSize:15,fontWeight:'700',color:c.text},
+  nextBtn:{flex:2,flexDirection:'row',alignItems:'center',justifyContent:'center',gap:8,backgroundColor:c.primary,borderRadius:14,paddingVertical:14},
+  nextBtnTxt:{fontSize:15,fontWeight:'700',color:c.onPrimary},
   pickerOverlay:{flex:1,backgroundColor:'rgba(0,0,0,0.5)',justifyContent:'flex-end'},
-  pickerSheet:{backgroundColor:COLORS.white,borderTopLeftRadius:24,borderTopRightRadius:24,paddingBottom:40},
-  pickerSheetHdr:{flexDirection:'row',justifyContent:'space-between',alignItems:'center',paddingHorizontal:20,paddingVertical:16,borderBottomWidth:1,borderBottomColor:COLORS.border},
-  pickerCancel:{fontSize:16,color:'#888',fontWeight:'500'},
-  pickerSheetTitle:{fontSize:16,fontWeight:'700',color:COLORS.navy},
-  pickerDone:{fontSize:16,color:COLORS.gold,fontWeight:'700'},
-  pickerContainer:{backgroundColor:COLORS.white,paddingVertical:8},
-  previewModalHdr:{flexDirection:'row',alignItems:'center',justifyContent:'space-between',paddingHorizontal:16,paddingVertical:14,borderBottomWidth:1,borderBottomColor:COLORS.border,backgroundColor:COLORS.white},
-  previewModalTitle:{fontSize:17,fontWeight:'700',color:COLORS.navy},
-  previewCloseBtn:{width:32,height:32,borderRadius:16,backgroundColor:COLORS.lightBg,alignItems:'center',justifyContent:'center'},
-  previewModalSub:{fontSize:13,color:'#aaa',textAlign:'center',paddingVertical:12,backgroundColor:COLORS.white},
+  pickerSheet:{backgroundColor:c.card,borderTopLeftRadius:24,borderTopRightRadius:24,paddingBottom:40},
+  pickerSheetHdr:{flexDirection:'row',justifyContent:'space-between',alignItems:'center',paddingHorizontal:20,paddingVertical:16,borderBottomWidth:1,borderBottomColor:c.border},
+  pickerCancel:{fontSize:16,color:c.textMuted,fontWeight:'500'},
+  pickerSheetTitle:{fontSize:16,fontWeight:'700',color:c.text},
+  pickerDone:{fontSize:16,color:c.gold,fontWeight:'700'},
+  pickerContainer:{backgroundColor:c.card,paddingVertical:8},
+  previewModalHdr:{flexDirection:'row',alignItems:'center',justifyContent:'space-between',paddingHorizontal:16,paddingVertical:14,borderBottomWidth:1,borderBottomColor:c.border,backgroundColor:c.card},
+  previewModalTitle:{fontSize:17,fontWeight:'700',color:c.text},
+  previewCloseBtn:{width:32,height:32,borderRadius:16,backgroundColor:c.cardAlt,alignItems:'center',justifyContent:'center'},
+  previewModalSub:{fontSize:13,color:c.textMuted,textAlign:'center',paddingVertical:12,backgroundColor:c.card},
 });

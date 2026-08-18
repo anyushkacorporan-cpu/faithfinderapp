@@ -5,7 +5,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Header from '../src/components/Header';
-import { COLORS, CHURCHES } from '../src/lib/constants';
+import { CHURCHES } from '../src/lib/constants';
+import { useThemeColors, ThemeColors } from '../src/lib/theme';
 import { buildChurchShareText } from '../src/lib/shareLinks';
 import { useSavedChurches } from '../src/lib/store';
 import { isConnected, addConnection, removeConnection } from '../src/lib/connectionsStore';
@@ -40,6 +41,8 @@ const TAGS = [
 ];
 
 function Collapsible({ title, preview, children }: { title: string; preview?: string; children: React.ReactNode }) {
+  const c = useThemeColors();
+  const cs = makeCs(c);
   const [open, setOpen] = useState(false);
   return (
     <View style={cs.wrap}>
@@ -48,23 +51,25 @@ function Collapsible({ title, preview, children }: { title: string; preview?: st
           <Text style={cs.title}>{title}</Text>
           {!open && !!preview && <Text style={cs.preview}>{preview}</Text>}
         </View>
-        <Ionicons name={open ? 'chevron-up' : 'chevron-down'} size={18} color={COLORS.gold} />
+        <Ionicons name={open ? 'chevron-up' : 'chevron-down'} size={18} color={c.gold} />
       </TouchableOpacity>
       {open && <View style={cs.body}>{children}</View>}
     </View>
   );
 }
 
-const cs = StyleSheet.create({
-  wrap:{borderWidth:1,borderColor:COLORS.border,borderRadius:16,overflow:'hidden'},
-  header:{flexDirection:'row',alignItems:'center',justifyContent:'space-between',paddingHorizontal:16,paddingVertical:16,backgroundColor:COLORS.white},
+const makeCs = (c: ThemeColors) => StyleSheet.create({
+  wrap:{borderWidth:1,borderColor:c.border,borderRadius:16,overflow:'hidden'},
+  header:{flexDirection:'row',alignItems:'center',justifyContent:'space-between',paddingHorizontal:16,paddingVertical:16,backgroundColor:c.card},
   left:{flex:1},
-  title:{fontSize:15,fontWeight:'700',color:COLORS.navy},
-  preview:{fontSize:12,color:'#aaa',marginTop:3},
-  body:{borderTopWidth:1,borderTopColor:COLORS.border},
+  title:{fontSize:15,fontWeight:'700',color:c.text},
+  preview:{fontSize:12,color:c.textMuted,marginTop:3},
+  body:{borderTopWidth:1,borderTopColor:c.border},
 });
 
 export default function ChurchDetailScreen() {
+  const c = useThemeColors();
+  const s = makeStyles(c);
   const params = useLocalSearchParams<{ id:string; placeId?:string; name?:string; address?:string; phone?:string; rating?:string; count?:string; website?:string; }>();
   const staticChurch = CHURCHES.find(c => c.id === params.id);
   const appSettings = useSettings();
@@ -120,7 +125,7 @@ export default function ChurchDetailScreen() {
         type: 'church',
         address: church.address,
         placeId: church.placeId,
-        color: COLORS.gold,
+        color: c.gold,
         initials: church.name?.slice(0,2).toUpperCase() || 'CH',
       });
       setConnected(true);
@@ -257,14 +262,14 @@ export default function ChurchDetailScreen() {
         {/* Actions */}
         <View style={s.actionsRow}>
           <TouchableOpacity onPress={() => router.back()}>
-            <Ionicons name="arrow-back" size={22} color={COLORS.navy} />
+            <Ionicons name="arrow-back" size={22} color={c.text} />
           </TouchableOpacity>
           <View style={s.actionBtns}>
             <TouchableOpacity onPress={() => toggle(church.id)}>
-              <Ionicons name={isSaved ? 'heart' : 'heart-outline'} size={24} color={isSaved ? COLORS.red : '#888'} />
+              <Ionicons name={isSaved ? 'heart' : 'heart-outline'} size={24} color={isSaved ? c.red : c.textMuted} />
             </TouchableOpacity>
             <TouchableOpacity onPress={handleShare}>
-              <Ionicons name="share-social-outline" size={24} color="#888" />
+              <Ionicons name="share-social-outline" size={24} color={c.textMuted} />
             </TouchableOpacity>
             <TouchableOpacity style={[s.connectBtn, connected && s.connectBtnActive]} onPress={handleConnect}>
               <Text style={s.connectBtnTxt}>{connected ? '✓ Connected' : 'Connect'}</Text>
@@ -274,15 +279,15 @@ export default function ChurchDetailScreen() {
 
         {/* Identity */}
         <View style={s.identityRow}>
-          <LinearGradient colors={[COLORS.navy,'#2d2240']} style={s.churchIcon} start={{x:0,y:0}} end={{x:1,y:1}}>
-            <Ionicons name="home" size={28} color={COLORS.gold} />
+          <LinearGradient colors={[c.navy,'#2d2240']} style={s.churchIcon} start={{x:0,y:0}} end={{x:1,y:1}}>
+            <Ionicons name="home" size={28} color={c.gold} />
           </LinearGradient>
           <View style={s.identityInfo}>
             <Text style={s.churchName}>{church.name}</Text>
             <View style={s.metaRow}>
               <Text style={s.typeLabel}>{t('church')}</Text>
               <Text style={s.metaDot}> · </Text>
-              <Ionicons name="location-outline" size={13} color="#888" />
+              <Ionicons name="location-outline" size={13} color={c.textMuted} />
               <Text style={s.metaTxt} numberOfLines={1}>{church.address.split(',').slice(-2).join(',').trim()}</Text>
             </View>
             {church.count > 0 && <Text style={s.reviewCount}><Text style={s.reviewNum}>{church.count}</Text> Google reviews</Text>}
@@ -292,11 +297,11 @@ export default function ChurchDetailScreen() {
         {/* Stars */}
         {church.rating > 0 && (
           <View style={s.starsRow}>
-            {[1,2,3,4,5].map(i => <Ionicons key={i} name={i<=Math.round(church.rating)?'star':'star-outline'} size={20} color={COLORS.gold} />)}
+            {[1,2,3,4,5].map(i => <Ionicons key={i} name={i<=Math.round(church.rating)?'star':'star-outline'} size={20} color={c.gold} />)}
             <Text style={s.ratingNum}>{church.rating.toFixed(1)}</Text>
             <TouchableOpacity style={s.seeReviewsBtn} onPress={() => setShowReviews(true)}>
               <Text style={s.seeReviewsTxt}>{t('seeReviews')}</Text>
-              <Ionicons name="chevron-forward" size={14} color={COLORS.gold} />
+              <Ionicons name="chevron-forward" size={14} color={c.gold} />
             </TouchableOpacity>
           </View>
         )}
@@ -324,7 +329,7 @@ export default function ChurchDetailScreen() {
               <Text style={s.sectionTitle}>{t('information')}</Text>
               <View style={s.infoCard}>
                 <View style={s.infoRow}>
-                  <View style={s.infoIconWrap}><Ionicons name="location-outline" size={18} color={COLORS.navy} /></View>
+                  <View style={s.infoIconWrap}><Ionicons name="location-outline" size={18} color={c.text} /></View>
                   <View style={s.infoContent}>
                     <Text style={s.infoLabel}>{t('address')}</Text>
                     <Text style={s.infoValue}>{church.address}</Text>
@@ -335,7 +340,7 @@ export default function ChurchDetailScreen() {
                 </View>
                 <View style={s.infoDivider} />
                 <TouchableOpacity style={s.infoRow} onPress={handlePhone} activeOpacity={church.phone?0.7:1}>
-                  <View style={s.infoIconWrap}><Ionicons name="call-outline" size={18} color={church.phone?COLORS.navy:'#bbb'} /></View>
+                  <View style={s.infoIconWrap}><Ionicons name="call-outline" size={18} color={church.phone?c.navy:c.textMuted} /></View>
                   <View style={s.infoContent}>
                     <Text style={s.infoLabel}>{t('phone')}</Text>
                     {!!church.phone && <Text style={[s.infoValue, s.tappable]}>{church.phone}</Text>}
@@ -344,7 +349,7 @@ export default function ChurchDetailScreen() {
                 </TouchableOpacity>
                 <View style={s.infoDivider} />
                 <TouchableOpacity style={s.infoRow} onPress={handleWebsite} activeOpacity={church.website?0.7:1}>
-                  <View style={s.infoIconWrap}><Ionicons name="globe-outline" size={18} color={church.website?COLORS.navy:'#bbb'} /></View>
+                  <View style={s.infoIconWrap}><Ionicons name="globe-outline" size={18} color={church.website?c.navy:c.textMuted} /></View>
                   <View style={s.infoContent}>
                     <Text style={s.infoLabel}>{t('website')}</Text>
                     {!!church.website && <Text style={[s.infoValue, s.goldTxt]} numberOfLines={1}>{church.website.replace(/^https?:\/\//,'').replace(/\/$/,'')}</Text>}
@@ -353,7 +358,7 @@ export default function ChurchDetailScreen() {
                 </TouchableOpacity>
                 <View style={s.infoDivider} />
                 <View style={s.infoRow}>
-                <View style={s.infoIcon}><Ionicons name="mail-outline" size={18} color="#888"/></View>
+                <View style={s.infoIcon}><Ionicons name="mail-outline" size={18} color={c.textMuted}/></View>
                 <View style={s.infoText}>
                   <Text style={s.infoLabel}>{t('email').toUpperCase()}</Text>
                   <Text style={s.muted}>{church.churchEmail || 'Not available'}</Text>
@@ -367,10 +372,10 @@ export default function ChurchDetailScreen() {
                 {TAGS.map((tag,i) => (
                   <View key={i} style={[s.amenityRow, i<TAGS.length-1&&s.amenityBorder]}>
                     <View style={s.amenityLeft}>
-                      <View style={s.amenityIconWrap}><Ionicons name={tag.icon as any} size={16} color={COLORS.navy}/></View>
+                      <View style={s.amenityIconWrap}><Ionicons name={tag.icon as any} size={16} color={c.text}/></View>
                       <Text style={s.amenityTxt}>{tag.label}</Text>
                     </View>
-                    <Ionicons name="checkmark-circle" size={20} color={COLORS.green}/>
+                    <Ionicons name="checkmark-circle" size={20} color={c.green}/>
                   </View>
                 ))}
               </Collapsible>
@@ -378,7 +383,7 @@ export default function ChurchDetailScreen() {
             <View style={s.divider} />
             <View style={s.mapBox}>
               <TouchableOpacity style={s.mapArea} onPress={handleDirections} activeOpacity={0.8}>
-                <View style={s.mapPin}><Ionicons name="location" size={20} color={COLORS.gold}/></View>
+                <View style={s.mapPin}><Ionicons name="location" size={20} color={c.gold}/></View>
                 <View style={s.mapPinShadow}/>
                 <Text style={s.mapHint}>{t('tapToOpenMaps')}</Text>
               </TouchableOpacity>
@@ -398,7 +403,7 @@ export default function ChurchDetailScreen() {
           <View style={s.postsSection}>
             {(churchPosts||[]).length === 0 ? (
               <View style={s.emptyPosts}>
-                <Ionicons name="document-text-outline" size={40} color="#ddd" />
+                <Ionicons name="document-text-outline" size={40} color={c.placeholder} />
                 <Text style={s.emptyPostsTxt}>{t('noPostsYet')}</Text>
                 <Text style={s.emptyPostsSub}>{t('churchNoPostsSub')}</Text>
               </View>
@@ -426,15 +431,15 @@ export default function ChurchDetailScreen() {
                     )}
                     <View style={s.postActions}>
                       <TouchableOpacity style={s.actionBtn} onPress={() => toggleLike(post.id, MY_ID)}>
-                        <Ionicons name={liked?'heart':'heart-outline'} size={18} color={liked?COLORS.red:'#888'}/>
-                        <Text style={[s.actionTxt, liked&&{color:COLORS.red}]}>{t('like')}</Text>
+                        <Ionicons name={liked?'heart':'heart-outline'} size={18} color={liked?c.red:c.textMuted}/>
+                        <Text style={[s.actionTxt, liked&&{color:c.red}]}>{t('like')}</Text>
                       </TouchableOpacity>
                       <TouchableOpacity style={s.actionBtn} onPress={() => setCommentModal(post.id)}>
-                        <Ionicons name="chatbubble-outline" size={18} color="#888"/>
+                        <Ionicons name="chatbubble-outline" size={18} color={c.textMuted}/>
                         <Text style={s.actionTxt}>{t('comment')}</Text>
                       </TouchableOpacity>
                       <TouchableOpacity style={s.actionBtn} onPress={() => Share.share({message:`${post.authorName}: ${post.content}`})}>
-                        <Ionicons name="share-social-outline" size={18} color="#888"/>
+                        <Ionicons name="share-social-outline" size={18} color={c.textMuted}/>
                         <Text style={s.actionTxt}>{t('share')}</Text>
                       </TouchableOpacity>
                     </View>
@@ -447,7 +452,7 @@ export default function ChurchDetailScreen() {
 
         {isSaved && (
           <View style={s.savedBanner}>
-            <Ionicons name="heart" size={16} color={COLORS.red}/>
+            <Ionicons name="heart" size={16} color={c.red}/>
             <Text style={s.savedBannerTxt}>{t('savedToChurches')}</Text>
           </View>
         )}
@@ -461,12 +466,12 @@ export default function ChurchDetailScreen() {
             <View>
               <Text style={s.modalTitle}>{t('reviews')}</Text>
               <View style={s.modalStarsRow}>
-                {[1,2,3,4,5].map(i=><Ionicons key={i} name={i<=Math.round(church.rating)?'star':'star-outline'} size={16} color={COLORS.gold}/>)}
+                {[1,2,3,4,5].map(i=><Ionicons key={i} name={i<=Math.round(church.rating)?'star':'star-outline'} size={16} color={c.gold}/>)}
                 <Text style={s.modalRating}>{church.rating.toFixed(1)} · {church.count} reviews</Text>
               </View>
             </View>
             <TouchableOpacity style={s.closeBtn} onPress={() => setShowReviews(false)}>
-              <Ionicons name="close" size={20} color={COLORS.navy}/>
+              <Ionicons name="close" size={20} color={c.text}/>
             </TouchableOpacity>
           </View>
           <ScrollView style={s.modalScroll} showsVerticalScrollIndicator={false}>
@@ -480,7 +485,7 @@ export default function ChurchDetailScreen() {
                   <View style={s.reviewMeta}>
                     <Text style={s.reviewName}>{r.author_name}</Text>
                     <View style={s.reviewStarsRow}>
-                      {[1,2,3,4,5].map(j=><Ionicons key={j} name={j<=r.rating?'star':'star-outline'} size={13} color={COLORS.gold}/>)}
+                      {[1,2,3,4,5].map(j=><Ionicons key={j} name={j<=r.rating?'star':'star-outline'} size={13} color={c.gold}/>)}
                       <Text style={s.reviewTime}> · {r.relative_time_description}</Text>
                     </View>
                   </View>
@@ -489,7 +494,7 @@ export default function ChurchDetailScreen() {
               </View>
             )):(
               <View style={s.noReviews}>
-                <Ionicons name="star-outline" size={40} color="#ddd"/>
+                <Ionicons name="star-outline" size={40} color={c.placeholder}/>
                 <Text style={s.noReviewsTxt}>{t('noReviewsAvailable')}</Text>
               </View>
             )}
@@ -521,7 +526,7 @@ export default function ChurchDetailScreen() {
             <View style={s.composerRow}>
               <View style={s.composerAvatarWrap}>
                 <View style={s.composerAvatar}>
-                  <Ionicons name="person" size={18} color={COLORS.white} />
+                  <Ionicons name="person" size={18} color={c.onPrimary} />
                 </View>
                 <View style={s.composerAvatarLine} />
               </View>
@@ -529,7 +534,7 @@ export default function ChurchDetailScreen() {
                 <TextInput
                   style={s.composerInput}
                   placeholder="Add your thoughts..."
-                  placeholderTextColor="#bbb"
+                  placeholderTextColor={c.placeholder}
                   value={shareMessage}
                   onChangeText={setShareMessage}
                   multiline
@@ -539,12 +544,12 @@ export default function ChurchDetailScreen() {
                 <View style={s.quotedCard}>
                   <View style={s.quotedTop}>
                     <View style={s.quotedIconWrap}>
-                      <Ionicons name="home" size={14} color={COLORS.gold} />
+                      <Ionicons name="home" size={14} color={c.gold} />
                     </View>
                     <Text style={s.quotedName}>{church.name}</Text>
                   </View>
                   <View style={s.quotedLocationRow}>
-                    <Ionicons name="location-outline" size={11} color="#888" />
+                    <Ionicons name="location-outline" size={11} color={c.textMuted} />
                     <Text style={s.quotedAddr} numberOfLines={1}>{church.address}</Text>
                   </View>
                   {!!church.description && (
@@ -610,7 +615,7 @@ export default function ChurchDetailScreen() {
           <View style={s.commentSheetHdr}>
             <Text style={s.commentSheetTitle}>{t('commentsTitle')}</Text>
             <TouchableOpacity onPress={() => setCommentModal(null)}>
-              <Ionicons name="close" size={22} color={COLORS.navy}/>
+              <Ionicons name="close" size={22} color={c.text}/>
             </TouchableOpacity>
           </View>
           <ScrollView style={s.commentList}>
@@ -625,43 +630,43 @@ export default function ChurchDetailScreen() {
             ))}
           </ScrollView>
           <View style={s.commentInputRow}>
-            <TextInput style={s.commentInput} placeholder="Write a comment..." placeholderTextColor="#bbb" value={commentText} onChangeText={setCommentText}/>
+            <TextInput style={s.commentInput} placeholder="Write a comment..." placeholderTextColor={c.placeholder} value={commentText} onChangeText={setCommentText}/>
             <TouchableOpacity style={s.commentSendBtn} onPress={() => { if(commentModal){addComment(commentModal,'You',commentText);setCommentText('');setCommentModal(null);} }}>
-              <Ionicons name="send" size={18} color={COLORS.white}/>
+              <Ionicons name="send" size={18} color={c.onPrimary}/>
             </TouchableOpacity>
           </View>
         </View>
       </Modal>
       {showSharedToast && (
-        <View style={{position:'absolute',bottom:40,left:16,right:16,zIndex:999,backgroundColor:'white',borderRadius:16,padding:16,flexDirection:'row',alignItems:'center',gap:12,shadowColor:'#000',shadowOffset:{width:0,height:8},shadowOpacity:0.15,shadowRadius:16,borderWidth:1,borderColor:'#f0ede8'}}>
+        <View style={{position:'absolute',bottom:40,left:16,right:16,zIndex:999,backgroundColor:'white',borderRadius:16,padding:16,flexDirection:'row',alignItems:'center',gap:12,shadowColor:'#000',shadowOffset:{width:0,height:8},shadowOpacity:0.15,shadowRadius:16,borderWidth:1,borderColor:c.border}}>
           <View style={{width:44,height:44,borderRadius:22,backgroundColor:'#e8f5e9',alignItems:'center',justifyContent:'center'}}>
             <Ionicons name="checkmark-circle" size={28} color="#2e7d32" />
           </View>
           <Text style={{flex:1,fontSize:15,fontWeight:'700',color:'#1a1a2e'}}>{t('sharedToCommunity')}</Text>
           <TouchableOpacity onPress={() => setShowSharedToast(false)}>
-            <Ionicons name="close" size={18} color="#aaa" />
+            <Ionicons name="close" size={18} color={c.textMuted} />
           </TouchableOpacity>
         </View>
       )}
       {showSharedToast && (
-        <View style={{position:'absolute',bottom:40,left:16,right:16,zIndex:999,backgroundColor:'white',borderRadius:16,padding:16,flexDirection:'row',alignItems:'center',gap:12,shadowColor:'#000',shadowOffset:{width:0,height:8},shadowOpacity:0.15,shadowRadius:16,borderWidth:1,borderColor:'#f0ede8'}}>
+        <View style={{position:'absolute',bottom:40,left:16,right:16,zIndex:999,backgroundColor:'white',borderRadius:16,padding:16,flexDirection:'row',alignItems:'center',gap:12,shadowColor:'#000',shadowOffset:{width:0,height:8},shadowOpacity:0.15,shadowRadius:16,borderWidth:1,borderColor:c.border}}>
           <View style={{width:44,height:44,borderRadius:22,backgroundColor:'#e8f5e9',alignItems:'center',justifyContent:'center'}}>
             <Ionicons name="checkmark-circle" size={28} color="#2e7d32" />
           </View>
           <Text style={{flex:1,fontSize:15,fontWeight:'700',color:'#1a1a2e'}}>{t('sharedToCommunity')}</Text>
           <TouchableOpacity onPress={() => setShowSharedToast(false)}>
-            <Ionicons name="close" size={18} color="#aaa" />
+            <Ionicons name="close" size={18} color={c.textMuted} />
           </TouchableOpacity>
         </View>
       )}
       {showSharedToast && (
-        <View style={{position:'absolute',bottom:40,left:16,right:16,zIndex:999,backgroundColor:'white',borderRadius:16,padding:16,flexDirection:'row',alignItems:'center',gap:12,shadowColor:'#000',shadowOffset:{width:0,height:8},shadowOpacity:0.15,shadowRadius:16,borderWidth:1,borderColor:'#f0ede8'}}>
+        <View style={{position:'absolute',bottom:40,left:16,right:16,zIndex:999,backgroundColor:'white',borderRadius:16,padding:16,flexDirection:'row',alignItems:'center',gap:12,shadowColor:'#000',shadowOffset:{width:0,height:8},shadowOpacity:0.15,shadowRadius:16,borderWidth:1,borderColor:c.border}}>
           <View style={{width:44,height:44,borderRadius:22,backgroundColor:'#e8f5e9',alignItems:'center',justifyContent:'center'}}>
             <Ionicons name="checkmark-circle" size={28} color="#2e7d32" />
           </View>
           <Text style={{flex:1,fontSize:15,fontWeight:'700',color:'#1a1a2e'}}>{t('sharedToCommunity')}</Text>
           <TouchableOpacity onPress={() => setShowSharedToast(false)}>
-            <Ionicons name="close" size={18} color="#aaa" />
+            <Ionicons name="close" size={18} color={c.textMuted} />
           </TouchableOpacity>
         </View>
       )}
@@ -669,168 +674,168 @@ export default function ChurchDetailScreen() {
   );
 }
 
-const s = StyleSheet.create({
-  root:{flex:1,backgroundColor:COLORS.white},
+const makeStyles = (c: ThemeColors) => StyleSheet.create({
+  root:{flex:1,backgroundColor:c.card},
   photoPlaceholder:{height:280,alignItems:'center',justifyContent:'center',gap:10},
   loadingTxt:{color:'rgba(255,255,255,0.8)',fontSize:14,fontWeight:'600'},
   galleryWrap:{height:280,position:'relative'},
   dots:{position:'absolute',bottom:12,left:0,right:0,flexDirection:'row',justifyContent:'center',gap:6},
   dot:{width:6,height:6,borderRadius:3,backgroundColor:'rgba(255,255,255,0.4)'},
-  dotActive:{backgroundColor:'#fff',width:18},
+  dotActive:{backgroundColor:c.card,width:18},
   photoCount:{position:'absolute',top:12,right:12,backgroundColor:'rgba(0,0,0,0.5)',borderRadius:12,paddingHorizontal:10,paddingVertical:4,flexDirection:'row',alignItems:'center',gap:4},
   photoCountTxt:{color:'#fff',fontSize:12,fontWeight:'600'},
   actionsRow:{flexDirection:'row',justifyContent:'space-between',alignItems:'center',paddingHorizontal:16,paddingVertical:14},
   actionBtns:{flexDirection:'row',alignItems:'center',gap:16},
-  connectBtn:{backgroundColor:COLORS.navy,borderRadius:100,paddingHorizontal:20,paddingVertical:9},
-  connectBtnActive:{backgroundColor:COLORS.green},
+  connectBtn:{backgroundColor:c.primary,borderRadius:100,paddingHorizontal:20,paddingVertical:9},
+  connectBtnActive:{backgroundColor:c.green},
   connectBtnTxt:{color:'#fff',fontSize:14,fontWeight:'700'},
   identityRow:{flexDirection:'row',alignItems:'flex-start',gap:14,paddingHorizontal:16,paddingBottom:16},
   churchIcon:{width:76,height:76,borderRadius:18,alignItems:'center',justifyContent:'center'},
   identityInfo:{flex:1},
-  churchName:{fontSize:20,fontWeight:'700',color:COLORS.navy,marginBottom:5},
+  churchName:{fontSize:20,fontWeight:'700',color:c.text,marginBottom:5},
   metaRow:{flexDirection:'row',alignItems:'center',marginBottom:5,flexWrap:'wrap'},
-  typeLabel:{fontSize:14,color:COLORS.gold,fontWeight:'600'},
-  metaDot:{color:'#ddd',fontSize:14},
-  metaTxt:{fontSize:13,color:'#888',flex:1},
-  reviewCount:{fontSize:13,color:'#888'},
-  reviewNum:{fontWeight:'700',color:COLORS.navy},
+  typeLabel:{fontSize:14,color:c.gold,fontWeight:'600'},
+  metaDot:{color:c.placeholder,fontSize:14},
+  metaTxt:{fontSize:13,color:c.textMuted,flex:1},
+  reviewCount:{fontSize:13,color:c.textMuted},
+  reviewNum:{fontWeight:'700',color:c.text},
   starsRow:{flexDirection:'row',alignItems:'center',gap:4,paddingHorizontal:16,marginBottom:12,flexWrap:'wrap'},
-  ratingNum:{fontSize:16,fontWeight:'700',color:COLORS.navy,marginLeft:4},
+  ratingNum:{fontSize:16,fontWeight:'700',color:c.text,marginLeft:4},
   seeReviewsBtn:{marginLeft:'auto',flexDirection:'row',alignItems:'center',gap:3,backgroundColor:'rgba(201,169,110,0.12)',borderRadius:100,paddingHorizontal:12,paddingVertical:6},
-  seeReviewsTxt:{fontSize:13,color:COLORS.gold,fontWeight:'700'},
+  seeReviewsTxt:{fontSize:13,color:c.gold,fontWeight:'700'},
   descBox:{paddingHorizontal:16,marginBottom:12},
-  descTxt:{fontSize:14,color:'#555',lineHeight:22},
-  tabsRow:{flexDirection:'row',borderTopWidth:1,borderBottomWidth:1,borderColor:COLORS.border,marginTop:8},
+  descTxt:{fontSize:14,color:c.textSecondary,lineHeight:22},
+  tabsRow:{flexDirection:'row',borderTopWidth:1,borderBottomWidth:1,borderColor:c.border,marginTop:8},
   tab:{flex:1,paddingVertical:13,alignItems:'center',borderBottomWidth:2,borderBottomColor:'transparent'},
-  tabActive:{borderBottomColor:COLORS.navy},
-  tabTxt:{fontSize:14,fontWeight:'600',color:'#aaa'},
-  tabTxtActive:{color:COLORS.navy,fontWeight:'700'},
-  divider:{height:1,backgroundColor:COLORS.border,marginHorizontal:16,marginVertical:16},
+  tabActive:{borderBottomColor:c.navy},
+  tabTxt:{fontSize:14,fontWeight:'600',color:c.textMuted},
+  tabTxtActive:{color:c.text,fontWeight:'700'},
+  divider:{height:1,backgroundColor:c.border,marginHorizontal:16,marginVertical:16},
   section:{paddingHorizontal:16,marginBottom:4},
-  sectionTitle:{fontSize:17,fontWeight:'700',color:COLORS.navy,marginBottom:14},
-  infoCard:{borderWidth:1,borderColor:COLORS.border,borderRadius:16,overflow:'hidden'},
+  sectionTitle:{fontSize:17,fontWeight:'700',color:c.text,marginBottom:14},
+  infoCard:{borderWidth:1,borderColor:c.border,borderRadius:16,overflow:'hidden'},
   infoRow:{flexDirection:'row',alignItems:'center',paddingHorizontal:16,paddingVertical:14,gap:12},
-  infoDivider:{height:1,backgroundColor:'#f5f3ef',marginLeft:62},
-  infoIconWrap:{width:36,height:36,borderRadius:10,backgroundColor:COLORS.lightBg,alignItems:'center',justifyContent:'center'},
+  infoDivider:{height:1,backgroundColor:c.cardAlt,marginLeft:62},
+  infoIconWrap:{width:36,height:36,borderRadius:10,backgroundColor:c.cardAlt,alignItems:'center',justifyContent:'center'},
   infoContent:{flex:1},
-  infoLabel:{fontSize:11,color:'#bbb',fontWeight:'600',textTransform:'uppercase',letterSpacing:0.4,marginBottom:2},
-  infoValue:{fontSize:14,color:COLORS.navy,fontWeight:'500'},
-  tappable:{color:COLORS.navy,fontWeight:'600'},
-  goldTxt:{color:COLORS.gold},
-  muted:{color:'#bbb',fontSize:14},
-  actionBadge:{backgroundColor:COLORS.navy,borderRadius:100,paddingHorizontal:14,paddingVertical:7},
+  infoLabel:{fontSize:11,color:c.textMuted,fontWeight:'600',textTransform:'uppercase',letterSpacing:0.4,marginBottom:2},
+  infoValue:{fontSize:14,color:c.text,fontWeight:'500'},
+  tappable:{color:c.text,fontWeight:'600'},
+  goldTxt:{color:c.gold},
+  muted:{color:c.textMuted,fontSize:14},
+  actionBadge:{backgroundColor:c.primary,borderRadius:100,paddingHorizontal:14,paddingVertical:7},
   actionBadgeTxt:{color:'#fff',fontSize:12,fontWeight:'700'},
   callBadge:{backgroundColor:'#e8f5e9',borderRadius:100,paddingHorizontal:14,paddingVertical:7},
-  callBadgeTxt:{color:COLORS.green,fontSize:12,fontWeight:'700'},
+  callBadgeTxt:{color:c.green,fontSize:12,fontWeight:'700'},
   visitBadge:{backgroundColor:'rgba(201,169,110,0.12)',borderRadius:100,paddingHorizontal:14,paddingVertical:7},
-  visitBadgeTxt:{color:COLORS.gold,fontSize:12,fontWeight:'700'},
+  visitBadgeTxt:{color:c.gold,fontSize:12,fontWeight:'700'},
   hourRow:{flexDirection:'row',justifyContent:'space-between',alignItems:'center',paddingHorizontal:16,paddingVertical:13},
-  hourBorder:{borderBottomWidth:1,borderBottomColor:'#f5f3ef'},
+  hourBorder:{borderBottomWidth:1,borderBottomColor:c.cardAlt},
   hourRowToday:{backgroundColor:'rgba(201,169,110,0.06)'},
   hourLeft:{flexDirection:'row',alignItems:'center',gap:8},
-  todayDot:{width:6,height:6,borderRadius:3,backgroundColor:COLORS.gold},
-  hourDay:{fontSize:14,color:'#555'},
-  hourTime:{fontSize:14,color:'#555'},
-  todayTxt:{color:COLORS.navy,fontWeight:'700'},
+  todayDot:{width:6,height:6,borderRadius:3,backgroundColor:c.gold},
+  hourDay:{fontSize:14,color:c.textSecondary},
+  hourTime:{fontSize:14,color:c.textSecondary},
+  todayTxt:{color:c.text,fontWeight:'700'},
   amenityRow:{flexDirection:'row',alignItems:'center',justifyContent:'space-between',paddingHorizontal:16,paddingVertical:14},
-  amenityBorder:{borderBottomWidth:1,borderBottomColor:'#f5f3ef'},
+  amenityBorder:{borderBottomWidth:1,borderBottomColor:c.cardAlt},
   amenityLeft:{flexDirection:'row',alignItems:'center',gap:12},
-  amenityIconWrap:{width:36,height:36,borderRadius:10,backgroundColor:COLORS.lightBg,alignItems:'center',justifyContent:'center'},
-  amenityTxt:{fontSize:14,color:COLORS.navy,fontWeight:'500'},
-  mapBox:{marginHorizontal:16,borderRadius:16,overflow:'hidden',borderWidth:1,borderColor:COLORS.border},
+  amenityIconWrap:{width:36,height:36,borderRadius:10,backgroundColor:c.cardAlt,alignItems:'center',justifyContent:'center'},
+  amenityTxt:{fontSize:14,color:c.text,fontWeight:'500'},
+  mapBox:{marginHorizontal:16,borderRadius:16,overflow:'hidden',borderWidth:1,borderColor:c.border},
   mapArea:{height:180,backgroundColor:'#e8e8e8',alignItems:'center',justifyContent:'center',gap:8},
-  mapPin:{width:40,height:40,borderRadius:20,backgroundColor:COLORS.navy,alignItems:'center',justifyContent:'center'},
+  mapPin:{width:40,height:40,borderRadius:20,backgroundColor:c.primary,alignItems:'center',justifyContent:'center'},
   mapPinShadow:{width:10,height:6,borderRadius:5,backgroundColor:'rgba(0,0,0,0.2)'},
-  mapHint:{fontSize:12,color:'#999',marginTop:4},
-  mapFooter:{backgroundColor:'#fff',padding:14,flexDirection:'row',justifyContent:'space-between',alignItems:'center'},
-  mapCity:{fontSize:15,fontWeight:'700',color:COLORS.navy,flex:1},
-  directionsBtn:{flexDirection:'row',alignItems:'center',gap:5,backgroundColor:COLORS.navy,borderRadius:100,paddingHorizontal:14,paddingVertical:9},
+  mapHint:{fontSize:12,color:c.textMuted,marginTop:4},
+  mapFooter:{backgroundColor:c.card,padding:14,flexDirection:'row',justifyContent:'space-between',alignItems:'center'},
+  mapCity:{fontSize:15,fontWeight:'700',color:c.text,flex:1},
+  directionsBtn:{flexDirection:'row',alignItems:'center',gap:5,backgroundColor:c.primary,borderRadius:100,paddingHorizontal:14,paddingVertical:9},
   directionsTxt:{color:'#fff',fontSize:12,fontWeight:'700'},
   // Posts tab
   postsSection:{padding:16},
   emptyPosts:{paddingVertical:40,alignItems:'center',gap:8},
-  emptyPostsTxt:{fontSize:15,color:'#bbb',fontWeight:'600'},
-  emptyPostsSub:{fontSize:13,color:'#ddd',textAlign:'center'},
-  postCard:{backgroundColor:COLORS.white,borderRadius:16,padding:14,marginBottom:12,borderWidth:1,borderColor:COLORS.border},
+  emptyPostsTxt:{fontSize:15,color:c.textMuted,fontWeight:'600'},
+  emptyPostsSub:{fontSize:13,color:c.placeholder,textAlign:'center'},
+  postCard:{backgroundColor:c.card,borderRadius:16,padding:14,marginBottom:12,borderWidth:1,borderColor:c.border},
   postHdr:{flexDirection:'row',gap:10,marginBottom:10},
   postAvatar:{width:44,height:44,borderRadius:22,alignItems:'center',justifyContent:'center'},
-  postAvatarTxt:{color:COLORS.white,fontWeight:'700',fontSize:15},
+  postAvatarTxt:{color:c.onPrimary,fontWeight:'700',fontSize:15},
   postMeta:{flex:1},
-  postAuthor:{fontSize:15,fontWeight:'700',color:COLORS.navy},
-  postTime:{fontSize:12,color:'#aaa',marginTop:2},
+  postAuthor:{fontSize:15,fontWeight:'700',color:c.text},
+  postTime:{fontSize:12,color:c.textMuted,marginTop:2},
   postContent:{fontSize:14,color:'#333',lineHeight:21,marginBottom:10},
   postImage:{width:'100%',height:200,borderRadius:12,marginBottom:10},
   postStats:{flexDirection:'row',gap:12,marginBottom:8},
-  statTxt:{fontSize:12,color:'#aaa'},
-  postActions:{flexDirection:'row',borderTopWidth:1,borderTopColor:COLORS.border,paddingTop:10},
+  statTxt:{fontSize:12,color:c.textMuted},
+  postActions:{flexDirection:'row',borderTopWidth:1,borderTopColor:c.border,paddingTop:10},
   actionBtn:{flex:1,flexDirection:'row',alignItems:'center',justifyContent:'center',gap:5},
-  actionTxt:{fontSize:13,color:'#888',fontWeight:'600'},
+  actionTxt:{fontSize:13,color:c.textMuted,fontWeight:'600'},
   // Saved banner
   savedBanner:{flexDirection:'row',alignItems:'center',justifyContent:'center',gap:8,marginHorizontal:16,marginTop:16,backgroundColor:'#fff0f3',borderRadius:12,paddingVertical:12},
-  savedBannerTxt:{fontSize:14,fontWeight:'600',color:COLORS.red},
+  savedBannerTxt:{fontSize:14,fontWeight:'600',color:c.red},
   // Reviews Modal
-  modalRoot:{flex:1,backgroundColor:COLORS.white},
-  modalHdr:{flexDirection:'row',justifyContent:'space-between',alignItems:'flex-start',paddingHorizontal:20,paddingVertical:16,borderBottomWidth:1,borderBottomColor:COLORS.border},
-  modalTitle:{fontSize:20,fontWeight:'700',color:COLORS.navy,marginBottom:4},
+  modalRoot:{flex:1,backgroundColor:c.card},
+  modalHdr:{flexDirection:'row',justifyContent:'space-between',alignItems:'flex-start',paddingHorizontal:20,paddingVertical:16,borderBottomWidth:1,borderBottomColor:c.border},
+  modalTitle:{fontSize:20,fontWeight:'700',color:c.text,marginBottom:4},
   modalStarsRow:{flexDirection:'row',alignItems:'center',gap:4},
-  modalRating:{fontSize:13,color:'#888',marginLeft:4},
-  closeBtn:{width:36,height:36,borderRadius:18,backgroundColor:COLORS.lightBg,alignItems:'center',justifyContent:'center'},
+  modalRating:{fontSize:13,color:c.textMuted,marginLeft:4},
+  closeBtn:{width:36,height:36,borderRadius:18,backgroundColor:c.cardAlt,alignItems:'center',justifyContent:'center'},
   modalScroll:{flex:1,padding:16},
-  reviewCard:{backgroundColor:COLORS.lightBg,borderRadius:16,padding:14,marginBottom:12},
+  reviewCard:{backgroundColor:c.cardAlt,borderRadius:16,padding:14,marginBottom:12},
   reviewHdr:{flexDirection:'row',alignItems:'center',gap:10,marginBottom:10},
   reviewAvatar:{width:44,height:44,borderRadius:22},
-  reviewAvatarFallback:{backgroundColor:COLORS.navy,alignItems:'center',justifyContent:'center'},
+  reviewAvatarFallback:{backgroundColor:c.primary,alignItems:'center',justifyContent:'center'},
   reviewAvatarTxt:{color:'#fff',fontWeight:'700',fontSize:16},
   reviewMeta:{flex:1},
-  reviewName:{fontSize:15,fontWeight:'700',color:COLORS.navy,marginBottom:3},
+  reviewName:{fontSize:15,fontWeight:'700',color:c.text,marginBottom:3},
   reviewStarsRow:{flexDirection:'row',alignItems:'center'},
-  reviewTime:{fontSize:12,color:'#999'},
-  reviewTxt:{fontSize:14,color:'#555',lineHeight:22},
+  reviewTime:{fontSize:12,color:c.textMuted},
+  reviewTxt:{fontSize:14,color:c.textSecondary,lineHeight:22},
   noReviews:{alignItems:'center',paddingVertical:60,gap:10},
-  noReviewsTxt:{fontSize:16,color:'#bbb',fontWeight:'600'},
-  shareHdr:{flexDirection:'row',alignItems:'center',justifyContent:'space-between',paddingHorizontal:16,paddingVertical:14,borderBottomWidth:1,borderBottomColor:COLORS.border},
+  noReviewsTxt:{fontSize:16,color:c.textMuted,fontWeight:'600'},
+  shareHdr:{flexDirection:'row',alignItems:'center',justifyContent:'space-between',paddingHorizontal:16,paddingVertical:14,borderBottomWidth:1,borderBottomColor:c.border},
   shareCancelBtn:{paddingVertical:4,paddingHorizontal:4},
-  shareCancelTxt:{fontSize:15,color:'#888',fontWeight:'500'},
-  shareHdrTitle:{fontSize:16,fontWeight:'700',color:COLORS.navy},
-  sharePostBtn:{backgroundColor:COLORS.navy,borderRadius:100,paddingHorizontal:20,paddingVertical:9},
+  shareCancelTxt:{fontSize:15,color:c.textMuted,fontWeight:'500'},
+  shareHdrTitle:{fontSize:16,fontWeight:'700',color:c.text},
+  sharePostBtn:{backgroundColor:c.primary,borderRadius:100,paddingHorizontal:20,paddingVertical:9},
   sharePostBtnDisabled:{opacity:0.5},
   sharePostBtnTxt:{color:'#fff',fontSize:14,fontWeight:'700'},
   shareScroll:{flex:1},
   composerRow:{flexDirection:'row',paddingHorizontal:16,paddingTop:16,paddingBottom:8},
   composerAvatarWrap:{alignItems:'center',marginRight:12},
-  composerAvatar:{width:42,height:42,borderRadius:21,backgroundColor:COLORS.navy,alignItems:'center',justifyContent:'center'},
-  composerAvatarLine:{width:2,flex:1,backgroundColor:'#f0ede8',marginTop:8,borderRadius:1},
+  composerAvatar:{width:42,height:42,borderRadius:21,backgroundColor:c.primary,alignItems:'center',justifyContent:'center'},
+  composerAvatarLine:{width:2,flex:1,backgroundColor:c.border,marginTop:8,borderRadius:1},
   composerRight:{flex:1},
-  composerInput:{fontSize:16,color:COLORS.navy,minHeight:80,textAlignVertical:'top',marginBottom:14,lineHeight:24,paddingTop:4},
-  quotedCard:{borderWidth:1.5,borderColor:COLORS.border,borderRadius:14,padding:12,marginBottom:16,backgroundColor:COLORS.lightBg},
+  composerInput:{fontSize:16,color:c.text,minHeight:80,textAlignVertical:'top',marginBottom:14,lineHeight:24,paddingTop:4},
+  quotedCard:{borderWidth:1.5,borderColor:c.border,borderRadius:14,padding:12,marginBottom:16,backgroundColor:c.cardAlt},
   quotedTop:{flexDirection:'row',alignItems:'center',gap:6,marginBottom:6},
-  quotedIconWrap:{width:22,height:22,borderRadius:6,backgroundColor:COLORS.navy,alignItems:'center',justifyContent:'center'},
-  quotedName:{fontSize:14,fontWeight:'700',color:COLORS.navy,flex:1},
+  quotedIconWrap:{width:22,height:22,borderRadius:6,backgroundColor:c.primary,alignItems:'center',justifyContent:'center'},
+  quotedName:{fontSize:14,fontWeight:'700',color:c.text,flex:1},
   quotedLocationRow:{flexDirection:'row',alignItems:'center',gap:4,marginBottom:4},
-  quotedAddr:{fontSize:12,color:'#888',flex:1},
-  quotedDesc:{fontSize:12,color:'#666',lineHeight:17,marginBottom:6},
-  quotedFooter:{borderTopWidth:1,borderTopColor:COLORS.border,paddingTop:8,marginTop:4},
-  quotedLink:{fontSize:12,color:COLORS.gold,fontWeight:'600'},
+  quotedAddr:{fontSize:12,color:c.textMuted,flex:1},
+  quotedDesc:{fontSize:12,color:c.textSecondary,lineHeight:17,marginBottom:6},
+  quotedFooter:{borderTopWidth:1,borderTopColor:c.border,paddingTop:8,marginTop:4},
+  quotedLink:{fontSize:12,color:c.gold,fontWeight:'600'},
   shareOrRow:{flexDirection:'row',alignItems:'center',gap:12,paddingHorizontal:16,marginVertical:16},
-  shareOrLine:{flex:1,height:1,backgroundColor:COLORS.border},
-  shareOrTxt:{fontSize:12,color:'#bbb',fontWeight:'500'},
+  shareOrLine:{flex:1,height:1,backgroundColor:c.border},
+  shareOrTxt:{fontSize:12,color:c.textMuted,fontWeight:'500'},
   externalOptions:{flexDirection:'row',justifyContent:'space-around',paddingHorizontal:20,paddingBottom:30},
   externalOption:{alignItems:'center',gap:8},
   externalOptionIcon:{width:54,height:54,borderRadius:16,alignItems:'center',justifyContent:'center'},
-  externalOptionLabel:{fontSize:12,color:COLORS.navy,fontWeight:'600'},
+  externalOptionLabel:{fontSize:12,color:c.text,fontWeight:'600'},
   // Comment Modal
   overlay:{flex:1,backgroundColor:'rgba(0,0,0,0.4)'},
-  commentSheet:{backgroundColor:COLORS.white,borderTopLeftRadius:24,borderTopRightRadius:24,padding:16,maxHeight:500},
+  commentSheet:{backgroundColor:c.card,borderTopLeftRadius:24,borderTopRightRadius:24,padding:16,maxHeight:500},
   commentSheetHdr:{flexDirection:'row',justifyContent:'space-between',alignItems:'center',marginBottom:16},
-  commentSheetTitle:{fontSize:17,fontWeight:'700',color:COLORS.navy},
+  commentSheetTitle:{fontSize:17,fontWeight:'700',color:c.text},
   commentList:{maxHeight:300},
   commentItem:{flexDirection:'row',gap:10,marginBottom:12},
-  commentAvatar:{width:36,height:36,borderRadius:18,backgroundColor:COLORS.navy,alignItems:'center',justifyContent:'center'},
+  commentAvatar:{width:36,height:36,borderRadius:18,backgroundColor:c.primary,alignItems:'center',justifyContent:'center'},
   commentAvatarTxt:{color:'#fff',fontWeight:'700'},
-  commentBubble:{flex:1,backgroundColor:COLORS.lightBg,borderRadius:12,padding:10},
-  commentBubbleAuthor:{fontSize:13,fontWeight:'700',color:COLORS.navy,marginBottom:2},
-  commentBubbleText:{fontSize:13,color:'#555'},
-  commentInputRow:{flexDirection:'row',gap:10,alignItems:'center',borderTopWidth:1,borderTopColor:COLORS.border,paddingTop:12},
-  commentInput:{flex:1,borderWidth:1.5,borderColor:COLORS.border,borderRadius:20,paddingHorizontal:14,paddingVertical:10,fontSize:14,color:COLORS.navy},
-  commentSendBtn:{width:40,height:40,borderRadius:20,backgroundColor:COLORS.navy,alignItems:'center',justifyContent:'center'},
+  commentBubble:{flex:1,backgroundColor:c.cardAlt,borderRadius:12,padding:10},
+  commentBubbleAuthor:{fontSize:13,fontWeight:'700',color:c.text,marginBottom:2},
+  commentBubbleText:{fontSize:13,color:c.textSecondary},
+  commentInputRow:{flexDirection:'row',gap:10,alignItems:'center',borderTopWidth:1,borderTopColor:c.border,paddingTop:12},
+  commentInput:{flex:1,borderWidth:1.5,borderColor:c.border,borderRadius:20,paddingHorizontal:14,paddingVertical:10,fontSize:14,color:c.text},
+  commentSendBtn:{width:40,height:40,borderRadius:20,backgroundColor:c.primary,alignItems:'center',justifyContent:'center'},
 });

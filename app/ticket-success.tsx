@@ -4,9 +4,11 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { COLORS } from '../src/lib/constants';
+import { useThemeColors, ThemeColors } from '../src/lib/theme';
 
 export default function TicketSuccessScreen() {
+  const c = useThemeColors();
+  const s = makeStyles(c);
   const params = useLocalSearchParams<{
     id: string; title: string; date: string; location: string;
     price: string; type: string; organizer?: string;
@@ -27,14 +29,14 @@ export default function TicketSuccessScreen() {
 
   return (
     <SafeAreaView style={s.root} edges={['top','bottom']}>
-      <LinearGradient colors={[COLORS.navy, '#2d2240']} style={s.bg} start={{x:0,y:0}} end={{x:1,y:1}}>
+      <LinearGradient colors={[c.navy, '#2d2240']} style={s.bg} start={{x:0,y:0}} end={{x:1,y:1}}>
         <ScrollView contentContainerStyle={s.scrollContent} showsVerticalScrollIndicator={false}>
 
           {/* Success icon */}
           <Animated.View style={[s.iconWrap, { transform: [{ scale: scaleAnim }] }]}>
             <View style={s.iconOuter}>
               <View style={s.iconInner}>
-                <Ionicons name="checkmark" size={44} color={COLORS.white} />
+                <Ionicons name="checkmark" size={44} color={c.onPrimary} />
               </View>
             </View>
           </Animated.View>
@@ -61,7 +63,7 @@ export default function TicketSuccessScreen() {
                   <Text style={s.ticketTypeTxt}>{params.type}</Text>
                 </View>
                 <View style={s.ticketStatusPill}>
-                  <Ionicons name="checkmark-circle" size={13} color={COLORS.green} />
+                  <Ionicons name="checkmark-circle" size={13} color={c.green} />
                   <Text style={s.ticketStatusTxt}>Confirmed</Text>
                 </View>
               </View>
@@ -73,21 +75,21 @@ export default function TicketSuccessScreen() {
 
               <View style={s.ticketDetails}>
                 <View style={s.ticketDetail}>
-                  <Ionicons name="calendar-outline" size={15} color={COLORS.gold} />
+                  <Ionicons name="calendar-outline" size={15} color={c.gold} />
                   <View>
                     <Text style={s.ticketDetailLbl}>Date</Text>
                     <Text style={s.ticketDetailVal}>{params.date}</Text>
                   </View>
                 </View>
                 <View style={s.ticketDetail}>
-                  <Ionicons name="location-outline" size={15} color={COLORS.gold} />
+                  <Ionicons name="location-outline" size={15} color={c.gold} />
                   <View style={{flex:1}}>
                     <Text style={s.ticketDetailLbl}>Location</Text>
                     <Text style={s.ticketDetailVal} numberOfLines={2}>{params.location}</Text>
                   </View>
                 </View>
                 <View style={s.ticketDetail}>
-                  <Ionicons name="ticket-outline" size={15} color={COLORS.gold} />
+                  <Ionicons name="ticket-outline" size={15} color={c.gold} />
                   <View>
                     <Text style={s.ticketDetailLbl}>Tickets</Text>
                     <Text style={s.ticketDetailVal}>{quantity}x · {params.price} total</Text>
@@ -133,41 +135,41 @@ export default function TicketSuccessScreen() {
   );
 }
 
-const s = StyleSheet.create({
+const makeStyles = (c: ThemeColors) => StyleSheet.create({
   root:{flex:1},
   bg:{flex:1},
   scrollContent:{paddingHorizontal:24,paddingTop:40,alignItems:'center'},
   iconWrap:{marginBottom:20},
   iconOuter:{width:100,height:100,borderRadius:50,backgroundColor:'rgba(255,255,255,0.1)',alignItems:'center',justifyContent:'center'},
-  iconInner:{width:76,height:76,borderRadius:38,backgroundColor:COLORS.green,alignItems:'center',justifyContent:'center'},
+  iconInner:{width:76,height:76,borderRadius:38,backgroundColor:c.green,alignItems:'center',justifyContent:'center'},
   content:{width:'100%',alignItems:'center'},
   successLabel:{fontSize:12,fontWeight:'700',color:'rgba(255,255,255,0.6)',textTransform:'uppercase',letterSpacing:2,marginBottom:8},
-  successTitle:{fontFamily:'PlayfairDisplay_700Bold',fontSize:24,color:COLORS.white,textAlign:'center',marginBottom:4},
-  successSub:{fontSize:15,color:COLORS.gold,fontWeight:'600',marginBottom:14},
+  successTitle:{fontFamily:'PlayfairDisplay_700Bold',fontSize:24,color:c.onPrimary,textAlign:'center',marginBottom:4},
+  successSub:{fontSize:15,color:c.gold,fontWeight:'600',marginBottom:14},
   emailBanner:{flexDirection:'row',alignItems:'center',gap:8,backgroundColor:'rgba(255,255,255,0.1)',borderRadius:12,paddingHorizontal:16,paddingVertical:10,marginBottom:20},
   emailBannerTxt:{color:'rgba(255,255,255,0.8)',fontSize:13,fontWeight:'500'},
-  ticketCard:{width:'100%',backgroundColor:COLORS.white,borderRadius:20,overflow:'hidden',marginBottom:20},
+  ticketCard:{width:'100%',backgroundColor:c.card,borderRadius:20,overflow:'hidden',marginBottom:20},
   ticketTop:{flexDirection:'row',justifyContent:'space-between',alignItems:'center',padding:14,paddingBottom:8},
-  ticketTypePill:{backgroundColor:COLORS.lightBg,borderRadius:100,paddingHorizontal:12,paddingVertical:4},
-  ticketTypeTxt:{fontSize:11,fontWeight:'700',color:'#888'},
+  ticketTypePill:{backgroundColor:c.cardAlt,borderRadius:100,paddingHorizontal:12,paddingVertical:4},
+  ticketTypeTxt:{fontSize:11,fontWeight:'700',color:c.textMuted},
   ticketStatusPill:{flexDirection:'row',alignItems:'center',gap:4,backgroundColor:'#e8f5e9',borderRadius:100,paddingHorizontal:10,paddingVertical:4},
-  ticketStatusTxt:{fontSize:11,fontWeight:'700',color:COLORS.green},
-  ticketTitle:{fontFamily:'PlayfairDisplay_700Bold',fontSize:17,color:COLORS.navy,paddingHorizontal:14,marginBottom:3},
-  ticketOrganizer:{fontSize:12,color:COLORS.gold,fontWeight:'600',paddingHorizontal:14,marginBottom:10},
-  ticketDivider:{height:1,backgroundColor:COLORS.border,marginHorizontal:14,marginVertical:10},
+  ticketStatusTxt:{fontSize:11,fontWeight:'700',color:c.green},
+  ticketTitle:{fontFamily:'PlayfairDisplay_700Bold',fontSize:17,color:c.text,paddingHorizontal:14,marginBottom:3},
+  ticketOrganizer:{fontSize:12,color:c.gold,fontWeight:'600',paddingHorizontal:14,marginBottom:10},
+  ticketDivider:{height:1,backgroundColor:c.border,marginHorizontal:14,marginVertical:10},
   ticketDetails:{paddingHorizontal:14,gap:10},
   ticketDetail:{flexDirection:'row',alignItems:'flex-start',gap:10},
-  ticketDetailLbl:{fontSize:10,color:'#aaa',fontWeight:'600',textTransform:'uppercase',letterSpacing:0.3},
-  ticketDetailVal:{fontSize:13,color:COLORS.navy,fontWeight:'600',marginTop:1},
+  ticketDetailLbl:{fontSize:10,color:c.textMuted,fontWeight:'600',textTransform:'uppercase',letterSpacing:0.3},
+  ticketDetailVal:{fontSize:13,color:c.text,fontWeight:'600',marginTop:1},
   ticketIdsWrap:{paddingHorizontal:14,paddingBottom:6},
   ticketIdRow:{flexDirection:'row',alignItems:'center',gap:8,marginBottom:6},
-  ticketIdDot:{width:6,height:6,borderRadius:3,backgroundColor:COLORS.gold},
-  ticketIdTxt:{fontSize:12,color:'#888'},
-  ticketIdCode:{fontWeight:'700',color:COLORS.navy,letterSpacing:0.5},
+  ticketIdDot:{width:6,height:6,borderRadius:3,backgroundColor:c.gold},
+  ticketIdTxt:{fontSize:12,color:c.textMuted},
+  ticketIdCode:{fontWeight:'700',color:c.text,letterSpacing:0.5},
   barcodeWrap:{flexDirection:'row',alignItems:'center',gap:2,paddingHorizontal:14,paddingBottom:12,height:44},
-  barcodeBar:{width:3,backgroundColor:COLORS.navy,borderRadius:1},
+  barcodeBar:{width:3,backgroundColor:c.primary,borderRadius:1},
   viewEventBtn:{width:'100%',backgroundColor:'rgba(255,255,255,0.15)',borderRadius:14,paddingVertical:15,alignItems:'center',marginBottom:10},
-  viewEventBtnTxt:{color:COLORS.white,fontSize:15,fontWeight:'700'},
+  viewEventBtnTxt:{color:c.onPrimary,fontSize:15,fontWeight:'700'},
   homeBtn:{width:'100%',borderWidth:1.5,borderColor:'rgba(255,255,255,0.2)',borderRadius:14,paddingVertical:14,alignItems:'center'},
   homeBtnTxt:{color:'rgba(255,255,255,0.6)',fontSize:14,fontWeight:'600'},
 });

@@ -4,7 +4,7 @@ import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
-import { COLORS } from '../src/lib/constants';
+import { useThemeColors, ThemeColors } from '../src/lib/theme';
 import { useUser, setUser, getUser } from '../src/lib/userStore';
 import { useToast } from '../src/components/Toast';
 
@@ -34,20 +34,21 @@ function parseServiceTimes(str: string): ServiceTime[] {
 
 type PickerProps = { visible:boolean; options:string[]; selected:string; onSelect:(v:string)=>void; onClose:()=>void; title:string; };
 function InlinePicker({visible,options,selected,onSelect,onClose,title}:PickerProps) {
+  const c = useThemeColors();
   if (!visible) return null;
   return (
     <Modal visible transparent animationType="fade" onRequestClose={onClose}>
       <TouchableOpacity style={{flex:1,backgroundColor:'rgba(0,0,0,0.4)'}} activeOpacity={1} onPress={onClose}/>
-      <View style={{position:'absolute',bottom:0,left:0,right:0,backgroundColor:COLORS.white,borderTopLeftRadius:24,borderTopRightRadius:24,paddingBottom:32}}>
-        <View style={{flexDirection:'row',justifyContent:'space-between',alignItems:'center',padding:20,borderBottomWidth:1,borderBottomColor:'#f0ede8'}}>
-          <Text style={{fontSize:16,fontWeight:'700',color:COLORS.navy}}>{title}</Text>
-          <TouchableOpacity onPress={onClose}><Ionicons name="close" size={22} color={COLORS.navy}/></TouchableOpacity>
+      <View style={{position:'absolute',bottom:0,left:0,right:0,backgroundColor:c.card,borderTopLeftRadius:24,borderTopRightRadius:24,paddingBottom:32}}>
+        <View style={{flexDirection:'row',justifyContent:'space-between',alignItems:'center',padding:20,borderBottomWidth:1,borderBottomColor:c.border}}>
+          <Text style={{fontSize:16,fontWeight:'700',color:c.text}}>{title}</Text>
+          <TouchableOpacity onPress={onClose}><Ionicons name="close" size={22} color={c.text}/></TouchableOpacity>
         </View>
         <ScrollView style={{maxHeight:300}}>
           {options.map(opt => (
-            <TouchableOpacity key={opt} style={{flexDirection:'row',alignItems:'center',justifyContent:'space-between',paddingHorizontal:20,paddingVertical:14,borderBottomWidth:1,borderBottomColor:'#f5f3ef'}} onPress={()=>{onSelect(opt);onClose();}}>
-              <Text style={{fontSize:15,color:selected===opt?COLORS.navy:'#444',fontWeight:selected===opt?'700':'400'}}>{opt}</Text>
-              {selected===opt&&<Ionicons name="checkmark" size={18} color={COLORS.gold}/>}
+            <TouchableOpacity key={opt} style={{flexDirection:'row',alignItems:'center',justifyContent:'space-between',paddingHorizontal:20,paddingVertical:14,borderBottomWidth:1,borderBottomColor:c.cardAlt}} onPress={()=>{onSelect(opt);onClose();}}>
+              <Text style={{fontSize:15,color:selected===opt?c.navy:c.textSecondary,fontWeight:selected===opt?'700':'400'}}>{opt}</Text>
+              {selected===opt&&<Ionicons name="checkmark" size={18} color={c.gold}/>}
             </TouchableOpacity>
           ))}
         </ScrollView>
@@ -57,6 +58,8 @@ function InlinePicker({visible,options,selected,onSelect,onClose,title}:PickerPr
 }
 
 export default function EditChurchProfileScreen() {
+  const c = useThemeColors();
+  const s = makeStyles(c);
   const user = useUser();
   const { showToast } = useToast();
   const [churchName, setChurchName] = useState(user.churchName || '');
@@ -136,7 +139,7 @@ export default function EditChurchProfileScreen() {
       <KeyboardAvoidingView style={{flex:1}} behavior={Platform.OS==='ios'?'padding':undefined}>
         <View style={s.hdr}>
           <TouchableOpacity style={s.backBtn} onPress={() => router.back()}>
-            <Ionicons name="arrow-back" size={20} color={COLORS.navy} />
+            <Ionicons name="arrow-back" size={20} color={c.text} />
           </TouchableOpacity>
           <Text style={s.hdrTitle}>Edit Church Profile</Text>
           <TouchableOpacity onPress={handleSave}>
@@ -151,17 +154,17 @@ export default function EditChurchProfileScreen() {
             <TouchableOpacity onPress={handlePickAvatar} activeOpacity={0.85}>
               {user.avatar
                 ? <Image source={{uri:user.avatar}} style={{width:72,height:72,borderRadius:18}} resizeMode="cover" />
-                : <View style={{width:72,height:72,borderRadius:18,backgroundColor:COLORS.navy,alignItems:'center',justifyContent:'center'}}>
-                    <Ionicons name="home" size={26} color={COLORS.gold} />
+                : <View style={{width:72,height:72,borderRadius:18,backgroundColor:c.primary,alignItems:'center',justifyContent:'center'}}>
+                    <Ionicons name="home" size={26} color={c.gold} />
                   </View>
               }
-              <View style={{position:'absolute',bottom:-2,right:-2,width:22,height:22,borderRadius:11,backgroundColor:COLORS.gold,alignItems:'center',justifyContent:'center',borderWidth:2,borderColor:COLORS.white}}>
-                <Ionicons name="camera" size={11} color={COLORS.white} />
+              <View style={{position:'absolute',bottom:-2,right:-2,width:22,height:22,borderRadius:11,backgroundColor:c.gold,alignItems:'center',justifyContent:'center',borderWidth:2,borderColor:c.card}}>
+                <Ionicons name="camera" size={11} color={c.onPrimary} />
               </View>
             </TouchableOpacity>
             <View style={{flex:1}}>
               <Text style={s.label}>Profile Photo</Text>
-              <Text style={{fontSize:12,color:'#aaa'}}>Tap to change your church's profile photo</Text>
+              <Text style={{fontSize:12,color:c.textMuted}}>Tap to change your church's profile photo</Text>
             </View>
           </View>
 
@@ -173,14 +176,14 @@ export default function EditChurchProfileScreen() {
                   <Image source={{uri}} style={{width:80,height:80,borderRadius:12}} resizeMode="cover" />
                   <TouchableOpacity
                     onPress={() => handleRemoveGalleryPhoto(uri)}
-                    style={{position:'absolute',top:-6,right:-6,width:22,height:22,borderRadius:11,backgroundColor:COLORS.red,alignItems:'center',justifyContent:'center',borderWidth:2,borderColor:COLORS.white}}
+                    style={{position:'absolute',top:-6,right:-6,width:22,height:22,borderRadius:11,backgroundColor:c.red,alignItems:'center',justifyContent:'center',borderWidth:2,borderColor:c.card}}
                   >
-                    <Ionicons name="close" size={12} color={COLORS.white} />
+                    <Ionicons name="close" size={12} color={c.onPrimary} />
                   </TouchableOpacity>
                 </View>
               ))}
-              <TouchableOpacity onPress={handleAddGalleryPhoto} style={{width:80,height:80,borderRadius:12,borderWidth:1.5,borderColor:COLORS.gold,borderStyle:'dashed',alignItems:'center',justifyContent:'center'}}>
-                <Ionicons name="add" size={22} color={COLORS.gold} />
+              <TouchableOpacity onPress={handleAddGalleryPhoto} style={{width:80,height:80,borderRadius:12,borderWidth:1.5,borderColor:c.gold,borderStyle:'dashed',alignItems:'center',justifyContent:'center'}}>
+                <Ionicons name="add" size={22} color={c.gold} />
               </TouchableOpacity>
             </ScrollView>
           </View>
@@ -190,40 +193,40 @@ export default function EditChurchProfileScreen() {
           <View style={s.fieldWrap}>
             <Text style={s.label}>Church Name</Text>
             <View style={s.inputWrap}>
-              <Ionicons name="home-outline" size={18} color="#bbb" style={s.icon} />
-              <TextInput style={[s.input, s.inputWithIcon]} placeholder="Grace Community Church" placeholderTextColor={COLORS.placeholder} value={churchName} onChangeText={setChurchName} />
+              <Ionicons name="home-outline" size={18} color={c.textMuted} style={s.icon} />
+              <TextInput style={[s.input, s.inputWithIcon]} placeholder="Grace Community Church" placeholderTextColor={c.placeholder} value={churchName} onChangeText={setChurchName} />
             </View>
           </View>
 
           <View style={s.fieldWrap}>
             <Text style={s.label}>Address</Text>
             <View style={s.inputWrap}>
-              <Ionicons name="location-outline" size={18} color="#bbb" style={s.icon} />
-              <TextInput style={[s.input, s.inputWithIcon]} placeholder="123 Faith St, Glen Cove, NY 11542" placeholderTextColor={COLORS.placeholder} value={address} onChangeText={setAddress} />
+              <Ionicons name="location-outline" size={18} color={c.textMuted} style={s.icon} />
+              <TextInput style={[s.input, s.inputWithIcon]} placeholder="123 Faith St, Glen Cove, NY 11542" placeholderTextColor={c.placeholder} value={address} onChangeText={setAddress} />
             </View>
           </View>
 
           <View style={s.fieldWrap}>
             <Text style={s.label}>Email</Text>
             <View style={s.inputWrap}>
-              <Ionicons name="mail-outline" size={18} color="#bbb" style={s.icon} />
-              <TextInput style={[s.input, s.inputWithIcon]} placeholder="info@yourchurch.org" placeholderTextColor={COLORS.placeholder} value={churchEmail} onChangeText={setChurchEmail} keyboardType="email-address" autoCapitalize="none" />
+              <Ionicons name="mail-outline" size={18} color={c.textMuted} style={s.icon} />
+              <TextInput style={[s.input, s.inputWithIcon]} placeholder="info@yourchurch.org" placeholderTextColor={c.placeholder} value={churchEmail} onChangeText={setChurchEmail} keyboardType="email-address" autoCapitalize="none" />
             </View>
           </View>
 
           <View style={s.fieldWrap}>
             <Text style={s.label}>Phone</Text>
             <View style={s.inputWrap}>
-              <Ionicons name="call-outline" size={18} color="#bbb" style={s.icon} />
-              <TextInput style={[s.input, s.inputWithIcon]} placeholder="(516) 000-0000" placeholderTextColor={COLORS.placeholder} value={phone} onChangeText={setPhone} keyboardType="phone-pad" />
+              <Ionicons name="call-outline" size={18} color={c.textMuted} style={s.icon} />
+              <TextInput style={[s.input, s.inputWithIcon]} placeholder="(516) 000-0000" placeholderTextColor={c.placeholder} value={phone} onChangeText={setPhone} keyboardType="phone-pad" />
             </View>
           </View>
 
           <View style={s.fieldWrap}>
             <Text style={s.label}>Website</Text>
             <View style={s.inputWrap}>
-              <Ionicons name="globe-outline" size={18} color="#bbb" style={s.icon} />
-              <TextInput style={[s.input, s.inputWithIcon]} placeholder="www.yourchurch.org" placeholderTextColor={COLORS.placeholder} value={website} onChangeText={setWebsite} autoCapitalize="none" keyboardType="url" />
+              <Ionicons name="globe-outline" size={18} color={c.textMuted} style={s.icon} />
+              <TextInput style={[s.input, s.inputWithIcon]} placeholder="www.yourchurch.org" placeholderTextColor={c.placeholder} value={website} onChangeText={setWebsite} autoCapitalize="none" keyboardType="url" />
             </View>
           </View>
 
@@ -231,14 +234,14 @@ export default function EditChurchProfileScreen() {
             <Text style={s.label}>Denomination</Text>
             <TouchableOpacity style={[s.picker, showDenom && s.pickerOpen]} onPress={() => setShowDenom(!showDenom)}>
               <Text style={[s.pickerTxt, !denomination && s.pickerPlaceholder]}>{denomination || 'Select denomination'}</Text>
-              <Ionicons name={showDenom ? 'chevron-up' : 'chevron-down'} size={18} color="#bbb" />
+              <Ionicons name={showDenom ? 'chevron-up' : 'chevron-down'} size={18} color={c.textMuted} />
             </TouchableOpacity>
             {showDenom && (
               <View style={s.denomList}>
                 {DENOMINATIONS.map(d => (
                   <TouchableOpacity key={d} style={[s.denomItem, denomination===d && s.denomItemActive]} onPress={() => { setDenomination(d); setShowDenom(false); }}>
                     <Text style={[s.denomTxt, denomination===d && s.denomTxtActive]}>{d}</Text>
-                    {denomination===d && <Ionicons name="checkmark" size={16} color={COLORS.gold} />}
+                    {denomination===d && <Ionicons name="checkmark" size={16} color={c.gold} />}
                   </TouchableOpacity>
                 ))}
               </View>
@@ -250,7 +253,7 @@ export default function EditChurchProfileScreen() {
             <TextInput
               style={[s.input, s.bioInput]}
               placeholder="Tell the community about your church..."
-              placeholderTextColor={COLORS.placeholder}
+              placeholderTextColor={c.placeholder}
               value={bio}
               onChangeText={setBio}
               multiline
@@ -264,10 +267,10 @@ export default function EditChurchProfileScreen() {
               <View style={{flexDirection:'row',alignItems:'center',justifyContent:'space-between',marginBottom:12}}>
                 <TouchableOpacity style={s.dayPicker} onPress={() => openPicker(idx,'day',DAYS,'Day of Week')}>
                   <Text style={s.dayPickerTxt}>{st.day}</Text>
-                  <Ionicons name="chevron-down" size={14} color={COLORS.navy}/>
+                  <Ionicons name="chevron-down" size={14} color={c.text}/>
                 </TouchableOpacity>
                 <TouchableOpacity onPress={() => removeServiceTime(idx)}>
-                  <Ionicons name="trash-outline" size={18} color={COLORS.red}/>
+                  <Ionicons name="trash-outline" size={18} color={c.red}/>
                 </TouchableOpacity>
               </View>
               <View style={{flexDirection:'row',alignItems:'center',gap:6}}>
@@ -297,7 +300,7 @@ export default function EditChurchProfileScreen() {
               <TextInput
                 style={s.noteInput}
                 placeholder="Add a note (optional) — e.g. Main Worship Service"
-                placeholderTextColor={COLORS.placeholder}
+                placeholderTextColor={c.placeholder}
                 value={st.note || ''}
                 onChangeText={v => updateServiceTime(idx, 'note', v)}
               />
@@ -305,7 +308,7 @@ export default function EditChurchProfileScreen() {
           ))}
 
           <TouchableOpacity style={s.addTimeBtn} onPress={addServiceTime}>
-            <Ionicons name="add-circle-outline" size={20} color={COLORS.gold}/>
+            <Ionicons name="add-circle-outline" size={20} color={c.gold}/>
             <Text style={s.addTimeTxt}>Add Service Time</Text>
           </TouchableOpacity>
 
@@ -330,10 +333,10 @@ export default function EditChurchProfileScreen() {
                     setUser({amenities:{...liveAmenities,[item.key]:!liveAmenities[item.key]}});
                   }}
                   activeOpacity={0.7}
-                  style={{flexDirection:'row',alignItems:'center',gap:6,paddingHorizontal:12,paddingVertical:8,borderRadius:100,borderWidth:1.5,borderColor:active?COLORS.navy:'#e8e3da',backgroundColor:active?'rgba(26,26,46,0.06)':COLORS.white}}
+                  style={{flexDirection:'row',alignItems:'center',gap:6,paddingHorizontal:12,paddingVertical:8,borderRadius:100,borderWidth:1.5,borderColor:active?c.navy:c.border,backgroundColor:active?'rgba(26,26,46,0.06)':c.white}}
                 >
-                  <Ionicons name={item.icon as any} size={14} color={active?COLORS.navy:'#bbb'}/>
-                  <Text style={{fontSize:12,fontWeight:'600',color:active?COLORS.navy:'#bbb'}}>{item.label}</Text>
+                  <Ionicons name={item.icon as any} size={14} color={active?c.navy:c.textMuted}/>
+                  <Text style={{fontSize:12,fontWeight:'600',color:active?c.navy:c.textMuted}}>{item.label}</Text>
                 </TouchableOpacity>
               );
             })}
@@ -344,27 +347,27 @@ export default function EditChurchProfileScreen() {
             <TextInput
               style={[s.input, {flex:1}]}
               placeholder="e.g. Youth Ministry, Bible Study..."
-              placeholderTextColor={COLORS.placeholder}
+              placeholderTextColor={c.placeholder}
               value={newMinistry}
               onChangeText={setNewMinistry}
               onSubmitEditing={addMinistry}
               returnKeyType="done"
             />
-            <TouchableOpacity onPress={addMinistry} style={{width:48,height:48,borderRadius:14,backgroundColor:COLORS.navy,alignItems:'center',justifyContent:'center'}}>
-              <Ionicons name="add" size={22} color={COLORS.white} />
+            <TouchableOpacity onPress={addMinistry} style={{width:48,height:48,borderRadius:14,backgroundColor:c.primary,alignItems:'center',justifyContent:'center'}}>
+              <Ionicons name="add" size={22} color={c.onPrimary} />
             </TouchableOpacity>
           </View>
           <View style={{flexDirection:'row',flexWrap:'wrap',gap:8,marginBottom:20}}>
             {(user.ministries || []).map((name: string) => (
-              <View key={name} style={{flexDirection:'row',alignItems:'center',gap:6,paddingHorizontal:12,paddingVertical:8,borderRadius:100,borderWidth:1.5,borderColor:COLORS.gold,backgroundColor:'rgba(201,169,110,0.08)'}}>
-                <Text style={{fontSize:12,fontWeight:'600',color:COLORS.gold}}>{name}</Text>
+              <View key={name} style={{flexDirection:'row',alignItems:'center',gap:6,paddingHorizontal:12,paddingVertical:8,borderRadius:100,borderWidth:1.5,borderColor:c.gold,backgroundColor:'rgba(201,169,110,0.08)'}}>
+                <Text style={{fontSize:12,fontWeight:'600',color:c.gold}}>{name}</Text>
                 <TouchableOpacity onPress={() => removeMinistry(name)}>
-                  <Ionicons name="close-circle" size={16} color={COLORS.gold} />
+                  <Ionicons name="close-circle" size={16} color={c.gold} />
                 </TouchableOpacity>
               </View>
             ))}
             {(!user.ministries || user.ministries.length === 0) && (
-              <Text style={{fontSize:12,color:'#bbb'}}>No ministries added yet</Text>
+              <Text style={{fontSize:12,color:c.textMuted}}>No ministries added yet</Text>
             )}
           </View>
 
@@ -390,43 +393,43 @@ export default function EditChurchProfileScreen() {
   );
 }
 
-const s = StyleSheet.create({
-  root:{flex:1,backgroundColor:'#f8f7f4'},
-  hdr:{flexDirection:'row',alignItems:'center',justifyContent:'space-between',paddingHorizontal:16,paddingVertical:12,borderBottomWidth:1,borderBottomColor:COLORS.border,backgroundColor:COLORS.white},
-  backBtn:{width:36,height:36,borderRadius:18,backgroundColor:COLORS.lightBg,alignItems:'center',justifyContent:'center'},
-  hdrTitle:{fontSize:16,fontWeight:'700',color:COLORS.navy},
-  saveBtn:{fontSize:15,fontWeight:'700',color:COLORS.gold},
+const makeStyles = (c: ThemeColors) => StyleSheet.create({
+  root:{flex:1,backgroundColor:c.bg},
+  hdr:{flexDirection:'row',alignItems:'center',justifyContent:'space-between',paddingHorizontal:16,paddingVertical:12,borderBottomWidth:1,borderBottomColor:c.border,backgroundColor:c.card},
+  backBtn:{width:36,height:36,borderRadius:18,backgroundColor:c.cardAlt,alignItems:'center',justifyContent:'center'},
+  hdrTitle:{fontSize:16,fontWeight:'700',color:c.text},
+  saveBtn:{fontSize:15,fontWeight:'700',color:c.gold},
   scroll:{padding:20},
-  sectionTitle:{fontSize:13,fontWeight:'700',color:'#aaa',textTransform:'uppercase',letterSpacing:0.5,marginBottom:14,marginTop:8},
+  sectionTitle:{fontSize:13,fontWeight:'700',color:c.textMuted,textTransform:'uppercase',letterSpacing:0.5,marginBottom:14,marginTop:8},
   fieldWrap:{marginBottom:16},
-  label:{fontSize:13,fontWeight:'600',color:'#444',marginBottom:8},
+  label:{fontSize:13,fontWeight:'600',color:c.textSecondary,marginBottom:8},
   inputWrap:{position:'relative'},
   icon:{position:'absolute',left:14,top:15,zIndex:1},
-  input:{borderWidth:1.5,borderColor:COLORS.border,borderRadius:14,paddingHorizontal:16,paddingVertical:14,fontSize:15,color:COLORS.navy,backgroundColor:COLORS.white},
+  input:{borderWidth:1.5,borderColor:c.border,borderRadius:14,paddingHorizontal:16,paddingVertical:14,fontSize:15,color:c.text,backgroundColor:c.card},
   inputWithIcon:{paddingLeft:44},
   bioInput:{height:100,textAlignVertical:'top',paddingTop:12},
-  picker:{flexDirection:'row',alignItems:'center',justifyContent:'space-between',borderWidth:1.5,borderColor:COLORS.border,borderRadius:14,paddingHorizontal:16,paddingVertical:14,backgroundColor:COLORS.white},
-  pickerOpen:{borderColor:COLORS.navy},
-  pickerTxt:{fontSize:15,color:COLORS.navy},
-  pickerPlaceholder:{color:COLORS.placeholder},
-  denomList:{borderWidth:1.5,borderColor:COLORS.border,borderRadius:14,marginTop:4,overflow:'hidden',backgroundColor:COLORS.white},
-  denomItem:{flexDirection:'row',alignItems:'center',justifyContent:'space-between',paddingHorizontal:16,paddingVertical:12,borderBottomWidth:1,borderBottomColor:COLORS.border},
+  picker:{flexDirection:'row',alignItems:'center',justifyContent:'space-between',borderWidth:1.5,borderColor:c.border,borderRadius:14,paddingHorizontal:16,paddingVertical:14,backgroundColor:c.card},
+  pickerOpen:{borderColor:c.primary},
+  pickerTxt:{fontSize:15,color:c.text},
+  pickerPlaceholder:{color:c.placeholder},
+  denomList:{borderWidth:1.5,borderColor:c.border,borderRadius:14,marginTop:4,overflow:'hidden',backgroundColor:c.card},
+  denomItem:{flexDirection:'row',alignItems:'center',justifyContent:'space-between',paddingHorizontal:16,paddingVertical:12,borderBottomWidth:1,borderBottomColor:c.border},
   denomItemActive:{backgroundColor:'rgba(201,169,110,0.06)'},
-  denomTxt:{fontSize:14,color:'#444'},
-  denomTxtActive:{color:COLORS.navy,fontWeight:'700'},
-  serviceTimeCard:{backgroundColor:COLORS.white,borderRadius:16,borderWidth:1,borderColor:COLORS.border,padding:16,marginBottom:10},
-  dayPicker:{flexDirection:'row',alignItems:'center',gap:6,backgroundColor:COLORS.lightBg,borderRadius:10,paddingHorizontal:14,paddingVertical:8},
-  dayPickerTxt:{fontSize:14,fontWeight:'700',color:COLORS.navy},
-  timeLabel:{fontSize:13,color:'#888',width:32},
-  timePart:{backgroundColor:COLORS.lightBg,borderRadius:8,paddingHorizontal:10,paddingVertical:7,minWidth:36,alignItems:'center'},
-  timePartTxt:{fontSize:14,fontWeight:'700',color:COLORS.navy},
-  timeSep:{fontSize:16,fontWeight:'700',color:COLORS.navy},
-  timeDash:{fontSize:16,color:'#888',marginHorizontal:2},
+  denomTxt:{fontSize:14,color:c.textSecondary},
+  denomTxtActive:{color:c.text,fontWeight:'700'},
+  serviceTimeCard:{backgroundColor:c.card,borderRadius:16,borderWidth:1,borderColor:c.border,padding:16,marginBottom:10},
+  dayPicker:{flexDirection:'row',alignItems:'center',gap:6,backgroundColor:c.cardAlt,borderRadius:10,paddingHorizontal:14,paddingVertical:8},
+  dayPickerTxt:{fontSize:14,fontWeight:'700',color:c.text},
+  timeLabel:{fontSize:13,color:c.textMuted,width:32},
+  timePart:{backgroundColor:c.cardAlt,borderRadius:8,paddingHorizontal:10,paddingVertical:7,minWidth:36,alignItems:'center'},
+  timePartTxt:{fontSize:14,fontWeight:'700',color:c.text},
+  timeSep:{fontSize:16,fontWeight:'700',color:c.text},
+  timeDash:{fontSize:16,color:c.textMuted,marginHorizontal:2},
   timeAmPm:{backgroundColor:'rgba(201,169,110,0.12)',borderRadius:8,paddingHorizontal:10,paddingVertical:7},
-  timeAmPmTxt:{fontSize:13,fontWeight:'700',color:COLORS.gold},
-  addTimeBtn:{flexDirection:'row',alignItems:'center',gap:8,justifyContent:'center',paddingVertical:14,borderWidth:1.5,borderColor:COLORS.gold,borderRadius:14,borderStyle:'dashed',marginBottom:20,marginTop:4},
-  addTimeTxt:{fontSize:14,fontWeight:'700',color:COLORS.gold},
-  noteInput:{marginTop:10,borderWidth:1,borderColor:'#eee6d9',borderRadius:10,paddingHorizontal:12,paddingVertical:9,fontSize:13,color:COLORS.navy,backgroundColor:COLORS.lightBg},
-  saveFullBtn:{backgroundColor:COLORS.navy,borderRadius:16,paddingVertical:16,alignItems:'center',marginTop:8},
-  saveFullBtnTxt:{color:COLORS.white,fontSize:15,fontWeight:'700'},
+  timeAmPmTxt:{fontSize:13,fontWeight:'700',color:c.gold},
+  addTimeBtn:{flexDirection:'row',alignItems:'center',gap:8,justifyContent:'center',paddingVertical:14,borderWidth:1.5,borderColor:c.gold,borderRadius:14,borderStyle:'dashed',marginBottom:20,marginTop:4},
+  addTimeTxt:{fontSize:14,fontWeight:'700',color:c.gold},
+  noteInput:{marginTop:10,borderWidth:1,borderColor:'#eee6d9',borderRadius:10,paddingHorizontal:12,paddingVertical:9,fontSize:13,color:c.text,backgroundColor:c.cardAlt},
+  saveFullBtn:{backgroundColor:c.primary,borderRadius:16,paddingVertical:16,alignItems:'center',marginTop:8},
+  saveFullBtnTxt:{color:c.onPrimary,fontSize:15,fontWeight:'700'},
 });

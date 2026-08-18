@@ -6,11 +6,13 @@ import {
 import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { COLORS } from '../src/lib/constants';
+import { useThemeColors, ThemeColors } from '../src/lib/theme';
 import { addAttending } from '../src/lib/eventActionsStore';
 import { addTicket } from '../src/lib/ticketStore';
 
 export default function EventCheckoutScreen() {
+  const c = useThemeColors();
+  const s = makeStyles(c);
   const params = useLocalSearchParams<{
     id: string; title: string; date: string; location: string;
     price: string; type: string; organizer?: string;
@@ -132,15 +134,15 @@ export default function EventCheckoutScreen() {
           <View style={s.section}>
             <Text style={s.sectionTitle}>Contact Email</Text>
             <TextInput
-              style={[s.input, emailError ? {borderColor:COLORS.red} : {}]}
+              style={[s.input, emailError ? {borderColor:c.red} : {}]}
               placeholder="Enter your email address"
-              placeholderTextColor="#bbb"
+              placeholderTextColor={c.placeholder}
               keyboardType="email-address"
               autoCapitalize="none"
               value={email}
               onChangeText={t => { setEmail(t); setEmailError(''); }}
             />
-            {!!emailError && <Text style={{color:COLORS.red,fontSize:12,marginTop:4}}>{emailError}</Text>}
+            {!!emailError && <Text style={{color:c.red,fontSize:12,marginTop:4}}>{emailError}</Text>}
           </View>
 
           <View style={s.divider} />
@@ -178,7 +180,7 @@ export default function EventCheckoutScreen() {
             </View>
             <View style={s.agreeRow}>
               <TouchableOpacity style={[s.checkbox, agreed && s.checkboxChecked]} onPress={() => setAgreed(a => !a)}>
-                {agreed && <Ionicons name="checkmark" size={13} color={COLORS.white}/>}
+                {agreed && <Ionicons name="checkmark" size={13} color={c.onPrimary}/>}
               </TouchableOpacity>
               <Text style={s.agreeTxt}>I agree to the above terms and conditions.</Text>
             </View>
@@ -206,7 +208,7 @@ export default function EventCheckoutScreen() {
 
               <TouchableOpacity style={[s.payOption, paymentMethod==='card' && s.payOptionActive, {marginTop:8}]} onPress={() => setPaymentMethod('card')}>
                 <View style={s.payOptionLeft}>
-                  <View style={s.cardIcon}><Ionicons name="card-outline" size={16} color="#555"/></View>
+                  <View style={s.cardIcon}><Ionicons name="card-outline" size={16} color={c.textSecondary}/></View>
                   <Text style={s.payOptionName}>Credit / Debit Card</Text>
                 </View>
                 <View style={[s.radio, paymentMethod==='card' && s.radioActive]}>
@@ -219,27 +221,27 @@ export default function EventCheckoutScreen() {
                   <View style={s.cardFieldRow}>
                     <Text style={s.cardFieldLabel}>Card Number</Text>
                     <View style={s.cardFieldWrap}>
-                      <Ionicons name="card-outline" size={16} color="#aaa"/>
-                      <TextInput style={s.cardInput} placeholder="1234 5678 9012 3456" placeholderTextColor="#ccc" keyboardType="numeric" value={cardNumber} onChangeText={t=>setCardNumber(formatCardNumber(t))} maxLength={19}/>
+                      <Ionicons name="card-outline" size={16} color={c.textMuted}/>
+                      <TextInput style={s.cardInput} placeholder="1234 5678 9012 3456" placeholderTextColor={c.placeholder} keyboardType="numeric" value={cardNumber} onChangeText={t=>setCardNumber(formatCardNumber(t))} maxLength={19}/>
                     </View>
                   </View>
                   <View style={s.cardFieldTwoCol}>
                     <View style={[s.cardFieldRow,{flex:1,marginRight:8}]}>
                       <Text style={s.cardFieldLabel}>Expiry</Text>
-                      <TextInput style={s.cardInputSingle} placeholder="MM/YY" placeholderTextColor="#ccc" keyboardType="numeric" value={expiry} onChangeText={t=>setExpiry(formatExpiry(t))} maxLength={5}/>
+                      <TextInput style={s.cardInputSingle} placeholder="MM/YY" placeholderTextColor={c.placeholder} keyboardType="numeric" value={expiry} onChangeText={t=>setExpiry(formatExpiry(t))} maxLength={5}/>
                     </View>
                     <View style={[s.cardFieldRow,{flex:1,marginRight:8}]}>
                       <Text style={s.cardFieldLabel}>CVV</Text>
-                      <TextInput style={s.cardInputSingle} placeholder="123" placeholderTextColor="#ccc" keyboardType="numeric" secureTextEntry value={cvv} onChangeText={t=>setCvv(t.replace(/\D/g,'').slice(0,4))} maxLength={4}/>
+                      <TextInput style={s.cardInputSingle} placeholder="123" placeholderTextColor={c.placeholder} keyboardType="numeric" secureTextEntry value={cvv} onChangeText={t=>setCvv(t.replace(/\D/g,'').slice(0,4))} maxLength={4}/>
                     </View>
                     <View style={[s.cardFieldRow,{flex:1}]}>
                       <Text style={s.cardFieldLabel}>ZIP</Text>
-                      <TextInput style={s.cardInputSingle} placeholder="10001" placeholderTextColor="#ccc" keyboardType="numeric" value={zip} onChangeText={t=>setZip(t.replace(/\D/g,'').slice(0,5))} maxLength={5}/>
+                      <TextInput style={s.cardInputSingle} placeholder="10001" placeholderTextColor={c.placeholder} keyboardType="numeric" value={zip} onChangeText={t=>setZip(t.replace(/\D/g,'').slice(0,5))} maxLength={5}/>
                     </View>
                   </View>
                   <View style={s.saveCardRow}>
                     <TouchableOpacity style={[s.checkbox, saveCard && s.checkboxChecked]} onPress={()=>setSaveCard(v=>!v)}>
-                      {saveCard && <Ionicons name="checkmark" size={11} color={COLORS.white}/>}
+                      {saveCard && <Ionicons name="checkmark" size={11} color={c.onPrimary}/>}
                     </TouchableOpacity>
                     <Text style={s.saveCardTxt}>Save card for future purchases</Text>
                   </View>
@@ -284,7 +286,7 @@ export default function EventCheckoutScreen() {
           </TouchableOpacity>
         ) : paymentMethod === 'apple' ? (
           <TouchableOpacity style={[s.applePayBtn, !canPay && s.payBtnDisabled]} onPress={handlePay} disabled={!canPay || processing}>
-            <Ionicons name="logo-apple" size={20} color={COLORS.white} />
+            <Ionicons name="logo-apple" size={20} color={c.onPrimary} />
             <Text style={s.applePayBtnTxt}>{processing ? 'Processing...' : 'Pay'}</Text>
           </TouchableOpacity>
         ) : paymentMethod === 'paypal' ? (
@@ -293,7 +295,7 @@ export default function EventCheckoutScreen() {
               <Text style={s.paypalBtnTxt}>PayPal</Text>
             </TouchableOpacity>
             <TouchableOpacity style={[s.payLaterBtn, !canPay && s.payBtnDisabled]} onPress={handlePay} disabled={!canPay || processing}>
-              <Ionicons name="logo-paypal" size={14} color={COLORS.white} />
+              <Ionicons name="logo-paypal" size={14} color={c.onPrimary} />
               <Text style={s.payLaterBtnTxt}>Pay Later</Text>
             </TouchableOpacity>
           </View>
@@ -307,77 +309,77 @@ export default function EventCheckoutScreen() {
   );
 }
 
-const s = StyleSheet.create({
+const makeStyles = (c: ThemeColors) => StyleSheet.create({
   root:{flex:1,backgroundColor:'#f5f5f0'},
-  hdr:{flexDirection:'row',alignItems:'center',justifyContent:'space-between',paddingHorizontal:16,paddingVertical:12,backgroundColor:COLORS.white,borderBottomWidth:1,borderBottomColor:'#eee'},
+  hdr:{flexDirection:'row',alignItems:'center',justifyContent:'space-between',paddingHorizontal:16,paddingVertical:12,backgroundColor:c.card,borderBottomWidth:1,borderBottomColor:c.placeholder},
   hdrCenter:{alignItems:'center'},
   hdrTitle:{fontSize:16,fontWeight:'700',color:'#111'},
-  hdrSub:{fontSize:12,color:'#888',marginTop:1},
+  hdrSub:{fontSize:12,color:c.textMuted,marginTop:1},
   scroll:{flex:1},
-  section:{backgroundColor:COLORS.white,padding:16,marginBottom:1},
+  section:{backgroundColor:c.card,padding:16,marginBottom:1},
   sectionTitle:{fontSize:15,fontWeight:'700',color:'#111',marginBottom:10},
   divider:{height:8,backgroundColor:'#f0f0ec'},
-  input:{borderWidth:1.5,borderColor:'#e8e3da',borderRadius:10,paddingHorizontal:14,paddingVertical:12,fontSize:14,color:'#111',backgroundColor:COLORS.white},
+  input:{borderWidth:1.5,borderColor:c.border,borderRadius:10,paddingHorizontal:14,paddingVertical:12,fontSize:14,color:'#111',backgroundColor:c.card},
   quantityRow:{flexDirection:'row',alignItems:'center',justifyContent:'space-between'},
   quantityEventTitle:{fontSize:15,fontWeight:'700',color:'#111',maxWidth:200},
-  quantityPrice:{fontSize:13,color:'#888',marginTop:3},
+  quantityPrice:{fontSize:13,color:c.textMuted,marginTop:3},
   quantityControls:{flexDirection:'row',alignItems:'center',gap:0},
-  qBtn:{width:36,height:36,borderRadius:18,borderWidth:1.5,borderColor:'#ddd',alignItems:'center',justifyContent:'center',backgroundColor:COLORS.white},
+  qBtn:{width:36,height:36,borderRadius:18,borderWidth:1.5,borderColor:c.placeholder,alignItems:'center',justifyContent:'center',backgroundColor:c.card},
   qBtnOff:{borderColor:'#f0f0ec',backgroundColor:'#f8f8f5'},
   qBtnTxt:{fontSize:20,fontWeight:'300',color:'#111',lineHeight:24},
-  qBtnTxtOff:{color:'#ccc'},
+  qBtnTxtOff:{color:c.placeholder},
   qNum:{fontSize:18,fontWeight:'600',color:'#111',width:36,textAlign:'center'},
   orderRow:{flexDirection:'row',justifyContent:'space-between',marginBottom:6},
-  orderLbl:{fontSize:14,color:'#555'},
+  orderLbl:{fontSize:14,color:c.textSecondary},
   orderVal:{fontSize:14,color:'#111',fontWeight:'500'},
   orderTotalLbl:{fontSize:16,fontWeight:'700',color:'#111'},
   orderTotalVal:{fontSize:16,fontWeight:'700',color:'#111'},
   termsTitle:{fontSize:15,fontWeight:'700',color:'#111',marginBottom:10},
-  termsBox:{borderWidth:1,borderColor:'#ddd',borderRadius:8,padding:12,marginBottom:12,maxHeight:100,overflow:'hidden'},
-  termsTxt:{fontSize:13,color:'#666',lineHeight:19},
+  termsBox:{borderWidth:1,borderColor:c.placeholder,borderRadius:8,padding:12,marginBottom:12,maxHeight:100,overflow:'hidden'},
+  termsTxt:{fontSize:13,color:c.textSecondary,lineHeight:19},
   agreeRow:{flexDirection:'row',alignItems:'center',gap:10},
-  checkbox:{width:20,height:20,borderRadius:4,borderWidth:1.5,borderColor:'#ccc',alignItems:'center',justifyContent:'center'},
+  checkbox:{width:20,height:20,borderRadius:4,borderWidth:1.5,borderColor:c.placeholder,alignItems:'center',justifyContent:'center'},
   checkboxChecked:{backgroundColor:'#111',borderColor:'#111'},
   agreeTxt:{fontSize:14,color:'#333',flex:1},
   payWithTitle:{fontSize:16,fontWeight:'700',color:'#111',marginBottom:12},
-  payOption:{flexDirection:'row',alignItems:'center',justifyContent:'space-between',borderWidth:1,borderColor:'#ddd',borderRadius:8,padding:14,backgroundColor:COLORS.white},
+  payOption:{flexDirection:'row',alignItems:'center',justifyContent:'space-between',borderWidth:1,borderColor:c.placeholder,borderRadius:8,padding:14,backgroundColor:c.card},
   payOptionActive:{borderColor:'#111',borderWidth:1.5},
   payOptionLeft:{flexDirection:'row',alignItems:'center',gap:12},
   applePayLogo:{flexDirection:'row',alignItems:'center',gap:1},
   applePayLogoTxt:{fontSize:14,fontWeight:'700',color:'#000'},
   payOptionName:{fontSize:15,color:'#111',fontWeight:'500'},
   cardIcon:{width:32,height:24,borderRadius:4,backgroundColor:'#f0f0ec',alignItems:'center',justifyContent:'center'},
-  radio:{width:20,height:20,borderRadius:10,borderWidth:1.5,borderColor:'#ccc',alignItems:'center',justifyContent:'center'},
+  radio:{width:20,height:20,borderRadius:10,borderWidth:1.5,borderColor:c.placeholder,alignItems:'center',justifyContent:'center'},
   radioActive:{borderColor:'#111'},
   radioDot:{width:10,height:10,borderRadius:5,backgroundColor:'#111'},
   paypalTxt:{fontSize:18,fontWeight:'700'},
-  paypalNote:{backgroundColor:'#f8f8f5',borderWidth:1,borderColor:'#ddd',borderRadius:8,padding:12,marginTop:8},
-  paypalNoteTxt:{fontSize:13,color:'#555'},
+  paypalNote:{backgroundColor:'#f8f8f5',borderWidth:1,borderColor:c.placeholder,borderRadius:8,padding:12,marginTop:8},
+  paypalNoteTxt:{fontSize:13,color:c.textSecondary},
   cardFields:{marginTop:12,gap:12},
   cardFieldRow:{gap:6},
   cardFieldTwoCol:{flexDirection:'row'},
   cardFieldLabel:{fontSize:13,fontWeight:'600',color:'#333'},
-  cardFieldWrap:{flexDirection:'row',alignItems:'center',borderWidth:1,borderColor:'#ddd',borderRadius:8,paddingHorizontal:12,backgroundColor:COLORS.white},
+  cardFieldWrap:{flexDirection:'row',alignItems:'center',borderWidth:1,borderColor:c.placeholder,borderRadius:8,paddingHorizontal:12,backgroundColor:c.card},
   cardInput:{flex:1,paddingVertical:12,fontSize:15,color:'#111'},
-  cardInputSingle:{borderWidth:1,borderColor:'#ddd',borderRadius:8,paddingHorizontal:12,paddingVertical:12,fontSize:15,color:'#111',backgroundColor:COLORS.white},
+  cardInputSingle:{borderWidth:1,borderColor:c.placeholder,borderRadius:8,paddingHorizontal:12,paddingVertical:12,fontSize:15,color:'#111',backgroundColor:c.card},
   saveCardRow:{flexDirection:'row',alignItems:'flex-start',gap:10,marginTop:4},
-  saveCardTxt:{fontSize:13,color:'#555',flex:1,lineHeight:18},
+  saveCardTxt:{fontSize:13,color:c.textSecondary,flex:1,lineHeight:18},
   testCardBox:{backgroundColor:'#fffbf0',borderRadius:8,padding:12,borderWidth:1,borderColor:'#f0e8c8'},
   testCardTitle:{fontSize:12,fontWeight:'700',color:'#b8860b',marginBottom:3},
   testCardNum:{fontSize:15,fontWeight:'700',color:'#111',letterSpacing:1.5,marginBottom:2},
-  testCardSub:{fontSize:12,color:'#888'},
-  footer:{backgroundColor:COLORS.white,borderTopWidth:1,borderTopColor:'#eee',padding:16,paddingBottom:32},
+  testCardSub:{fontSize:12,color:c.textMuted},
+  footer:{backgroundColor:c.card,borderTopWidth:1,borderTopColor:c.placeholder,padding:16,paddingBottom:32},
   footerInfo:{flexDirection:'row',justifyContent:'space-between',alignItems:'center',marginBottom:12},
-  footerDate:{fontSize:13,color:'#888'},
+  footerDate:{fontSize:13,color:c.textMuted},
   footerTotal:{fontSize:16,fontWeight:'700',color:'#111'},
   applePayBtn:{backgroundColor:'#000',borderRadius:10,paddingVertical:14,flexDirection:'row',alignItems:'center',justifyContent:'center',gap:6},
-  applePayBtnTxt:{color:COLORS.white,fontSize:17,fontWeight:'600'},
+  applePayBtnTxt:{color:c.onPrimary,fontSize:17,fontWeight:'600'},
   payNowBtn:{backgroundColor:'#111',borderRadius:10,paddingVertical:14,alignItems:'center'},
-  payNowBtnTxt:{color:COLORS.white,fontSize:16,fontWeight:'700'},
+  payNowBtnTxt:{color:c.onPrimary,fontSize:16,fontWeight:'700'},
   paypalBtns:{flexDirection:'row',gap:10},
   paypalBtn:{flex:1,backgroundColor:'#003087',borderRadius:10,paddingVertical:14,alignItems:'center'},
-  paypalBtnTxt:{color:COLORS.white,fontSize:15,fontWeight:'700'},
+  paypalBtnTxt:{color:c.onPrimary,fontSize:15,fontWeight:'700'},
   payLaterBtn:{flex:1,backgroundColor:'#009cde',borderRadius:10,paddingVertical:14,flexDirection:'row',alignItems:'center',justifyContent:'center',gap:6},
-  payLaterBtnTxt:{color:COLORS.white,fontSize:15,fontWeight:'700'},
+  payLaterBtnTxt:{color:c.onPrimary,fontSize:15,fontWeight:'700'},
   payBtnDisabled:{opacity:0.4},
 });

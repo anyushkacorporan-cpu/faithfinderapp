@@ -4,13 +4,15 @@ import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
-import { COLORS } from '../src/lib/constants';
+import { useThemeColors, ThemeColors } from '../src/lib/theme';
 import { useUser, setUser, getUser } from '../src/lib/userStore';
 import { useToast } from '../src/components/Toast';
 import { autocompleteCity } from '../src/lib/googlePlaces';
 import { useTranslation } from '../src/lib/i18n';
 
 export default function EditProfileScreen() {
+  const c = useThemeColors();
+  const s = makeStyles(c);
   const { t } = useTranslation();
   const { showToast } = useToast();
   const user = useUser();
@@ -105,7 +107,7 @@ export default function EditProfileScreen() {
     <SafeAreaView style={s.root} edges={['top']}>
       <View style={s.hdr}>
         <TouchableOpacity style={s.backBtn} onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={20} color={COLORS.navy} />
+          <Ionicons name="arrow-back" size={20} color={c.text} />
         </TouchableOpacity>
         <Text style={s.hdrTitle}>{t('editProfile')}</Text>
         <TouchableOpacity onPress={handleSave}>
@@ -127,7 +129,7 @@ export default function EditProfileScreen() {
                   </View>
                 )}
                 <View style={s.avatarEditBadge}>
-                  <Ionicons name="camera" size={14} color={COLORS.white} />
+                  <Ionicons name="camera" size={14} color={c.onPrimary} />
                 </View>
               </TouchableOpacity>
               <Text style={s.avatarHint}>{t('tapToChangePhoto')}</Text>
@@ -139,13 +141,13 @@ export default function EditProfileScreen() {
                   {coverPhoto ? (
                     <Image source={{uri:coverPhoto}} style={{width:'100%',height:120,borderRadius:16}} resizeMode="cover" />
                   ) : (
-                    <View style={{width:'100%',height:120,borderRadius:16,backgroundColor:COLORS.lightBg,alignItems:'center',justifyContent:'center'}}>
-                      <Ionicons name="image-outline" size={26} color="#bbb" />
+                    <View style={{width:'100%',height:120,borderRadius:16,backgroundColor:c.cardAlt,alignItems:'center',justifyContent:'center'}}>
+                      <Ionicons name="image-outline" size={26} color={c.textMuted} />
                     </View>
                   )}
                   <View style={{position:'absolute',bottom:8,right:8,flexDirection:'row',alignItems:'center',gap:6,backgroundColor:'rgba(0,0,0,0.5)',borderRadius:100,paddingHorizontal:10,paddingVertical:6}}>
-                    <Ionicons name="camera" size={12} color={COLORS.white} />
-                    <Text style={{color:COLORS.white,fontSize:11,fontWeight:'600'}}>{coverPhoto ? 'Change cover' : 'Add cover'}</Text>
+                    <Ionicons name="camera" size={12} color={c.onPrimary} />
+                    <Text style={{color:c.onPrimary,fontSize:11,fontWeight:'600'}}>{coverPhoto ? 'Change cover' : 'Add cover'}</Text>
                   </View>
                 </TouchableOpacity>
               </View>
@@ -159,7 +161,7 @@ export default function EditProfileScreen() {
                     </View>
                   )}
                   <View style={s.avatarEditBadge}>
-                    <Ionicons name="camera" size={14} color={COLORS.white} />
+                    <Ionicons name="camera" size={14} color={c.onPrimary} />
                   </View>
                 </TouchableOpacity>
                 <Text style={s.avatarHint}>{t('tapToChangePhoto')}</Text>
@@ -172,27 +174,27 @@ export default function EditProfileScreen() {
               <Text style={s.sectionTitle}>{t('churchInformation')}</Text>
               <View style={s.fieldWrap}>
                 <Text style={s.label}>{t('churchName')}</Text>
-                <TextInput style={s.input} value={churchName} onChangeText={setChurchName} placeholder="Grace Community Church" placeholderTextColor={COLORS.placeholder} />
+                <TextInput style={s.input} value={churchName} onChangeText={setChurchName} placeholder="Grace Community Church" placeholderTextColor={c.placeholder} />
               </View>
               <View style={s.fieldWrap}>
                 <Text style={s.label}>{t('address')}</Text>
-                <TextInput style={s.input} value={address} onChangeText={setAddress} placeholder="123 Faith St, City, State" placeholderTextColor={COLORS.placeholder} />
+                <TextInput style={s.input} value={address} onChangeText={setAddress} placeholder="123 Faith St, City, State" placeholderTextColor={c.placeholder} />
               </View>
               <View style={s.fieldWrap}>
                 <Text style={s.label}>{t('phone')}</Text>
-                <TextInput style={s.input} value={phone} onChangeText={setPhone} placeholder="(555) 000-0000" placeholderTextColor={COLORS.placeholder} keyboardType="phone-pad" />
+                <TextInput style={s.input} value={phone} onChangeText={setPhone} placeholder="(555) 000-0000" placeholderTextColor={c.placeholder} keyboardType="phone-pad" />
               </View>
               <View style={s.fieldWrap}>
                 <Text style={s.label}>{t('website')}</Text>
-                <TextInput style={s.input} value={website} onChangeText={setWebsite} placeholder="www.yourchurch.org" placeholderTextColor={COLORS.placeholder} autoCapitalize="none" />
+                <TextInput style={s.input} value={website} onChangeText={setWebsite} placeholder="www.yourchurch.org" placeholderTextColor={c.placeholder} autoCapitalize="none" />
               </View>
               <View style={s.fieldWrap}>
                 <Text style={s.label}>{t('serviceTimes')}</Text>
-                <TextInput style={s.input} value={serviceTimes} onChangeText={setServiceTimes} placeholder="Sunday 9AM & 11AM" placeholderTextColor={COLORS.placeholder} />
+                <TextInput style={s.input} value={serviceTimes} onChangeText={setServiceTimes} placeholder="Sunday 9AM & 11AM" placeholderTextColor={c.placeholder} />
               </View>
               <View style={s.fieldWrap}>
                 <Text style={s.label}>About / Bio</Text>
-                <TextInput style={[s.input, s.bioInput]} value={bio} onChangeText={setBio} placeholder="Tell the community about your church..." placeholderTextColor={COLORS.placeholder} multiline />
+                <TextInput style={[s.input, s.bioInput]} value={bio} onChangeText={setBio} placeholder="Tell the community about your church..." placeholderTextColor={c.placeholder} multiline />
               </View>
             </>
           ) : (
@@ -201,16 +203,16 @@ export default function EditProfileScreen() {
               <View style={s.row}>
                 <View style={[s.fieldWrap, {flex:1, marginRight:8}]}>
                   <Text style={s.label}>{t('firstName')}</Text>
-                  <TextInput style={s.input} value={firstName} onChangeText={setFirstName} placeholder="First" placeholderTextColor={COLORS.placeholder} />
+                  <TextInput style={s.input} value={firstName} onChangeText={setFirstName} placeholder="First" placeholderTextColor={c.placeholder} />
                 </View>
                 <View style={[s.fieldWrap, {flex:1}]}>
                   <Text style={s.label}>{t('lastName')}</Text>
-                  <TextInput style={s.input} value={lastName} onChangeText={setLastName} placeholder="Last" placeholderTextColor={COLORS.placeholder} />
+                  <TextInput style={s.input} value={lastName} onChangeText={setLastName} placeholder="Last" placeholderTextColor={c.placeholder} />
                 </View>
               </View>
               <View style={s.fieldWrap}>
                 <Text style={s.label}>{t('bio')}</Text>
-                <TextInput style={[s.input, s.bioInput]} value={bio} onChangeText={setBio} placeholder="Tell the community about yourself..." placeholderTextColor={COLORS.placeholder} multiline />
+                <TextInput style={[s.input, s.bioInput]} value={bio} onChangeText={setBio} placeholder="Tell the community about yourself..." placeholderTextColor={c.placeholder} multiline />
               </View>
 
               <View style={s.fieldWrap}>
@@ -220,13 +222,13 @@ export default function EditProfileScreen() {
                   value={location}
                   onChangeText={handleLocationChange}
                   placeholder="Bronx, NY"
-                  placeholderTextColor={COLORS.placeholder}
+                  placeholderTextColor={c.placeholder}
                 />
                 {showLocationSuggestions && locationSuggestions.length > 0 && (
                   <View style={s.suggestionsBox}>
                     {locationSuggestions.map(item => (
                       <TouchableOpacity key={item.placeId} style={s.suggestionRow} onPress={() => selectLocationSuggestion(item.description)}>
-                        <Ionicons name="location-outline" size={14} color="#999" />
+                        <Ionicons name="location-outline" size={14} color={c.textMuted} />
                         <Text style={s.suggestionTxt}>{item.description}</Text>
                       </TouchableOpacity>
                     ))}
@@ -242,7 +244,7 @@ export default function EditProfileScreen() {
                   value={lifeVerse}
                   onChangeText={setLifeVerse}
                   placeholder={'"For I know the plans I have for you..."'}
-                  placeholderTextColor={COLORS.placeholder}
+                  placeholderTextColor={c.placeholder}
                   multiline
                 />
               </View>
@@ -253,27 +255,27 @@ export default function EditProfileScreen() {
                   value={lifeVerseRef}
                   onChangeText={setLifeVerseRef}
                   placeholder="Jeremiah 29:11"
-                  placeholderTextColor={COLORS.placeholder}
+                  placeholderTextColor={c.placeholder}
                 />
               </View>
 
               <Text style={s.sectionTitle}>{t('faithGallery')}</Text>
               <View style={{marginBottom:20}}>
-                <Text style={{fontSize:12,color:'#aaa',marginBottom:8}}>{t('faithGalleryDesc')}</Text>
+                <Text style={{fontSize:12,color:c.textMuted,marginBottom:8}}>{t('faithGalleryDesc')}</Text>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                   {(user.photos || []).map((uri: string) => (
                     <View key={uri} style={{marginRight:10,position:'relative'}}>
                       <Image source={{uri}} style={{width:80,height:80,borderRadius:12}} resizeMode="cover" />
                       <TouchableOpacity
                         onPress={() => handleRemoveGalleryPhoto(uri)}
-                        style={{position:'absolute',top:-6,right:-6,width:22,height:22,borderRadius:11,backgroundColor:'#e74c6f',alignItems:'center',justifyContent:'center',borderWidth:2,borderColor:COLORS.white}}
+                        style={{position:'absolute',top:-6,right:-6,width:22,height:22,borderRadius:11,backgroundColor:'#e74c6f',alignItems:'center',justifyContent:'center',borderWidth:2,borderColor:c.card}}
                       >
-                        <Ionicons name="close" size={12} color={COLORS.white} />
+                        <Ionicons name="close" size={12} color={c.onPrimary} />
                       </TouchableOpacity>
                     </View>
                   ))}
-                  <TouchableOpacity onPress={handleAddGalleryPhoto} style={{width:80,height:80,borderRadius:12,borderWidth:1.5,borderColor:COLORS.gold,borderStyle:'dashed',alignItems:'center',justifyContent:'center'}}>
-                    <Ionicons name="add" size={22} color={COLORS.gold} />
+                  <TouchableOpacity onPress={handleAddGalleryPhoto} style={{width:80,height:80,borderRadius:12,borderWidth:1.5,borderColor:c.gold,borderStyle:'dashed',alignItems:'center',justifyContent:'center'}}>
+                    <Ionicons name="add" size={22} color={c.gold} />
                   </TouchableOpacity>
                 </ScrollView>
               </View>
@@ -290,29 +292,29 @@ export default function EditProfileScreen() {
   );
 }
 
-const s = StyleSheet.create({
-  root:{flex:1,backgroundColor:COLORS.white},
-  hdr:{flexDirection:'row',alignItems:'center',justifyContent:'space-between',paddingHorizontal:16,paddingVertical:12,borderBottomWidth:1,borderBottomColor:COLORS.border},
-  backBtn:{width:36,height:36,borderRadius:18,backgroundColor:COLORS.lightBg,alignItems:'center',justifyContent:'center'},
-  hdrTitle:{fontSize:16,fontWeight:'700',color:COLORS.navy},
-  saveBtn:{fontSize:15,fontWeight:'700',color:COLORS.gold},
+const makeStyles = (c: ThemeColors) => StyleSheet.create({
+  root:{flex:1,backgroundColor:c.card},
+  hdr:{flexDirection:'row',alignItems:'center',justifyContent:'space-between',paddingHorizontal:16,paddingVertical:12,borderBottomWidth:1,borderBottomColor:c.border},
+  backBtn:{width:36,height:36,borderRadius:18,backgroundColor:c.cardAlt,alignItems:'center',justifyContent:'center'},
+  hdrTitle:{fontSize:16,fontWeight:'700',color:c.text},
+  saveBtn:{fontSize:15,fontWeight:'700',color:c.gold},
   scroll:{paddingHorizontal:20,paddingTop:20},
   avatarSection:{alignItems:'center',marginBottom:28},
   avatarWrap:{position:'relative',marginBottom:8},
   avatarImg:{width:88,height:88,borderRadius:44},
-  avatarFallback:{width:88,height:88,borderRadius:44,backgroundColor:COLORS.navy,alignItems:'center',justifyContent:'center'},
-  avatarInitials:{color:COLORS.white,fontSize:30,fontWeight:'700'},
-  avatarEditBadge:{position:'absolute',bottom:0,right:0,width:28,height:28,borderRadius:14,backgroundColor:COLORS.gold,alignItems:'center',justifyContent:'center',borderWidth:2,borderColor:COLORS.white},
-  avatarHint:{fontSize:13,color:'#aaa'},
-  sectionTitle:{fontSize:16,fontWeight:'700',color:COLORS.navy,marginBottom:16},
+  avatarFallback:{width:88,height:88,borderRadius:44,backgroundColor:c.primary,alignItems:'center',justifyContent:'center'},
+  avatarInitials:{color:c.onPrimary,fontSize:30,fontWeight:'700'},
+  avatarEditBadge:{position:'absolute',bottom:0,right:0,width:28,height:28,borderRadius:14,backgroundColor:c.gold,alignItems:'center',justifyContent:'center',borderWidth:2,borderColor:c.card},
+  avatarHint:{fontSize:13,color:c.textMuted},
+  sectionTitle:{fontSize:16,fontWeight:'700',color:c.text,marginBottom:16},
   row:{flexDirection:'row'},
   fieldWrap:{marginBottom:16},
-  label:{fontSize:13,fontWeight:'600',color:'#444',marginBottom:8},
-  input:{borderWidth:1.5,borderColor:COLORS.border,borderRadius:14,paddingHorizontal:16,paddingVertical:13,fontSize:15,color:COLORS.navy},
+  label:{fontSize:13,fontWeight:'600',color:c.textSecondary,marginBottom:8},
+  input:{borderWidth:1.5,borderColor:c.border,borderRadius:14,paddingHorizontal:16,paddingVertical:13,fontSize:15,color:c.text},
   bioInput:{height:100,textAlignVertical:'top',paddingTop:12},
-  suggestionsBox:{borderWidth:1,borderColor:COLORS.border,borderRadius:12,marginTop:6,overflow:'hidden'},
-  suggestionRow:{flexDirection:'row',alignItems:'center',gap:8,paddingHorizontal:14,paddingVertical:11,borderBottomWidth:1,borderBottomColor:'#f5f3ef'},
-  suggestionTxt:{fontSize:13,color:COLORS.navy,flex:1},
-  saveFullBtn:{backgroundColor:COLORS.navy,borderRadius:16,paddingVertical:16,alignItems:'center',marginTop:8,shadowColor:COLORS.navy,shadowOffset:{width:0,height:4},shadowOpacity:0.25,shadowRadius:8},
+  suggestionsBox:{borderWidth:1,borderColor:c.border,borderRadius:12,marginTop:6,overflow:'hidden'},
+  suggestionRow:{flexDirection:'row',alignItems:'center',gap:8,paddingHorizontal:14,paddingVertical:11,borderBottomWidth:1,borderBottomColor:c.cardAlt},
+  suggestionTxt:{fontSize:13,color:c.text,flex:1},
+  saveFullBtn:{backgroundColor:c.primary,borderRadius:16,paddingVertical:16,alignItems:'center',marginTop:8,shadowColor:c.navy,shadowOffset:{width:0,height:4},shadowOpacity:0.25,shadowRadius:8},
   saveFullBtnTxt:{color:'#fff',fontSize:16,fontWeight:'700'},
 });

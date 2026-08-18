@@ -6,7 +6,7 @@ import {
 import { useLocalSearchParams, router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { COLORS } from '../src/lib/constants';
+import { useThemeColors, ThemeColors } from '../src/lib/theme';
 import {
   usePosts, addComment, addReply,
   toggleCommentLike, toggleReplyLike, Post, Comment
@@ -16,6 +16,8 @@ import { TranslateRow } from '../src/components/PostCard';
 import { useTranslation } from '../src/lib/i18n';
 
 export default function CommentsScreen() {
+  const c = useThemeColors();
+  const s = makeStyles(c);
   const { t } = useTranslation();
   const { postId } = useLocalSearchParams<{ postId: string }>();
   const allPosts = usePosts();
@@ -53,7 +55,7 @@ export default function CommentsScreen() {
       {/* Header */}
       <View style={s.header}>
         <TouchableOpacity style={s.backBtn} onPress={() => router.back()}>
-          <Ionicons name="chevron-back" size={24} color={COLORS.navy} />
+          <Ionicons name="chevron-back" size={24} color={c.text} />
         </TouchableOpacity>
         <Text style={s.headerTitle}>{t('commentsTitle')}</Text>
         <View style={{ width: 40 }} />
@@ -84,7 +86,7 @@ export default function CommentsScreen() {
             </View>
             {!!post.content && <Text style={s.postContent}>{post.content}</Text>}
             {!!post.image && (
-              <Image source={{uri:post.image}} style={{width:'100%',height:280,borderRadius:14,marginTop:8,marginBottom:10,backgroundColor:'#f5f3ef'}} resizeMode="contain"/>
+              <Image source={{uri:post.image}} style={{width:'100%',height:280,borderRadius:14,marginTop:8,marginBottom:10,backgroundColor:c.cardAlt}} resizeMode="contain"/>
             )}
             <View style={s.postStats}>
               <Text style={s.postStatTxt}>{post.likes} likes · {post.comments.length} comments</Text>
@@ -101,7 +103,7 @@ export default function CommentsScreen() {
           {/* Empty State */}
           {post.comments.length === 0 && (
             <View style={s.emptyState}>
-              <Ionicons name="chatbubble-ellipses-outline" size={40} color="#ddd" />
+              <Ionicons name="chatbubble-ellipses-outline" size={40} color={c.placeholder} />
               <Text style={s.emptyTitle}>No comments yet</Text>
               <Text style={s.emptySubtitle}>Be the first to share your thoughts</Text>
             </View>
@@ -127,10 +129,10 @@ export default function CommentsScreen() {
           {replyingTo && (
             <View style={s.replyingToBar}>
               <Text style={s.replyingToTxt}>
-                Replying to <Text style={{ fontWeight: '700', color: COLORS.navy }}>{replyingTo.author}</Text>
+                Replying to <Text style={{ fontWeight: '700', color: c.text }}>{replyingTo.author}</Text>
               </Text>
               <TouchableOpacity onPress={() => setReplyingTo(null)}>
-                <Ionicons name="close-circle" size={18} color="#bbb" />
+                <Ionicons name="close-circle" size={18} color={c.textMuted} />
               </TouchableOpacity>
             </View>
           )}
@@ -141,14 +143,14 @@ export default function CommentsScreen() {
             <TextInput
               style={s.composerInput}
               placeholder={replyingTo ? `${t('replyTo')} ${replyingTo.author}...` : t('addComment')}
-              placeholderTextColor="#bbb"
+              placeholderTextColor={c.placeholder}
               value={commentText}
               onChangeText={setCommentText}
               multiline
               maxLength={500}
             />
             <TouchableOpacity
-              style={[s.sendBtn, !commentText.trim() && { backgroundColor: '#ddd' }]}
+              style={[s.sendBtn, !commentText.trim() && { backgroundColor: c.placeholder }]}
               onPress={handleAddComment}
               disabled={!commentText.trim()}
             >
@@ -165,37 +167,39 @@ function CommentRow({ comment, postId, onReply, onLike, onReplyLike }: {
   comment: Comment; postId: string;
   onReply: () => void; onLike: () => void; onReplyLike: (id: string) => void;
 }) {
+  const c = useThemeColors();
+  const cs = makeCs(c);
   const [showReplies, setShowReplies] = useState(true);
   const { t } = useTranslation();
 
   return (
-    <View style={c.wrap}>
+    <View style={cs.wrap}>
       {/* Comment */}
-      <View style={c.row}>
+      <View style={cs.row}>
         <TouchableOpacity onPress={() => router.push({pathname:'/user-profile' as any, params:{id:comment.id,name:comment.author,initials:comment.initials,color:comment.color,type:'user',city:comment.city||'',state:comment.state||'',photo:(comment as any).authorPhoto||''}})}>
-          <View style={[c.avatar, { backgroundColor: comment.color }]}>
-            <Text style={c.avatarTxt}>{comment.initials}</Text>
+          <View style={[cs.avatar, { backgroundColor: comment.color }]}>
+            <Text style={cs.avatarTxt}>{comment.initials}</Text>
           </View>
         </TouchableOpacity>
         <View style={{ flex: 1 }}>
-          <View style={c.metaRow}>
-            <Text style={c.name}>{comment.author}</Text>
-            {comment.city && comment.state && <Text style={c.meta}> · {comment.city}, {comment.state}</Text>}
-            <Text style={c.meta}> · {comment.time}</Text>
+          <View style={cs.metaRow}>
+            <Text style={cs.name}>{comment.author}</Text>
+            {comment.city && comment.state && <Text style={cs.meta}> · {comment.city}, {comment.state}</Text>}
+            <Text style={cs.meta}> · {comment.time}</Text>
           </View>
-          <Text style={c.text}>{comment.text}</Text>
+          <Text style={cs.text}>{comment.text}</Text>
           <TranslateRow text={comment.text}/>
-          <View style={c.actions}>
-            <TouchableOpacity style={c.actionBtn} onPress={onLike}>
-              <Ionicons name={comment.liked ? 'heart' : 'heart-outline'} size={15} color={comment.liked ? '#e74c6f' : '#bbb'} />
-              {comment.likes > 0 && <Text style={[c.actionTxt, comment.liked && { color: '#e74c6f' }]}>{comment.likes}</Text>}
+          <View style={cs.actions}>
+            <TouchableOpacity style={cs.actionBtn} onPress={onLike}>
+              <Ionicons name={comment.liked ? 'heart' : 'heart-outline'} size={15} color={comment.liked ? '#e74c6f' : c.textMuted} />
+              {comment.likes > 0 && <Text style={[cs.actionTxt, comment.liked && { color: '#e74c6f' }]}>{comment.likes}</Text>}
             </TouchableOpacity>
-            <TouchableOpacity style={c.actionBtn} onPress={onReply}>
-              <Text style={c.actionTxt}>{t('reply')}</Text>
+            <TouchableOpacity style={cs.actionBtn} onPress={onReply}>
+              <Text style={cs.actionTxt}>{t('reply')}</Text>
             </TouchableOpacity>
             {comment.replies.length > 0 && (
-              <TouchableOpacity style={c.actionBtn} onPress={() => setShowReplies(!showReplies)}>
-                <Text style={c.actionTxt}>
+              <TouchableOpacity style={cs.actionBtn} onPress={() => setShowReplies(!showReplies)}>
+                <Text style={cs.actionTxt}>
                   {showReplies ? t('hideReplies') : `${t('view')} ${comment.replies.length} ${comment.replies.length > 1 ? t('repliesWord') : t('replyWord')}`}
                 </Text>
               </TouchableOpacity>
@@ -206,24 +210,24 @@ function CommentRow({ comment, postId, onReply, onLike, onReplyLike }: {
 
       {/* Replies */}
       {showReplies && comment.replies.map(reply => (
-        <View key={reply.id} style={c.replyWrap}>
+        <View key={reply.id} style={cs.replyWrap}>
           <TouchableOpacity onPress={() => router.push({pathname:'/user-profile' as any, params:{id:reply.id,name:reply.author,initials:reply.initials,color:reply.color,type:'user',city:reply.city||'',state:reply.state||'',photo:(reply as any).authorPhoto||''}})}>
-            <View style={[c.replyAvatar, { backgroundColor: reply.color }]}>
-              <Text style={c.replyAvatarTxt}>{reply.initials}</Text>
+            <View style={[cs.replyAvatar, { backgroundColor: reply.color }]}>
+              <Text style={cs.replyAvatarTxt}>{reply.initials}</Text>
             </View>
           </TouchableOpacity>
           <View style={{ flex: 1 }}>
-            <View style={c.metaRow}>
-              <Text style={c.name}>{reply.author}</Text>
-              {reply.city && reply.state && <Text style={c.meta}> · {reply.city}, {reply.state}</Text>}
-              <Text style={c.meta}> · {reply.time}</Text>
+            <View style={cs.metaRow}>
+              <Text style={cs.name}>{reply.author}</Text>
+              {reply.city && reply.state && <Text style={cs.meta}> · {reply.city}, {reply.state}</Text>}
+              <Text style={cs.meta}> · {reply.time}</Text>
             </View>
-            <Text style={c.text}>{reply.text}</Text>
+            <Text style={cs.text}>{reply.text}</Text>
             <TranslateRow text={reply.text}/>
-            <View style={c.actions}>
-              <TouchableOpacity style={c.actionBtn} onPress={() => onReplyLike(reply.id)}>
-                <Ionicons name={reply.liked ? 'heart' : 'heart-outline'} size={14} color={reply.liked ? '#e74c6f' : '#bbb'} />
-                {reply.likes > 0 && <Text style={[c.actionTxt, reply.liked && { color: '#e74c6f' }]}>{reply.likes}</Text>}
+            <View style={cs.actions}>
+              <TouchableOpacity style={cs.actionBtn} onPress={() => onReplyLike(reply.id)}>
+                <Ionicons name={reply.liked ? 'heart' : 'heart-outline'} size={14} color={reply.liked ? '#e74c6f' : c.textMuted} />
+                {reply.likes > 0 && <Text style={[cs.actionTxt, reply.liked && { color: '#e74c6f' }]}>{reply.likes}</Text>}
               </TouchableOpacity>
             </View>
           </View>
@@ -233,51 +237,51 @@ function CommentRow({ comment, postId, onReply, onLike, onReplyLike }: {
   );
 }
 
-const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#fff' },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 12, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#f0ede8' },
+const makeStyles = (c: ThemeColors) => StyleSheet.create({
+  root: { flex: 1, backgroundColor: c.card },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 12, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: c.border },
   backBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
-  headerTitle: { fontSize: 16, fontWeight: '700', color: COLORS.navy },
+  headerTitle: { fontSize: 16, fontWeight: '700', color: c.text },
   scroll: { flex: 1 },
-  originalPost: { padding: 16, backgroundColor: '#fff' },
+  originalPost: { padding: 16, backgroundColor: c.card },
   postAuthorRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 10 },
   avatar: { width: 42, height: 42, borderRadius: 21, alignItems: 'center', justifyContent: 'center' },
   avatarTxt: { color: '#fff', fontWeight: '700', fontSize: 15 },
-  postAuthorName: { fontSize: 15, fontWeight: '700', color: COLORS.navy },
+  postAuthorName: { fontSize: 15, fontWeight: '700', color: c.text },
   churchBadge: { backgroundColor: 'rgba(201,169,110,0.15)', borderRadius: 100, paddingHorizontal: 8, paddingVertical: 2 },
-  churchBadgeTxt: { fontSize: 10, fontWeight: '700', color: COLORS.gold },
-  postMeta: { fontSize: 12, color: '#aaa', marginTop: 1 },
+  churchBadgeTxt: { fontSize: 10, fontWeight: '700', color: c.gold },
+  postMeta: { fontSize: 12, color: c.textMuted, marginTop: 1 },
   postContent: { fontSize: 15, color: '#2d2d2d', lineHeight: 23, marginBottom: 12 },
-  postStats: { borderTopWidth: 1, borderTopColor: '#f5f3ef', paddingTop: 10 },
-  postStatTxt: { fontSize: 13, color: '#aaa' },
-  divider: { height: 8, backgroundColor: '#f8f7f4' },
+  postStats: { borderTopWidth: 1, borderTopColor: c.cardAlt, paddingTop: 10 },
+  postStatTxt: { fontSize: 13, color: c.textMuted },
+  divider: { height: 8, backgroundColor: c.bg },
   commentsHeader: { paddingHorizontal: 16, paddingVertical: 12 },
-  commentsCount: { fontSize: 14, fontWeight: '700', color: COLORS.navy },
+  commentsCount: { fontSize: 14, fontWeight: '700', color: c.text },
   emptyState: { alignItems: 'center', paddingVertical: 48, gap: 10 },
-  emptyTitle: { fontSize: 15, fontWeight: '600', color: '#bbb' },
-  emptySubtitle: { fontSize: 13, color: '#ccc' },
-  composer: { borderTopWidth: 1, borderTopColor: '#f0ede8', backgroundColor: '#fff', paddingBottom: Platform.OS === 'ios' ? 8 : 12 },
-  replyingToBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: 10, paddingBottom: 4, backgroundColor: '#faf9f6' },
-  replyingToTxt: { fontSize: 12, color: '#888' },
+  emptyTitle: { fontSize: 15, fontWeight: '600', color: c.textMuted },
+  emptySubtitle: { fontSize: 13, color: c.placeholder },
+  composer: { borderTopWidth: 1, borderTopColor: c.border, backgroundColor: c.card, paddingBottom: Platform.OS === 'ios' ? 8 : 12 },
+  replyingToBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: 10, paddingBottom: 4, backgroundColor: c.cardAlt },
+  replyingToTxt: { fontSize: 12, color: c.textMuted },
   composerRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 16, paddingVertical: 10 },
   composerAvatar: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
   composerAvatarTxt: { color: '#fff', fontWeight: '700', fontSize: 13 },
-  composerInput: { flex: 1, backgroundColor: '#f5f3ef', borderRadius: 22, paddingHorizontal: 16, paddingVertical: 10, fontSize: 14, color: COLORS.navy, maxHeight: 100 },
-  sendBtn: { width: 38, height: 38, borderRadius: 19, backgroundColor: COLORS.navy, alignItems: 'center', justifyContent: 'center' },
+  composerInput: { flex: 1, backgroundColor: c.cardAlt, borderRadius: 22, paddingHorizontal: 16, paddingVertical: 10, fontSize: 14, color: c.text, maxHeight: 100 },
+  sendBtn: { width: 38, height: 38, borderRadius: 19, backgroundColor: c.primary, alignItems: 'center', justifyContent: 'center' },
 });
 
-const c = StyleSheet.create({
-  wrap: { paddingHorizontal: 16, paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: '#f8f7f4' },
+const makeCs = (c: ThemeColors) => StyleSheet.create({
+  wrap: { paddingHorizontal: 16, paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: c.rowBorder },
   row: { flexDirection: 'row', gap: 12 },
   avatar: { width: 38, height: 38, borderRadius: 19, alignItems: 'center', justifyContent: 'center' },
   avatarTxt: { color: '#fff', fontWeight: '700', fontSize: 13 },
   metaRow: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', marginBottom: 4 },
-  name: { fontSize: 14, fontWeight: '700', color: '#1a1a2e' },
-  meta: { fontSize: 12, color: '#aaa' },
-  text: { fontSize: 14, color: '#333', lineHeight: 21, marginBottom: 8 },
+  name: { fontSize: 14, fontWeight: '700', color: c.text },
+  meta: { fontSize: 12, color: c.textMuted },
+  text: { fontSize: 14, color: c.text, lineHeight: 21, marginBottom: 8 },
   actions: { flexDirection: 'row', alignItems: 'center', gap: 18 },
   actionBtn: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  actionTxt: { fontSize: 12, fontWeight: '600', color: '#aaa' },
+  actionTxt: { fontSize: 12, fontWeight: '600', color: c.textMuted },
   replyWrap: { flexDirection: 'row', gap: 10, marginTop: 14, marginLeft: 50 },
   replyAvatar: { width: 30, height: 30, borderRadius: 15, alignItems: 'center', justifyContent: 'center' },
   replyAvatarTxt: { color: '#fff', fontWeight: '700', fontSize: 11 },

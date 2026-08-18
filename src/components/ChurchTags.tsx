@@ -1,6 +1,6 @@
 import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { COLORS } from '../lib/constants';
+import { useThemeColors, ThemeColors } from '../lib/theme';
 
 const TAG_ICONS: Record<string, string> = {
   'Parking Available': 'car-outline',
@@ -24,6 +24,8 @@ interface Props {
 }
 
 export default function ChurchTags({ tags, hours, hasWebsite, hasPhone }: Props) {
+  const c = useThemeColors();
+  const s = makeStyles(c);
   const allTags = [
     ...tags,
     ...(hours ? ['Hours Available'] : []),
@@ -35,7 +37,7 @@ export default function ChurchTags({ tags, hours, hasWebsite, hasPhone }: Props)
     <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.scroll}>
       {allTags.map((tag, i) => (
         <View key={i} style={s.tag}>
-          <Ionicons name={TAG_ICONS[tag] as any || 'checkmark-circle-outline'} size={13} color={COLORS.navy} />
+          <Ionicons name={TAG_ICONS[tag] as any || 'checkmark-circle-outline'} size={13} color={c.text} />
           <Text style={s.tagTxt}>{tag}</Text>
         </View>
       ))}
@@ -43,13 +45,13 @@ export default function ChurchTags({ tags, hours, hasWebsite, hasPhone }: Props)
   );
 }
 
-const s = StyleSheet.create({
+const makeStyles = (c: ThemeColors) => StyleSheet.create({
   scroll: { paddingHorizontal: 16, paddingVertical: 10, gap: 8 },
   tag: {
     flexDirection: 'row', alignItems: 'center', gap: 5,
-    borderWidth: 1, borderColor: '#ddd',
+    borderWidth: 1, borderColor: c.border,
     borderRadius: 8, paddingHorizontal: 12, paddingVertical: 7,
-    backgroundColor: COLORS.white,
+    backgroundColor: c.card,
   },
-  tagTxt: { fontSize: 12, fontWeight: '600', color: COLORS.navy },
+  tagTxt: { fontSize: 12, fontWeight: '600', color: c.text },
 });
