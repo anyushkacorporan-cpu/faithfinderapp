@@ -8,8 +8,14 @@ import { StripeProvider } from '@stripe/stripe-react-native';
 import { STRIPE_PUBLISHABLE_KEY, STRIPE_MERCHANT_ID } from '../src/lib/stripeConfig';
 import { ToastProvider } from '../src/components/Toast';
 import { ConfirmProvider } from '../src/components/Confirm';
+import { useThemeColors } from '../src/lib/theme';
 
 SplashScreen.preventAutoHideAsync();
+
+function ThemedStatusBar() {
+  const c = useThemeColors();
+  return <StatusBar style={c.isDark ? 'light' : 'dark'} />;
+}
 
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({ DMSans_400Regular, DMSans_600SemiBold, DMSans_700Bold, PlayfairDisplay_700Bold, PlayfairDisplay_400Regular_Italic, PlayfairDisplay_400Regular });
@@ -19,7 +25,7 @@ export default function RootLayout() {
     <ToastProvider>
     <ConfirmProvider>
     <StripeProvider publishableKey={STRIPE_PUBLISHABLE_KEY} merchantIdentifier={STRIPE_MERCHANT_ID}>
-      <StatusBar style="dark" />
+      <ThemedStatusBar />
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="index" />
         <Stack.Screen name="login" />
