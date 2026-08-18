@@ -95,14 +95,14 @@ export default function EventCheckoutScreen() {
     <SafeAreaView style={s.root} edges={['top']}>
       <View style={s.hdr}>
         <TouchableOpacity onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={22} color="#333" />
+          <Ionicons name="arrow-back" size={22} color={c.text} />
         </TouchableOpacity>
         <View style={s.hdrCenter}>
           <Text style={s.hdrTitle}>{isFree ? 'Registration' : 'Checkout'}</Text>
           <Text style={s.hdrSub}>{params.title}</Text>
         </View>
         <TouchableOpacity onPress={() => router.back()}>
-          <Ionicons name="close" size={22} color="#333" />
+          <Ionicons name="close" size={22} color={c.text} />
         </TouchableOpacity>
       </View>
 
@@ -196,7 +196,7 @@ export default function EventCheckoutScreen() {
               <TouchableOpacity style={[s.payOption, paymentMethod==='apple' && s.payOptionActive]} onPress={() => setPaymentMethod('apple')}>
                 <View style={s.payOptionLeft}>
                   <View style={s.applePayLogo}>
-                    <Ionicons name="logo-apple" size={18} color="#000"/>
+                    <Ionicons name="logo-apple" size={18} color="#fff"/>
                     <Text style={s.applePayLogoTxt}> Pay</Text>
                   </View>
                   <Text style={s.payOptionName}>Apple Pay</Text>
@@ -310,71 +310,71 @@ export default function EventCheckoutScreen() {
 }
 
 const makeStyles = (c: ThemeColors) => StyleSheet.create({
-  root:{flex:1,backgroundColor:'#f5f5f0'},
+  root:{flex:1,backgroundColor:c.bg},
   hdr:{flexDirection:'row',alignItems:'center',justifyContent:'space-between',paddingHorizontal:16,paddingVertical:12,backgroundColor:c.card,borderBottomWidth:1,borderBottomColor:c.placeholder},
   hdrCenter:{alignItems:'center'},
-  hdrTitle:{fontSize:16,fontWeight:'700',color:'#111'},
+  hdrTitle:{fontSize:16,fontWeight:'700',color:c.text},
   hdrSub:{fontSize:12,color:c.textMuted,marginTop:1},
   scroll:{flex:1},
   section:{backgroundColor:c.card,padding:16,marginBottom:1},
-  sectionTitle:{fontSize:15,fontWeight:'700',color:'#111',marginBottom:10},
-  divider:{height:8,backgroundColor:'#f0f0ec'},
-  input:{borderWidth:1.5,borderColor:c.border,borderRadius:10,paddingHorizontal:14,paddingVertical:12,fontSize:14,color:'#111',backgroundColor:c.card},
+  sectionTitle:{fontSize:15,fontWeight:'700',color:c.text,marginBottom:10},
+  divider:{height:8,backgroundColor:c.cardAlt},
+  input:{borderWidth:1.5,borderColor:c.border,borderRadius:10,paddingHorizontal:14,paddingVertical:12,fontSize:14,color:c.text,backgroundColor:c.card},
   quantityRow:{flexDirection:'row',alignItems:'center',justifyContent:'space-between'},
-  quantityEventTitle:{fontSize:15,fontWeight:'700',color:'#111',maxWidth:200},
+  quantityEventTitle:{fontSize:15,fontWeight:'700',color:c.text,maxWidth:200},
   quantityPrice:{fontSize:13,color:c.textMuted,marginTop:3},
   quantityControls:{flexDirection:'row',alignItems:'center',gap:0},
   qBtn:{width:36,height:36,borderRadius:18,borderWidth:1.5,borderColor:c.placeholder,alignItems:'center',justifyContent:'center',backgroundColor:c.card},
-  qBtnOff:{borderColor:'#f0f0ec',backgroundColor:'#f8f8f5'},
-  qBtnTxt:{fontSize:20,fontWeight:'300',color:'#111',lineHeight:24},
+  qBtnOff:{borderColor:c.border,backgroundColor:c.cardAlt},
+  qBtnTxt:{fontSize:20,fontWeight:'300',color:c.text,lineHeight:24},
   qBtnTxtOff:{color:c.placeholder},
-  qNum:{fontSize:18,fontWeight:'600',color:'#111',width:36,textAlign:'center'},
+  qNum:{fontSize:18,fontWeight:'600',color:c.text,width:36,textAlign:'center'},
   orderRow:{flexDirection:'row',justifyContent:'space-between',marginBottom:6},
   orderLbl:{fontSize:14,color:c.textSecondary},
-  orderVal:{fontSize:14,color:'#111',fontWeight:'500'},
-  orderTotalLbl:{fontSize:16,fontWeight:'700',color:'#111'},
-  orderTotalVal:{fontSize:16,fontWeight:'700',color:'#111'},
-  termsTitle:{fontSize:15,fontWeight:'700',color:'#111',marginBottom:10},
+  orderVal:{fontSize:14,color:c.text,fontWeight:'500'},
+  orderTotalLbl:{fontSize:16,fontWeight:'700',color:c.text},
+  orderTotalVal:{fontSize:16,fontWeight:'700',color:c.text},
+  termsTitle:{fontSize:15,fontWeight:'700',color:c.text,marginBottom:10},
   termsBox:{borderWidth:1,borderColor:c.placeholder,borderRadius:8,padding:12,marginBottom:12,maxHeight:100,overflow:'hidden'},
   termsTxt:{fontSize:13,color:c.textSecondary,lineHeight:19},
   agreeRow:{flexDirection:'row',alignItems:'center',gap:10},
   checkbox:{width:20,height:20,borderRadius:4,borderWidth:1.5,borderColor:c.placeholder,alignItems:'center',justifyContent:'center'},
-  checkboxChecked:{backgroundColor:'#111',borderColor:'#111'},
-  agreeTxt:{fontSize:14,color:'#333',flex:1},
-  payWithTitle:{fontSize:16,fontWeight:'700',color:'#111',marginBottom:12},
+  checkboxChecked:{backgroundColor:c.primary,borderColor:c.primary},
+  agreeTxt:{fontSize:14,color:c.text,flex:1},
+  payWithTitle:{fontSize:16,fontWeight:'700',color:c.text,marginBottom:12},
   payOption:{flexDirection:'row',alignItems:'center',justifyContent:'space-between',borderWidth:1,borderColor:c.placeholder,borderRadius:8,padding:14,backgroundColor:c.card},
-  payOptionActive:{borderColor:'#111',borderWidth:1.5},
+  payOptionActive:{borderColor:c.primary,borderWidth:1.5},
   payOptionLeft:{flexDirection:'row',alignItems:'center',gap:12},
   applePayLogo:{flexDirection:'row',alignItems:'center',gap:1},
-  applePayLogoTxt:{fontSize:14,fontWeight:'700',color:'#000'},
-  payOptionName:{fontSize:15,color:'#111',fontWeight:'500'},
-  cardIcon:{width:32,height:24,borderRadius:4,backgroundColor:'#f0f0ec',alignItems:'center',justifyContent:'center'},
+  applePayLogoTxt:{fontSize:14,fontWeight:"700",color:"#fff"},
+  payOptionName:{fontSize:15,color:c.text,fontWeight:'500'},
+  cardIcon:{width:32,height:24,borderRadius:4,backgroundColor:c.cardAlt,alignItems:'center',justifyContent:'center'},
   radio:{width:20,height:20,borderRadius:10,borderWidth:1.5,borderColor:c.placeholder,alignItems:'center',justifyContent:'center'},
-  radioActive:{borderColor:'#111'},
-  radioDot:{width:10,height:10,borderRadius:5,backgroundColor:'#111'},
+  radioActive:{borderColor:c.primary},
+  radioDot:{width:10,height:10,borderRadius:5,backgroundColor:c.primary},
   paypalTxt:{fontSize:18,fontWeight:'700'},
-  paypalNote:{backgroundColor:'#f8f8f5',borderWidth:1,borderColor:c.placeholder,borderRadius:8,padding:12,marginTop:8},
+  paypalNote:{backgroundColor:c.cardAlt,borderWidth:1,borderColor:c.placeholder,borderRadius:8,padding:12,marginTop:8},
   paypalNoteTxt:{fontSize:13,color:c.textSecondary},
   cardFields:{marginTop:12,gap:12},
   cardFieldRow:{gap:6},
   cardFieldTwoCol:{flexDirection:'row'},
-  cardFieldLabel:{fontSize:13,fontWeight:'600',color:'#333'},
+  cardFieldLabel:{fontSize:13,fontWeight:'600',color:c.text},
   cardFieldWrap:{flexDirection:'row',alignItems:'center',borderWidth:1,borderColor:c.placeholder,borderRadius:8,paddingHorizontal:12,backgroundColor:c.card},
-  cardInput:{flex:1,paddingVertical:12,fontSize:15,color:'#111'},
-  cardInputSingle:{borderWidth:1,borderColor:c.placeholder,borderRadius:8,paddingHorizontal:12,paddingVertical:12,fontSize:15,color:'#111',backgroundColor:c.card},
+  cardInput:{flex:1,paddingVertical:12,fontSize:15,color:c.text},
+  cardInputSingle:{borderWidth:1,borderColor:c.placeholder,borderRadius:8,paddingHorizontal:12,paddingVertical:12,fontSize:15,color:c.text,backgroundColor:c.card},
   saveCardRow:{flexDirection:'row',alignItems:'flex-start',gap:10,marginTop:4},
   saveCardTxt:{fontSize:13,color:c.textSecondary,flex:1,lineHeight:18},
-  testCardBox:{backgroundColor:'#fffbf0',borderRadius:8,padding:12,borderWidth:1,borderColor:'#f0e8c8'},
+  testCardBox:{backgroundColor:c.cardAlt,borderRadius:8,padding:12,borderWidth:1,borderColor:c.border},
   testCardTitle:{fontSize:12,fontWeight:'700',color:'#b8860b',marginBottom:3},
-  testCardNum:{fontSize:15,fontWeight:'700',color:'#111',letterSpacing:1.5,marginBottom:2},
+  testCardNum:{fontSize:15,fontWeight:'700',color:c.text,letterSpacing:1.5,marginBottom:2},
   testCardSub:{fontSize:12,color:c.textMuted},
   footer:{backgroundColor:c.card,borderTopWidth:1,borderTopColor:c.placeholder,padding:16,paddingBottom:32},
   footerInfo:{flexDirection:'row',justifyContent:'space-between',alignItems:'center',marginBottom:12},
   footerDate:{fontSize:13,color:c.textMuted},
-  footerTotal:{fontSize:16,fontWeight:'700',color:'#111'},
+  footerTotal:{fontSize:16,fontWeight:'700',color:c.text},
   applePayBtn:{backgroundColor:'#000',borderRadius:10,paddingVertical:14,flexDirection:'row',alignItems:'center',justifyContent:'center',gap:6},
   applePayBtnTxt:{color:c.onPrimary,fontSize:17,fontWeight:'600'},
-  payNowBtn:{backgroundColor:'#111',borderRadius:10,paddingVertical:14,alignItems:'center'},
+  payNowBtn:{backgroundColor:c.primary,borderRadius:10,paddingVertical:14,alignItems:'center'},
   payNowBtnTxt:{color:c.onPrimary,fontSize:16,fontWeight:'700'},
   paypalBtns:{flexDirection:'row',gap:10},
   paypalBtn:{flex:1,backgroundColor:'#003087',borderRadius:10,paddingVertical:14,alignItems:'center'},

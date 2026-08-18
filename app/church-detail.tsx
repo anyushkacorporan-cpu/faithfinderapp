@@ -642,7 +642,7 @@ export default function ChurchDetailScreen() {
           <View style={{width:44,height:44,borderRadius:22,backgroundColor:'#e8f5e9',alignItems:'center',justifyContent:'center'}}>
             <Ionicons name="checkmark-circle" size={28} color="#2e7d32" />
           </View>
-          <Text style={{flex:1,fontSize:15,fontWeight:'700',color:'#1a1a2e'}}>{t('sharedToCommunity')}</Text>
+          <Text style={{flex:1,fontSize:15,fontWeight:'700',color:c.text}}>{t('sharedToCommunity')}</Text>
           <TouchableOpacity onPress={() => setShowSharedToast(false)}>
             <Ionicons name="close" size={18} color={c.textMuted} />
           </TouchableOpacity>
@@ -653,7 +653,7 @@ export default function ChurchDetailScreen() {
           <View style={{width:44,height:44,borderRadius:22,backgroundColor:'#e8f5e9',alignItems:'center',justifyContent:'center'}}>
             <Ionicons name="checkmark-circle" size={28} color="#2e7d32" />
           </View>
-          <Text style={{flex:1,fontSize:15,fontWeight:'700',color:'#1a1a2e'}}>{t('sharedToCommunity')}</Text>
+          <Text style={{flex:1,fontSize:15,fontWeight:'700',color:c.text}}>{t('sharedToCommunity')}</Text>
           <TouchableOpacity onPress={() => setShowSharedToast(false)}>
             <Ionicons name="close" size={18} color={c.textMuted} />
           </TouchableOpacity>
@@ -664,7 +664,7 @@ export default function ChurchDetailScreen() {
           <View style={{width:44,height:44,borderRadius:22,backgroundColor:'#e8f5e9',alignItems:'center',justifyContent:'center'}}>
             <Ionicons name="checkmark-circle" size={28} color="#2e7d32" />
           </View>
-          <Text style={{flex:1,fontSize:15,fontWeight:'700',color:'#1a1a2e'}}>{t('sharedToCommunity')}</Text>
+          <Text style={{flex:1,fontSize:15,fontWeight:'700',color:c.text}}>{t('sharedToCommunity')}</Text>
           <TouchableOpacity onPress={() => setShowSharedToast(false)}>
             <Ionicons name="close" size={18} color={c.textMuted} />
           </TouchableOpacity>
@@ -743,7 +743,7 @@ const makeStyles = (c: ThemeColors) => StyleSheet.create({
   amenityIconWrap:{width:36,height:36,borderRadius:10,backgroundColor:c.cardAlt,alignItems:'center',justifyContent:'center'},
   amenityTxt:{fontSize:14,color:c.text,fontWeight:'500'},
   mapBox:{marginHorizontal:16,borderRadius:16,overflow:'hidden',borderWidth:1,borderColor:c.border},
-  mapArea:{height:180,backgroundColor:'#e8e8e8',alignItems:'center',justifyContent:'center',gap:8},
+  mapArea:{height:180,backgroundColor:c.cardAlt,alignItems:'center',justifyContent:'center',gap:8},
   mapPin:{width:40,height:40,borderRadius:20,backgroundColor:c.primary,alignItems:'center',justifyContent:'center'},
   mapPinShadow:{width:10,height:6,borderRadius:5,backgroundColor:'rgba(0,0,0,0.2)'},
   mapHint:{fontSize:12,color:c.textMuted,marginTop:4},
@@ -763,7 +763,7 @@ const makeStyles = (c: ThemeColors) => StyleSheet.create({
   postMeta:{flex:1},
   postAuthor:{fontSize:15,fontWeight:'700',color:c.text},
   postTime:{fontSize:12,color:c.textMuted,marginTop:2},
-  postContent:{fontSize:14,color:'#333',lineHeight:21,marginBottom:10},
+  postContent:{fontSize:14,color:c.text,lineHeight:21,marginBottom:10},
   postImage:{width:'100%',height:200,borderRadius:12,marginBottom:10},
   postStats:{flexDirection:'row',gap:12,marginBottom:8},
   statTxt:{fontSize:12,color:c.textMuted},

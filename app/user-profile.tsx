@@ -109,7 +109,7 @@ export default function OtherUserProfileScreen() {
                 </View>
               </View>
               {!!currentUser.lifeVerse && (
-                <Text style={{fontSize:15,fontStyle:'italic',color:'#333',lineHeight:22,textAlign:'center'}}>"{currentUser.lifeVerse}"</Text>
+                <Text style={{fontSize:15,fontStyle:'italic',color:c.text,lineHeight:22,textAlign:'center'}}>"{currentUser.lifeVerse}"</Text>
               )}
               {!!currentUser.lifeVerseRef && (
                 <Text style={{fontSize:13,fontWeight:'700',color:c.gold,textAlign:'center',marginTop:8}}>{currentUser.lifeVerseRef}</Text>
@@ -276,7 +276,7 @@ const makeStyles = (c: ThemeColors) => StyleSheet.create({
   name:{fontSize:19,fontWeight:'700',color:c.text,fontFamily:undefined},
   churchBadge:{backgroundColor:'rgba(201,169,110,0.12)',borderRadius:100,paddingHorizontal:8,paddingVertical:2},
   churchBadgeTxt:{fontSize:10,fontWeight:'700',color:c.gold},
-  divider:{height:8,backgroundColor:'#faf9f7'},
+  divider:{height:8,backgroundColor:c.card},
   section:{paddingHorizontal:16,paddingVertical:16},
   sectionHdr:{flexDirection:'row',justifyContent:'space-between',alignItems:'center',marginBottom:14},
   sectionTitle:{fontSize:16,fontWeight:'700',color:c.text},

@@ -423,7 +423,7 @@ export default function EventDetailScreen() {
                   <View style={{width:54,height:54,borderRadius:16,backgroundColor:'#e8f8f0',alignItems:'center',justifyContent:'center'}}>
                     <Ionicons name="chatbubble-outline" size={22} color="#2ecc71"/>
                   </View>
-                  <Text style={{fontSize:12,color:'#111',fontWeight:'600'}}>{t('messages')}</Text>
+                  <Text style={{fontSize:12,color:c.text,fontWeight:'600'}}>{t('messages')}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={{alignItems:'center',gap:8}} onPress={() => {
                   const msg = buildEventShareText({ title: (fullEvent?.title || params.title) || '', date: (fullEvent?.date || params.date), location: (fullEvent?.location || params.location), eventId: params.id || (fullEvent?.title || params.title) || '' });
@@ -432,7 +432,7 @@ export default function EventDetailScreen() {
                   <View style={{width:54,height:54,borderRadius:16,backgroundColor:'#eaf4fb',alignItems:'center',justifyContent:'center'}}>
                     <Ionicons name="mail-outline" size={22} color="#3498db"/>
                   </View>
-                  <Text style={{fontSize:12,color:'#111',fontWeight:'600'}}>{t('email')}</Text>
+                  <Text style={{fontSize:12,color:c.text,fontWeight:'600'}}>{t('email')}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={{alignItems:'center',gap:8}} onPress={() => {
                   const t = (fullEvent?.title || params.title) || '';
@@ -447,7 +447,7 @@ export default function EventDetailScreen() {
                   <View style={{width:54,height:54,borderRadius:16,backgroundColor:'#f5eefb',alignItems:'center',justifyContent:'center'}}>
                     <Ionicons name="share-social-outline" size={22} color="#9b59b6"/>
                   </View>
-                  <Text style={{fontSize:12,color:'#111',fontWeight:'600'}}>{t('moreOptions')}</Text>
+                  <Text style={{fontSize:12,color:c.text,fontWeight:'600'}}>{t('moreOptions')}</Text>
                 </TouchableOpacity>
               </View>
             </ScrollView>
@@ -537,7 +537,7 @@ export default function EventDetailScreen() {
                   <View style={{width:54,height:54,borderRadius:16,backgroundColor:'#e8f8f0',alignItems:'center',justifyContent:'center'}}>
                     <Ionicons name="chatbubble-outline" size={22} color="#2ecc71"/>
                   </View>
-                  <Text style={{fontSize:12,color:'#111',fontWeight:'600'}}>{t('messages')}</Text>
+                  <Text style={{fontSize:12,color:c.text,fontWeight:'600'}}>{t('messages')}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={{alignItems:'center',gap:8}} onPress={() => {
                   const msg = buildEventShareText({ title: (fullEvent?.title || params.title) || '', date: (fullEvent?.date || params.date), location: (fullEvent?.location || params.location), eventId: params.id || (fullEvent?.title || params.title) || '' });
@@ -546,7 +546,7 @@ export default function EventDetailScreen() {
                   <View style={{width:54,height:54,borderRadius:16,backgroundColor:'#eaf4fb',alignItems:'center',justifyContent:'center'}}>
                     <Ionicons name="mail-outline" size={22} color="#3498db"/>
                   </View>
-                  <Text style={{fontSize:12,color:'#111',fontWeight:'600'}}>{t('email')}</Text>
+                  <Text style={{fontSize:12,color:c.text,fontWeight:'600'}}>{t('email')}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={{alignItems:'center',gap:8}} onPress={() => {
                   const t = (fullEvent?.title || params.title) || '';
@@ -561,7 +561,7 @@ export default function EventDetailScreen() {
                   <View style={{width:54,height:54,borderRadius:16,backgroundColor:'#f5eefb',alignItems:'center',justifyContent:'center'}}>
                     <Ionicons name="share-social-outline" size={22} color="#9b59b6"/>
                   </View>
-                  <Text style={{fontSize:12,color:'#111',fontWeight:'600'}}>{t('moreOptions')}</Text>
+                  <Text style={{fontSize:12,color:c.text,fontWeight:'600'}}>{t('moreOptions')}</Text>
                 </TouchableOpacity>
               </View>
             </ScrollView>
