@@ -45,7 +45,7 @@ export default function SignupScreen() {
             <Ionicons name="arrow-back" size={20} color={COLORS.navy} />
           </TouchableOpacity>
           <View style={s.logoWrap}>
-            <Logo size="medium" />
+            <Logo size="medium" tint="#1a1a2e" />
           </View>
           <Text style={s.verse}>"For I know the plans I have for you," declares the Lord. — Jeremiah 29:11</Text>
           <View style={s.card}>

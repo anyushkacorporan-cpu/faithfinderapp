@@ -1,8 +1,11 @@
 import { View, Text, StyleSheet } from 'react-native';
 import { useThemeColors } from '../lib/theme';
 
-export default function Logo({ size = 'medium' }: { size?: 'small' | 'medium' | 'large' }) {
+export default function Logo({ size = 'medium', tint }: { size?: 'small' | 'medium' | 'large'; tint?: string }) {
   const c = useThemeColors();
+  // `tint` pins the wordmark color (used on the always-light auth screens so the
+  // logo stays dark navy regardless of the saved theme). Otherwise it follows the theme.
+  const textColor = tint ?? c.text;
   const fontSize = size === 'large' ? 30 : size === 'small' ? 18 : 22;
   const crossH = size === 'large' ? 28 : size === 'small' ? 18 : 22;
   const crossW = size === 'large' ? 14 : size === 'small' ? 10 : 12;
@@ -14,7 +17,7 @@ export default function Logo({ size = 'medium' }: { size?: 'small' | 'medium' | 
         <View style={[s.crossV, { height: crossH, backgroundColor: c.gold }]} />
         <View style={[s.crossH, { width: crossW, top: barH, backgroundColor: c.gold }]} />
       </View>
-      <Text style={[s.txt, { fontSize, color: c.text }]}>FaithFinder App</Text>
+      <Text style={[s.txt, { fontSize, color: textColor }]}>FaithFinder App</Text>
     </View>
   );
 }

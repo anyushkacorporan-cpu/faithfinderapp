@@ -26,7 +26,7 @@ export default function LoginScreen() {
       <KeyboardAvoidingView style={{flex:1}} behavior={Platform.OS==='ios'?'padding':undefined}>
         <ScrollView contentContainerStyle={s.scroll} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
           <View style={s.logoWrap}>
-            <Logo size="large" />
+            <Logo size="large" tint="#1a1a2e" />
           </View>
           <Text style={s.verse}>"For I know the plans I have for you," declares the Lord.</Text>
           <Text style={s.verseRef}>— Jeremiah 29:11</Text>
