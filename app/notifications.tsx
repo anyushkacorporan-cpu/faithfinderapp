@@ -5,15 +5,17 @@ import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useThemeColors, ThemeColors } from '../src/lib/theme';
 import { useNotifications, useUnreadCount, markRead, markAllRead, clearAllNotifications, clearNotification } from '../src/lib/notificationsStore';
+import { useTranslation } from '../src/lib/i18n';
 
-const TYPE_LABELS: Record<string, string> = {
-  like: 'Like', church_post: 'Church Post', event: 'Event',
-  comment: 'Comment', share: 'Share', invite: 'Invite', verification: 'Verification',
+const TYPE_KEYS: Record<string, string> = {
+  like: 'typeLike', church_post: 'typeChurchPost', event: 'typeEvent',
+  comment: 'typeComment', share: 'typeShare', invite: 'typeInvite', verification: 'typeVerification',
 };
 
 export default function NotificationsScreen() {
   const c = useThemeColors();
   const s = makeStyles(c);
+  const { t } = useTranslation();
   const notifications = useNotifications();
   const unread = useUnreadCount();
 
@@ -35,16 +37,16 @@ export default function NotificationsScreen() {
         <TouchableOpacity style={s.backBtn} onPress={() => router.back()}>
           <Ionicons name="arrow-back" size={22} color={c.text} />
         </TouchableOpacity>
-        <Text style={s.hdrTitle}>Notifications</Text>
+        <Text style={s.hdrTitle}>{t('notifications')}</Text>
         <View style={s.hdrRight}>
           {unread > 0 && (
             <TouchableOpacity style={s.markAllBtn} onPress={markAllRead}>
-              <Text style={s.markAllTxt}>Mark all read</Text>
+              <Text style={s.markAllTxt}>{t('markAllRead')}</Text>
             </TouchableOpacity>
           )}
           {notifications.length > 0 && (
             <TouchableOpacity style={s.clearAllBtn} onPress={clearAllNotifications}>
-              <Text style={s.clearAllTxt}>Clear all</Text>
+              <Text style={s.clearAllTxt}>{t('clearAll')}</Text>
             </TouchableOpacity>
           )}
         </View>
@@ -53,7 +55,7 @@ export default function NotificationsScreen() {
       {notifications.length === 0 ? (
         <View style={s.emptyNotifs}>
           <Ionicons name="notifications-outline" size={48} color={c.placeholder} />
-          <Text style={s.emptyNotifsTxt}>No notifications yet</Text>
+          <Text style={s.emptyNotifsTxt}>{t('noNotificationsYet')}</Text>
         </View>
       ) : (
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{paddingHorizontal:16}}>
@@ -68,7 +70,7 @@ export default function NotificationsScreen() {
                   onPress={() => clearNotification(n.id)}
                 >
                   <Ionicons name="trash-outline" size={22} color="#fff" />
-                  <Text style={s.deleteActionTxt}>Delete</Text>
+                  <Text style={s.deleteActionTxt}>{t('delete')}</Text>
                 </TouchableOpacity>
               )}
             >
@@ -84,7 +86,7 @@ export default function NotificationsScreen() {
                   <Text style={s.notifBody} numberOfLines={2}>{n.body}</Text>
                   <View style={s.notifBottomRow}>
                     <View style={[s.typePill, { backgroundColor: n.color + '18' }]}>
-                      <Text style={[s.typePillTxt, { color: n.color }]}>{TYPE_LABELS[n.type]}</Text>
+                      <Text style={[s.typePillTxt, { color: n.color }]}>{t(TYPE_KEYS[n.type] as any)}</Text>
                     </View>
                     <Text style={s.notifTime}>{n.time}</Text>
                   </View>

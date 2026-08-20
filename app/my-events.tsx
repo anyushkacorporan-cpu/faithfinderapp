@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useThemeColors, ThemeColors } from '../src/lib/theme';
+import { useTranslation } from '../src/lib/i18n';
 import { useConfirm } from '../src/components/Confirm';
 import { useUserEvents, deleteEvent, updateEvent } from '../src/lib/eventsStore';
 
@@ -13,6 +14,7 @@ const STATUS_TABS = ['All', 'Upcoming', 'Active', 'Past', 'Drafts'];
 export default function MyEventsScreen() {
   const c = useThemeColors();
   const s = makeStyles(c);
+  const { t } = useTranslation();
   const { showConfirm } = useConfirm();
   const events = useUserEvents();
   const [activeTab, setActiveTab] = useState('All');
@@ -28,18 +30,18 @@ export default function MyEventsScreen() {
 
   function handleDelete(id: string, title: string) {
     showConfirm({
-      title: 'Delete Event',
-      message: 'Delete "' + title + '"? This cannot be undone.',
+      title: t('deleteEventTitle'),
+      message: t('deleteEventMsg').replace('{title}', title),
       buttons: [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Delete', style: 'destructive', onPress: () => deleteEvent(id) },
+        { text: t('cancel'), style: 'cancel' },
+        { text: t('delete'), style: 'destructive', onPress: () => deleteEvent(id) },
       ],
     });
   }
 
   function handlePublishDraft(id: string) {
     updateEvent(id, { status: 'upcoming' });
-    Alert.alert('Published!', 'Your event is now live.');
+    Alert.alert(t('publishedTitle'), t('publishedBody'));
   }
 
   const STATUS_COLORS: Record<string, string> = {
@@ -55,7 +57,7 @@ export default function MyEventsScreen() {
         <TouchableOpacity style={s.backBtn} onPress={() => router.back()}>
           <Ionicons name="arrow-back" size={20} color={c.text} />
         </TouchableOpacity>
-        <Text style={s.hdrTitle}>My Events</Text>
+        <Text style={s.hdrTitle}>{t('myEvents')}</Text>
         <TouchableOpacity style={s.createBtn} onPress={() => router.push('/create-event')}>
           <Ionicons name="add" size={20} color={c.onPrimary} />
         </TouchableOpacity>
@@ -73,10 +75,10 @@ export default function MyEventsScreen() {
         {filtered.length === 0 ? (
           <View style={s.empty}>
             <Ionicons name="calendar-outline" size={48} color={c.placeholder} />
-            <Text style={s.emptyTxt}>No events yet</Text>
+            <Text style={s.emptyTxt}>{t('noEventsYet')}</Text>
             <Text style={s.emptySub}>Tap + to create your first event</Text>
             <TouchableOpacity style={s.createFirstBtn} onPress={() => router.push('/create-event')}>
-              <Text style={s.createFirstBtnTxt}>Create Event</Text>
+              <Text style={s.createFirstBtnTxt}>{t('createEvent')}</Text>
             </TouchableOpacity>
           </View>
         ) : filtered.map(event => (
@@ -126,12 +128,12 @@ export default function MyEventsScreen() {
               <View style={s.cardActions}>
                 {event.status === 'draft' && (
                   <TouchableOpacity style={s.publishBtn} onPress={() => handlePublishDraft(event.id)}>
-                    <Text style={s.publishBtnTxt}>Publish</Text>
+                    <Text style={s.publishBtnTxt}>{t('publish')}</Text>
                   </TouchableOpacity>
                 )}
                 <TouchableOpacity style={s.editBtn} onPress={() => router.push({ pathname: '/edit-event' as any, params: { id: event.id } })}>
                   <Ionicons name="create-outline" size={16} color={c.text} />
-                  <Text style={s.editBtnTxt}>Edit</Text>
+                  <Text style={s.editBtnTxt}>{t('edit')}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={s.deleteBtn} onPress={() => handleDelete(event.id, event.title)}>
                   <Ionicons name="trash-outline" size={16} color={c.red} />

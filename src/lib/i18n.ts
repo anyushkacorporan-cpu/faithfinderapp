@@ -206,6 +206,50 @@ const translations: Record<string, Record<Lang, string>> = {
   previewHintTab: { English: 'This is how your event will appear in the Events tab', Español: 'Así es como aparecerá tu evento en la pestaña de Eventos' },
   previewHintUsers: { English: 'This is how your event will appear to users', Español: 'Así es como los usuarios verán tu evento' },
   back: { English: 'Back', Español: 'Atrás' },
+
+  // Notifications screen
+  markAllRead: { English: 'Mark all read', Español: 'Marcar todo como leído' },
+  clearAll: { English: 'Clear all', Español: 'Borrar todo' },
+  noNotificationsYet: { English: 'No notifications yet', Español: 'Aún no hay notificaciones' },
+  typeLike: { English: 'Like', Español: 'Me gusta' },
+  typeChurchPost: { English: 'Church Post', Español: 'Publicación de Iglesia' },
+  typeEvent: { English: 'Event', Español: 'Evento' },
+  typeComment: { English: 'Comment', Español: 'Comentario' },
+  typeShare: { English: 'Share', Español: 'Compartir' },
+  typeInvite: { English: 'Invite', Español: 'Invitación' },
+  typeVerification: { English: 'Verification', Español: 'Verificación' },
+
+  // Connections screen
+  connections: { English: 'Connections', Español: 'Conexiones' },
+  noConnectionsYet: { English: 'No connections yet', Español: 'Aún no tienes conexiones' },
+  discoverBelievers: { English: 'Discover believers and churches in the Community tab', Español: 'Descubre creyentes e iglesias en la pestaña de Comunidad' },
+  goToCommunity: { English: 'Go to Community', Español: 'Ir a Comunidad' },
+  member: { English: 'Member', Español: 'Miembro' },
+  remove: { English: 'Remove', Español: 'Eliminar' },
+  removeConnectionTitle: { English: 'Remove Connection', Español: 'Eliminar Conexión' },
+  people: { English: 'People', Español: 'Personas' },
+  disconnect: { English: 'Disconnect', Español: 'Desconectar' },
+  // {name} is replaced with the connection's name at runtime
+  removeConnectionMsg: { English: 'Remove {name} from your connections?', Español: '¿Eliminar a {name} de tus conexiones?' },
+
+  // Activity screen
+  activity: { English: 'Activity', Español: 'Actividad' },
+  postsYouLike: { English: 'Posts you like or comment on will appear here.', Español: 'Las publicaciones que te gusten o comentes aparecerán aquí.' },
+
+  // My Events screen
+  publish: { English: 'Publish', Español: 'Publicar' },
+  publishedTitle: { English: 'Published!', Español: '¡Publicado!' },
+  publishedBody: { English: 'Your event is now live.', Español: 'Tu evento ya está publicado.' },
+
+  // Ticket success screen
+  registrationComplete: { English: 'Registration Complete', Español: 'Registro Completado' },
+  confirmed: { English: 'Confirmed', Español: 'Confirmado' },
+  tickets: { English: 'Tickets', Español: 'Boletos' },
+  viewEventDetails: { English: 'View Event Details', Español: 'Ver Detalles del Evento' },
+  backToEvents: { English: 'Back to Events', Español: 'Volver a Eventos' },
+  deleteEventTitle: { English: 'Delete Event', Español: 'Eliminar Evento' },
+  // {title} is replaced with the event title at runtime
+  deleteEventMsg: { English: 'Delete "{title}"? This cannot be undone.', Español: '¿Eliminar "{title}"? Esto no se puede deshacer.' },
 };
 
 export function useTranslation() {

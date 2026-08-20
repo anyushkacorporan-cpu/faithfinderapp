@@ -6,10 +6,12 @@ import { useThemeColors, ThemeColors } from '../src/lib/theme';
 import { useActivity } from '../src/lib/activityStore';
 import { usePosts, toggleLike } from '../src/lib/postsStore';
 import { PostCard } from '../src/components/PostCard';
+import { useTranslation } from '../src/lib/i18n';
 
 export default function ActivityScreen() {
   const c = useThemeColors();
   const s = makeStyles(c);
+  const { t } = useTranslation();
   const activity = useActivity();
   const allPosts = usePosts();
 
@@ -35,15 +37,15 @@ export default function ActivityScreen() {
         <TouchableOpacity style={s.backBtn} onPress={() => router.back()}>
           <Ionicons name="arrow-back" size={20} color={c.text} />
         </TouchableOpacity>
-        <Text style={s.hdrTitle}>Activity</Text>
+        <Text style={s.hdrTitle}>{t('activity')}</Text>
         <View style={{width:36}} />
       </View>
       <ScrollView showsVerticalScrollIndicator={false}>
         {uniquePosts.length === 0 ? (
           <View style={s.empty}>
             <Ionicons name="pulse-outline" size={44} color={c.placeholder} />
-            <Text style={s.emptyTxt}>No activity yet</Text>
-            <Text style={s.emptySub}>Posts you like or comment on will appear here.</Text>
+            <Text style={s.emptyTxt}>{t('noActivityYet')}</Text>
+            <Text style={s.emptySub}>{t('postsYouLike')}</Text>
           </View>
         ) : (
           <View style={{paddingTop:8}}>

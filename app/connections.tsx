@@ -5,10 +5,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useThemeColors, ThemeColors } from '../src/lib/theme';
 import { useConfirm } from '../src/components/Confirm';
 import { useConnections, removeConnection } from '../src/lib/connectionsStore';
+import { useTranslation } from '../src/lib/i18n';
 
 export default function ConnectionsScreen() {
   const c = useThemeColors();
   const s = makeStyles(c);
+  const { t } = useTranslation();
   const { showConfirm } = useConfirm();
   const connections = useConnections();
   const churches = connections.filter(c => c.type === 'church');
@@ -16,11 +18,11 @@ export default function ConnectionsScreen() {
 
   function handleRemove(id: string, name: string) {
     showConfirm({
-      title: 'Disconnect',
-      message: `Remove ${name} from your connections?`,
+      title: t('disconnect'),
+      message: t('removeConnectionMsg').replace('{name}', name),
       buttons: [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Disconnect', style: 'destructive', onPress: () => removeConnection(id) },
+        { text: t('cancel'), style: 'cancel' },
+        { text: t('disconnect'), style: 'destructive', onPress: () => removeConnection(id) },
       ],
     });
   }
@@ -31,7 +33,7 @@ export default function ConnectionsScreen() {
         <TouchableOpacity onPress={() => router.back()} style={s.backBtn}>
           <Ionicons name="chevron-back" size={24} color={c.text} />
         </TouchableOpacity>
-        <Text style={s.title}>Connections</Text>
+        <Text style={s.title}>{t('connections')}</Text>
         <View style={{ width: 40 }} />
       </View>
 
@@ -39,17 +41,17 @@ export default function ConnectionsScreen() {
         {connections.length === 0 && (
           <View style={s.empty}>
             <Ionicons name="people-outline" size={48} color={c.placeholder} />
-            <Text style={s.emptyTitle}>No connections yet</Text>
-            <Text style={s.emptySub}>Discover believers and churches in the Community tab</Text>
+            <Text style={s.emptyTitle}>{t('noConnectionsYet')}</Text>
+            <Text style={s.emptySub}>{t('discoverBelievers')}</Text>
             <TouchableOpacity style={s.discoverBtn} onPress={() => { router.back(); }}>
-              <Text style={s.discoverBtnTxt}>Go to Community</Text>
+              <Text style={s.discoverBtnTxt}>{t('goToCommunity')}</Text>
             </TouchableOpacity>
           </View>
         )}
 
         {churches.length > 0 && (
           <View style={s.section}>
-            <Text style={s.sectionTitle}>Churches ({churches.length})</Text>
+            <Text style={s.sectionTitle}>{t('churches')} ({churches.length})</Text>
             {churches.map(c => (
               <TouchableOpacity key={c.id} style={s.row} onPress={() => router.push({ pathname: '/profile' as any, params: { id: c.id, name: c.name, initials: c.initials, color: c.color, type: c.type } })}>
                 <View style={[s.avatar, { backgroundColor: c.color }]}>
@@ -57,10 +59,10 @@ export default function ConnectionsScreen() {
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text style={s.name}>{c.name}</Text>
-                  <Text style={s.type}>Church</Text>
+                  <Text style={s.type}>{t('church')}</Text>
                 </View>
                 <TouchableOpacity style={s.removeBtn} onPress={() => handleRemove(c.id, c.name)}>
-                  <Text style={s.removeTxt}>Remove</Text>
+                  <Text style={s.removeTxt}>{t('remove')}</Text>
                 </TouchableOpacity>
               </TouchableOpacity>
             ))}
@@ -69,7 +71,7 @@ export default function ConnectionsScreen() {
 
         {people.length > 0 && (
           <View style={s.section}>
-            <Text style={s.sectionTitle}>People ({people.length})</Text>
+            <Text style={s.sectionTitle}>{t('people')} ({people.length})</Text>
             {people.map(c => (
               <TouchableOpacity key={c.id} style={s.row} onPress={() => router.push({ pathname: '/profile' as any, params: { id: c.id, name: c.name, initials: c.initials, color: c.color, type: c.type } })}>
                 <View style={[s.avatar, { backgroundColor: c.color }]}>
@@ -77,10 +79,10 @@ export default function ConnectionsScreen() {
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text style={s.name}>{c.name}</Text>
-                  <Text style={s.type}>Member</Text>
+                  <Text style={s.type}>{t('member')}</Text>
                 </View>
                 <TouchableOpacity style={s.removeBtn} onPress={() => handleRemove(c.id, c.name)}>
-                  <Text style={s.removeTxt}>Remove</Text>
+                  <Text style={s.removeTxt}>{t('remove')}</Text>
                 </TouchableOpacity>
               </TouchableOpacity>
             ))}
@@ -109,6 +111,6 @@ const makeStyles = (c: ThemeColors) => StyleSheet.create({
   avatarTxt: { color: c.onPrimary, fontWeight: '700', fontSize: 15 },
   name: { fontSize: 15, fontWeight: '700', color: c.text },
   type: { fontSize: 12, color: c.textMuted, marginTop: 2 },
-  removeBtn: { borderWidth: 1, borderColor: '#e0dbd4', borderRadius: 100, paddingHorizontal: 14, paddingVertical: 6 },
+  removeBtn: { borderWidth: 1, borderColor: c.border, borderRadius: 100, paddingHorizontal: 14, paddingVertical: 6 },
   removeTxt: { fontSize: 12, fontWeight: '600', color: c.textMuted },
 });

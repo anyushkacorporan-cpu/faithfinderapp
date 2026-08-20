@@ -5,10 +5,12 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useThemeColors, ThemeColors } from '../src/lib/theme';
+import { useTranslation } from '../src/lib/i18n';
 
 export default function TicketSuccessScreen() {
   const c = useThemeColors();
   const s = makeStyles(c);
+  const { t } = useTranslation();
   const params = useLocalSearchParams<{
     id: string; title: string; date: string; location: string;
     price: string; type: string; organizer?: string;
@@ -42,7 +44,7 @@ export default function TicketSuccessScreen() {
           </Animated.View>
 
           <Animated.View style={[s.content, { opacity: fadeAnim }]}>
-            <Text style={s.successLabel}>Registration Complete</Text>
+            <Text style={s.successLabel}>{t('registrationComplete')}</Text>
             <Text style={s.successTitle}>{params.title}</Text>
             <Text style={s.successSub}>
               {quantity > 1 ? `${quantity} Tickets Secured` : 'Ticket Secured · You\'re Attending'}
@@ -64,7 +66,7 @@ export default function TicketSuccessScreen() {
                 </View>
                 <View style={s.ticketStatusPill}>
                   <Ionicons name="checkmark-circle" size={13} color={c.green} />
-                  <Text style={s.ticketStatusTxt}>Confirmed</Text>
+                  <Text style={s.ticketStatusTxt}>{t('confirmed')}</Text>
                 </View>
               </View>
 
@@ -77,21 +79,21 @@ export default function TicketSuccessScreen() {
                 <View style={s.ticketDetail}>
                   <Ionicons name="calendar-outline" size={15} color={c.gold} />
                   <View>
-                    <Text style={s.ticketDetailLbl}>Date</Text>
+                    <Text style={s.ticketDetailLbl}>{t('dateLabel')}</Text>
                     <Text style={s.ticketDetailVal}>{params.date}</Text>
                   </View>
                 </View>
                 <View style={s.ticketDetail}>
                   <Ionicons name="location-outline" size={15} color={c.gold} />
                   <View style={{flex:1}}>
-                    <Text style={s.ticketDetailLbl}>Location</Text>
+                    <Text style={s.ticketDetailLbl}>{t('location')}</Text>
                     <Text style={s.ticketDetailVal} numberOfLines={2}>{params.location}</Text>
                   </View>
                 </View>
                 <View style={s.ticketDetail}>
                   <Ionicons name="ticket-outline" size={15} color={c.gold} />
                   <View>
-                    <Text style={s.ticketDetailLbl}>Tickets</Text>
+                    <Text style={s.ticketDetailLbl}>{t('tickets')}</Text>
                     <Text style={s.ticketDetailVal}>{quantity}x · {params.price} total</Text>
                   </View>
                 </View>
@@ -121,10 +123,10 @@ export default function TicketSuccessScreen() {
               pathname: '/event-detail',
               params: { id:params.id, title:params.title, description:'', date:params.date, location:params.location, type:params.type, price:params.price }
             })}>
-              <Text style={s.viewEventBtnTxt}>View Event Details</Text>
+              <Text style={s.viewEventBtnTxt}>{t('viewEventDetails')}</Text>
             </TouchableOpacity>
             <TouchableOpacity style={s.homeBtn} onPress={() => router.replace('/(tabs)/events')}>
-              <Text style={s.homeBtnTxt}>Back to Events</Text>
+              <Text style={s.homeBtnTxt}>{t('backToEvents')}</Text>
             </TouchableOpacity>
 
             <View style={{height:40}} />
