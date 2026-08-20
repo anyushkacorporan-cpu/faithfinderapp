@@ -11,7 +11,7 @@ export default function AppearanceSettingsScreen() {
   const c = useThemeColors();
   const s = makeStyles(c);
   const appSettings = useSettings();
-  const { theme, fontSize, language } = appSettings.appearance;
+  const { theme, language } = appSettings.appearance;
 
   return (
     <SafeAreaView style={s.root} edges={['top']}>
@@ -37,20 +37,6 @@ export default function AppearanceSettingsScreen() {
               </View>
               <Text style={s.rowLabel}>{item.label}</Text>
               {theme===item.id && <Ionicons name="checkmark-circle" size={22} color={c.gold} />}
-            </TouchableOpacity>
-          ))}
-        </View>
-
-        <Text style={s.sectionLabel}>Text Size</Text>
-        <View style={s.card}>
-          {[
-            {id:'small', label:'Small'},
-            {id:'medium', label:'Medium (Default)'},
-            {id:'large', label:'Large'},
-          ].map((item,i,arr) => (
-            <TouchableOpacity key={item.id} style={[s.row, i<arr.length-1&&s.rowBorder]} onPress={() => updateAppearancePrefs({fontSize: item.id as any})}>
-              <Text style={[s.rowLabel, item.id==='small'&&{fontSize:12}, item.id==='large'&&{fontSize:17}]}>{item.label}</Text>
-              {fontSize===item.id && <Ionicons name="checkmark-circle" size={22} color={c.gold} />}
             </TouchableOpacity>
           ))}
         </View>
