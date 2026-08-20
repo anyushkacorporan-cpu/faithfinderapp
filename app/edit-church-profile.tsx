@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import { useThemeColors, ThemeColors } from '../src/lib/theme';
+import { useTranslation } from '../src/lib/i18n';
 import { useUser, setUser, getUser } from '../src/lib/userStore';
 import { useToast } from '../src/components/Toast';
 
@@ -58,6 +59,7 @@ function InlinePicker({visible,options,selected,onSelect,onClose,title}:PickerPr
 }
 
 export default function EditChurchProfileScreen() {
+  const { t } = useTranslation();
   const c = useThemeColors();
   const s = makeStyles(c);
   const user = useUser();
@@ -141,14 +143,14 @@ export default function EditChurchProfileScreen() {
           <TouchableOpacity style={s.backBtn} onPress={() => router.back()}>
             <Ionicons name="arrow-back" size={20} color={c.text} />
           </TouchableOpacity>
-          <Text style={s.hdrTitle}>Edit Church Profile</Text>
+          <Text style={s.hdrTitle}>{t('editChurchProfile')}</Text>
           <TouchableOpacity onPress={handleSave}>
-            <Text style={s.saveBtn}>Save</Text>
+            <Text style={s.saveBtn}>{t('save')}</Text>
           </TouchableOpacity>
         </View>
         <ScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
 
-          <Text style={s.sectionTitle}>Photos</Text>
+          <Text style={s.sectionTitle}>{t('photos')}</Text>
 
           <View style={{flexDirection:'row',alignItems:'center',gap:16,marginBottom:20}}>
             <TouchableOpacity onPress={handlePickAvatar} activeOpacity={0.85}>
@@ -163,13 +165,13 @@ export default function EditChurchProfileScreen() {
               </View>
             </TouchableOpacity>
             <View style={{flex:1}}>
-              <Text style={s.label}>Profile Photo</Text>
+              <Text style={s.label}>{t('profilePhoto')}</Text>
               <Text style={{fontSize:12,color:c.textMuted}}>Tap to change your church's profile photo</Text>
             </View>
           </View>
 
           <View style={{marginBottom:20}}>
-            <Text style={s.label}>Gallery Photos</Text>
+            <Text style={s.label}>{t('galleryPhotos')}</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{marginTop:8}}>
               {(user.photos || []).map((uri: string) => (
                 <View key={uri} style={{marginRight:10,position:'relative'}}>
@@ -188,10 +190,10 @@ export default function EditChurchProfileScreen() {
             </ScrollView>
           </View>
 
-          <Text style={s.sectionTitle}>Church Information</Text>
+          <Text style={s.sectionTitle}>{t('churchInformation')}</Text>
 
           <View style={s.fieldWrap}>
-            <Text style={s.label}>Church Name</Text>
+            <Text style={s.label}>{t('churchName')}</Text>
             <View style={s.inputWrap}>
               <Ionicons name="home-outline" size={18} color={c.textMuted} style={s.icon} />
               <TextInput style={[s.input, s.inputWithIcon]} placeholder="Grace Community Church" placeholderTextColor={c.placeholder} value={churchName} onChangeText={setChurchName} />
@@ -199,7 +201,7 @@ export default function EditChurchProfileScreen() {
           </View>
 
           <View style={s.fieldWrap}>
-            <Text style={s.label}>Address</Text>
+            <Text style={s.label}>{t('address')}</Text>
             <View style={s.inputWrap}>
               <Ionicons name="location-outline" size={18} color={c.textMuted} style={s.icon} />
               <TextInput style={[s.input, s.inputWithIcon]} placeholder="123 Faith St, Glen Cove, NY 11542" placeholderTextColor={c.placeholder} value={address} onChangeText={setAddress} />
@@ -207,7 +209,7 @@ export default function EditChurchProfileScreen() {
           </View>
 
           <View style={s.fieldWrap}>
-            <Text style={s.label}>Email</Text>
+            <Text style={s.label}>{t('email')}</Text>
             <View style={s.inputWrap}>
               <Ionicons name="mail-outline" size={18} color={c.textMuted} style={s.icon} />
               <TextInput style={[s.input, s.inputWithIcon]} placeholder="info@yourchurch.org" placeholderTextColor={c.placeholder} value={churchEmail} onChangeText={setChurchEmail} keyboardType="email-address" autoCapitalize="none" />
@@ -215,7 +217,7 @@ export default function EditChurchProfileScreen() {
           </View>
 
           <View style={s.fieldWrap}>
-            <Text style={s.label}>Phone</Text>
+            <Text style={s.label}>{t('phone')}</Text>
             <View style={s.inputWrap}>
               <Ionicons name="call-outline" size={18} color={c.textMuted} style={s.icon} />
               <TextInput style={[s.input, s.inputWithIcon]} placeholder="(516) 000-0000" placeholderTextColor={c.placeholder} value={phone} onChangeText={setPhone} keyboardType="phone-pad" />
@@ -231,7 +233,7 @@ export default function EditChurchProfileScreen() {
           </View>
 
           <View style={s.fieldWrap}>
-            <Text style={s.label}>Denomination</Text>
+            <Text style={s.label}>{t('denomination')}</Text>
             <TouchableOpacity style={[s.picker, showDenom && s.pickerOpen]} onPress={() => setShowDenom(!showDenom)}>
               <Text style={[s.pickerTxt, !denomination && s.pickerPlaceholder]}>{denomination || 'Select denomination'}</Text>
               <Ionicons name={showDenom ? 'chevron-up' : 'chevron-down'} size={18} color={c.textMuted} />
@@ -260,7 +262,7 @@ export default function EditChurchProfileScreen() {
             />
           </View>
 
-          <Text style={s.sectionTitle}>Service Times</Text>
+          <Text style={s.sectionTitle}>{t('serviceTimes')}</Text>
 
           {serviceTimes.map((st, idx) => (
             <View key={idx} style={s.serviceTimeCard}>
@@ -274,7 +276,7 @@ export default function EditChurchProfileScreen() {
                 </TouchableOpacity>
               </View>
               <View style={{flexDirection:'row',alignItems:'center',gap:6}}>
-                <Text style={s.timeLabel}>From</Text>
+                <Text style={s.timeLabel}>{t('fromLabel')}</Text>
                 <TouchableOpacity style={s.timePart} onPress={() => openPicker(idx,'startH',HOURS,'Start Hour')}>
                   <Text style={s.timePartTxt}>{st.startH}</Text>
                 </TouchableOpacity>
@@ -309,10 +311,10 @@ export default function EditChurchProfileScreen() {
 
           <TouchableOpacity style={s.addTimeBtn} onPress={addServiceTime}>
             <Ionicons name="add-circle-outline" size={20} color={c.gold}/>
-            <Text style={s.addTimeTxt}>Add Service Time</Text>
+            <Text style={s.addTimeTxt}>{t('addServiceTime')}</Text>
           </TouchableOpacity>
 
-          <Text style={s.sectionTitle}>Amenities</Text>
+          <Text style={s.sectionTitle}>{t('amenities')}</Text>
           <View style={{flexDirection:'row',flexWrap:'wrap',gap:8,marginBottom:20}}>
             {[
               {key:'parking',label:'Parking Available',icon:'car-outline'},
@@ -342,7 +344,7 @@ export default function EditChurchProfileScreen() {
             })}
           </View>
 
-          <Text style={s.sectionTitle}>Ministries</Text>
+          <Text style={s.sectionTitle}>{t('ministries')}</Text>
           <View style={{flexDirection:'row',alignItems:'center',gap:8,marginBottom:12}}>
             <TextInput
               style={[s.input, {flex:1}]}
@@ -367,7 +369,7 @@ export default function EditChurchProfileScreen() {
               </View>
             ))}
             {(!user.ministries || user.ministries.length === 0) && (
-              <Text style={{fontSize:12,color:c.textMuted}}>No ministries added yet</Text>
+              <Text style={{fontSize:12,color:c.textMuted}}>{t('noMinistriesYet')}</Text>
             )}
           </View>
 

@@ -4,9 +4,11 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { COLORS } from '../src/lib/constants';
+import { useTranslation } from '../src/lib/i18n';
 import { getUser } from '../src/lib/userStore';
 
 export default function ChurchSetupScreen() {
+  const { t } = useTranslation();
   const user = getUser();
 
   return (
@@ -25,7 +27,7 @@ export default function ChurchSetupScreen() {
           <LinearGradient colors={[COLORS.navy, '#2d2240']} style={s.logoIcon} start={{x:0,y:0}} end={{x:1,y:1}}>
             <Ionicons name="home" size={28} color={COLORS.gold} />
           </LinearGradient>
-          <Text style={s.title}>Set Up Your Church</Text>
+          <Text style={s.title}>{t('setUpYourChurch')}</Text>
           <Text style={s.subtitle}>
             Welcome{user.churchName ? `, ${user.churchName}` : ''}! How would you like to get started?
           </Text>
@@ -41,11 +43,11 @@ export default function ChurchSetupScreen() {
                 <Ionicons name="search" size={24} color={COLORS.navy} />
               </View>
               <View style={s.optionInfo}>
-                <Text style={s.optionTitle}>Claim Your Church</Text>
+                <Text style={s.optionTitle}>{t('claimYourChurch')}</Text>
                 <Text style={s.optionDesc}>Your church is already listed on FaithFinder. Claim it as the official account.</Text>
                 <View style={s.optionTag}>
                   <Ionicons name="checkmark-circle" size={13} color={COLORS.green} />
-                  <Text style={s.optionTagTxt}>Already in FaithFinder</Text>
+                  <Text style={s.optionTagTxt}>{t('alreadyInFaithFinder')}</Text>
                 </View>
               </View>
             </View>
@@ -66,11 +68,11 @@ export default function ChurchSetupScreen() {
                 <Ionicons name="add-circle" size={24} color={COLORS.gold} />
               </View>
               <View style={s.optionInfo}>
-                <Text style={s.optionTitleNavy}>Register New Church</Text>
+                <Text style={s.optionTitleNavy}>{t('registerNewChurch')}</Text>
                 <Text style={s.optionDescNavy}>Your church isn't on FaithFinder yet. Add it to our directory.</Text>
                 <View style={s.optionTagNavy}>
                   <Ionicons name="star" size={13} color={COLORS.gold} />
-                  <Text style={s.optionTagNavyTxt}>Get listed & verified</Text>
+                  <Text style={s.optionTagNavyTxt}>{t('getListedVerified')}</Text>
                 </View>
               </View>
             </View>

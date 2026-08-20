@@ -7,10 +7,12 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useThemeColors, ThemeColors } from '../src/lib/theme';
+import { useTranslation } from '../src/lib/i18n';
 import { addAttending } from '../src/lib/eventActionsStore';
 import { addTicket } from '../src/lib/ticketStore';
 
 export default function EventCheckoutScreen() {
+  const { t } = useTranslation();
   const c = useThemeColors();
   const s = makeStyles(c);
   const params = useLocalSearchParams<{
@@ -132,7 +134,7 @@ export default function EventCheckoutScreen() {
 
           {/* Contact Email */}
           <View style={s.section}>
-            <Text style={s.sectionTitle}>Contact Email</Text>
+            <Text style={s.sectionTitle}>{t('contactEmail')}</Text>
             <TextInput
               style={[s.input, emailError ? {borderColor:c.red} : {}]}
               placeholder="Enter your email address"
@@ -155,12 +157,12 @@ export default function EventCheckoutScreen() {
             </View>
             {!isFree && (
               <View style={s.orderRow}>
-                <Text style={s.orderLbl}>Platform Fee</Text>
+                <Text style={s.orderLbl}>{t('platformFee')}</Text>
                 <Text style={s.orderVal}>${platformFee.toFixed(2)}</Text>
               </View>
             )}
             <View style={[s.orderRow, {marginTop:8}]}>
-              <Text style={s.orderTotalLbl}>Total</Text>
+              <Text style={s.orderTotalLbl}>{t('total')}</Text>
               <Text style={s.orderTotalVal}>{isFree ? 'Free' : `$${total.toFixed(2)}`}</Text>
             </View>
           </View>
@@ -169,7 +171,7 @@ export default function EventCheckoutScreen() {
 
           {/* Terms */}
           <View style={s.section}>
-            <Text style={s.termsTitle}>Terms & Conditions</Text>
+            <Text style={s.termsTitle}>{t('termsConditions')}</Text>
             <View style={s.termsBox}>
               <Text style={s.termsTxt}>
                 {isFree
@@ -182,7 +184,7 @@ export default function EventCheckoutScreen() {
               <TouchableOpacity style={[s.checkbox, agreed && s.checkboxChecked]} onPress={() => setAgreed(a => !a)}>
                 {agreed && <Ionicons name="checkmark" size={13} color={c.onPrimary}/>}
               </TouchableOpacity>
-              <Text style={s.agreeTxt}>I agree to the above terms and conditions.</Text>
+              <Text style={s.agreeTxt}>{t('agreeTerms')}</Text>
             </View>
           </View>
 
@@ -191,7 +193,7 @@ export default function EventCheckoutScreen() {
           {/* Payment - paid events only */}
           {!isFree && (
             <View style={s.section}>
-              <Text style={s.payWithTitle}>Pay with</Text>
+              <Text style={s.payWithTitle}>{t('payWith')}</Text>
 
               <TouchableOpacity style={[s.payOption, paymentMethod==='apple' && s.payOptionActive]} onPress={() => setPaymentMethod('apple')}>
                 <View style={s.payOptionLeft}>
@@ -219,7 +221,7 @@ export default function EventCheckoutScreen() {
               {paymentMethod === 'card' && (
                 <View style={s.cardFields}>
                   <View style={s.cardFieldRow}>
-                    <Text style={s.cardFieldLabel}>Card Number</Text>
+                    <Text style={s.cardFieldLabel}>{t('cardNumber')}</Text>
                     <View style={s.cardFieldWrap}>
                       <Ionicons name="card-outline" size={16} color={c.textMuted}/>
                       <TextInput style={s.cardInput} placeholder="1234 5678 9012 3456" placeholderTextColor={c.placeholder} keyboardType="numeric" value={cardNumber} onChangeText={t=>setCardNumber(formatCardNumber(t))} maxLength={19}/>
@@ -227,7 +229,7 @@ export default function EventCheckoutScreen() {
                   </View>
                   <View style={s.cardFieldTwoCol}>
                     <View style={[s.cardFieldRow,{flex:1,marginRight:8}]}>
-                      <Text style={s.cardFieldLabel}>Expiry</Text>
+                      <Text style={s.cardFieldLabel}>{t('expiry')}</Text>
                       <TextInput style={s.cardInputSingle} placeholder="MM/YY" placeholderTextColor={c.placeholder} keyboardType="numeric" value={expiry} onChangeText={t=>setExpiry(formatExpiry(t))} maxLength={5}/>
                     </View>
                     <View style={[s.cardFieldRow,{flex:1,marginRight:8}]}>
@@ -243,7 +245,7 @@ export default function EventCheckoutScreen() {
                     <TouchableOpacity style={[s.checkbox, saveCard && s.checkboxChecked]} onPress={()=>setSaveCard(v=>!v)}>
                       {saveCard && <Ionicons name="checkmark" size={11} color={c.onPrimary}/>}
                     </TouchableOpacity>
-                    <Text style={s.saveCardTxt}>Save card for future purchases</Text>
+                    <Text style={s.saveCardTxt}>{t('saveCard')}</Text>
                   </View>
                   <View style={s.testCardBox}>
                     <Text style={s.testCardTitle}>🧪 Test Mode</Text>
@@ -296,7 +298,7 @@ export default function EventCheckoutScreen() {
             </TouchableOpacity>
             <TouchableOpacity style={[s.payLaterBtn, !canPay && s.payBtnDisabled]} onPress={handlePay} disabled={!canPay || processing}>
               <Ionicons name="logo-paypal" size={14} color={c.onPrimary} />
-              <Text style={s.payLaterBtnTxt}>Pay Later</Text>
+              <Text style={s.payLaterBtnTxt}>{t('payLater')}</Text>
             </TouchableOpacity>
           </View>
         ) : (

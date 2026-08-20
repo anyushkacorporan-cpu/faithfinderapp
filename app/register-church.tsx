@@ -5,11 +5,13 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { COLORS } from '../src/lib/constants';
+import { useTranslation } from '../src/lib/i18n';
 import { setUser } from '../src/lib/userStore';
 
 const DENOMINATIONS = ['Non-Denominational','Catholic','Baptist','Methodist','Lutheran','Presbyterian','Episcopal','Pentecostal','Assemblies of God','Evangelical','Reformed','AME','Other'];
 
 export default function RegisterChurchScreen() {
+  const { t } = useTranslation();
   const [churchName, setChurchName] = useState('');
   const [address, setAddress] = useState('');
   const [denomination, setDenomination] = useState('');
@@ -61,7 +63,7 @@ export default function RegisterChurchScreen() {
           <LinearGradient colors={[COLORS.navy, '#2d2240']} style={s.successIcon} start={{x:0,y:0}} end={{x:1,y:1}}>
             <Ionicons name="checkmark-circle" size={48} color={COLORS.gold} />
           </LinearGradient>
-          <Text style={s.successTitle}>Church Submitted!</Text>
+          <Text style={s.successTitle}>{t('churchSubmitted')}</Text>
           <Text style={s.successSub}>
             <Text style={{fontWeight:'700',color:COLORS.navy}}>{churchName}</Text> has been submitted for review. FaithFinder will add it to the directory within 3–5 business days.
           </Text>
@@ -85,10 +87,10 @@ export default function RegisterChurchScreen() {
           </View>
           <View style={s.pendingBadge}>
             <Ionicons name="time-outline" size={14} color={COLORS.gold} />
-            <Text style={s.pendingBadgeTxt}>Verification Pending</Text>
+            <Text style={s.pendingBadgeTxt}>{t('verificationPending')}</Text>
           </View>
           <TouchableOpacity style={s.primaryBtn} onPress={() => router.replace('/(tabs)')}>
-            <Text style={s.primaryBtnTxt}>Go to My Profile</Text>
+            <Text style={s.primaryBtnTxt}>{t('goToMyProfile')}</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -107,13 +109,13 @@ export default function RegisterChurchScreen() {
           <View style={s.body}>
             <View style={s.stepBadge}>
               <Ionicons name="add-circle-outline" size={14} color={COLORS.gold} />
-              <Text style={s.stepBadgeTxt}>Register New Church</Text>
+              <Text style={s.stepBadgeTxt}>{t('registerNewChurch')}</Text>
             </View>
-            <Text style={s.title}>Church Details</Text>
+            <Text style={s.title}>{t('churchDetails')}</Text>
             <Text style={s.subtitle}>Fill in your church information. All fields marked * are required.</Text>
 
             {/* Church Info */}
-            <Text style={s.sectionTitle}>Church Information</Text>
+            <Text style={s.sectionTitle}>{t('churchInformation')}</Text>
             <View style={s.fieldWrap}>
               <Text style={s.label}>Church Name *</Text>
               <View style={s.inputWrap}>
@@ -131,7 +133,7 @@ export default function RegisterChurchScreen() {
               {!!errors.address && <Text style={s.errTxt}>{errors.address}</Text>}
             </View>
             <View style={s.fieldWrap}>
-              <Text style={s.label}>Denomination</Text>
+              <Text style={s.label}>{t('denomination')}</Text>
               <TouchableOpacity style={[s.picker, showDenom && s.pickerOpen]} onPress={() => setShowDenom(!showDenom)}>
                 <Text style={[s.pickerTxt, !denomination && s.pickerPlaceholder]}>{denomination || 'Select denomination'}</Text>
                 <Ionicons name={showDenom ? 'chevron-up' : 'chevron-down'} size={18} color="#bbb" />
@@ -148,14 +150,14 @@ export default function RegisterChurchScreen() {
               )}
             </View>
             <View style={s.fieldWrap}>
-              <Text style={s.label}>Service Times</Text>
+              <Text style={s.label}>{t('serviceTimes')}</Text>
               <View style={s.inputWrap}>
                 <Ionicons name="time-outline" size={18} color="#bbb" style={s.inputIcon} />
                 <TextInput style={[s.input, s.inputWithIcon]} placeholder="Sunday 9AM & 11AM" placeholderTextColor={COLORS.placeholder} value={serviceTimes} onChangeText={setServiceTimes} />
               </View>
             </View>
             <View style={s.fieldWrap}>
-              <Text style={s.label}>Phone Number</Text>
+              <Text style={s.label}>{t('phoneNumber')}</Text>
               <View style={s.inputWrap}>
                 <Ionicons name="call-outline" size={18} color="#bbb" style={s.inputIcon} />
                 <TextInput style={[s.input, s.inputWithIcon]} placeholder="(516) 000-0000" placeholderTextColor={COLORS.placeholder} value={phone} onChangeText={setPhone} keyboardType="phone-pad" />
@@ -165,7 +167,7 @@ export default function RegisterChurchScreen() {
             <View style={s.divider} />
 
             {/* Verification */}
-            <Text style={s.sectionTitle}>Verification</Text>
+            <Text style={s.sectionTitle}>{t('verification')}</Text>
             <View style={s.fieldWrap}>
               <Text style={s.label}>Your Role *</Text>
               <TouchableOpacity style={[s.picker, showRoles && s.pickerOpen, errors.role && s.pickerErr]} onPress={() => setShowRoles(!showRoles)}>
@@ -185,7 +187,7 @@ export default function RegisterChurchScreen() {
               )}
             </View>
             <View style={s.fieldWrap}>
-              <Text style={s.label}>Church Website</Text>
+              <Text style={s.label}>{t('churchWebsite')}</Text>
               <View style={s.inputWrap}>
                 <Ionicons name="globe-outline" size={18} color="#bbb" style={s.inputIcon} />
                 <TextInput style={[s.input, s.inputWithIcon]} placeholder="www.yourchurch.org" placeholderTextColor={COLORS.placeholder} value={website} onChangeText={v => { setWebsite(v); setErrors(e => ({...e,contact:''})); }} autoCapitalize="none" keyboardType="url" />
@@ -195,7 +197,7 @@ export default function RegisterChurchScreen() {
               <View style={s.orLine} /><Text style={s.orTxt}>or</Text><View style={s.orLine} />
             </View>
             <View style={s.fieldWrap}>
-              <Text style={s.label}>Official Church Email</Text>
+              <Text style={s.label}>{t('officialChurchEmail')}</Text>
               <View style={s.inputWrap}>
                 <Ionicons name="mail-outline" size={18} color="#bbb" style={s.inputIcon} />
                 <TextInput style={[s.input, s.inputWithIcon, errors.contact && s.inputErr]} placeholder="pastor@yourchurch.org" placeholderTextColor={COLORS.placeholder} value={email} onChangeText={v => { setEmail(v); setErrors(e => ({...e,contact:''})); }} keyboardType="email-address" autoCapitalize="none" />
@@ -203,7 +205,7 @@ export default function RegisterChurchScreen() {
               {!!errors.contact && <Text style={s.errTxt}>{errors.contact}</Text>}
             </View>
             <View style={s.fieldWrap}>
-              <Text style={s.label}>Additional Notes <Text style={s.optional}>(optional)</Text></Text>
+              <Text style={s.label}>{t('additionalNotes')} <Text style={s.optional}>(optional)</Text></Text>
               <TextInput style={[s.input, {height:80,textAlignVertical:'top',paddingTop:12}]} placeholder="Anything else you'd like to share..." placeholderTextColor={COLORS.placeholder} value={notes} onChangeText={setNotes} multiline />
             </View>
 
@@ -215,7 +217,7 @@ export default function RegisterChurchScreen() {
             <TouchableOpacity style={[s.primaryBtn, submitting && s.primaryBtnDisabled]} onPress={handleSubmit} activeOpacity={0.85}>
               {submitting
                 ? <ActivityIndicator color={COLORS.white} />
-                : <><Text style={s.primaryBtnTxt}>Submit for Review</Text><Ionicons name="shield-checkmark-outline" size={18} color={COLORS.white} /></>
+                : <><Text style={s.primaryBtnTxt}>{t('submitForReview')}</Text><Ionicons name="shield-checkmark-outline" size={18} color={COLORS.white} /></>
               }
             </TouchableOpacity>
           </View>

@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { COLORS, CHURCHES } from '../src/lib/constants';
+import { useTranslation } from '../src/lib/i18n';
 import { setUser } from '../src/lib/userStore';
 
 const KEY = 'AIzaSyAHZO8wyxyCmx0k8u059QSX7QpsEvZ82sU';
@@ -23,6 +24,7 @@ async function searchChurchesAPI(query: string) {
 }
 
 export default function ClaimChurchScreen() {
+  const { t } = useTranslation();
   const [step, setStep] = useState<'search'|'preview'|'verify'|'submitted'>('search');
   const [search, setSearch] = useState('');
   const [results, setResults] = useState<any[]>([]);
@@ -96,7 +98,7 @@ export default function ClaimChurchScreen() {
             <View style={s.submittedRow}>
               <Ionicons name="time-outline" size={20} color={COLORS.gold} />
               <View style={s.submittedInfo}>
-                <Text style={s.submittedRowTitle}>Review Period</Text>
+                <Text style={s.submittedRowTitle}>{t('reviewPeriod')}</Text>
                 <Text style={s.submittedRowSub}>3–5 business days</Text>
               </View>
             </View>
@@ -112,17 +114,17 @@ export default function ClaimChurchScreen() {
             <View style={s.submittedRow}>
               <Ionicons name="shield-checkmark-outline" size={20} color={COLORS.gold} />
               <View style={s.submittedInfo}>
-                <Text style={s.submittedRowTitle}>After approval</Text>
+                <Text style={s.submittedRowTitle}>{t('afterApproval')}</Text>
                 <Text style={s.submittedRowSub}>Full church profile unlocked with verified badge</Text>
               </View>
             </View>
           </View>
           <View style={s.pendingBadge}>
             <Ionicons name="time-outline" size={14} color={COLORS.gold} />
-            <Text style={s.pendingBadgeTxt}>Verification Pending</Text>
+            <Text style={s.pendingBadgeTxt}>{t('verificationPending')}</Text>
           </View>
           <TouchableOpacity style={s.primaryBtn} onPress={() => router.replace('/(tabs)')}>
-            <Text style={s.primaryBtnTxt}>Go to My Profile</Text>
+            <Text style={s.primaryBtnTxt}>{t('goToMyProfile')}</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -150,9 +152,9 @@ export default function ClaimChurchScreen() {
           <View style={s.body}>
             <View style={s.stepBadge}>
               <Ionicons name="home" size={14} color={COLORS.gold} />
-              <Text style={s.stepBadgeTxt}>Church Account</Text>
+              <Text style={s.stepBadgeTxt}>{t('churchAccount')}</Text>
             </View>
-            <Text style={s.title}>Find Your Church</Text>
+            <Text style={s.title}>{t('findYourChurch')}</Text>
             <Text style={s.subtitle}>Search for your church to claim it. If it's not listed, we'll add it.</Text>
 
             <View style={s.searchBar}>
@@ -174,7 +176,7 @@ export default function ClaimChurchScreen() {
             </View>
 
             <TouchableOpacity style={s.searchBtn} onPress={handleSearch} activeOpacity={0.85}>
-              {searching ? <ActivityIndicator color={COLORS.white} /> : <Text style={s.searchBtnTxt}>Search</Text>}
+              {searching ? <ActivityIndicator color={COLORS.white} /> : <Text style={s.searchBtnTxt}>{t('search')}</Text>}
             </TouchableOpacity>
 
             {results.length > 0 && (
@@ -197,7 +199,7 @@ export default function ClaimChurchScreen() {
                     </View>
                     {church.local && (
                       <View style={s.listedBadge}>
-                        <Text style={s.listedBadgeTxt}>Listed</Text>
+                        <Text style={s.listedBadgeTxt}>{t('listed')}</Text>
                       </View>
                     )}
                     <Ionicons name="chevron-forward" size={16} color="#ddd" />
@@ -224,9 +226,9 @@ export default function ClaimChurchScreen() {
           <View style={s.body}>
             <View style={s.stepBadge}>
               <Ionicons name="home" size={14} color={COLORS.gold} />
-              <Text style={s.stepBadgeTxt}>Confirm Church</Text>
+              <Text style={s.stepBadgeTxt}>{t('confirmChurch')}</Text>
             </View>
-            <Text style={s.title}>Is this your church?</Text>
+            <Text style={s.title}>{t('isThisYourChurch')}</Text>
             <Text style={s.subtitle}>Please confirm this is the church you want to claim.</Text>
 
             <View style={s.previewCard}>
@@ -263,7 +265,7 @@ export default function ClaimChurchScreen() {
           <View style={s.body}>
             <View style={s.stepBadge}>
               <Ionicons name="shield-checkmark-outline" size={14} color={COLORS.gold} />
-              <Text style={s.stepBadgeTxt}>Verification</Text>
+              <Text style={s.stepBadgeTxt}>{t('verification')}</Text>
             </View>
             <Text style={s.title}>Verify Your Role</Text>
             <Text style={s.subtitle}>Help us confirm you represent <Text style={{fontWeight:'700',color:COLORS.navy}}>{selectedChurch?.name}</Text>. We review all claims within 3–5 business days.</Text>
@@ -299,7 +301,7 @@ export default function ClaimChurchScreen() {
               </View>
               <Text style={s.verifyHint}>Provide one of the following to verify your affiliation</Text>
               <View style={s.fieldWrap}>
-                <Text style={s.label}>Church Website</Text>
+                <Text style={s.label}>{t('churchWebsite')}</Text>
                 <View style={s.inputIconWrap}>
                   <Ionicons name="globe-outline" size={18} color="#bbb" style={s.inputIcon} />
                   <TextInput style={[s.input, s.inputWithIcon]} placeholder="www.yourchurch.org" placeholderTextColor={COLORS.placeholder} value={website} onChangeText={setWebsite} autoCapitalize="none" keyboardType="url" />
@@ -311,7 +313,7 @@ export default function ClaimChurchScreen() {
                 <View style={s.orLine} />
               </View>
               <View style={s.fieldWrap}>
-                <Text style={s.label}>Official Church Email</Text>
+                <Text style={s.label}>{t('officialChurchEmail')}</Text>
                 <View style={s.inputIconWrap}>
                   <Ionicons name="mail-outline" size={18} color="#bbb" style={s.inputIcon} />
                   <TextInput style={[s.input, s.inputWithIcon]} placeholder="pastor@yourchurch.org" placeholderTextColor={COLORS.placeholder} value={officialEmail} onChangeText={setOfficialEmail} keyboardType="email-address" autoCapitalize="none" />
@@ -324,7 +326,7 @@ export default function ClaimChurchScreen() {
             <View style={s.verifySection}>
               <View style={s.verifySectionHdr}>
                 <View style={s.stepNum}><Text style={s.stepNumTxt}>3</Text></View>
-                <Text style={s.verifySectionTitle}>Photo proof <Text style={s.optional}>(optional but recommended)</Text></Text>
+                <Text style={s.verifySectionTitle}>{t('photoProof')} <Text style={s.optional}>(optional but recommended)</Text></Text>
               </View>
               <Text style={s.verifyHint}>Upload a photo of your church sign, bulletin, or letterhead</Text>
               <TouchableOpacity style={s.uploadBtn}>
@@ -333,7 +335,7 @@ export default function ClaimChurchScreen() {
                 <Text style={s.uploadSub}>Church sign, bulletin, or letterhead</Text>
               </TouchableOpacity>
               <View style={s.fieldWrap}>
-                <Text style={s.label}>Additional notes <Text style={s.optional}>(optional)</Text></Text>
+                <Text style={s.label}>{t('additionalNotes')} <Text style={s.optional}>(optional)</Text></Text>
                 <TextInput
                   style={[s.input, {height:80, textAlignVertical:'top', paddingTop:12}]}
                   placeholder="Any additional information to help verify your claim..."
