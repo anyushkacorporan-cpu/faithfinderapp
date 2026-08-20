@@ -250,6 +250,29 @@ const translations: Record<string, Record<Lang, string>> = {
   deleteEventTitle: { English: 'Delete Event', Español: 'Eliminar Evento' },
   // {title} is replaced with the event title at runtime
   deleteEventMsg: { English: 'Delete "{title}"? This cannot be undone.', Español: '¿Eliminar "{title}"? Esto no se puede deshacer.' },
+
+  // Earnings screen
+  availableBalance: { English: 'Available Balance', Español: 'Saldo Disponible' },
+  totalNetRevenue: { English: 'Total Net Revenue', Español: 'Ingresos Netos Totales' },
+  ticketsSold: { English: 'Tickets Sold', Español: 'Boletos Vendidos' },
+  paidEvents: { English: 'Paid Events', Español: 'Eventos de Pago' },
+  attendees: { English: 'Attendees', Español: 'Asistentes' },
+  eventBreakdown: { English: 'Event Breakdown', Español: 'Desglose por Evento' },
+  noEarningsYet: { English: 'No earnings yet', Español: 'Aún no hay ganancias' },
+  createPaidEvent: { English: 'Create a paid event to start earning', Español: 'Crea un evento de pago para empezar a ganar' },
+  requestWithdrawal: { English: 'Request Withdrawal', Español: 'Solicitar Retiro' },
+  payoutAccount: { English: 'Payout Account', Español: 'Cuenta de Pagos' },
+  bankAccount: { English: 'Bank Account', Español: 'Cuenta Bancaria' },
+  addBankDetails: { English: 'Add your bank details to receive payouts', Español: 'Añade tus datos bancarios para recibir pagos' },
+  connectStripe: { English: 'Connect Stripe Account', Español: 'Conectar Cuenta de Stripe' },
+  forInstantPayouts: { English: 'For instant, secure payouts', Español: 'Para pagos instantáneos y seguros' },
+  recommended: { English: 'Recommended', Español: 'Recomendado' },
+  savePayoutAccount: { English: 'Save Payout Account', Español: 'Guardar Cuenta de Pagos' },
+  withdrawalHistory: { English: 'Withdrawal History', Español: 'Historial de Retiros' },
+
+  // Other user's profile
+  churchesShared: { English: 'Churches Shared', Español: 'Iglesias Compartidas' },
+  sharedToFaithGallery: { English: 'Shared to Faith Gallery', Español: 'Compartido en la Galería de Fe' },
 };
 
 export function useTranslation() {

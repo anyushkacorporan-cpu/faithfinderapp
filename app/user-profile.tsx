@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Header from '../src/components/Header';
 import { useThemeColors, ThemeColors } from '../src/lib/theme';
+import { useTranslation } from '../src/lib/i18n';
 import { usePosts, toggleLike } from '../src/lib/postsStore';
 import { useUser } from '../src/lib/userStore';
 import { useConnectionCount } from '../src/lib/connectionsStore';
@@ -13,6 +14,7 @@ import { PostCard } from '../src/components/PostCard';
 export default function OtherUserProfileScreen() {
   const c = useThemeColors();
   const s = makeStyles(c);
+  const { t } = useTranslation();
   const params = useLocalSearchParams<{
     id?: string; name?: string; initials?: string; color?: string;
     type?: string; city?: string; state?: string; photo?: string;
@@ -76,7 +78,7 @@ export default function OtherUserProfileScreen() {
         <View style={s.personalInfo}>
           <View style={{flexDirection:'row',alignItems:'center',gap:6}}>
             <Text style={s.name}>{displayName}</Text>
-            {isChurch && <View style={s.churchBadge}><Text style={s.churchBadgeTxt}>Church</Text></View>}
+            {isChurch && <View style={s.churchBadge}><Text style={s.churchBadgeTxt}>{t('church')}</Text></View>}
           </View>
 
           {!!(params.city && params.state) && (
@@ -105,7 +107,7 @@ export default function OtherUserProfileScreen() {
               <View style={s.sectionHdr}>
                 <View style={{flexDirection:'row',alignItems:'center'}}>
                   <Ionicons name="book-outline" size={16} color={c.gold} style={{marginRight:6}} />
-                  <Text style={s.sectionTitle}>Favorite Bible Verse</Text>
+                  <Text style={s.sectionTitle}>{t('favoriteVerse')}</Text>
                 </View>
               </View>
               {!!currentUser.lifeVerse && (
@@ -126,7 +128,7 @@ export default function OtherUserProfileScreen() {
               <View style={s.sectionHdr}>
                 <View style={{flexDirection:'row',alignItems:'center'}}>
                   <Ionicons name="images-outline" size={16} color={c.text} style={{marginRight:6}} />
-                  <Text style={s.sectionTitle}>Faith Gallery</Text>
+                  <Text style={s.sectionTitle}>{t('faithGallery')}</Text>
                 </View>
               </View>
               <View style={{flexDirection:'row',flexWrap:'wrap',gap:6}}>
@@ -158,7 +160,7 @@ export default function OtherUserProfileScreen() {
               <View style={s.sectionHdr}>
                 <View style={{flexDirection:'row',alignItems:'center'}}>
                   <Ionicons name="business-outline" size={16} color={c.text} style={{marginRight:6}} />
-                  <Text style={s.sectionTitle}>Churches Shared</Text>
+                  <Text style={s.sectionTitle}>{t('churchesShared')}</Text>
                 </View>
               </View>
               {churchesShared.map((church, i) => (
@@ -222,7 +224,7 @@ export default function OtherUserProfileScreen() {
                         </View>
                       </>
                     ) : (
-                      <Text style={{color:'rgba(255,255,255,0.5)',fontSize:12}}>Shared to Faith Gallery</Text>
+                      <Text style={{color:'rgba(255,255,255,0.5)',fontSize:12}}>{t('sharedToFaithGallery')}</Text>
                     )}
                   </View>
                 </View>
@@ -233,14 +235,14 @@ export default function OtherUserProfileScreen() {
 
         <View style={s.tabsRow}>
           <View style={[s.tab, s.tabActive]}>
-            <Text style={[s.tabTxt, s.tabTxtActive]}>Posts</Text>
+            <Text style={[s.tabTxt, s.tabTxtActive]}>{t('posts')}</Text>
           </View>
         </View>
 
         {userPosts.length === 0 ? (
           <View style={s.emptyState}>
             <Ionicons name="document-text-outline" size={40} color={c.placeholder} />
-            <Text style={s.emptyTxt}>No posts yet</Text>
+            <Text style={s.emptyTxt}>{t('noPostsYet')}</Text>
           </View>
         ) : (
           <View>

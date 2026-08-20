@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useThemeColors, ThemeColors } from '../src/lib/theme';
+import { useTranslation } from '../src/lib/i18n';
 import { useUserEvents, getEarnings } from '../src/lib/eventsStore';
 
 function formatCurrency(n: number): string {
@@ -19,6 +20,7 @@ const WITHDRAWAL_HISTORY = [
 export default function EarningsScreen() {
   const c = useThemeColors();
   const s = makeStyles(c);
+  const { t } = useTranslation();
   const events = useUserEvents();
   const earnings = getEarnings();
   const [activeTab, setActiveTab] = useState('Overview');
@@ -40,7 +42,7 @@ export default function EarningsScreen() {
         <TouchableOpacity style={s.backBtn} onPress={() => router.back()}>
           <Ionicons name="arrow-back" size={20} color={c.text} />
         </TouchableOpacity>
-        <Text style={s.hdrTitle}>Earnings</Text>
+        <Text style={s.hdrTitle}>{t('earnings')}</Text>
         <View style={{width:36}} />
       </View>
 
@@ -59,22 +61,22 @@ export default function EarningsScreen() {
           <>
             {/* Total earnings hero */}
             <LinearGradient colors={[c.navy, '#2d2240']} style={s.heroCard} start={{x:0,y:0}} end={{x:1,y:1}}>
-              <Text style={s.heroLabel}>Total Net Revenue</Text>
+              <Text style={s.heroLabel}>{t('totalNetRevenue')}</Text>
               <Text style={s.heroAmount}>${earnings.netRevenue.toFixed(2)}</Text>
               <View style={s.heroRow}>
                 <View style={s.heroStat}>
                   <Text style={s.heroStatVal}>{earnings.totalTickets}</Text>
-                  <Text style={s.heroStatLbl}>Tickets Sold</Text>
+                  <Text style={s.heroStatLbl}>{t('ticketsSold')}</Text>
                 </View>
                 <View style={s.heroStatDivider} />
                 <View style={s.heroStat}>
                   <Text style={s.heroStatVal}>{earnings.totalAttendees}</Text>
-                  <Text style={s.heroStatLbl}>Attendees</Text>
+                  <Text style={s.heroStatLbl}>{t('attendees')}</Text>
                 </View>
                 <View style={s.heroStatDivider} />
                 <View style={s.heroStat}>
                   <Text style={s.heroStatVal}>{paidEvents.length}</Text>
-                  <Text style={s.heroStatLbl}>Paid Events</Text>
+                  <Text style={s.heroStatLbl}>{t('paidEvents')}</Text>
                 </View>
               </View>
             </LinearGradient>
@@ -102,7 +104,7 @@ export default function EarningsScreen() {
             {/* Per-event breakdown */}
             {paidEvents.length > 0 && (
               <View style={s.section}>
-                <Text style={s.sectionTitle}>Event Breakdown</Text>
+                <Text style={s.sectionTitle}>{t('eventBreakdown')}</Text>
                 {paidEvents.map(e => (
                   <View key={e.id} style={s.eventRow}>
                     <View style={s.eventRowInfo}>
@@ -121,10 +123,10 @@ export default function EarningsScreen() {
             {events.length === 0 && (
               <View style={s.empty}>
                 <Ionicons name="cash-outline" size={48} color={c.placeholder} />
-                <Text style={s.emptyTxt}>No earnings yet</Text>
-                <Text style={s.emptySub}>Create a paid event to start earning</Text>
+                <Text style={s.emptyTxt}>{t('noEarningsYet')}</Text>
+                <Text style={s.emptySub}>{t('createPaidEvent')}</Text>
                 <TouchableOpacity style={s.createBtn} onPress={() => router.push('/create-event')}>
-                  <Text style={s.createBtnTxt}>Create Event</Text>
+                  <Text style={s.createBtnTxt}>{t('createEvent')}</Text>
                 </TouchableOpacity>
               </View>
             )}
@@ -134,15 +136,15 @@ export default function EarningsScreen() {
         {activeTab === 'Payouts' && (
           <>
             <View style={s.balanceCard}>
-              <Text style={s.balanceLbl}>Available Balance</Text>
+              <Text style={s.balanceLbl}>{t('availableBalance')}</Text>
               <Text style={s.balanceAmt}>${earnings.pendingPayout.toFixed(2)}</Text>
               <TouchableOpacity style={s.withdrawBtn} onPress={handleWithdraw}>
                 <Ionicons name="arrow-up-circle" size={18} color={c.onPrimary} />
-                <Text style={s.withdrawBtnTxt}>Request Withdrawal</Text>
+                <Text style={s.withdrawBtnTxt}>{t('requestWithdrawal')}</Text>
               </TouchableOpacity>
             </View>
 
-            <Text style={s.sectionTitle}>Withdrawal History</Text>
+            <Text style={s.sectionTitle}>{t('withdrawalHistory')}</Text>
             {WITHDRAWAL_HISTORY.map(w => (
               <View key={w.id} style={s.withdrawalRow}>
                 <View style={[s.withdrawalIcon, {backgroundColor: w.status === 'completed' ? '#e8f5e9' : '#fff3e0'}]}>
@@ -165,15 +167,15 @@ export default function EarningsScreen() {
 
         {activeTab === 'Settings' && (
           <>
-            <Text style={s.sectionTitle}>Payout Account</Text>
+            <Text style={s.sectionTitle}>{t('payoutAccount')}</Text>
             <View style={s.payoutCard}>
               <View style={s.payoutCardHdr}>
                 <View style={[s.payoutIcon, {backgroundColor:'#e8f5e9'}]}>
                   <Ionicons name="business-outline" size={22} color={c.green} />
                 </View>
                 <View>
-                  <Text style={s.payoutCardTitle}>Bank Account</Text>
-                  <Text style={s.payoutCardSub}>Add your bank details to receive payouts</Text>
+                  <Text style={s.payoutCardTitle}>{t('bankAccount')}</Text>
+                  <Text style={s.payoutCardSub}>{t('addBankDetails')}</Text>
                 </View>
               </View>
               {[
@@ -197,7 +199,7 @@ export default function EarningsScreen() {
                 </View>
               ))}
               <TouchableOpacity style={s.savePayoutBtn} onPress={() => Alert.alert("Not Connected Yet", "Payout account setup requires a connected banking integration, which is not live yet. This preview shows what payout settings will look like once that is connected.")}>
-                <Text style={s.savePayoutBtnTxt}>Save Payout Account</Text>
+                <Text style={s.savePayoutBtnTxt}>{t('savePayoutAccount')}</Text>
               </TouchableOpacity>
             </View>
 
@@ -205,15 +207,15 @@ export default function EarningsScreen() {
               <View style={s.stripeConnectHdr}>
                 <Ionicons name="card-outline" size={24} color={c.gold} />
                 <View style={{flex:1}}>
-                  <Text style={s.stripeConnectTitle}>Connect Stripe Account</Text>
-                  <Text style={s.stripeConnectSub}>For instant, secure payouts</Text>
+                  <Text style={s.stripeConnectTitle}>{t('connectStripe')}</Text>
+                  <Text style={s.stripeConnectSub}>{t('forInstantPayouts')}</Text>
                 </View>
-                <View style={s.stripeBadge}><Text style={s.stripeBadgeTxt}>Recommended</Text></View>
+                <View style={s.stripeBadge}><Text style={s.stripeBadgeTxt}>{t('recommended')}</Text></View>
               </View>
               <Text style={s.stripeConnectDesc}>Connect your Stripe account to receive automatic payouts within 2-3 business days after each event.</Text>
               <TouchableOpacity style={s.stripeConnectBtn} onPress={() => Alert.alert('Connect Stripe', 'You will be redirected to Stripe to connect your account.')}>
                 <Ionicons name="link-outline" size={16} color={c.onPrimary} />
-                <Text style={s.stripeConnectBtnTxt}>Connect Stripe Account</Text>
+                <Text style={s.stripeConnectBtnTxt}>{t('connectStripe')}</Text>
               </TouchableOpacity>
             </View>
           </>
