@@ -270,6 +270,29 @@ const translations: Record<string, Record<Lang, string>> = {
   savePayoutAccount: { English: 'Save Payout Account', Español: 'Guardar Cuenta de Pagos' },
   withdrawalHistory: { English: 'Withdrawal History', Español: 'Historial de Retiros' },
 
+  // Auth: login / forgot password
+  welcome: { English: 'Welcome', Español: 'Bienvenido' },
+  signInSubtitle: { English: 'Sign in to your FaithFinder account', Español: 'Inicia sesión en tu cuenta de FaithFinder' },
+  password: { English: 'Password', Español: 'Contraseña' },
+  enterYourPassword: { English: 'Enter your password', Español: 'Ingresa tu contraseña' },
+  forgotPassword: { English: 'Forgot password?', Español: '¿Olvidaste tu contraseña?' },
+  signIn: { English: 'Sign In', Español: 'Iniciar Sesión' },
+  createAnAccount: { English: 'Create an Account', Español: 'Crear una Cuenta' },
+  agreeSignIn: { English: 'By signing in you agree to our ', Español: 'Al iniciar sesión aceptas nuestra ' },
+  resetPassword: { English: 'Reset Password', Español: 'Restablecer Contraseña' },
+  resetPasswordSub: { English: 'Enter your email and we will send you a reset link.', Español: 'Ingresa tu correo y te enviaremos un enlace para restablecerla.' },
+  sendResetLink: { English: 'Send Reset Link', Español: 'Enviar Enlace' },
+  backToSignIn: { English: 'Back to Sign In', Español: 'Volver a Iniciar Sesión' },
+
+  // Auth: sign up
+  confirmPassword: { English: 'Confirm Password', Español: 'Confirmar Contraseña' },
+  reenter: { English: 'Re-enter', Español: 'Reingresar' },
+  eightPlusChars: { English: '8+ characters', Español: '8+ caracteres' },
+  individualBeliever: { English: 'Individual believer', Español: 'Creyente individual' },
+  ministryOrOrg: { English: 'Ministry or organization', Español: 'Ministerio u organización' },
+  alreadyHaveAccount: { English: 'Already have an account? ', Español: '¿Ya tienes una cuenta? ' },
+  agreeCreateAccount: { English: 'By creating an account, you agree to our ', Español: 'Al crear una cuenta, aceptas nuestros ' },
+
   // Other user's profile
   churchesShared: { English: 'Churches Shared', Español: 'Iglesias Compartidas' },
   sharedToFaithGallery: { English: 'Shared to Faith Gallery', Español: 'Compartido en la Galería de Fe' },

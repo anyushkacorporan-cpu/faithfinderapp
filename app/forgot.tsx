@@ -2,9 +2,11 @@ import { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert } from 'react-native';
 import { router } from 'expo-router';
 import { COLORS } from '../src/lib/constants';
+import { useTranslation } from '../src/lib/i18n';
 import { useToast } from '../src/components/Toast';
 
 export default function ForgotScreen() {
+  const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const { showToast } = useToast();
   function handleReset() {
@@ -15,20 +17,20 @@ export default function ForgotScreen() {
   return (
     <ScrollView contentContainerStyle={s.scroll}>
       <View style={s.logoWrap}>
-        <Text style={s.title}>Reset Password</Text>
-        <Text style={s.sub}>Enter your email and we will send you a reset link.</Text>
+        <Text style={s.title}>{t('resetPassword')}</Text>
+        <Text style={s.sub}>{t('resetPasswordSub')}</Text>
       </View>
       <View style={s.card}>
         <View style={s.fieldWrap}>
-          <Text style={s.label}>Email</Text>
+          <Text style={s.label}>{t('email')}</Text>
           <TextInput style={s.input} placeholder="you@example.com" placeholderTextColor={COLORS.placeholder} value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" />
         </View>
         <TouchableOpacity style={s.primaryBtn} onPress={handleReset} activeOpacity={0.85}>
-          <Text style={s.primaryBtnTxt}>Send Reset Link</Text>
+          <Text style={s.primaryBtnTxt}>{t('sendResetLink')}</Text>
         </TouchableOpacity>
         <View style={s.divider} />
         <TouchableOpacity style={s.backRow} onPress={() => router.back()}>
-          <Text style={s.goldLink}>Back to Sign In</Text>
+          <Text style={s.goldLink}>{t('backToSignIn')}</Text>
         </TouchableOpacity>
       </View>
     </ScrollView>

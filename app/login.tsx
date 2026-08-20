@@ -4,10 +4,12 @@ import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { COLORS } from '../src/lib/constants';
+import { useTranslation } from '../src/lib/i18n';
 import { setUser } from '../src/lib/userStore';
 import Logo from '../src/components/Logo';
 
 export default function LoginScreen() {
+  const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPw, setShowPw] = useState(false);
@@ -31,7 +33,7 @@ export default function LoginScreen() {
           <Text style={s.verse}>"For I know the plans I have for you," declares the Lord.</Text>
           <Text style={s.verseRef}>— Jeremiah 29:11</Text>
           <View style={s.card}>
-            <Text style={s.cardTitle}>Welcome</Text><Text style={s.cardSub}>Sign in to your FaithFinder account</Text>
+            <Text style={s.cardTitle}>{t('welcome')}</Text><Text style={s.cardSub}>{t('signInSubtitle')}</Text>
             {!!error && (
               <View style={s.errBox}>
                 <Ionicons name="alert-circle-outline" size={16} color="#dc2626" />
@@ -39,27 +41,27 @@ export default function LoginScreen() {
               </View>
             )}
             <View style={s.fieldWrap}>
-              <Text style={s.label}>Email</Text>
+              <Text style={s.label}>{t('email')}</Text>
               <View style={s.inputWrap}>
                 <Ionicons name="mail-outline" size={18} color="#bbb" style={s.inputIcon} />
                 <TextInput style={[s.input, s.inputWithIcon]} placeholder="you@example.com" placeholderTextColor={COLORS.placeholder} value={email} onChangeText={v => { setEmail(v); setError(''); }} keyboardType="email-address" autoCapitalize="none" autoCorrect={false} />
               </View>
             </View>
             <View style={s.fieldWrap}>
-              <Text style={s.label}>Password</Text>
+              <Text style={s.label}>{t('password')}</Text>
               <View style={s.inputWrap}>
                 <Ionicons name="lock-closed-outline" size={18} color="#bbb" style={s.inputIcon} />
-                <TextInput style={[s.input, s.inputWithIcon, {paddingRight:50}]} placeholder="Enter your password" placeholderTextColor={COLORS.placeholder} value={password} onChangeText={v => { setPassword(v); setError(''); }} secureTextEntry={!showPw} />
+                <TextInput style={[s.input, s.inputWithIcon, {paddingRight:50}]} placeholder={t('enterYourPassword')} placeholderTextColor={COLORS.placeholder} value={password} onChangeText={v => { setPassword(v); setError(''); }} secureTextEntry={!showPw} />
                 <TouchableOpacity style={s.eyeBtn} onPress={() => setShowPw(!showPw)}>
                   <Ionicons name={showPw ? 'eye-off-outline' : 'eye-outline'} size={20} color="#bbb" />
                 </TouchableOpacity>
               </View>
             </View>
             <TouchableOpacity style={s.forgotWrap} onPress={() => router.push('/forgot')}>
-              <Text style={s.forgotTxt}>Forgot password?</Text>
+              <Text style={s.forgotTxt}>{t('forgotPassword')}</Text>
             </TouchableOpacity>
             <TouchableOpacity style={s.signInBtn} onPress={handleLogin} activeOpacity={0.88}>
-              <Text style={s.signInTxt}>Sign In</Text>
+              <Text style={s.signInTxt}>{t('signIn')}</Text>
               <Ionicons name="arrow-forward" size={18} color={COLORS.white} />
             </TouchableOpacity>
             <View style={s.dividerRow}>
@@ -68,11 +70,11 @@ export default function LoginScreen() {
               <View style={s.dividerLine} />
             </View>
             <TouchableOpacity style={s.signUpBtn} onPress={() => router.push('/signup')} activeOpacity={0.88}>
-              <Text style={s.signUpTxt}>Create an Account</Text>
+              <Text style={s.signUpTxt}>{t('createAnAccount')}</Text>
             </TouchableOpacity>
             <View style={s.termsWrap}>
-              <Text style={s.termsTxt}>By signing in you agree to our </Text>
-              <TouchableOpacity onPress={() => router.push('/privacy' as any)}><Text style={s.termsLink}>Privacy Policy</Text></TouchableOpacity>
+              <Text style={s.termsTxt}>{t('agreeSignIn')}</Text>
+              <TouchableOpacity onPress={() => router.push('/privacy' as any)}><Text style={s.termsLink}>{t('privacyPolicy')}</Text></TouchableOpacity>
             </View>
           </View>
         </ScrollView>

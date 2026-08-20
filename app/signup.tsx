@@ -4,10 +4,12 @@ import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { COLORS } from '../src/lib/constants';
+import { useTranslation } from '../src/lib/i18n';
 import { setUser } from '../src/lib/userStore';
 import Logo from '../src/components/Logo';
 
 export default function SignupScreen() {
+  const { t } = useTranslation();
   const [accountType, setAccountType] = useState<'personal'|'church'>('personal');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -54,15 +56,15 @@ export default function SignupScreen() {
                 <View style={[s.typeIconWrap, accountType==='personal' && s.typeIconWrapActive]}>
                   <Ionicons name="person" size={22} color={accountType==='personal' ? COLORS.white : '#bbb'} />
                 </View>
-                <Text style={[s.typeLbl, accountType==='personal' && s.typeLblActive]}>Community</Text>
-                <Text style={[s.typeSub, accountType==='personal' && s.typeSubActive]}>Individual believer</Text>
+                <Text style={[s.typeLbl, accountType==='personal' && s.typeLblActive]}>{t('community')}</Text>
+                <Text style={[s.typeSub, accountType==='personal' && s.typeSubActive]}>{t('individualBeliever')}</Text>
               </TouchableOpacity>
               <TouchableOpacity style={[s.typeBtn, accountType==='church' && s.typeBtnActive]} onPress={() => setAccountType('church')} activeOpacity={0.85}>
                 <View style={[s.typeIconWrap, accountType==='church' && s.typeIconWrapActive]}>
                   <Ionicons name="home-outline" size={22} color={accountType==='church' ? COLORS.white : '#bbb'} />
                 </View>
-                <Text style={[s.typeLbl, accountType==='church' && s.typeLblActive]}>Church</Text>
-                <Text style={[s.typeSub, accountType==='church' && s.typeSubActive]}>Ministry or organization</Text>
+                <Text style={[s.typeLbl, accountType==='church' && s.typeLblActive]}>{t('church')}</Text>
+                <Text style={[s.typeSub, accountType==='church' && s.typeSubActive]}>{t('ministryOrOrg')}</Text>
               </TouchableOpacity>
             </View>
             {!!error && (
@@ -74,37 +76,37 @@ export default function SignupScreen() {
             {accountType === 'personal' ? (
               <View style={s.row}>
                 <View style={[s.fieldWrap, {flex:1, marginRight:10}]}>
-                  <Text style={s.label}>First Name</Text>
+                  <Text style={s.label}>{t('firstName')}</Text>
                   <TextInput style={s.input} placeholder="John" placeholderTextColor={COLORS.placeholder} value={firstName} onChangeText={setFirstName} />
                 </View>
                 <View style={[s.fieldWrap, {flex:1}]}>
-                  <Text style={s.label}>Last Name</Text>
+                  <Text style={s.label}>{t('lastName')}</Text>
                   <TextInput style={s.input} placeholder="Doe" placeholderTextColor={COLORS.placeholder} value={lastName} onChangeText={setLastName} />
                 </View>
               </View>
             ) : (
               <View style={s.fieldWrap}>
-                <Text style={s.label}>Church Name</Text>
+                <Text style={s.label}>{t('churchName')}</Text>
                 <TextInput style={s.input} placeholder="Grace Community Church" placeholderTextColor={COLORS.placeholder} value={churchName} onChangeText={setChurchName} />
               </View>
             )}
             <View style={s.fieldWrap}>
-              <Text style={s.label}>Email</Text>
+              <Text style={s.label}>{t('email')}</Text>
               <TextInput style={s.input} placeholder="you@example.com" placeholderTextColor={COLORS.placeholder} value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" autoCorrect={false} />
             </View>
             <View style={s.fieldWrap}>
-              <Text style={s.label}>Password</Text>
+              <Text style={s.label}>{t('password')}</Text>
               <View style={s.pwWrap}>
-                <TextInput style={[s.input, {paddingRight:50}]} placeholder="8+ characters" placeholderTextColor={COLORS.placeholder} value={password} onChangeText={setPassword} secureTextEntry={!showPw} />
+                <TextInput style={[s.input, {paddingRight:50}]} placeholder={t('eightPlusChars')} placeholderTextColor={COLORS.placeholder} value={password} onChangeText={setPassword} secureTextEntry={!showPw} />
                 <TouchableOpacity style={s.eyeBtn} onPress={() => setShowPw(!showPw)}>
                   <Ionicons name={showPw ? 'eye-off-outline' : 'eye-outline'} size={20} color="#bbb" />
                 </TouchableOpacity>
               </View>
             </View>
             <View style={s.fieldWrap}>
-              <Text style={s.label}>Confirm Password</Text>
+              <Text style={s.label}>{t('confirmPassword')}</Text>
               <View style={s.pwWrap}>
-                <TextInput style={[s.input, {paddingRight:50}]} placeholder="Re-enter" placeholderTextColor={COLORS.placeholder} value={confirm} onChangeText={setConfirm} secureTextEntry={!showConfirm} />
+                <TextInput style={[s.input, {paddingRight:50}]} placeholder={t('reenter')} placeholderTextColor={COLORS.placeholder} value={confirm} onChangeText={setConfirm} secureTextEntry={!showConfirm} />
                 <TouchableOpacity style={s.eyeBtn} onPress={() => setShowConfirm(!showConfirm)}>
                   <Ionicons name={showConfirm ? 'eye-off-outline' : 'eye-outline'} size={20} color="#bbb" />
                 </TouchableOpacity>
@@ -114,11 +116,11 @@ export default function SignupScreen() {
               <Text style={s.primaryBtnTxt}>{accountType === 'church' ? 'Continue to Claim Church' : 'Create Account'}</Text>
               {accountType === 'church' && <Ionicons name="arrow-forward" size={18} color={COLORS.white} />}
             </TouchableOpacity>
-            <Text style={s.terms}>By creating an account, you agree to our <Text style={s.termsLink}>Privacy Policy</Text> and <Text style={s.termsLink}>Terms of Service</Text></Text>
+            <Text style={s.terms}>{t('agreeCreateAccount')}<Text style={s.termsLink}>{t('privacyPolicy')}</Text> and <Text style={s.termsLink}>{t('termsOfService')}</Text></Text>
           </View>
           <View style={s.signinRow}>
-            <Text style={s.signinTxt}>Already have an account? </Text>
-            <TouchableOpacity onPress={() => router.back()}><Text style={s.signinLink}>Sign In</Text></TouchableOpacity>
+            <Text style={s.signinTxt}>{t('alreadyHaveAccount')}</Text>
+            <TouchableOpacity onPress={() => router.back()}><Text style={s.signinLink}>{t('signIn')}</Text></TouchableOpacity>
           </View>
           <View style={{height:20}} />
         </ScrollView>
