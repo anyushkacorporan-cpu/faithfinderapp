@@ -52,7 +52,7 @@ export default function AppearanceSettingsScreen() {
         </View>
 
         <TouchableOpacity style={s.saveBtn} onPress={() => router.back()}>
-          <Text style={s.saveBtnTxt}>Save Preferences</Text>
+          <Text style={s.saveBtnTxt}>{t('savePreferences')}</Text>
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>

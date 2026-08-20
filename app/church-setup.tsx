@@ -69,7 +69,7 @@ export default function ChurchSetupScreen() {
               </View>
               <View style={s.optionInfo}>
                 <Text style={s.optionTitleNavy}>{t('registerNewChurch')}</Text>
-                <Text style={s.optionDescNavy}>Your church isn't on FaithFinder yet. Add it to our directory.</Text>
+                <Text style={s.optionDescNavy}>{t('churchNotListedYet')}</Text>
                 <View style={s.optionTagNavy}>
                   <Ionicons name="star" size={13} color={COLORS.gold} />
                   <Text style={s.optionTagNavyTxt}>{t('getListedVerified')}</Text>

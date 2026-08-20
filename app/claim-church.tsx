@@ -92,8 +92,8 @@ export default function ClaimChurchScreen() {
           <LinearGradient colors={[COLORS.navy, '#2d2240']} style={s.submittedIcon} start={{x:0,y:0}} end={{x:1,y:1}}>
             <Ionicons name="checkmark-circle" size={48} color={COLORS.gold} />
           </LinearGradient>
-          <Text style={s.submittedTitle}>Verification Submitted!</Text>
-          <Text style={s.submittedSub}>Thank you for claiming <Text style={{fontWeight:'700',color:COLORS.navy}}>{selectedChurch?.name}</Text>. FaithFinder will review your submission within 3–5 business days.</Text>
+          <Text style={s.submittedTitle}>{t('verificationSubmitted')}</Text>
+          <Text style={s.submittedSub}>{t('thankYouClaiming')}<Text style={{fontWeight:'700',color:COLORS.navy}}>{selectedChurch?.name}</Text>. FaithFinder will review your submission within 3–5 business days.</Text>
           <View style={s.submittedCard}>
             <View style={s.submittedRow}>
               <Ionicons name="time-outline" size={20} color={COLORS.gold} />
@@ -106,8 +106,8 @@ export default function ClaimChurchScreen() {
             <View style={s.submittedRow}>
               <Ionicons name="notifications-outline" size={20} color={COLORS.gold} />
               <View style={s.submittedInfo}>
-                <Text style={s.submittedRowTitle}>You'll be notified</Text>
-                <Text style={s.submittedRowSub}>Via email and app notification</Text>
+                <Text style={s.submittedRowTitle}>{t('youllBeNotified')}</Text>
+                <Text style={s.submittedRowSub}>{t('viaEmailAndApp')}</Text>
               </View>
             </View>
             <View style={s.submittedDivider} />
@@ -115,7 +115,7 @@ export default function ClaimChurchScreen() {
               <Ionicons name="shield-checkmark-outline" size={20} color={COLORS.gold} />
               <View style={s.submittedInfo}>
                 <Text style={s.submittedRowTitle}>{t('afterApproval')}</Text>
-                <Text style={s.submittedRowSub}>Full church profile unlocked with verified badge</Text>
+                <Text style={s.submittedRowSub}>{t('fullProfileUnlocked')}</Text>
               </View>
             </View>
           </View>
@@ -155,7 +155,7 @@ export default function ClaimChurchScreen() {
               <Text style={s.stepBadgeTxt}>{t('churchAccount')}</Text>
             </View>
             <Text style={s.title}>{t('findYourChurch')}</Text>
-            <Text style={s.subtitle}>Search for your church to claim it. If it's not listed, we'll add it.</Text>
+            <Text style={s.subtitle}>{t('searchForYourChurch')}</Text>
 
             <View style={s.searchBar}>
               <Ionicons name="search-outline" size={18} color={COLORS.gold} />
@@ -229,7 +229,7 @@ export default function ClaimChurchScreen() {
               <Text style={s.stepBadgeTxt}>{t('confirmChurch')}</Text>
             </View>
             <Text style={s.title}>{t('isThisYourChurch')}</Text>
-            <Text style={s.subtitle}>Please confirm this is the church you want to claim.</Text>
+            <Text style={s.subtitle}>{t('confirmClaimChurch')}</Text>
 
             <View style={s.previewCard}>
               <LinearGradient colors={[COLORS.navy, '#2d2240']} style={s.previewBanner} start={{x:0,y:0}} end={{x:1,y:1}}>
@@ -251,11 +251,11 @@ export default function ClaimChurchScreen() {
             </View>
 
             <TouchableOpacity style={s.primaryBtn} onPress={() => setStep('verify')}>
-              <Text style={s.primaryBtnTxt}>Yes, Claim This Church</Text>
+              <Text style={s.primaryBtnTxt}>{t('yesClaimChurch')}</Text>
               <Ionicons name="arrow-forward" size={18} color={COLORS.white} />
             </TouchableOpacity>
             <TouchableOpacity style={s.secondaryBtn} onPress={() => setStep('search')}>
-              <Text style={s.secondaryBtnTxt}>Search Again</Text>
+              <Text style={s.secondaryBtnTxt}>{t('searchAgain')}</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -267,14 +267,14 @@ export default function ClaimChurchScreen() {
               <Ionicons name="shield-checkmark-outline" size={14} color={COLORS.gold} />
               <Text style={s.stepBadgeTxt}>{t('verification')}</Text>
             </View>
-            <Text style={s.title}>Verify Your Role</Text>
-            <Text style={s.subtitle}>Help us confirm you represent <Text style={{fontWeight:'700',color:COLORS.navy}}>{selectedChurch?.name}</Text>. We review all claims within 3–5 business days.</Text>
+            <Text style={s.title}>{t('verifyYourRole')}</Text>
+            <Text style={s.subtitle}>{t('helpUsConfirm')}<Text style={{fontWeight:'700',color:COLORS.navy}}>{selectedChurch?.name}</Text>. We review all claims within 3–5 business days.</Text>
 
             {/* Step 1: Role */}
             <View style={s.verifySection}>
               <View style={s.verifySectionHdr}>
                 <View style={s.stepNum}><Text style={s.stepNumTxt}>1</Text></View>
-                <Text style={s.verifySectionTitle}>Your role at the church</Text>
+                <Text style={s.verifySectionTitle}>{t('yourRoleAtChurch')}</Text>
               </View>
               <TouchableOpacity style={[s.picker, showRoles && s.pickerOpen, errors.role && s.pickerErr]} onPress={() => setShowRoles(!showRoles)}>
                 <Text style={[s.pickerTxt, !role && s.pickerPlaceholder]}>{role || 'Select your role'}</Text>
@@ -297,9 +297,9 @@ export default function ClaimChurchScreen() {
             <View style={s.verifySection}>
               <View style={s.verifySectionHdr}>
                 <View style={s.stepNum}><Text style={s.stepNumTxt}>2</Text></View>
-                <Text style={s.verifySectionTitle}>Church website or official email</Text>
+                <Text style={s.verifySectionTitle}>{t('churchWebsiteOrEmail')}</Text>
               </View>
-              <Text style={s.verifyHint}>Provide one of the following to verify your affiliation</Text>
+              <Text style={s.verifyHint}>{t('provideOneOfFollowing')}</Text>
               <View style={s.fieldWrap}>
                 <Text style={s.label}>{t('churchWebsite')}</Text>
                 <View style={s.inputIconWrap}>
@@ -328,11 +328,11 @@ export default function ClaimChurchScreen() {
                 <View style={s.stepNum}><Text style={s.stepNumTxt}>3</Text></View>
                 <Text style={s.verifySectionTitle}>{t('photoProof')} <Text style={s.optional}>(optional but recommended)</Text></Text>
               </View>
-              <Text style={s.verifyHint}>Upload a photo of your church sign, bulletin, or letterhead</Text>
+              <Text style={s.verifyHint}>{t('uploadPhotoOfSign')}</Text>
               <TouchableOpacity style={s.uploadBtn}>
                 <Ionicons name="camera-outline" size={24} color={COLORS.navy} />
-                <Text style={s.uploadTxt}>Upload Photo</Text>
-                <Text style={s.uploadSub}>Church sign, bulletin, or letterhead</Text>
+                <Text style={s.uploadTxt}>{t('uploadPhoto')}</Text>
+                <Text style={s.uploadSub}>{t('churchSignBulletin')}</Text>
               </TouchableOpacity>
               <View style={s.fieldWrap}>
                 <Text style={s.label}>{t('additionalNotes')} <Text style={s.optional}>(optional)</Text></Text>
@@ -357,7 +357,7 @@ export default function ClaimChurchScreen() {
               {submitting
                 ? <ActivityIndicator color={COLORS.white} />
                 : <>
-                    <Text style={s.primaryBtnTxt}>Submit for Verification</Text>
+                    <Text style={s.primaryBtnTxt}>{t('submitForVerification')}</Text>
                     <Ionicons name="shield-checkmark-outline" size={18} color={COLORS.white} />
                   </>
               }

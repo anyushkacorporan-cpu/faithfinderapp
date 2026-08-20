@@ -348,7 +348,7 @@ export default function ProfileScreen() {
               <View style={s.divider} />
               <View style={s.section}>
                 <View style={s.sectionHdr}>
-                  <Text style={s.sectionTitle}>Ministries & Amenities</Text>
+                  <Text style={s.sectionTitle}>{t('ministriesAmenities')}</Text>
                 </View>
                 <View style={s.chipsWrap}>
                   {(user.ministries || []).map((name: string) => (
@@ -570,7 +570,7 @@ export default function ProfileScreen() {
             <View style={s.emptyState}>
               <Ionicons name="book-outline" size={40} color={c.placeholder} />
               <Text style={s.emptyTxt}>{t('nothingSharedYet')}</Text>
-              <Text style={s.emptySub}>Scriptures, testimonies, and reflections you share will appear here</Text>
+              <Text style={s.emptySub}>{t('scripturesTestimonies')}</Text>
             </View>
           ) : (
             <View>

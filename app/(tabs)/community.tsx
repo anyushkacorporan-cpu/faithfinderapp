@@ -149,10 +149,10 @@ export default function CommunityScreen() {
         {posts.length === 0 && activeTab === 'foryou' && (
           <View style={s.emptyFeed}>
             <Ionicons name="people-outline" size={48} color={c.placeholder} />
-            <Text style={s.emptyTitle}>Your feed is quiet</Text>
-            <Text style={s.emptySub}>Connect with churches and believers to see their posts here</Text>
+            <Text style={s.emptyTitle}>{t('yourFeedQuiet')}</Text>
+            <Text style={s.emptySub}>{t('connectWithChurches')}</Text>
             <TouchableOpacity style={s.emptyBtn} onPress={() => setActiveTab('discover')}>
-              <Text style={s.emptyBtnTxt}>Browse Discover</Text>
+              <Text style={s.emptyBtnTxt}>{t('browseDiscover')}</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -175,9 +175,9 @@ export default function CommunityScreen() {
         <SafeAreaView style={{ flex:1, backgroundColor: c.bg }} edges={['top']}>
           <View style={s.modalHdr}>
             <TouchableOpacity onPress={() => { setShowCreate(false); setNewPostText(''); setNewPostImage(null); setDetectedUrl(null); setLinkPreviewData(null); setDetectedUrl(null); setLinkPreviewData(null); }}>
-              <Text style={s.cancelTxt}>Cancel</Text>
+              <Text style={s.cancelTxt}>{t('cancel')}</Text>
             </TouchableOpacity>
-            <Text style={s.modalTitle}>New Post</Text>
+            <Text style={s.modalTitle}>{t('newPost')}</Text>
             <TouchableOpacity style={[s.postBtn, (!newPostText.trim()||isPosting)&&{opacity:0.4}]} onPress={handleCreatePost} disabled={!newPostText.trim()||isPosting}>
               <Text style={s.postBtnTxt}>{t('post')}</Text>
             </TouchableOpacity>
@@ -253,7 +253,7 @@ export default function CommunityScreen() {
               {loadingPreview && (
                 <View style={{flexDirection:'row',alignItems:'center',gap:8,marginHorizontal:16,marginBottom:14}}>
                   <ActivityIndicator size="small" color={c.gold}/>
-                  <Text style={{fontSize:12,color:c.textMuted}}>Fetching link preview...</Text>
+                  <Text style={{fontSize:12,color:c.textMuted}}>{t('fetchingPreview')}</Text>
                 </View>
               )}
 
@@ -296,7 +296,7 @@ export default function CommunityScreen() {
                   setEditingPost(menuPost); setEditText(menuPost.repostComment || menuPost.content); setMenuPost(null);
                 }}>
                   <Ionicons name="create-outline" size={22} color={c.text}/>
-                  <Text style={{fontSize:15,fontWeight:'600',color:c.text}}>Edit Post</Text>
+                  <Text style={{fontSize:15,fontWeight:'600',color:c.text}}>{t('editPost')}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={{flexDirection:'row',alignItems:'center',gap:14,paddingHorizontal:20,paddingVertical:16}} onPress={() => {
                   const target = menuPost;
@@ -311,7 +311,7 @@ export default function CommunityScreen() {
                   });
                 }}>
                   <Ionicons name="trash-outline" size={22} color={c.red}/>
-                  <Text style={{fontSize:15,fontWeight:'600',color:c.red}}>Delete Post</Text>
+                  <Text style={{fontSize:15,fontWeight:'600',color:c.red}}>{t('deletePost')}</Text>
                 </TouchableOpacity>
               </>
             ) : (
@@ -319,11 +319,11 @@ export default function CommunityScreen() {
                 setReportPostTarget(menuPost); setMenuPost(null);
               }}>
                 <Ionicons name="flag-outline" size={22} color={c.red}/>
-                <Text style={{fontSize:15,fontWeight:'600',color:c.red}}>Report Post</Text>
+                <Text style={{fontSize:15,fontWeight:'600',color:c.red}}>{t('reportPost')}</Text>
               </TouchableOpacity>
             )}
             <TouchableOpacity style={{flexDirection:'row',alignItems:'center',justifyContent:'center',paddingVertical:16,marginTop:4}} onPress={() => setMenuPost(null)}>
-              <Text style={{fontSize:15,fontWeight:'600',color:c.textMuted}}>Cancel</Text>
+              <Text style={{fontSize:15,fontWeight:'600',color:c.textMuted}}>{t('cancel')}</Text>
             </TouchableOpacity>
           </View>
         </TouchableOpacity>
@@ -334,8 +334,8 @@ export default function CommunityScreen() {
         <TouchableOpacity style={{flex:1,backgroundColor:c.overlay,justifyContent:'flex-end'}} activeOpacity={1} onPress={() => setReportPostTarget(null)}>
           <View style={{backgroundColor:c.card,borderTopLeftRadius:24,borderTopRightRadius:24,paddingTop:8,paddingBottom:32}}>
             <View style={{width:36,height:4,borderRadius:2,backgroundColor:c.border,alignSelf:'center',marginVertical:10}}/>
-            <Text style={{fontSize:17,fontWeight:'700',color:c.text,textAlign:'center',marginBottom:4}}>Report Post</Text>
-            <Text style={{fontSize:13,color:c.textMuted,textAlign:'center',marginBottom:14,paddingHorizontal:24}}>Why are you reporting this post?</Text>
+            <Text style={{fontSize:17,fontWeight:'700',color:c.text,textAlign:'center',marginBottom:4}}>{t('reportPost')}</Text>
+            <Text style={{fontSize:13,color:c.textMuted,textAlign:'center',marginBottom:14,paddingHorizontal:24}}>{t('whyReporting')}</Text>
             {[
               {id:'spam', label:'Spam'},
               {id:'harassment', label:'Harassment or bullying'},
@@ -354,7 +354,7 @@ export default function CommunityScreen() {
               </TouchableOpacity>
             ))}
             <TouchableOpacity style={{flexDirection:'row',alignItems:'center',justifyContent:'center',paddingVertical:16,marginTop:4}} onPress={() => setReportPostTarget(null)}>
-              <Text style={{fontSize:15,fontWeight:'600',color:c.textMuted}}>Cancel</Text>
+              <Text style={{fontSize:15,fontWeight:'600',color:c.textMuted}}>{t('cancel')}</Text>
             </TouchableOpacity>
           </View>
         </TouchableOpacity>
@@ -364,8 +364,8 @@ export default function CommunityScreen() {
       <Modal visible={!!editingPost} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setEditingPost(null)}>
         <SafeAreaView style={{flex:1,backgroundColor:c.bg}} edges={['top']}>
           <View style={s.modalHdr}>
-            <TouchableOpacity onPress={() => setEditingPost(null)}><Text style={s.cancelTxt}>Cancel</Text></TouchableOpacity>
-            <Text style={s.modalTitle}>Edit Post</Text>
+            <TouchableOpacity onPress={() => setEditingPost(null)}><Text style={s.cancelTxt}>{t('cancel')}</Text></TouchableOpacity>
+            <Text style={s.modalTitle}>{t('editPost')}</Text>
             <TouchableOpacity style={s.postBtn} onPress={() => {
               if (editingPost) {
                 if (editingPost.repostOf) {
@@ -395,15 +395,15 @@ export default function CommunityScreen() {
         <TouchableOpacity style={{flex:1,backgroundColor:c.overlay,justifyContent:'flex-end'}} activeOpacity={1} onPress={() => setRepostTarget(null)}>
           <View style={{backgroundColor:c.card,borderTopLeftRadius:24,borderTopRightRadius:24,paddingTop:8,paddingBottom:32}}>
             <View style={{width:36,height:4,borderRadius:2,backgroundColor:c.border,alignSelf:'center',marginVertical:10}}/>
-            <Text style={{fontSize:16,fontWeight:'700',color:c.text,textAlign:'center',marginBottom:16}}>Share Post</Text>
+            <Text style={{fontSize:16,fontWeight:'700',color:c.text,textAlign:'center',marginBottom:16}}>{t('sharePost')}</Text>
 
             <TouchableOpacity style={{flexDirection:'row',alignItems:'center',gap:14,paddingHorizontal:20,paddingVertical:14}} onPress={() => setShowRepostCompose(true)}>
               <View style={{width:44,height:44,borderRadius:14,backgroundColor:'rgba(102,126,234,0.16)',alignItems:'center',justifyContent:'center'}}>
                 <Ionicons name="repeat" size={22} color="#667eea"/>
               </View>
               <View style={{flex:1}}>
-                <Text style={{fontSize:15,fontWeight:'700',color:c.text}}>Repost</Text>
-                <Text style={{fontSize:12,color:c.textMuted,marginTop:1}}>Share to your FaithFinder feed</Text>
+                <Text style={{fontSize:15,fontWeight:'700',color:c.text}}>{t('repost')}</Text>
+                <Text style={{fontSize:12,color:c.textMuted,marginTop:1}}>{t('shareToFeed')}</Text>
               </View>
               <Ionicons name="chevron-forward" size={18} color={c.placeholder}/>
             </TouchableOpacity>
@@ -417,14 +417,14 @@ export default function CommunityScreen() {
                 <Ionicons name="arrow-redo-outline" size={22} color={c.text}/>
               </View>
               <View style={{flex:1}}>
-                <Text style={{fontSize:15,fontWeight:'700',color:c.text}}>Share</Text>
-                <Text style={{fontSize:12,color:c.textMuted,marginTop:1}}>Send via Messages, Mail & more</Text>
+                <Text style={{fontSize:15,fontWeight:'700',color:c.text}}>{t('share')}</Text>
+                <Text style={{fontSize:12,color:c.textMuted,marginTop:1}}>{t('sendVia')}</Text>
               </View>
               <Ionicons name="chevron-forward" size={18} color={c.placeholder}/>
             </TouchableOpacity>
 
             <TouchableOpacity style={{paddingVertical:16,marginTop:6,alignItems:'center'}} onPress={() => setRepostTarget(null)}>
-              <Text style={{fontSize:15,fontWeight:'600',color:c.textMuted}}>Cancel</Text>
+              <Text style={{fontSize:15,fontWeight:'600',color:c.textMuted}}>{t('cancel')}</Text>
             </TouchableOpacity>
           </View>
         </TouchableOpacity>
@@ -434,8 +434,8 @@ export default function CommunityScreen() {
       <Modal visible={!!repostTarget && showRepostCompose} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => { setShowRepostCompose(false); setRepostTarget(null); }}>
         <SafeAreaView style={{flex:1,backgroundColor:c.bg}} edges={['top']}>
           <View style={s.modalHdr}>
-            <TouchableOpacity onPress={() => { setShowRepostCompose(false); setRepostTarget(null); }}><Text style={s.cancelTxt}>Cancel</Text></TouchableOpacity>
-            <Text style={s.modalTitle}>Repost</Text>
+            <TouchableOpacity onPress={() => { setShowRepostCompose(false); setRepostTarget(null); }}><Text style={s.cancelTxt}>{t('cancel')}</Text></TouchableOpacity>
+            <Text style={s.modalTitle}>{t('repost')}</Text>
             <TouchableOpacity style={s.postBtn} onPress={() => {
               if (repostTarget) {
                 repostPost(repostTarget, {
@@ -447,7 +447,7 @@ export default function CommunityScreen() {
               setShowRepostCompose(false);
               setRepostTarget(null);
             }}>
-              <Text style={s.postBtnTxt}>Repost</Text>
+              <Text style={s.postBtnTxt}>{t('repost')}</Text>
             </TouchableOpacity>
           </View>
           <View style={s.composeAuthor}>
@@ -513,14 +513,14 @@ export default function CommunityScreen() {
         <SafeAreaView style={{flex:1,backgroundColor:c.bg}} edges={['top']}>
           <View style={s.modalHdr}>
             <TouchableOpacity onPress={() => { setSharePost(null); setShareMessage(''); }}>
-              <Text style={s.cancelTxt}>Cancel</Text>
+              <Text style={s.cancelTxt}>{t('cancel')}</Text>
             </TouchableOpacity>
-            <Text style={s.modalTitle}>Share Post</Text>
+            <Text style={s.modalTitle}>{t('sharePost')}</Text>
             <TouchableOpacity style={s.postBtn} onPress={() => {
               addPost({authorName:displayName,authorInitials:initials,authorType:user.accountType==='church'?'church':'personal',authorColor:'#667eea',content:shareMessage.trim(),time:'now',feed:'both'});
               setSharePost(null); setShareMessage('');
             }}>
-              <Text style={s.postBtnTxt}>Share</Text>
+              <Text style={s.postBtnTxt}>{t('share')}</Text>
             </TouchableOpacity>
           </View>
           <KeyboardAvoidingView style={{flex:1}} behavior={Platform.OS==='ios'?'padding':undefined}>

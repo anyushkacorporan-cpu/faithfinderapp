@@ -250,7 +250,7 @@ export default function EventCheckoutScreen() {
                   <View style={s.testCardBox}>
                     <Text style={s.testCardTitle}>🧪 Test Mode</Text>
                     <Text style={s.testCardNum}>4242 4242 4242 4242</Text>
-                    <Text style={s.testCardSub}>Any future date · Any CVV · Any ZIP</Text>
+                    <Text style={s.testCardSub}>{t('anyFutureDate')}</Text>
                   </View>
                 </View>
               )}
@@ -266,7 +266,7 @@ export default function EventCheckoutScreen() {
 
               {paymentMethod === 'paypal' && (
                 <View style={s.paypalNote}>
-                  <Text style={s.paypalNoteTxt}>Proceed below with your PayPal account to complete your purchase.</Text>
+                  <Text style={s.paypalNoteTxt}>{t('paypalProceed')}</Text>
                 </View>
               )}
             </View>

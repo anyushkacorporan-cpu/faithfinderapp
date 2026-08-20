@@ -329,9 +329,9 @@ export default function ChurchesScreen() {
         <View style={s.sheet}>
           <View style={s.handle} />
           <View style={s.sheetHdr}>
-            <Text style={s.sheetTitle}>Filter Churches</Text>
+            <Text style={s.sheetTitle}>{t('filterChurches')}</Text>
             <TouchableOpacity onPress={resetFilters}>
-              <Text style={s.resetTxt}>Reset All</Text>
+              <Text style={s.resetTxt}>{t('resetAll')}</Text>
             </TouchableOpacity>
           </View>
 
@@ -371,7 +371,7 @@ export default function ChurchesScreen() {
           )}
 
           <TouchableOpacity style={s.applyBtn} onPress={applyFilters}>
-            <Text style={s.applyTxt}>Apply Filters</Text>
+            <Text style={s.applyTxt}>{t('applyFilters')}</Text>
           </TouchableOpacity>
         </View>
       </Modal>

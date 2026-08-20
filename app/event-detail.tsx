@@ -208,7 +208,7 @@ export default function EventDetailScreen() {
             <View style={s.infoRow}>
               <View style={s.infoIconWrap}><Ionicons name="calendar-outline" size={18} color={c.text} /></View>
               <View style={s.infoContent}>
-                <Text style={s.infoLabel}>Date & Time</Text>
+                <Text style={s.infoLabel}>{t('dateAndTime')}</Text>
                 <Text style={s.infoValue}>{(fullEvent?.date || params.date)}</Text>
               </View>
             </View>
@@ -236,7 +236,7 @@ export default function EventDetailScreen() {
           {/* Speakers */}
           {details.speakers.length > 0 && (
             <View style={s.section}>
-              <Text style={s.sectionTitle}>Speakers & Guests</Text>
+              <Text style={s.sectionTitle}>{t('speakersAndGuests')}</Text>
               <View style={s.speakersWrap}>
                 {details.speakers.map((sp: any, i: number) => (
                   <View key={i} style={s.speakerCard}>

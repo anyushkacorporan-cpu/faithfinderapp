@@ -104,8 +104,8 @@ export default function CommentsScreen() {
           {post.comments.length === 0 && (
             <View style={s.emptyState}>
               <Ionicons name="chatbubble-ellipses-outline" size={40} color={c.placeholder} />
-              <Text style={s.emptyTitle}>No comments yet</Text>
-              <Text style={s.emptySubtitle}>Be the first to share your thoughts</Text>
+              <Text style={s.emptyTitle}>{t('noCommentsYet')}</Text>
+              <Text style={s.emptySubtitle}>{t('beFirstToShare')}</Text>
             </View>
           )}
 

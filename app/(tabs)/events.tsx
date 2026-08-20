@@ -217,7 +217,7 @@ export default function EventsScreen() {
             </TouchableOpacity>
           ))}
           <TouchableOpacity style={s.clearAllPill} onPress={() => setActiveFilters([])}>
-            <Text style={s.clearAllTxt}>Clear all</Text>
+            <Text style={s.clearAllTxt}>{t('clearAll')}</Text>
           </TouchableOpacity>
         </ScrollView>
       )}
@@ -245,7 +245,7 @@ export default function EventsScreen() {
                 <View style={{width:28,height:28,borderRadius:14,backgroundColor:c.lightGreen,alignItems:'center',justifyContent:'center'}}>
                   <Ionicons name="location" size={14} color={c.green} />
                 </View>
-                <Text style={{fontSize:15,fontWeight:'700',color:c.text}}>Nearby Events</Text>
+                <Text style={{fontSize:15,fontWeight:'700',color:c.text}}>{t('nearbyEventsTitle')}</Text>
               </View>
               <Text style={{fontSize:12,color:c.textMuted}}>{nearbyEvents.length} found</Text>
             </View>
@@ -310,7 +310,7 @@ export default function EventsScreen() {
             <View style={{width:24,height:24,borderRadius:8,backgroundColor:'rgba(201,169,110,0.18)',alignItems:'center',justifyContent:'center'}}>
               <Ionicons name="calendar" size={14} color={c.gold} />
             </View>
-            <Text style={{fontSize:16,fontWeight:'700',color:c.text}}>All Events</Text>
+            <Text style={{fontSize:16,fontWeight:'700',color:c.text}}>{t('allEvents')}</Text>
           </View>
           <Text style={{fontSize:12,color:c.textMuted,fontWeight:'600'}}>{filtered.length} found</Text>
         </View>
@@ -425,9 +425,9 @@ export default function EventsScreen() {
           {/* Header */}
           <View style={s.shareHdr}>
             <TouchableOpacity style={s.shareCancelBtn} onPress={() => { setShareEvent(null); setShareMessage(''); }}>
-              <Text style={s.shareCancelTxt}>Cancel</Text>
+              <Text style={s.shareCancelTxt}>{t('cancel')}</Text>
             </TouchableOpacity>
-            <Text style={s.shareHdrTitle}>New Post</Text>
+            <Text style={s.shareHdrTitle}>{t('newPost')}</Text>
             <TouchableOpacity
               style={s.sharePostBtn}
               onPress={() => {
@@ -467,7 +467,7 @@ export default function EventsScreen() {
                 setTimeout(() => setSharedToast(false), 3000);
               }}
             >
-              <Text style={s.sharePostBtnTxt}>Share</Text>
+              <Text style={s.sharePostBtnTxt}>{t('share')}</Text>
             </TouchableOpacity>
           </View>
 
@@ -532,7 +532,7 @@ export default function EventsScreen() {
                   <View style={{width:54,height:54,borderRadius:16,backgroundColor:'#e8f8f0',alignItems:'center',justifyContent:'center'}}>
                     <Ionicons name="chatbubble-outline" size={22} color="#2ecc71"/>
                   </View>
-                  <Text style={{fontSize:12,color:c.text,fontWeight:'600'}}>Messages</Text>
+                  <Text style={{fontSize:12,color:c.text,fontWeight:'600'}}>{t('messages')}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={{alignItems:'center',gap:8}} onPress={() => {
                   const ev = shareEvent;
@@ -543,7 +543,7 @@ export default function EventsScreen() {
                   <View style={{width:54,height:54,borderRadius:16,backgroundColor:'#eaf4fb',alignItems:'center',justifyContent:'center'}}>
                     <Ionicons name="mail-outline" size={22} color="#3498db"/>
                   </View>
-                  <Text style={{fontSize:12,color:c.text,fontWeight:'600'}}>Email</Text>
+                  <Text style={{fontSize:12,color:c.text,fontWeight:'600'}}>{t('email')}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={{alignItems:'center',gap:8}} onPress={() => {
                   const ev = shareEvent;
@@ -556,7 +556,7 @@ export default function EventsScreen() {
                   <View style={{width:54,height:54,borderRadius:16,backgroundColor:'#f5eefb',alignItems:'center',justifyContent:'center'}}>
                     <Ionicons name="share-social-outline" size={22} color="#9b59b6"/>
                   </View>
-                  <Text style={{fontSize:12,color:c.text,fontWeight:'600'}}>More Options</Text>
+                  <Text style={{fontSize:12,color:c.text,fontWeight:'600'}}>{t('moreOptions')}</Text>
                 </TouchableOpacity>
               </View>
             </ScrollView>
@@ -570,7 +570,7 @@ export default function EventsScreen() {
           <View style={{width:44,height:44,borderRadius:22,backgroundColor:c.lightGreen,alignItems:'center',justifyContent:'center'}}>
             <Ionicons name="checkmark-circle" size={28} color={c.green} />
           </View>
-          <Text style={{flex:1,fontSize:15,fontWeight:'700',color:c.text}}>Shared to Community</Text>
+          <Text style={{flex:1,fontSize:15,fontWeight:'700',color:c.text}}>{t('sharedToCommunity')}</Text>
           <TouchableOpacity onPress={() => setSharedToast(false)}>
             <Ionicons name="close" size={18} color={c.textMuted} />
           </TouchableOpacity>
@@ -581,7 +581,7 @@ export default function EventsScreen() {
       <Modal visible={showFilter} animationType="slide" presentationStyle="pageSheet">
         <SafeAreaView style={s.filterRoot} edges={['top']}>
           <View style={s.filterHdr}>
-            <Text style={s.filterTitle}>Filter Events</Text>
+            <Text style={s.filterTitle}>{t('filterEvents')}</Text>
             <TouchableOpacity style={s.filterCloseBtn} onPress={() => setShowFilter(false)}>
               <Ionicons name="close" size={20} color={c.text} />
             </TouchableOpacity>
@@ -607,7 +607,7 @@ export default function EventsScreen() {
           </ScrollView>
           <View style={s.filterFooter}>
             <TouchableOpacity style={s.filterClearBtn} onPress={() => setActiveFilters([])}>
-              <Text style={s.filterClearTxt}>Clear All</Text>
+              <Text style={s.filterClearTxt}>{t('clearAllCaps')}</Text>
             </TouchableOpacity>
             <TouchableOpacity style={s.filterApplyBtn} onPress={() => setShowFilter(false)}>
               <Text style={s.filterApplyTxt}>Show {filtered.length} Events</Text>
@@ -621,9 +621,9 @@ export default function EventsScreen() {
         <SafeAreaView style={{flex:1,backgroundColor:c.bg}} edges={['top']}>
           <View style={{flexDirection:'row',alignItems:'center',justifyContent:'space-between',paddingHorizontal:16,paddingVertical:14,borderBottomWidth:1,borderBottomColor:c.border}}>
 
-            <Text style={{fontSize:16,fontWeight:'700',color:c.text}}>Filter by State</Text>
+            <Text style={{fontSize:16,fontWeight:'700',color:c.text}}>{t('filterByState')}</Text>
             <TouchableOpacity onPress={() => { setFilterState(''); setFilterCity(''); setShowStateFilter(false); }}>
-              <Text style={{fontSize:15,color:c.gold,fontWeight:'600'}}>Clear</Text>
+              <Text style={{fontSize:15,color:c.gold,fontWeight:'600'}}>{t('clear')}</Text>
             </TouchableOpacity>
           </View>
           <View style={{paddingHorizontal:16,paddingVertical:12}}>
@@ -653,7 +653,7 @@ export default function EventsScreen() {
               style={{backgroundColor:c.primary,borderRadius:14,paddingVertical:14,alignItems:'center'}}
               onPress={() => setShowStateFilter(false)}
             >
-              <Text style={{color:c.onPrimary,fontSize:15,fontWeight:'700'}}>Apply Filter</Text>
+              <Text style={{color:c.onPrimary,fontSize:15,fontWeight:'700'}}>{t('applyFilter')}</Text>
             </TouchableOpacity>
           </View>
         </SafeAreaView>

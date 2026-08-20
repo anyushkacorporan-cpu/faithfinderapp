@@ -166,7 +166,7 @@ export default function EditChurchProfileScreen() {
             </TouchableOpacity>
             <View style={{flex:1}}>
               <Text style={s.label}>{t('profilePhoto')}</Text>
-              <Text style={{fontSize:12,color:c.textMuted}}>Tap to change your church's profile photo</Text>
+              <Text style={{fontSize:12,color:c.textMuted}}>{t('tapToChangeChurchPhoto')}</Text>
             </View>
           </View>
 
@@ -374,7 +374,7 @@ export default function EditChurchProfileScreen() {
           </View>
 
           <TouchableOpacity style={s.saveFullBtn} onPress={handleSave}>
-            <Text style={s.saveFullBtnTxt}>Save Changes</Text>
+            <Text style={s.saveFullBtnTxt}>{t('saveChanges')}</Text>
           </TouchableOpacity>
 
           <View style={{height:40}} />
