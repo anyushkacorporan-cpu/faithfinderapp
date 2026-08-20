@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from '../src/lib/i18n';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, KeyboardAvoidingView, Platform, Alert } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -7,6 +8,7 @@ import { useThemeColors, ThemeColors } from '../src/lib/theme';
 import { getEvents, updateEvent } from '../src/lib/eventsStore';
 
 export default function EditEventScreen() {
+  const { t } = useTranslation();
   const c = useThemeColors();
   const s = makeStyles(c);
   const params = useLocalSearchParams<{ id?: string }>();
@@ -26,12 +28,12 @@ export default function EditEventScreen() {
           <TouchableOpacity style={s.backBtn} onPress={() => router.back()}>
             <Ionicons name="arrow-back" size={20} color={c.text} />
           </TouchableOpacity>
-          <Text style={s.hdrTitle}>Edit Event</Text>
+          <Text style={s.hdrTitle}>{t('editEvent')}</Text>
           <View style={{width:36}} />
         </View>
         <View style={s.notFound}>
           <Ionicons name="alert-circle-outline" size={40} color={c.placeholder} />
-          <Text style={s.notFoundTxt}>Event not found</Text>
+          <Text style={s.notFoundTxt}>{t('eventNotFound')}</Text>
         </View>
       </SafeAreaView>
     );
@@ -67,44 +69,44 @@ export default function EditEventScreen() {
         <TouchableOpacity style={s.backBtn} onPress={() => router.back()}>
           <Ionicons name="arrow-back" size={20} color={c.text} />
         </TouchableOpacity>
-        <Text style={s.hdrTitle}>Edit Event</Text>
+        <Text style={s.hdrTitle}>{t('editEvent')}</Text>
         <TouchableOpacity onPress={handleSave}>
-          <Text style={s.saveTxt}>Save</Text>
+          <Text style={s.saveTxt}>{t('save')}</Text>
         </TouchableOpacity>
       </View>
       <KeyboardAvoidingView style={{flex:1}} behavior={Platform.OS==='ios'?'padding':undefined}>
         <ScrollView contentContainerStyle={s.scroll} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
           <View style={s.fieldWrap}>
-            <Text style={s.label}>Title</Text>
+            <Text style={s.label}>{t('title')}</Text>
             <TextInput style={s.input} value={title} onChangeText={setTitle} placeholder="Event title" placeholderTextColor={c.placeholder} />
           </View>
 
           <View style={s.row}>
             <View style={[s.fieldWrap, {flex:1, marginRight:8}]}>
-              <Text style={s.label}>Date</Text>
+              <Text style={s.label}>{t('dateLabel')}</Text>
               <TextInput style={s.input} value={date} onChangeText={setDate} placeholder="e.g. Jan 15, 2026" placeholderTextColor={c.placeholder} />
             </View>
             <View style={[s.fieldWrap, {flex:1}]}>
-              <Text style={s.label}>Time</Text>
+              <Text style={s.label}>{t('timeLabel')}</Text>
               <TextInput style={s.input} value={time} onChangeText={setTime} placeholder="e.g. 3:00 PM" placeholderTextColor={c.placeholder} />
             </View>
           </View>
 
           <View style={s.fieldWrap}>
-            <Text style={s.label}>Description</Text>
+            <Text style={s.label}>{t('description')}</Text>
             <TextInput style={[s.input, s.multiline]} value={description} onChangeText={setDescription} placeholder="Tell people about your event..." placeholderTextColor={c.placeholder} multiline />
           </View>
 
           <View style={s.fieldWrap}>
-            <Text style={s.label}>Ticket Type</Text>
+            <Text style={s.label}>{t('ticketType')}</Text>
             <View style={s.ticketRow}>
               <TouchableOpacity style={[s.ticketBtn, !isPaid && s.ticketBtnActive]} onPress={() => setIsPaid(false)}>
                 <Ionicons name="gift-outline" size={18} color={!isPaid ? c.white : c.textMuted} />
-                <Text style={[s.ticketBtnTxt, !isPaid && s.ticketBtnTxtActive]}>Free</Text>
+                <Text style={[s.ticketBtnTxt, !isPaid && s.ticketBtnTxtActive]}>{t('free')}</Text>
               </TouchableOpacity>
               <TouchableOpacity style={[s.ticketBtn, isPaid && s.ticketBtnActive]} onPress={() => setIsPaid(true)}>
                 <Ionicons name="cash-outline" size={18} color={isPaid ? c.white : c.textMuted} />
-                <Text style={[s.ticketBtnTxt, isPaid && s.ticketBtnTxtActive]}>Paid</Text>
+                <Text style={[s.ticketBtnTxt, isPaid && s.ticketBtnTxtActive]}>{t('paid')}</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -119,7 +121,7 @@ export default function EditEventScreen() {
           <Text style={s.note}>Note: this quick-edit updates the core event details. Venue, speakers, and agenda aren't editable here yet.</Text>
 
           <TouchableOpacity style={s.saveFullBtn} onPress={handleSave}>
-            <Text style={s.saveFullBtnTxt}>Save Changes</Text>
+            <Text style={s.saveFullBtnTxt}>{t('saveChanges')}</Text>
           </TouchableOpacity>
           <View style={{height:40}} />
         </ScrollView>

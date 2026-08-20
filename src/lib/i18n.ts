@@ -293,6 +293,24 @@ const translations: Record<string, Record<Lang, string>> = {
   alreadyHaveAccount: { English: 'Already have an account? ', Español: '¿Ya tienes una cuenta? ' },
   agreeCreateAccount: { English: 'By creating an account, you agree to our ', Español: 'Al crear una cuenta, aceptas nuestros ' },
 
+  // Sign-up detail screens
+  personalAccount: { English: 'Personal Account', Español: 'Cuenta Personal' },
+  churchAccount: { English: 'Church Account', Español: 'Cuenta de Iglesia' },
+  emailAddress: { English: 'Email Address', Español: 'Correo Electrónico' },
+  passwordsMatch: { English: 'Passwords match', Español: 'Las contraseñas coinciden' },
+  denomination: { English: 'Denomination', Español: 'Denominación' },
+  churchAddress: { English: 'Church Address', Español: 'Dirección de la Iglesia' },
+  churchEmail: { English: 'Church Email', Español: 'Correo de la Iglesia' },
+  phoneNumber: { English: 'Phone Number', Español: 'Número de Teléfono' },
+
+  // Edit event
+  editEvent: { English: 'Edit Event', Español: 'Editar Evento' },
+  eventNotFound: { English: 'Event not found', Español: 'Evento no encontrado' },
+  title: { English: 'Title', Español: 'Título' },
+  description: { English: 'Description', Español: 'Descripción' },
+  ticketType: { English: 'Ticket Type', Español: 'Tipo de Boleto' },
+  paid: { English: 'Paid', Español: 'De Pago' },
+
   // Other user's profile
   churchesShared: { English: 'Churches Shared', Español: 'Iglesias Compartidas' },
   sharedToFaithGallery: { English: 'Shared to Faith Gallery', Español: 'Compartido en la Galería de Fe' },

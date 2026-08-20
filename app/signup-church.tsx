@@ -4,11 +4,13 @@ import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { COLORS } from '../src/lib/constants';
+import { useTranslation } from '../src/lib/i18n';
 import { setUser } from '../src/lib/userStore';
 
 const DENOMINATIONS = ['Non-Denominational','Catholic','Baptist','Methodist','Lutheran','Presbyterian','Episcopal','Pentecostal','Assemblies of God','Evangelical','Reformed','AME','Other'];
 
 export default function SignupChurchScreen() {
+  const { t } = useTranslation();
   const [step, setStep] = useState(1);
   const [churchName, setChurchName] = useState('');
   const [email, setEmail] = useState('');
@@ -81,7 +83,7 @@ export default function SignupChurchScreen() {
           <View style={s.stepHdr}>
             <View style={s.stepBadge}>
               <Ionicons name="home" size={14} color={COLORS.navy} />
-              <Text style={s.stepBadgeTxt}>Church Account</Text>
+              <Text style={s.stepBadgeTxt}>{t('churchAccount')}</Text>
             </View>
             <Text style={s.stepTitle}>
               {step === 1 ? 'Church Details' : step === 2 ? 'Secure your account' : 'Church Information'}
@@ -95,7 +97,7 @@ export default function SignupChurchScreen() {
           {step === 1 && (
             <View style={s.form}>
               <View style={s.fieldWrap}>
-                <Text style={s.label}>Church Name</Text>
+                <Text style={s.label}>{t('churchName')}</Text>
                 <View style={s.inputIconWrap}>
                   <Ionicons name="home-outline" size={18} color="#bbb" style={s.inputIcon} />
                   <TextInput style={[s.input, s.inputWithIcon, errors.churchName && s.inputErr]} placeholder="Grace Community Church" placeholderTextColor={COLORS.placeholder} value={churchName} onChangeText={v => { setChurchName(v); setErrors(e => ({...e, churchName:''})); }} />
@@ -103,7 +105,7 @@ export default function SignupChurchScreen() {
                 {!!errors.churchName && <Text style={s.errTxt}>{errors.churchName}</Text>}
               </View>
               <View style={s.fieldWrap}>
-                <Text style={s.label}>Church Email</Text>
+                <Text style={s.label}>{t('churchEmail')}</Text>
                 <View style={s.inputIconWrap}>
                   <Ionicons name="mail-outline" size={18} color="#bbb" style={s.inputIcon} />
                   <TextInput style={[s.input, s.inputWithIcon, errors.email && s.inputErr]} placeholder="info@yourdomain.com" placeholderTextColor={COLORS.placeholder} value={email} onChangeText={v => { setEmail(v); setErrors(e => ({...e, email:''})); }} keyboardType="email-address" autoCapitalize="none" />
@@ -111,7 +113,7 @@ export default function SignupChurchScreen() {
                 {!!errors.email && <Text style={s.errTxt}>{errors.email}</Text>}
               </View>
               <View style={s.fieldWrap}>
-                <Text style={s.label}>Denomination <Text style={s.optional}>(optional)</Text></Text>
+                <Text style={s.label}>{t('denomination')} <Text style={s.optional}>(optional)</Text></Text>
                 <TouchableOpacity style={[s.picker, showDenom && s.pickerOpen]} onPress={() => setShowDenom(!showDenom)}>
                   <Text style={[s.pickerTxt, !denomination && s.pickerPlaceholder]}>{denomination || 'Select denomination'}</Text>
                   <Ionicons name={showDenom ? 'chevron-up' : 'chevron-down'} size={18} color="#bbb" />
@@ -134,7 +136,7 @@ export default function SignupChurchScreen() {
           {step === 2 && (
             <View style={s.form}>
               <View style={s.fieldWrap}>
-                <Text style={s.label}>Password</Text>
+                <Text style={s.label}>{t('password')}</Text>
                 <View style={s.pwWrap}>
                   <TextInput style={[s.input, {paddingRight:48}, errors.password && s.inputErr]} placeholder="Min. 8 characters" placeholderTextColor={COLORS.placeholder} value={password} onChangeText={v => { setPassword(v); setErrors(e => ({...e, password:''})); }} secureTextEntry={!showPw} />
                   <TouchableOpacity style={s.eyeBtn} onPress={() => setShowPw(!showPw)}>
@@ -152,7 +154,7 @@ export default function SignupChurchScreen() {
                 </View>
               </View>
               <View style={s.fieldWrap}>
-                <Text style={s.label}>Confirm Password</Text>
+                <Text style={s.label}>{t('confirmPassword')}</Text>
                 <View style={s.pwWrap}>
                   <TextInput style={[s.input, {paddingRight:48}, errors.confirm && s.inputErr]} placeholder="Re-enter password" placeholderTextColor={COLORS.placeholder} value={confirm} onChangeText={v => { setConfirm(v); setErrors(e => ({...e, confirm:''})); }} secureTextEntry={!showConfirm} />
                   <TouchableOpacity style={s.eyeBtn} onPress={() => setShowConfirm(!showConfirm)}>
@@ -163,7 +165,7 @@ export default function SignupChurchScreen() {
                 {confirm.length > 0 && password === confirm && (
                   <View style={s.matchRow}>
                     <Ionicons name="checkmark-circle" size={14} color={COLORS.green} />
-                    <Text style={s.matchTxt}>Passwords match</Text>
+                    <Text style={s.matchTxt}>{t('passwordsMatch')}</Text>
                   </View>
                 )}
               </View>
@@ -174,28 +176,28 @@ export default function SignupChurchScreen() {
           {step === 3 && (
             <View style={s.form}>
               <View style={s.fieldWrap}>
-                <Text style={s.label}>Church Address <Text style={s.optional}>(optional)</Text></Text>
+                <Text style={s.label}>{t('churchAddress')} <Text style={s.optional}>(optional)</Text></Text>
                 <View style={s.inputIconWrap}>
                   <Ionicons name="location-outline" size={18} color="#bbb" style={s.inputIcon} />
                   <TextInput style={[s.input, s.inputWithIcon]} placeholder="123 Faith St, Glen Cove, NY" placeholderTextColor={COLORS.placeholder} value={address} onChangeText={setAddress} />
                 </View>
               </View>
               <View style={s.fieldWrap}>
-                <Text style={s.label}>Phone Number <Text style={s.optional}>(optional)</Text></Text>
+                <Text style={s.label}>{t('phoneNumber')} <Text style={s.optional}>(optional)</Text></Text>
                 <View style={s.inputIconWrap}>
                   <Ionicons name="call-outline" size={18} color="#bbb" style={s.inputIcon} />
                   <TextInput style={[s.input, s.inputWithIcon]} placeholder="(516) 000-0000" placeholderTextColor={COLORS.placeholder} value={phone} onChangeText={setPhone} keyboardType="phone-pad" />
                 </View>
               </View>
               <View style={s.fieldWrap}>
-                <Text style={s.label}>Service Times <Text style={s.optional}>(optional)</Text></Text>
+                <Text style={s.label}>{t('serviceTimes')} <Text style={s.optional}>(optional)</Text></Text>
                 <View style={s.inputIconWrap}>
                   <Ionicons name="time-outline" size={18} color="#bbb" style={s.inputIcon} />
                   <TextInput style={[s.input, s.inputWithIcon]} placeholder="Sunday 9AM & 11AM" placeholderTextColor={COLORS.placeholder} value={serviceTimes} onChangeText={setServiceTimes} />
                 </View>
               </View>
               <View style={s.fieldWrap}>
-                <Text style={s.label}>Website <Text style={s.optional}>(optional)</Text></Text>
+                <Text style={s.label}>{t('website')} <Text style={s.optional}>(optional)</Text></Text>
                 <View style={s.inputIconWrap}>
                   <Ionicons name="globe-outline" size={18} color="#bbb" style={s.inputIcon} />
                   <TextInput style={[s.input, s.inputWithIcon]} placeholder="www.yourchurch.org" placeholderTextColor={COLORS.placeholder} value={website} onChangeText={setWebsite} autoCapitalize="none" keyboardType="url" />
@@ -212,8 +214,8 @@ export default function SignupChurchScreen() {
 
           {step === 1 && (
             <View style={s.signinRow}>
-              <Text style={s.signinTxt}>Already have an account? </Text>
-              <TouchableOpacity onPress={() => router.replace('/login')}><Text style={s.signinLink}>Sign In</Text></TouchableOpacity>
+              <Text style={s.signinTxt}>{t('alreadyHaveAccount')}</Text>
+              <TouchableOpacity onPress={() => router.replace('/login')}><Text style={s.signinLink}>{t('signIn')}</Text></TouchableOpacity>
             </View>
           )}
 

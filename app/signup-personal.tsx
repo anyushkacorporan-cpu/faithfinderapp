@@ -4,11 +4,13 @@ import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { COLORS } from '../src/lib/constants';
+import { useTranslation } from '../src/lib/i18n';
 import { setUser } from '../src/lib/userStore';
 
 const DENOMINATIONS = ['Non-Denominational','Catholic','Baptist','Methodist','Lutheran','Presbyterian','Episcopal','Pentecostal','Assemblies of God','Evangelical','Reformed','AME','Other'];
 
 export default function SignupPersonalScreen() {
+  const { t } = useTranslation();
   const [step, setStep] = useState(1);
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -79,7 +81,7 @@ export default function SignupPersonalScreen() {
           <View style={s.stepHdr}>
             <View style={s.stepBadge}>
               <Ionicons name="person" size={14} color={COLORS.gold} />
-              <Text style={s.stepBadgeTxt}>Personal Account</Text>
+              <Text style={s.stepBadgeTxt}>{t('personalAccount')}</Text>
             </View>
             <Text style={s.stepTitle}>
               {step === 1 ? 'Your Details' : step === 2 ? 'Secure your account' : 'Almost done!'}
@@ -94,18 +96,18 @@ export default function SignupPersonalScreen() {
             <View style={s.form}>
               <View style={s.row}>
                 <View style={[s.fieldWrap, {flex:1, marginRight:8}]}>
-                  <Text style={s.label}>First Name</Text>
+                  <Text style={s.label}>{t('firstName')}</Text>
                   <TextInput style={[s.input, errors.firstName && s.inputErr]} placeholder="Annie" placeholderTextColor={COLORS.placeholder} value={firstName} onChangeText={v => { setFirstName(v); setErrors(e => ({...e, firstName:''})); }} />
                   {!!errors.firstName && <Text style={s.errTxt}>{errors.firstName}</Text>}
                 </View>
                 <View style={[s.fieldWrap, {flex:1}]}>
-                  <Text style={s.label}>Last Name</Text>
+                  <Text style={s.label}>{t('lastName')}</Text>
                   <TextInput style={[s.input, errors.lastName && s.inputErr]} placeholder="Johnson" placeholderTextColor={COLORS.placeholder} value={lastName} onChangeText={v => { setLastName(v); setErrors(e => ({...e, lastName:''})); }} />
                   {!!errors.lastName && <Text style={s.errTxt}>{errors.lastName}</Text>}
                 </View>
               </View>
               <View style={s.fieldWrap}>
-                <Text style={s.label}>Email Address</Text>
+                <Text style={s.label}>{t('emailAddress')}</Text>
                 <TextInput style={[s.input, errors.email && s.inputErr]} placeholder="you@example.com" placeholderTextColor={COLORS.placeholder} value={email} onChangeText={v => { setEmail(v); setErrors(e => ({...e, email:''})); }} keyboardType="email-address" autoCapitalize="none" />
                 {!!errors.email && <Text style={s.errTxt}>{errors.email}</Text>}
               </View>
@@ -116,7 +118,7 @@ export default function SignupPersonalScreen() {
           {step === 2 && (
             <View style={s.form}>
               <View style={s.fieldWrap}>
-                <Text style={s.label}>Password</Text>
+                <Text style={s.label}>{t('password')}</Text>
                 <View style={s.pwWrap}>
                   <TextInput style={[s.input, {paddingRight:48}, errors.password && s.inputErr]} placeholder="Min. 8 characters" placeholderTextColor={COLORS.placeholder} value={password} onChangeText={v => { setPassword(v); setErrors(e => ({...e, password:''})); }} secureTextEntry={!showPw} />
                   <TouchableOpacity style={s.eyeBtn} onPress={() => setShowPw(!showPw)}>
@@ -135,7 +137,7 @@ export default function SignupPersonalScreen() {
                 </View>
               </View>
               <View style={s.fieldWrap}>
-                <Text style={s.label}>Confirm Password</Text>
+                <Text style={s.label}>{t('confirmPassword')}</Text>
                 <View style={s.pwWrap}>
                   <TextInput style={[s.input, {paddingRight:48}, errors.confirm && s.inputErr]} placeholder="Re-enter password" placeholderTextColor={COLORS.placeholder} value={confirm} onChangeText={v => { setConfirm(v); setErrors(e => ({...e, confirm:''})); }} secureTextEntry={!showConfirm} />
                   <TouchableOpacity style={s.eyeBtn} onPress={() => setShowConfirm(!showConfirm)}>
@@ -146,7 +148,7 @@ export default function SignupPersonalScreen() {
                 {confirm.length > 0 && password === confirm && (
                   <View style={s.matchRow}>
                     <Ionicons name="checkmark-circle" size={14} color={COLORS.green} />
-                    <Text style={s.matchTxt}>Passwords match</Text>
+                    <Text style={s.matchTxt}>{t('passwordsMatch')}</Text>
                   </View>
                 )}
               </View>
@@ -157,14 +159,14 @@ export default function SignupPersonalScreen() {
           {step === 3 && (
             <View style={s.form}>
               <View style={s.fieldWrap}>
-                <Text style={s.label}>City, State <Text style={s.optional}>(optional)</Text></Text>
+                <Text style={s.label}>{t('cityState')} <Text style={s.optional}>(optional)</Text></Text>
                 <View style={s.inputIconWrap}>
                   <Ionicons name="location-outline" size={18} color="#bbb" style={s.inputIcon} />
                   <TextInput style={[s.input, s.inputWithIcon]} placeholder="Glen Cove, NY" placeholderTextColor={COLORS.placeholder} value={location} onChangeText={setLocation} />
                 </View>
               </View>
               <View style={s.fieldWrap}>
-                <Text style={s.label}>Denomination <Text style={s.optional}>(optional)</Text></Text>
+                <Text style={s.label}>{t('denomination')} <Text style={s.optional}>(optional)</Text></Text>
                 <TouchableOpacity style={s.picker} onPress={() => setShowDenom(!showDenom)}>
                   <Text style={[s.pickerTxt, !denomination && s.pickerPlaceholder]}>{denomination || 'Select denomination'}</Text>
                   <Ionicons name={showDenom ? 'chevron-up' : 'chevron-down'} size={18} color="#bbb" />
@@ -191,8 +193,8 @@ export default function SignupPersonalScreen() {
 
           {step === 1 && (
             <View style={s.signinRow}>
-              <Text style={s.signinTxt}>Already have an account? </Text>
-              <TouchableOpacity onPress={() => router.replace('/login')}><Text style={s.signinLink}>Sign In</Text></TouchableOpacity>
+              <Text style={s.signinTxt}>{t('alreadyHaveAccount')}</Text>
+              <TouchableOpacity onPress={() => router.replace('/login')}><Text style={s.signinLink}>{t('signIn')}</Text></TouchableOpacity>
             </View>
           )}
 
