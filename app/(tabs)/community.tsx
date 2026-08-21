@@ -19,6 +19,7 @@ import { useTranslation } from '../../src/lib/i18n';
 import { PostCard } from '../../src/components/PostCard';
 import { usePosts, addPost, toggleLike, Post, editPost, deletePost, reportPost, repostPost } from '../../src/lib/postsStore';
 import { getUser } from '../../src/lib/userStore';
+import { buildPostShareText } from '../../src/lib/shareLinks';
 import { useConnections, isConnected } from '../../src/lib/connectionsStore';
 
 type Visibility = 'public' | 'connections';
@@ -409,7 +410,7 @@ export default function CommunityScreen() {
             </TouchableOpacity>
 
             <TouchableOpacity style={{flexDirection:'row',alignItems:'center',gap:14,paddingHorizontal:20,paddingVertical:14}} onPress={() => {
-              const m = repostTarget?.repostOf?.content || repostTarget?.content || '';
+              const m = buildPostShareText(repostTarget);
               setRepostTarget(null);
               setTimeout(() => Share.share({message:m,title: tx('Check this out on FaithFinder')}).catch(()=>{}), 350);
             }}>
@@ -551,9 +552,9 @@ export default function CommunityScreen() {
               </View>
               <View style={{flexDirection:'row',justifyContent:'space-around',paddingHorizontal:20}}>
                 {[
-                  {label:'Messages',icon:'chatbubble-outline',color:'#2ecc71',bg:'#e8f8f0',fn:()=>{const m=sharePost?.content||'';require('react-native').Linking.openURL('sms:&body='+encodeURIComponent(m)).catch(()=>{});}},
-                  {label:'Email',icon:'mail-outline',color:'#3498db',bg:'#eaf4fb',fn:()=>{const m=sharePost?.content||'';require('react-native').Linking.openURL('mailto:?subject=Check this out&body='+encodeURIComponent(m)).catch(()=>{});}},
-                  {label:'More',icon:'share-social-outline',color:'#9b59b6',bg:'#f5eefb',fn:()=>{const p=sharePost;setSharePost(null);setTimeout(()=>Share.share({message:p?.content||'',title: tx('Check this out on FaithFinder')}).catch(()=>{}),800);}},
+                  {label:'Messages',icon:'chatbubble-outline',color:'#2ecc71',bg:'#e8f8f0',fn:()=>{const m=buildPostShareText(sharePost);require('react-native').Linking.openURL('sms:&body='+encodeURIComponent(m)).catch(()=>{});}},
+                  {label:'Email',icon:'mail-outline',color:'#3498db',bg:'#eaf4fb',fn:()=>{const m=buildPostShareText(sharePost);require('react-native').Linking.openURL('mailto:?subject=Check this out&body='+encodeURIComponent(m)).catch(()=>{});}},
+                  {label:'More',icon:'share-social-outline',color:'#9b59b6',bg:'#f5eefb',fn:()=>{const p=sharePost;setSharePost(null);setTimeout(()=>Share.share({message:buildPostShareText(p),title: tx('Check this out on FaithFinder')}).catch(()=>{}),800);}},
                 ].map(o=>(
                   <TouchableOpacity key={o.label} style={{alignItems:'center',gap:8}} onPress={o.fn}>
                     <View style={{width:54,height:54,borderRadius:16,backgroundColor:o.bg,alignItems:'center',justifyContent:'center'}}>

@@ -172,7 +172,7 @@ export function PostCard({post,showLocation,onLike,onComment,onShare,onOpenProfi
           {!!post.repostOf.eventShareData && (
             <TouchableOpacity
               style={{backgroundColor:c.card,marginTop:8,borderRadius:16,overflow:'hidden',borderWidth:1,borderColor:c.border}}
-              onPress={()=>router.push({pathname:'/event-detail' as any,params:{id:post.repostOf.eventShareData!.id}})}
+              onPress={()=>router.push({pathname:'/event-detail' as any,params:{id:post.repostOf?.eventShareData!.id}})}
               activeOpacity={0.92}
             >
               {post.repostOf.eventShareData.bannerImage ? (
@@ -204,7 +204,7 @@ export function PostCard({post,showLocation,onLike,onComment,onShare,onOpenProfi
           {!!post.repostOf.churchShareData && (
             <TouchableOpacity
               style={{backgroundColor:c.card,marginTop:8,borderRadius:16,overflow:'hidden',borderWidth:1,borderColor:c.border}}
-              onPress={()=>router.push({pathname:'/church-detail' as any,params:{placeId: post.repostOf.churchShareData!.placeId || post.repostOf.churchShareData!.id}})}
+              onPress={()=>router.push({pathname:'/church-detail' as any,params:{placeId: post.repostOf?.churchShareData!.placeId || post.repostOf?.churchShareData!.id}})}
               activeOpacity={0.92}
             >
               {post.repostOf.churchShareData.photo ? (

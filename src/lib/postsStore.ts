@@ -91,6 +91,10 @@ export type Post = {
     image?: string;
     time: string;
     createdAt?: number;
+    // repostPost() copies these across so a reposted event/church card still
+    // renders its card (and still has something to share).
+    eventShareData?: EventShareData;
+    churchShareData?: ChurchShareData;
   };
   repostComment?: string;
   repostsCount?: number;

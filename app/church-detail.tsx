@@ -7,7 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Header from '../src/components/Header';
 import { CHURCHES } from '../src/lib/constants';
 import { useThemeColors, ThemeColors } from '../src/lib/theme';
-import { buildChurchShareText } from '../src/lib/shareLinks';
+import { buildChurchShareText, buildPostShareText } from '../src/lib/shareLinks';
 import { useSavedChurches } from '../src/lib/store';
 import { isConnected, addConnection, removeConnection } from '../src/lib/connectionsStore';
 import { useChurchPosts, toggleLike, addComment } from '../src/lib/postsStore';
@@ -438,7 +438,7 @@ export default function ChurchDetailScreen() {
                         <Ionicons name="chatbubble-outline" size={18} color={c.textMuted}/>
                         <Text style={s.actionTxt}>{t('comment')}</Text>
                       </TouchableOpacity>
-                      <TouchableOpacity style={s.actionBtn} onPress={() => Share.share({message:`${post.authorName}: ${post.content}`})}>
+                      <TouchableOpacity style={s.actionBtn} onPress={() => Share.share({message:buildPostShareText(post)})}>
                         <Ionicons name="share-social-outline" size={18} color={c.textMuted}/>
                         <Text style={s.actionTxt}>{t('share')}</Text>
                       </TouchableOpacity>
