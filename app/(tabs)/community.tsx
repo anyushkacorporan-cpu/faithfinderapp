@@ -48,6 +48,23 @@ export default function CommunityScreen() {
   const shareFiredRef = useRef(false);
   const shareTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
 
+  // TEMPORARY DIAGNOSTIC (tag SHARE-DBG-1). Every step of the share is recorded
+  // and reported in a native Alert, so a share that goes nowhere still tells us
+  // exactly which step it died on. Remove this tracing once the cause is known.
+  const traceRef = useRef<string[]>([]);
+  const reportedRef = useRef(false);
+
+  function trace(line: string) {
+    traceRef.current.push(line);
+  }
+
+  function report(outcome: string) {
+    if (reportedRef.current) return;
+    reportedRef.current = true;
+    clearShareTimers();
+    Alert.alert('SHARE-DBG-1 · ' + outcome, traceRef.current.join('\n') || '(no steps recorded)');
+  }
+
   function clearShareTimers() {
     shareTimersRef.current.forEach(clearTimeout);
     shareTimersRef.current = [];
@@ -55,23 +72,44 @@ export default function CommunityScreen() {
 
   function queueShare(message: string) {
     clearShareTimers();
+    traceRef.current = [];
+    reportedRef.current = false;
     pendingShareRef.current = message;
     shareFiredRef.current = false;
+    trace('1. Share row tapped');
+    trace('2. Platform=' + Platform.OS + ', Share=' + typeof (Share as any)?.share);
+    trace('3. message length=' + message.length);
+    trace('   preview=' + JSON.stringify(message.slice(0, 60)));
     // Android never fires Modal.onDismiss; the backstop covers a missing one.
-    shareTimersRef.current.push(setTimeout(flushPendingShare, Platform.OS === 'android' ? 300 : 900));
+    shareTimersRef.current.push(setTimeout(() => {
+      trace('4b. backstop timer fired');
+      flushPendingShare();
+    }, Platform.OS === 'android' ? 300 : 900));
+    // Watchdog: if nothing has reported by now, the share silently went nowhere.
+    shareTimersRef.current.push(setTimeout(() => report('NO RESPONSE after 4s'), 4000));
   }
 
   function flushPendingShare() {
     const message = pendingShareRef.current;
-    if (!message || shareFiredRef.current) return;
+    if (!message) { trace('5. flush skipped: no pending message'); return; }
+    if (shareFiredRef.current) { trace('5. flush skipped: already fired'); return; }
     shareFiredRef.current = true;
     pendingShareRef.current = null;
-    clearShareTimers();
-    Share.share({ message, title: tx('Check this out on FaithFinder') })
-      .catch((err: any) => {
-        // Never fail silently again — a dead-looking button is what sent us here.
-        showToast(t('share'), String(err?.message || err), 'error');
-      });
+    trace('5. calling Share.share()');
+    try {
+      const promise: any = Share.share({ message, title: tx('Check this out on FaithFinder') });
+      trace('6. returned ' + (promise && typeof promise.then === 'function' ? 'a promise' : String(promise)));
+      Promise.resolve(promise)
+        .then((res: any) => report('RESOLVED ' + JSON.stringify(res)))
+        .catch((err: any) => {
+          showToast(t('share'), String(err?.message || err), 'error');
+          report('REJECTED ' + String(err?.message || err));
+        });
+    } catch (err: any) {
+      trace('6. threw synchronously');
+      showToast(t('share'), String(err?.message || err), 'error');
+      report('THREW ' + String(err?.message || err));
+    }
   }
 
   const connectedNames = connections.map(c => c.name);
@@ -430,11 +468,11 @@ export default function CommunityScreen() {
       </Modal>
 
       {/* Share/Repost Bottom Sheet */}
-      <Modal visible={!!repostTarget && !showRepostCompose} transparent animationType="fade" onRequestClose={() => setRepostTarget(null)} onDismiss={flushPendingShare}>
+      <Modal visible={!!repostTarget && !showRepostCompose} transparent animationType="fade" onRequestClose={() => setRepostTarget(null)} onDismiss={() => { trace('4a. Modal onDismiss fired'); flushPendingShare(); }}>
         <TouchableOpacity style={{flex:1,backgroundColor:c.overlay,justifyContent:'flex-end'}} activeOpacity={1} onPress={() => setRepostTarget(null)}>
           <View style={{backgroundColor:c.card,borderTopLeftRadius:24,borderTopRightRadius:24,paddingTop:8,paddingBottom:32}}>
             <View style={{width:36,height:4,borderRadius:2,backgroundColor:c.border,alignSelf:'center',marginVertical:10}}/>
-            <Text style={{fontSize:16,fontWeight:'700',color:c.text,textAlign:'center',marginBottom:16}}>{t('sharePost')}</Text>
+            <Text style={{fontSize:16,fontWeight:'700',color:c.text,textAlign:'center',marginBottom:16}}>{t('sharePost')} · DBG1</Text>
 
             <TouchableOpacity style={{flexDirection:'row',alignItems:'center',gap:14,paddingHorizontal:20,paddingVertical:14}} onPress={() => setShowRepostCompose(true)}>
               <View style={{width:44,height:44,borderRadius:14,backgroundColor:'rgba(102,126,234,0.16)',alignItems:'center',justifyContent:'center'}}>
