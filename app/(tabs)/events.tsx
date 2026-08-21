@@ -4,7 +4,7 @@ import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Header from '../../src/components/Header';
+import { HeaderIcons } from '../../src/components/Header';
 import { EVENTS } from '../../src/lib/constants';
 import { useThemeColors, ThemeColors } from '../../src/lib/theme';
 import { getUser } from '../../src/lib/userStore';
@@ -170,12 +170,12 @@ export default function EventsScreen() {
 
   return (
     <SafeAreaView style={s.root} edges={['top']}>
-      <Header />
-
-      {/* Location */}
+      {/* Location — also hosts the bell and gear, so dropping the wordmark
+          bar costs this screen no height. */}
       <View style={s.locationRow}>
         <Ionicons name="location-outline" size={16} color={c.gold} />
-        <Text style={s.locationTxt}>{locationLabel}</Text>
+        <Text style={s.locationTxt} numberOfLines={1}>{locationLabel}</Text>
+        <HeaderIcons compact />
       </View>
 
       {/* Search + Filter */}
@@ -763,8 +763,8 @@ const makeStyles = (c: ThemeColors) => StyleSheet.create({
   quotedFooter:{borderTopWidth:1,borderTopColor:c.border,paddingTop:8,marginTop:4},
   quotedLink:{fontSize:12,color:c.gold,fontWeight:'700'},
 
-  locationRow:{flexDirection:'row',alignItems:'center',gap:6,paddingHorizontal:16,paddingVertical:8,backgroundColor:c.card},
-  locationTxt:{fontSize:13,color:c.textSecondary,fontWeight:'600'},
+  locationRow:{flexDirection:'row',alignItems:'center',gap:6,paddingHorizontal:16,paddingVertical:6,backgroundColor:c.card,minHeight:44},
+  locationTxt:{flex:1,fontSize:13,color:c.textSecondary,fontWeight:'600'},
   toggleRow:{paddingHorizontal:16,paddingVertical:10,backgroundColor:c.card,borderBottomWidth:1,borderBottomColor:c.border},
   toggle:{flexDirection:'row',backgroundColor:c.cardAlt,borderRadius:100,padding:3},
   toggleBtn:{flex:1,paddingVertical:8,borderRadius:100,alignItems:'center'},

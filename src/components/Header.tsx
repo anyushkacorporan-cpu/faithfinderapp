@@ -5,10 +5,17 @@ import { router } from 'expo-router';
 import { useThemeColors, ThemeColors } from '../lib/theme';
 import { useUnreadCount } from '../lib/notificationsStore';
 import { signOut } from '../lib/userStore';
-import Logo from './Logo';
 import { useTranslation } from '../lib/i18n';
 
-export default function Header() {
+/**
+ * The app's two global controls — notification bell (with unread badge) and the
+ * settings gear that opens the settings sheet. This is the single definition of
+ * both; place it wherever a screen needs them:
+ *   - on its own slim row via <Header /> below (Community, Profile)
+ *   - inline in a row the screen already has (the location line on Churches and
+ *     Events), which costs no extra height. Pass `compact` there.
+ */
+export function HeaderIcons({ compact = false }: { compact?: boolean } = {}) {
   const { t } = useTranslation();
   const c = useThemeColors();
   const s = makeStyles(c);
@@ -17,19 +24,16 @@ export default function Header() {
 
   return (
     <>
-      <View style={s.header}>
-        <Logo size="small" />
-        <View style={s.icons}>
-          <TouchableOpacity style={s.iconBtn} onPress={() => router.push('/notifications' as any)}>
-            <Ionicons name="notifications-outline" size={22} color={c.text} />
-            {unread > 0 && (
-              <View style={s.badge}><Text style={s.badgeTxt}>{unread > 9 ? '9+' : unread}</Text></View>
-            )}
-          </TouchableOpacity>
-          <TouchableOpacity style={s.iconBtn} onPress={() => setShowSettings(true)}>
-            <Ionicons name="settings-outline" size={22} color={c.text} />
-          </TouchableOpacity>
-        </View>
+      <View style={s.icons}>
+        <TouchableOpacity style={[s.iconBtn, compact && s.iconBtnCompact]} onPress={() => router.push('/notifications' as any)}>
+          <Ionicons name="notifications-outline" size={compact ? 19 : 22} color={c.text} />
+          {unread > 0 && (
+            <View style={s.badge}><Text style={s.badgeTxt}>{unread > 9 ? '9+' : unread}</Text></View>
+          )}
+        </TouchableOpacity>
+        <TouchableOpacity style={[s.iconBtn, compact && s.iconBtnCompact]} onPress={() => setShowSettings(true)}>
+          <Ionicons name="settings-outline" size={compact ? 19 : 22} color={c.text} />
+        </TouchableOpacity>
       </View>
 
       {/* Settings Modal */}
@@ -95,10 +99,25 @@ export default function Header() {
   );
 }
 
+/**
+ * A slim, right-aligned row carrying HeaderIcons. Replaces the old wordmark bar:
+ * same controls, no repeated "FaithFinder App" on every tab.
+ */
+export default function Header() {
+  const c = useThemeColors();
+  const s = makeStyles(c);
+  return (
+    <View style={s.header}>
+      <HeaderIcons />
+    </View>
+  );
+}
+
 const makeStyles = (c: ThemeColors) => StyleSheet.create({
-  header:{flexDirection:'row',justifyContent:'space-between',alignItems:'center',paddingHorizontal:16,paddingVertical:12,borderBottomWidth:1,borderBottomColor:c.border,backgroundColor:c.card},
+  header:{flexDirection:'row',justifyContent:'flex-end',alignItems:'center',paddingHorizontal:16,paddingTop:6,paddingBottom:8,backgroundColor:c.card},
   icons:{flexDirection:'row',gap:6},
   iconBtn:{width:38,height:38,borderRadius:12,backgroundColor:c.cardAlt,alignItems:'center',justifyContent:'center',position:'relative'},
+  iconBtnCompact:{width:32,height:32,borderRadius:10},
   badge:{position:'absolute',top:-4,right:-4,minWidth:18,height:18,borderRadius:9,backgroundColor:c.red,alignItems:'center',justifyContent:'center',paddingHorizontal:3,borderWidth:2,borderColor:c.card},
   badgeTxt:{color:c.white,fontSize:9,fontWeight:'700'},
   overlay:{flex:1,backgroundColor:c.overlay},

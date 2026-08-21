@@ -196,11 +196,6 @@ export default function CommunityScreen() {
   return (
     <SafeAreaView style={s.root} edges={['top']}>
       <Header />
-      <View style={s.verseBar}>
-        <View style={s.verseAccent} />
-        <Text style={s.verseTxt}>{getDailyVerse(appSettings.appearance.language).text} <Text style={s.verseRef}>— {getDailyVerse(appSettings.appearance.language).reference}</Text></Text>
-      </View>
-
       <View style={s.tabBar}>
         <View style={s.tabToggle}>
           {(['foryou','discover'] as const).map(tab => (
@@ -213,6 +208,13 @@ export default function CommunityScreen() {
           <Ionicons name="create-outline" size={18} color={c.onPrimary} />
           <Text style={s.composeBtnTxt}>{t('post')}</Text>
         </TouchableOpacity>
+      </View>
+
+      {/* Daily verse — sits under the feed switcher so it reads as a banner
+          over the posts rather than a header over the whole app. */}
+      <View style={s.verseBar}>
+        <View style={s.verseAccent} />
+        <Text style={s.verseTxt}>{getDailyVerse(appSettings.appearance.language).text} <Text style={s.verseRef}>— {getDailyVerse(appSettings.appearance.language).reference}</Text></Text>
       </View>
 
       {activeTab === 'discover' && (
@@ -650,12 +652,12 @@ export default function CommunityScreen() {
 
 
 const makeStyles = (c: ThemeColors) => StyleSheet.create({
-  verseBar:{flexDirection:'row',alignItems:'stretch',gap:12,paddingVertical:14,paddingRight:16,paddingLeft:14,borderBottomWidth:1,borderBottomColor:c.border,backgroundColor:c.card},
+  verseBar:{flexDirection:'row',alignItems:'stretch',gap:12,paddingVertical:12,paddingRight:16,paddingLeft:14,borderTopWidth:1,borderTopColor:c.border,borderBottomWidth:1,borderBottomColor:c.border,backgroundColor:c.card},
   verseAccent:{width:3,backgroundColor:c.gold},
   verseTxt:{flex:1,fontFamily:'PlayfairDisplay_400Regular',fontSize:14,color:c.text,lineHeight:20},
   verseRef:{fontFamily:'PlayfairDisplay_400Regular',fontSize:12,color:c.textMuted},
   root:{flex:1,backgroundColor:c.bg},
-  tabBar:{flexDirection:'row',alignItems:'center',gap:10,paddingHorizontal:16,paddingVertical:10,backgroundColor:c.card,borderBottomWidth:1,borderBottomColor:c.border},
+  tabBar:{flexDirection:'row',alignItems:'center',gap:10,paddingHorizontal:16,paddingTop:2,paddingBottom:10,backgroundColor:c.card},
   tabToggle:{flex:1,flexDirection:'row',backgroundColor:c.cardAlt,borderRadius:100,padding:3},
   tabPill:{flex:1,paddingVertical:8,borderRadius:100,alignItems:'center'},
   tabPillActive:{backgroundColor:c.card,shadowColor:'#000',shadowOffset:{width:0,height:1},shadowOpacity:0.08,shadowRadius:3},
