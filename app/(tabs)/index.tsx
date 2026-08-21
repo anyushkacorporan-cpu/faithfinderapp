@@ -249,7 +249,7 @@ export default function ChurchesScreen() {
         {/* The bell and gear ride on the location line rather than a bar of
             their own, so removing the wordmark costs the screen no height. */}
         <View style={s.locationRow}>
-          <Ionicons name="location-outline" size={16} color={c.gold} />
+          <Ionicons name="location-outline" size={19} color={c.gold} />
           <Text style={s.locationTxt} numberOfLines={1}>{locationLabel}</Text>
           {loadingNearby && <ActivityIndicator size="small" color={c.gold} style={{ marginLeft: 8 }} />}
           <HeaderIcons compact />
@@ -387,7 +387,7 @@ const makeStyles = (c: ThemeColors) => StyleSheet.create({
   verseTxt:{fontFamily:'PlayfairDisplay_400Regular_Italic',fontSize:13,color:c.textMuted,textAlign:'center',lineHeight:20},
   searchSection:{backgroundColor:c.card,paddingHorizontal:16,paddingTop:6},
   locationRow:{flexDirection:'row',alignItems:'center',gap:5,marginBottom:10,minHeight:38},
-  locationTxt:{flex:1,fontSize:13,color:c.textSecondary,fontWeight:'600'},
+  locationTxt:{flex:1,fontSize:15,color:c.textSecondary,fontWeight:'600'},
   searchRow:{flexDirection:'row',gap:8,alignItems:'center',marginBottom:12},
   searchBar:{flex:1,flexDirection:'row',alignItems:'center',gap:8,backgroundColor:c.card,borderRadius:100,paddingHorizontal:14,paddingVertical:12,borderWidth:1.5,borderColor:c.border},
   searchInput:{flex:1,fontSize:13,color:c.text},

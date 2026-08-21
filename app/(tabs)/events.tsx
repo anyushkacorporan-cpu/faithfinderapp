@@ -173,7 +173,7 @@ export default function EventsScreen() {
       {/* Location — also hosts the bell and gear, so dropping the wordmark
           bar costs this screen no height. */}
       <View style={s.locationRow}>
-        <Ionicons name="location-outline" size={16} color={c.gold} />
+        <Ionicons name="location-outline" size={19} color={c.gold} />
         <Text style={s.locationTxt} numberOfLines={1}>{locationLabel}</Text>
         <HeaderIcons compact />
       </View>
@@ -764,7 +764,7 @@ const makeStyles = (c: ThemeColors) => StyleSheet.create({
   quotedLink:{fontSize:12,color:c.gold,fontWeight:'700'},
 
   locationRow:{flexDirection:'row',alignItems:'center',gap:6,paddingHorizontal:16,paddingVertical:6,backgroundColor:c.card,minHeight:44},
-  locationTxt:{flex:1,fontSize:13,color:c.textSecondary,fontWeight:'600'},
+  locationTxt:{flex:1,fontSize:15,color:c.textSecondary,fontWeight:'600'},
   toggleRow:{paddingHorizontal:16,paddingVertical:10,backgroundColor:c.card,borderBottomWidth:1,borderBottomColor:c.border},
   toggle:{flexDirection:'row',backgroundColor:c.cardAlt,borderRadius:100,padding:3},
   toggleBtn:{flex:1,paddingVertical:8,borderRadius:100,alignItems:'center'},
