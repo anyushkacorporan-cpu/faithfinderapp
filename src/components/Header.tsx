@@ -14,8 +14,11 @@ import { useTranslation } from '../lib/i18n';
  *   - on its own slim row via <Header /> below (Community, Profile)
  *   - inline in a row the screen already has (the location line on Churches and
  *     Events), which costs no extra height. Pass `compact` there.
+ *   - floating over a cover photo (Profile). Pass `overlay` there: the buttons
+ *     become dark translucent circles with white glyphs so they stay readable
+ *     over a light or a dark photo.
  */
-export function HeaderIcons({ compact = false }: { compact?: boolean } = {}) {
+export function HeaderIcons({ compact = false, overlay = false }: { compact?: boolean; overlay?: boolean } = {}) {
   const { t } = useTranslation();
   const c = useThemeColors();
   const s = makeStyles(c);
@@ -25,14 +28,14 @@ export function HeaderIcons({ compact = false }: { compact?: boolean } = {}) {
   return (
     <>
       <View style={s.icons}>
-        <TouchableOpacity style={[s.iconBtn, compact && s.iconBtnCompact]} onPress={() => router.push('/notifications' as any)}>
-          <Ionicons name="notifications-outline" size={compact ? 19 : 22} color={c.text} />
+        <TouchableOpacity style={[s.iconBtn, compact && s.iconBtnCompact, overlay && s.iconBtnOverlay]} onPress={() => router.push('/notifications' as any)}>
+          <Ionicons name="notifications-outline" size={compact ? 19 : 22} color={overlay ? '#fff' : c.text} />
           {unread > 0 && (
             <View style={s.badge}><Text style={s.badgeTxt}>{unread > 9 ? '9+' : unread}</Text></View>
           )}
         </TouchableOpacity>
-        <TouchableOpacity style={[s.iconBtn, compact && s.iconBtnCompact]} onPress={() => setShowSettings(true)}>
-          <Ionicons name="settings-outline" size={compact ? 19 : 22} color={c.text} />
+        <TouchableOpacity style={[s.iconBtn, compact && s.iconBtnCompact, overlay && s.iconBtnOverlay]} onPress={() => setShowSettings(true)}>
+          <Ionicons name="settings-outline" size={compact ? 19 : 22} color={overlay ? '#fff' : c.text} />
         </TouchableOpacity>
       </View>
 
@@ -118,6 +121,7 @@ const makeStyles = (c: ThemeColors) => StyleSheet.create({
   icons:{flexDirection:'row',gap:6},
   iconBtn:{width:38,height:38,borderRadius:12,backgroundColor:c.cardAlt,alignItems:'center',justifyContent:'center',position:'relative'},
   iconBtnCompact:{width:32,height:32,borderRadius:10},
+  iconBtnOverlay:{backgroundColor:'rgba(0,0,0,0.42)',borderRadius:19},
   badge:{position:'absolute',top:-4,right:-4,minWidth:18,height:18,borderRadius:9,backgroundColor:c.red,alignItems:'center',justifyContent:'center',paddingHorizontal:3,borderWidth:2,borderColor:c.card},
   badgeTxt:{color:c.white,fontSize:9,fontWeight:'700'},
   overlay:{flex:1,backgroundColor:c.overlay},

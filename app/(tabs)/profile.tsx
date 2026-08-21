@@ -3,9 +3,9 @@ import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Image, Linking, A
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
-import Header from '../../src/components/Header';
+import { HeaderIcons } from '../../src/components/Header';
 import { useThemeColors, ThemeColors } from '../../src/lib/theme';
 import { useUser, setUser, getUser } from '../../src/lib/userStore';
 import { useActivity } from '../../src/lib/activityStore';
@@ -37,6 +37,7 @@ const PERSONAL_TABS = ['Community Sharing'];
 export default function ProfileScreen() {
   const c = useThemeColors();
   const s = makeStyles(c);
+  const insets = useSafeAreaInsets();
   const user = useUser();
   const appSettings = useSettings();
   const { t, tx } = useTranslation();
@@ -158,21 +159,19 @@ export default function ProfileScreen() {
   // ── CHURCH PROFILE ──────────────────────────────────
   if (isChurch) {
     return (
-      <SafeAreaView style={s.root} edges={['top']}>
-        <Header />
+      <SafeAreaView style={s.root} edges={[]}>
         <ScrollView showsVerticalScrollIndicator={false}>
 
           {/* Photo Gallery */}
           {user.photos?.length > 0 ? (
-            <View style={s.galleryWrap}>
-              {/* Overlay icons on cover photo */}
+            <View style={[s.galleryWrap, {height: 320 + insets.top}]}>
 
               <FlatList
                 data={user.photos}
                 horizontal pagingEnabled
                 showsHorizontalScrollIndicator={false}
                 onMomentumScrollEnd={e => setActivePhoto(Math.round(e.nativeEvent.contentOffset.x / W))}
-                renderItem={({ item }) => <Image source={{ uri: item }} style={{ width: W, height: 380 }} resizeMode="cover" />}
+                renderItem={({ item }) => <Image source={{ uri: item }} style={{ width: W, height: 380 + insets.top }} resizeMode="cover" />}
                 keyExtractor={(_, i) => String(i)}
               />
               <View style={s.dots}>
@@ -185,7 +184,7 @@ export default function ProfileScreen() {
             </View>
           ) : (
             <View style={{position:'relative'}}>
-              <TouchableOpacity style={s.photoBanner} onPress={handleAddPhotoOptions} activeOpacity={0.85}>
+              <TouchableOpacity style={[s.photoBanner, {height: 380 + insets.top}]} onPress={handleAddPhotoOptions} activeOpacity={0.85}>
                 <LinearGradient colors={['#1a1a2e', '#2d2240']} style={StyleSheet.absoluteFill} start={{x:0,y:0}} end={{x:1,y:1}} />
                 <View style={s.photoUploadWrap}>
                   <View style={s.photoUploadIcon}>
@@ -372,19 +371,24 @@ export default function ProfileScreen() {
 
           <View style={{height:40}} />
         </ScrollView>
+        {/* Bell + gear float over the cover photo. They sit outside the
+            ScrollView so they stay pinned as you scroll — the settings sheet is
+            the only way into settings, so it must not scroll out of reach. */}
+        <View style={[s.floatingIcons, {top: insets.top + 8}]} pointerEvents="box-none">
+          <HeaderIcons overlay />
+        </View>
       </SafeAreaView>
     );
   }
 
   // ── PERSONAL PROFILE ────────────────────────────────
   return (
-    <SafeAreaView style={s.root} edges={['top']}>
-        <Header />
+    <SafeAreaView style={s.root} edges={[]}>
         <ScrollView showsVerticalScrollIndicator={false}>
-        <View style={s.coverWrap}>
+        <View style={[s.coverWrap, {height: 220 + insets.top}]}>
           {user.coverPhoto
-            ? <Image source={{uri:user.coverPhoto}} style={{width:'100%',height:200}} resizeMode="cover"/>
-            : <View style={s.cover} />
+            ? <Image source={{uri:user.coverPhoto}} style={{width:'100%',height:200 + insets.top}} resizeMode="cover"/>
+            : <View style={[s.cover, {height: 200 + insets.top}]} />
           }
           <TouchableOpacity style={s.addCoverBtn} onPress={async () => {
             const {status} = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -593,6 +597,12 @@ export default function ProfileScreen() {
 
         <View style={{height:40}} />
       </ScrollView>
+      {/* Bell + gear float over the cover photo. They sit outside the
+          ScrollView so they stay pinned as you scroll — the settings sheet is
+          the only way into settings, so it must not scroll out of reach. */}
+      <View style={[s.floatingIcons, {top: insets.top + 8}]} pointerEvents="box-none">
+        <HeaderIcons overlay />
+      </View>
     </SafeAreaView>
   );
 }
@@ -682,7 +692,7 @@ const makeStyles = (c: ThemeColors) => StyleSheet.create({
   dots:{position:'absolute',bottom:12,left:0,right:0,flexDirection:'row',justifyContent:'center',gap:6},
   dot:{width:6,height:6,borderRadius:3,backgroundColor:'rgba(255,255,255,0.4)'},
   dotActive:{backgroundColor:'#fff',width:18},
-  addMorePhotosBtn:{position:'absolute',top:12,right:12,flexDirection:'row',alignItems:'center',gap:6,backgroundColor:'rgba(0,0,0,0.5)',borderRadius:12,paddingHorizontal:12,paddingVertical:7},
+  addMorePhotosBtn:{position:'absolute',bottom:34,right:12,flexDirection:'row',alignItems:'center',gap:6,backgroundColor:'rgba(0,0,0,0.5)',borderRadius:12,paddingHorizontal:12,paddingVertical:7},
   addMorePhotosTxt:{color:'#fff',fontSize:12,fontWeight:'600'},
   photoBanner:{height:380,alignItems:'center',justifyContent:'center'},
   photoUploadWrap:{alignItems:'center',gap:8},
@@ -765,6 +775,7 @@ const makeStyles = (c: ThemeColors) => StyleSheet.create({
   emptySub:{fontSize:13,color:c.placeholder,textAlign:'center',lineHeight:18},
   // Personal
   coverWrap:{position:'relative',height:220,marginBottom:50,overflow:'visible'},
+  floatingIcons:{position:'absolute',right:12,zIndex:10},
   cover:{width:'100%',height:200,backgroundColor:c.navy},
   addCoverBtn:{position:'absolute',bottom:50,left:12,flexDirection:'row',alignItems:'center',gap:5,backgroundColor:'rgba(0,0,0,0.4)',borderRadius:8,paddingHorizontal:10,paddingVertical:5},
   addCoverTxt:{color:'#fff',fontSize:12},
