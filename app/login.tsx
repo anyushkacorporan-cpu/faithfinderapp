@@ -84,7 +84,7 @@ export default function LoginScreen() {
 }
 
 const s = StyleSheet.create({
-  root:{flex:1,backgroundColor:'#f8f7f4'},
+  root:{flex:1,backgroundColor:'#ffffff'},
   scroll:{flexGrow:1,paddingHorizontal:24,paddingTop:48},
   logoWrap:{alignItems:'center',marginBottom:16},
   verse:{fontFamily:'PlayfairDisplay_400Regular_Italic',fontSize:13,color:'#aaa',textAlign:'center',lineHeight:20,paddingHorizontal:20},

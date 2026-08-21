@@ -51,7 +51,7 @@ export type ThemeColors = {
 
 export const LIGHT: ThemeColors = {
   isDark: false,
-  bg: '#f8f7f4',
+  bg: '#ffffff',
   card: '#ffffff',
   cardAlt: '#f5f3ef',
   border: '#f0ede8',

@@ -334,7 +334,7 @@ export function PostCard({post,showLocation,onLike,onComment,onShare,onOpenProfi
 
 
 const makeStyles = (c: ThemeColors) => StyleSheet.create({
-  card:{backgroundColor:c.card,marginHorizontal:14,marginBottom:14,paddingVertical:18,paddingHorizontal:18,borderRadius:22,shadowColor:'#000',shadowOffset:{width:0,height:2},shadowOpacity:0.06,shadowRadius:10,elevation:2},
+  card:{backgroundColor:c.card,marginHorizontal:14,marginBottom:14,paddingVertical:18,paddingHorizontal:18,borderRadius:22,borderWidth:1,borderColor:c.border,shadowColor:'#000',shadowOffset:{width:0,height:2},shadowOpacity:0.06,shadowRadius:10,elevation:2},
   authorRow:{flexDirection:'row',alignItems:'center',gap:12,marginBottom:14},
   avatar:{width:44,height:44,borderRadius:22,alignItems:'center',justifyContent:'center'},
   avatarTxt:{color:c.white,fontWeight:'700',fontSize:15},

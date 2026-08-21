@@ -130,7 +130,7 @@ export default function SignupScreen() {
 }
 
 const s = StyleSheet.create({
-  root:{flex:1,backgroundColor:'#f8f7f4'},
+  root:{flex:1,backgroundColor:'#ffffff'},
   scroll:{flexGrow:1,paddingHorizontal:20,paddingTop:16},
   backBtn:{width:40,height:40,borderRadius:20,backgroundColor:COLORS.lightBg,alignItems:'center',justifyContent:'center',marginBottom:12},
   logoWrap:{alignItems:'center',marginBottom:10},
