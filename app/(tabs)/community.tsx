@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity, StyleSheet,
   TextInput, Modal, KeyboardAvoidingView, Platform, Share, Alert, Image, ActivityIndicator, RefreshControl, ImageBackground} from 'react-native';
@@ -35,6 +35,44 @@ export default function CommunityScreen() {
   const { t, tx } = useTranslation();
   const connections = useConnections();
   const user = getUser();
+
+  // ── Sharing to the OS share sheet ───────────────────────────────────────
+  // iOS refuses to present the share sheet while a React Native <Modal> is
+  // still on screen (or still animating away) — the promise rejects and the
+  // button looks dead. So the Share row does NOT call Share.share() directly:
+  // it stashes the text, closes the sheet, and we fire the share from the
+  // Modal's onDismiss (iOS) once the sheet is genuinely gone. Android has no
+  // onDismiss, so a short timer covers it, and a longer timer is a backstop in
+  // case onDismiss never arrives. `shareFiredRef` makes sure only one wins.
+  const pendingShareRef = useRef<string | null>(null);
+  const shareFiredRef = useRef(false);
+  const shareTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
+
+  function clearShareTimers() {
+    shareTimersRef.current.forEach(clearTimeout);
+    shareTimersRef.current = [];
+  }
+
+  function queueShare(message: string) {
+    clearShareTimers();
+    pendingShareRef.current = message;
+    shareFiredRef.current = false;
+    // Android never fires Modal.onDismiss; the backstop covers a missing one.
+    shareTimersRef.current.push(setTimeout(flushPendingShare, Platform.OS === 'android' ? 300 : 900));
+  }
+
+  function flushPendingShare() {
+    const message = pendingShareRef.current;
+    if (!message || shareFiredRef.current) return;
+    shareFiredRef.current = true;
+    pendingShareRef.current = null;
+    clearShareTimers();
+    Share.share({ message, title: tx('Check this out on FaithFinder') })
+      .catch((err: any) => {
+        // Never fail silently again — a dead-looking button is what sent us here.
+        showToast(t('share'), String(err?.message || err), 'error');
+      });
+  }
 
   const connectedNames = connections.map(c => c.name);
   const displayName = user.accountType === 'church'
@@ -392,7 +430,7 @@ export default function CommunityScreen() {
       </Modal>
 
       {/* Share/Repost Bottom Sheet */}
-      <Modal visible={!!repostTarget && !showRepostCompose} transparent animationType="fade" onRequestClose={() => setRepostTarget(null)}>
+      <Modal visible={!!repostTarget && !showRepostCompose} transparent animationType="fade" onRequestClose={() => setRepostTarget(null)} onDismiss={flushPendingShare}>
         <TouchableOpacity style={{flex:1,backgroundColor:c.overlay,justifyContent:'flex-end'}} activeOpacity={1} onPress={() => setRepostTarget(null)}>
           <View style={{backgroundColor:c.card,borderTopLeftRadius:24,borderTopRightRadius:24,paddingTop:8,paddingBottom:32}}>
             <View style={{width:36,height:4,borderRadius:2,backgroundColor:c.border,alignSelf:'center',marginVertical:10}}/>
@@ -410,9 +448,8 @@ export default function CommunityScreen() {
             </TouchableOpacity>
 
             <TouchableOpacity style={{flexDirection:'row',alignItems:'center',gap:14,paddingHorizontal:20,paddingVertical:14}} onPress={() => {
-              const m = buildPostShareText(repostTarget);
+              queueShare(buildPostShareText(repostTarget));
               setRepostTarget(null);
-              setTimeout(() => Share.share({message:m,title: tx('Check this out on FaithFinder')}).catch(()=>{}), 350);
             }}>
               <View style={{width:44,height:44,borderRadius:14,backgroundColor:c.cardAlt,alignItems:'center',justifyContent:'center'}}>
                 <Ionicons name="arrow-redo-outline" size={22} color={c.text}/>
