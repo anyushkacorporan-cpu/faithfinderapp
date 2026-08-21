@@ -600,6 +600,7 @@ export default function ProfileScreen() {
 
 function ActivityTabContent() {
   const c = useThemeColors();
+  const { t } = useTranslation();
   const activity = useActivity();
   const { attending: myAttendingEvents } = useEventActions();
   const allEvents = useEvents ? useEvents() : [];

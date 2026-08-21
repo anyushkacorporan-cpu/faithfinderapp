@@ -711,6 +711,7 @@ function EventPreviewCard({title,date,time,location,organizer,type,price,bannerI
 }) {
   const c = useThemeColors();
   const pc = makePc(c);
+  const { t } = useTranslation();
   return (
     <View style={pc.card}>
       {bannerImage
