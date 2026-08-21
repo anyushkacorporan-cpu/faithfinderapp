@@ -51,7 +51,7 @@ function formatTime(d: Date) {
 export default function CreateEventScreen() {
   const c = useThemeColors();
   const s = makeStyles(c);
-  const { t } = useTranslation();
+  const { t, tx } = useTranslation();
   const user = getUser();
   const [step, setStep] = useState(0);
 
@@ -153,14 +153,14 @@ export default function CreateEventScreen() {
 
   async function handlePickBanner() {
     const {status} = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status!=='granted') { Alert.alert('Permission needed'); return; }
+    if (status!=='granted') { Alert.alert(tx('Permission needed')); return; }
     const result = await ImagePicker.launchImageLibraryAsync({quality:0.8,aspect:[16,9],allowsEditing:true});
     if (!result.canceled) setBannerImage(result.assets[0].uri);
   }
 
   async function handlePickVenueLayout() {
     const {status} = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status!=='granted') { Alert.alert('Permission needed'); return; }
+    if (status!=='granted') { Alert.alert(tx('Permission needed')); return; }
     const result = await ImagePicker.launchImageLibraryAsync({quality:0.8,allowsEditing:true});
     if (!result.canceled) setVenueLayoutImage(result.assets[0].uri);
   }
@@ -239,10 +239,10 @@ export default function CreateEventScreen() {
     });
     setSubmitting(false);
     if (draft) {
-      Alert.alert('Saved as Draft','Find it in Settings → My Events',[{text:'OK',onPress:()=>router.back()}]);
+      Alert.alert(tx('Saved as Draft'), tx('Find it in Settings → My Events'),[{text:'OK',onPress:()=>router.back()}]);
     } else {
-      Alert.alert('Event Published! 🎉','"'+title+'" is now live.',[
-        {text:'View Events',onPress:()=>router.replace('/(tabs)/events')}
+      Alert.alert(tx('Event Published! 🎉'), '"'+title+'" is now live.',[
+        {text: tx('View Events'),onPress:()=>router.replace('/(tabs)/events')}
       ]);
     }
   }
@@ -414,13 +414,13 @@ export default function CreateEventScreen() {
           {step===1&&(
             <>
               <LField label="Event Summary">
-                <TextInput style={[s.input,s.multiline]} placeholder="What is this event about?" placeholderTextColor={c.placeholder} value={summary} onChangeText={setSummary} multiline/>
+                <TextInput style={[s.input,s.multiline]} placeholder={tx('What is this event about?')} placeholderTextColor={c.placeholder} value={summary} onChangeText={setSummary} multiline/>
               </LField>
               <LField label="What Will Happen" hint="(one per line)">
                 <TextInput style={[s.input,s.multilineLg]} placeholder={'Worship\nMessage\nPrayer\nFellowship'} placeholderTextColor={c.placeholder} value={experience} onChangeText={setExperience} multiline/>
               </LField>
               <LField label="Target Audience">
-                <TextInput style={s.input} placeholder="All ages, families welcome" placeholderTextColor={c.placeholder} value={audience} onChangeText={setAudience}/>
+                <TextInput style={s.input} placeholder={tx('All ages, families welcome')} placeholderTextColor={c.placeholder} value={audience} onChangeText={setAudience}/>
               </LField>
 
               <Text style={s.fieldLbl}>{t('speakersGuests')}</Text>
@@ -439,14 +439,14 @@ export default function CreateEventScreen() {
                 </View>
               ))}
               <View style={s.addRow}>
-                <TextInput style={[s.input,{flex:2,marginRight:8}]} placeholder="Name" placeholderTextColor={c.placeholder} value={speakerName} onChangeText={setSpeakerName}/>
-                <TextInput style={[s.input,{flex:1,marginRight:8}]} placeholder="Role" placeholderTextColor={c.placeholder} value={speakerRole} onChangeText={setSpeakerRole}/>
+                <TextInput style={[s.input,{flex:2,marginRight:8}]} placeholder={tx('Name')} placeholderTextColor={c.placeholder} value={speakerName} onChangeText={setSpeakerName}/>
+                <TextInput style={[s.input,{flex:1,marginRight:8}]} placeholder={tx('Role')} placeholderTextColor={c.placeholder} value={speakerRole} onChangeText={setSpeakerRole}/>
                 <TouchableOpacity style={s.addBtn} onPress={addSpeaker}>
                   <Ionicons name="add" size={22} color={c.onPrimary}/>
                 </TouchableOpacity>
               </View>
               <LField label="Additional Notes">
-                <TextInput style={[s.input,s.multiline]} placeholder="Any other information..." placeholderTextColor={c.placeholder} value={notes} onChangeText={setNotes} multiline/>
+                <TextInput style={[s.input,s.multiline]} placeholder={tx('Any other information...')} placeholderTextColor={c.placeholder} value={notes} onChangeText={setNotes} multiline/>
               </LField>
             </>
           )}
@@ -490,10 +490,10 @@ export default function CreateEventScreen() {
                     </View>
                   </View>
                   <LField label="Parking">
-                    <TextInput style={s.input} placeholder="Free parking on site" placeholderTextColor={c.placeholder} value={parking} onChangeText={setParking}/>
+                    <TextInput style={s.input} placeholder={tx('Free parking on site')} placeholderTextColor={c.placeholder} value={parking} onChangeText={setParking}/>
                   </LField>
                   <LField label="Venue Instructions">
-                    <TextInput style={[s.input,s.multiline]} placeholder="Enter through main doors..." placeholderTextColor={c.placeholder} value={venueInstructions} onChangeText={setVenueInstructions} multiline/>
+                    <TextInput style={[s.input,s.multiline]} placeholder={tx('Enter through main doors...')} placeholderTextColor={c.placeholder} value={venueInstructions} onChangeText={setVenueInstructions} multiline/>
                   </LField>
                 </>
               )}
@@ -559,7 +559,7 @@ export default function CreateEventScreen() {
               )}
               <View style={s.addRow}>
                 <TextInput style={[s.input,{width:90,marginRight:8}]} placeholder="6:00 PM" placeholderTextColor={c.placeholder} value={agendaTime} onChangeText={setAgendaTime}/>
-                <TextInput style={[s.input,{flex:1,marginRight:8}]} placeholder="Worship" placeholderTextColor={c.placeholder} value={agendaActivity} onChangeText={setAgendaActivity}/>
+                <TextInput style={[s.input,{flex:1,marginRight:8}]} placeholder={tx('Worship')} placeholderTextColor={c.placeholder} value={agendaActivity} onChangeText={setAgendaActivity}/>
                 <TouchableOpacity style={s.addBtn} onPress={addAgendaItem}>
                   <Ionicons name="add" size={22} color={c.onPrimary}/>
                 </TouchableOpacity>

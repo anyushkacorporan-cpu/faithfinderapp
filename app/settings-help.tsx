@@ -6,15 +6,15 @@ import { useThemeColors, ThemeColors } from '../src/lib/theme';
 import { useTranslation } from '../src/lib/i18n';
 
 export default function HelpSupportScreen() {
-  const { t } = useTranslation();
+  const { t, tx } = useTranslation();
   const c = useThemeColors();
   const s = makeStyles(c);
   const items = [
-    { icon:'book-outline', color:'#667eea', labelKey:'gettingStartedGuide', action: () => Alert.alert('Getting Started', '1. Create your profile\n2. Find churches near you\n3. Join events and connect with your community\n4. Share posts and grow in faith together!') },
-    { icon:'help-circle-outline', color:c.gold, labelKey:'faq', action: () => Alert.alert('FAQ', 'Our FAQ page is coming soon. In the meantime, reach out to Contact Support below with any questions!') },
+    { icon:'book-outline', color:'#667eea', labelKey:'gettingStartedGuide', action: () => Alert.alert(tx('Getting Started'), '1. Create your profile\\n2. Find churches near you\\n3. Join events and connect with your community\\n4. Share posts and grow in faith together!') },
+    { icon:'help-circle-outline', color:c.gold, labelKey:'faq', action: () => Alert.alert(tx('FAQ'), tx('Our FAQ page is coming soon. In the meantime, reach out to Contact Support below with any questions!')) },
     { icon:'chatbubble-outline', color:c.green, labelKey:'contactSupport', action: () => Linking.openURL('mailto:support@faithfinderapp.com') },
     { icon:'bug-outline', color:c.red, labelKey:'reportBug', action: () => Linking.openURL('mailto:bugs@faithfinderapp.com?subject=Bug Report') },
-    { icon:'star-outline', color:'#f39c12', labelKey:'rateApp', action: () => Alert.alert('Rate Us', 'FaithFinder isn\'t live on the App Store yet — thank you for being an early supporter! We\'ll let you know as soon as you can leave a review.') },
+    { icon:'star-outline', color:'#f39c12', labelKey:'rateApp', action: () => Alert.alert(tx('Rate Us'), 'FaithFinder isn\\\'t live on the App Store yet — thank you for being an early supporter! We\\\'ll let you know as soon as you can leave a review.') },
     { icon:'share-social-outline', color:'#9b59b6', labelKey:'shareApp', action: () => Share.share({message:'Check out FaithFinder — find your church community! https://faithfinderapp.com'}).catch(()=>{}) },
     { icon:'document-text-outline', color:c.navy, labelKey:'termsOfService', action: () => router.push('/terms' as any) },
     { icon:'shield-outline', color:'#7f8c8d', labelKey:'privacyPolicy', action: () => router.push('/privacy' as any) },

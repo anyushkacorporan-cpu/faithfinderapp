@@ -11,7 +11,7 @@ import { setUser } from '../src/lib/userStore';
 const DENOMINATIONS = ['Non-Denominational','Catholic','Baptist','Methodist','Lutheran','Presbyterian','Episcopal','Pentecostal','Assemblies of God','Evangelical','Reformed','AME','Other'];
 
 export default function RegisterChurchScreen() {
-  const { t } = useTranslation();
+  const { t, tx } = useTranslation();
   const [churchName, setChurchName] = useState('');
   const [address, setAddress] = useState('');
   const [denomination, setDenomination] = useState('');
@@ -69,9 +69,9 @@ export default function RegisterChurchScreen() {
           </Text>
           <View style={s.successCard}>
             {[
-              { icon:'time-outline', title:'Review Period', sub:'3–5 business days' },
+              { icon:'time-outline', title: tx('Review Period'), sub:'3–5 business days' },
               { icon:'notifications-outline', title:'You\'ll be notified', sub:'Via email and app notification' },
-              { icon:'globe-outline', title:'After approval', sub:'Your church appears in search results with a verified badge' },
+              { icon:'globe-outline', title: tx('After approval'), sub:'Your church appears in search results with a verified badge' },
             ].map((item, i) => (
               <View key={i}>
                 {i > 0 && <View style={s.successDivider} />}
@@ -153,7 +153,7 @@ export default function RegisterChurchScreen() {
               <Text style={s.label}>{t('serviceTimes')}</Text>
               <View style={s.inputWrap}>
                 <Ionicons name="time-outline" size={18} color="#bbb" style={s.inputIcon} />
-                <TextInput style={[s.input, s.inputWithIcon]} placeholder="Sunday 9AM & 11AM" placeholderTextColor={COLORS.placeholder} value={serviceTimes} onChangeText={setServiceTimes} />
+                <TextInput style={[s.input, s.inputWithIcon]} placeholder={tx('Sunday 9AM & 11AM')} placeholderTextColor={COLORS.placeholder} value={serviceTimes} onChangeText={setServiceTimes} />
               </View>
             </View>
             <View style={s.fieldWrap}>
@@ -206,7 +206,7 @@ export default function RegisterChurchScreen() {
             </View>
             <View style={s.fieldWrap}>
               <Text style={s.label}>{t('additionalNotes')} <Text style={s.optional}>(optional)</Text></Text>
-              <TextInput style={[s.input, {height:80,textAlignVertical:'top',paddingTop:12}]} placeholder="Anything else you'd like to share..." placeholderTextColor={COLORS.placeholder} value={notes} onChangeText={setNotes} multiline />
+              <TextInput style={[s.input, {height:80,textAlignVertical:'top',paddingTop:12}]} placeholder={tx('Anything else you\'d like to share...')} placeholderTextColor={COLORS.placeholder} value={notes} onChangeText={setNotes} multiline />
             </View>
 
             <View style={s.infoBox}>

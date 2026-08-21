@@ -59,7 +59,7 @@ function InlinePicker({visible,options,selected,onSelect,onClose,title}:PickerPr
 }
 
 export default function EditChurchProfileScreen() {
-  const { t } = useTranslation();
+  const { t, tx } = useTranslation();
   const c = useThemeColors();
   const s = makeStyles(c);
   const user = useUser();
@@ -76,14 +76,14 @@ export default function EditChurchProfileScreen() {
 
   async function handlePickAvatar() {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== 'granted') { Alert.alert('Permission needed', 'Please allow access to your photo library.'); return; }
+    if (status !== 'granted') { Alert.alert(tx('Permission needed'), tx('Please allow access to your photo library.')); return; }
     const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images, allowsEditing: true, aspect: [1,1], quality: 0.8 });
     if (!result.canceled) setUser({ avatar: result.assets[0].uri });
   }
 
   async function handleAddGalleryPhoto() {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== 'granted') { Alert.alert('Permission needed', 'Please allow access to your photo library.'); return; }
+    if (status !== 'granted') { Alert.alert(tx('Permission needed'), tx('Please allow access to your photo library.')); return; }
     const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images, allowsMultipleSelection: true, quality: 0.8 });
     if (!result.canceled) {
       const liveUser = getUser();
@@ -132,7 +132,7 @@ export default function EditChurchProfileScreen() {
 
   function handleSave() {
     setUser({ churchName, address, phone, website, churchEmail, denomination, bio, serviceTimes: formatServiceTimes(serviceTimes) });
-    showToast('Saved!', 'Your church profile has been updated.', 'success');
+    showToast(tx('Saved!'), tx('Your church profile has been updated.'), 'success');
     router.back();
   }
 
@@ -225,7 +225,7 @@ export default function EditChurchProfileScreen() {
           </View>
 
           <View style={s.fieldWrap}>
-            <Text style={s.label}>Website</Text>
+            <Text style={s.label}>{t('website')}</Text>
             <View style={s.inputWrap}>
               <Ionicons name="globe-outline" size={18} color={c.textMuted} style={s.icon} />
               <TextInput style={[s.input, s.inputWithIcon]} placeholder="www.yourchurch.org" placeholderTextColor={c.placeholder} value={website} onChangeText={setWebsite} autoCapitalize="none" keyboardType="url" />
@@ -254,7 +254,7 @@ export default function EditChurchProfileScreen() {
             <Text style={s.label}>About / Description</Text>
             <TextInput
               style={[s.input, s.bioInput]}
-              placeholder="Tell the community about your church..."
+              placeholder={tx('Tell the community about your church...')}
               placeholderTextColor={c.placeholder}
               value={bio}
               onChangeText={setBio}
@@ -301,7 +301,7 @@ export default function EditChurchProfileScreen() {
               </View>
               <TextInput
                 style={s.noteInput}
-                placeholder="Add a note (optional) — e.g. Main Worship Service"
+                placeholder={tx('Add a note (optional) — e.g. Main Worship Service')}
                 placeholderTextColor={c.placeholder}
                 value={st.note || ''}
                 onChangeText={v => updateServiceTime(idx, 'note', v)}
@@ -338,7 +338,7 @@ export default function EditChurchProfileScreen() {
                   style={{flexDirection:'row',alignItems:'center',gap:6,paddingHorizontal:12,paddingVertical:8,borderRadius:100,borderWidth:1.5,borderColor:active?c.navy:c.border,backgroundColor:active?'rgba(26,26,46,0.06)':c.white}}
                 >
                   <Ionicons name={item.icon as any} size={14} color={active?c.navy:c.textMuted}/>
-                  <Text style={{fontSize:12,fontWeight:'600',color:active?c.navy:c.textMuted}}>{item.label}</Text>
+                  <Text style={{fontSize:12,fontWeight:'600',color:active?c.navy:c.textMuted}}>{tx(item.label)}</Text>
                 </TouchableOpacity>
               );
             })}
@@ -348,7 +348,7 @@ export default function EditChurchProfileScreen() {
           <View style={{flexDirection:'row',alignItems:'center',gap:8,marginBottom:12}}>
             <TextInput
               style={[s.input, {flex:1}]}
-              placeholder="e.g. Youth Ministry, Bible Study..."
+              placeholder={tx('e.g. Youth Ministry, Bible Study...')}
               placeholderTextColor={c.placeholder}
               value={newMinistry}
               onChangeText={setNewMinistry}

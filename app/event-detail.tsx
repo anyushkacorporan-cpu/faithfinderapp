@@ -30,7 +30,7 @@ export default function EventDetailScreen() {
   const fullEvent = getEvents().find(e => e.id === params.id);
   const user = getUser();
   const appSettings = useSettings();
-  const { t } = useTranslation();
+  const { t, tx } = useTranslation();
   const [saved, setSaved] = useState(() => isEventSaved(params.id || ''));
   const [showFullPhoto, setShowFullPhoto] = useState(false);
   const [attending, setAttending] = useState(() => isEventAttending(params.id || ''));
@@ -112,7 +112,7 @@ export default function EventDetailScreen() {
   }
 
   function handleSendInvites() {
-    if (selectedUsers.length === 0) { Alert.alert('Select users', 'Please select at least one person.'); return; }
+    if (selectedUsers.length === 0) { Alert.alert(tx('Select users'), tx('Please select at least one person.')); return; }
     setInviteSent(true);
     setTimeout(() => { setShowInviteModal(false); setSelectedUsers([]); setInviteSent(false); }, 1500);
   }
@@ -121,10 +121,10 @@ export default function EventDetailScreen() {
     try {
       const Cal = await import('expo-calendar');
       const { status } = await Cal.requestCalendarPermissionsAsync();
-      if (status !== 'granted') { Alert.alert('Permission needed'); return; }
+      if (status !== 'granted') { Alert.alert(tx('Permission needed')); return; }
       const calendars = await Cal.getCalendarsAsync(Cal.EntityTypes.EVENT);
       const cal = calendars.find((c: any) => c.allowsModifications) || calendars[0];
-      if (!cal) { Alert.alert('No calendar found'); return; }
+      if (!cal) { Alert.alert(tx('No calendar found')); return; }
       await Cal.createEventAsync(cal.id, {
         title: (fullEvent?.title || params.title) || 'FaithFinder Event',
         notes: params.description || '',
@@ -133,12 +133,12 @@ export default function EventDetailScreen() {
         endDate: new Date(Date.now() + 2 * 60 * 60 * 1000),
         timeZone: 'GMT',
       });
-      Alert.alert('Added!', 'Event added to your calendar.');
-    } catch { Alert.alert('Could not add to calendar.'); }
+      Alert.alert(tx('Added!'), tx('Event added to your calendar.'));
+    } catch { Alert.alert(tx('Could not add to calendar.')); }
   }
 
   function handleGetTicket() {
-    if (attending) { Alert.alert('Already Attending', "You already have a ticket for this event!"); return; }
+    if (attending) { Alert.alert(tx('Already Attending'), "You already have a ticket for this event!"); return; }
     router.push({ pathname: '/event-checkout' as any, params: { id: params.id, title: (fullEvent?.title || params.title), date: (fullEvent?.date || params.date), location: (fullEvent?.location || params.location), price: (fullEvent?.price || params.price), type: (fullEvent?.type || params.type), organizer: params.organizer || '' } });
   }
 
@@ -380,7 +380,7 @@ export default function EventDetailScreen() {
                 <View style={{flex:1}}>
                   <TextInput
                     style={{fontSize:16,color:c.text,minHeight:50,textAlignVertical:'top',marginBottom:10,lineHeight:24,paddingTop:4}}
-                    placeholder="Add your thoughts..."
+                    placeholder={tx('Add your thoughts...')}
                     placeholderTextColor={c.placeholder}
                     value={shareMessage}
                     onChangeText={setShareMessage}
@@ -494,7 +494,7 @@ export default function EventDetailScreen() {
                 <View style={{flex:1}}>
                   <TextInput
                     style={{fontSize:16,color:c.text,minHeight:50,textAlignVertical:'top',marginBottom:10,lineHeight:24,paddingTop:4}}
-                    placeholder="Add your thoughts..."
+                    placeholder={tx('Add your thoughts...')}
                     placeholderTextColor={c.placeholder}
                     value={shareMessage}
                     onChangeText={setShareMessage}

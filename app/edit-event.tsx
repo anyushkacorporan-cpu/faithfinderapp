@@ -8,7 +8,7 @@ import { useThemeColors, ThemeColors } from '../src/lib/theme';
 import { getEvents, updateEvent } from '../src/lib/eventsStore';
 
 export default function EditEventScreen() {
-  const { t } = useTranslation();
+  const { t, tx } = useTranslation();
   const c = useThemeColors();
   const s = makeStyles(c);
   const params = useLocalSearchParams<{ id?: string }>();
@@ -40,10 +40,10 @@ export default function EditEventScreen() {
   }
 
   function handleSave() {
-    if (!title.trim()) { Alert.alert('Title required', 'Please enter an event title.'); return; }
+    if (!title.trim()) { Alert.alert(tx('Title required'), tx('Please enter an event title.')); return; }
     const parsedPrice = isPaid ? parseFloat(priceText) : 0;
     if (isPaid && (isNaN(parsedPrice) || parsedPrice < 0)) {
-      Alert.alert('Invalid price', 'Please enter a valid ticket price.');
+      Alert.alert(tx('Invalid price'), tx('Please enter a valid ticket price.'));
       return;
     }
     const platformFee = isPaid ? parseFloat((parsedPrice * 0.015).toFixed(2)) : 0;
@@ -60,7 +60,7 @@ export default function EditEventScreen() {
       platformFee,
       creatorPayout,
     });
-    Alert.alert('Saved', 'Your event has been updated.', [{ text: 'OK', onPress: () => router.back() }]);
+    Alert.alert(tx('Saved'), tx('Your event has been updated.'), [{ text: 'OK', onPress: () => router.back() }]);
   }
 
   return (
@@ -78,23 +78,23 @@ export default function EditEventScreen() {
         <ScrollView contentContainerStyle={s.scroll} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
           <View style={s.fieldWrap}>
             <Text style={s.label}>{t('title')}</Text>
-            <TextInput style={s.input} value={title} onChangeText={setTitle} placeholder="Event title" placeholderTextColor={c.placeholder} />
+            <TextInput style={s.input} value={title} onChangeText={setTitle} placeholder={tx('Event title')} placeholderTextColor={c.placeholder} />
           </View>
 
           <View style={s.row}>
             <View style={[s.fieldWrap, {flex:1, marginRight:8}]}>
               <Text style={s.label}>{t('dateLabel')}</Text>
-              <TextInput style={s.input} value={date} onChangeText={setDate} placeholder="e.g. Jan 15, 2026" placeholderTextColor={c.placeholder} />
+              <TextInput style={s.input} value={date} onChangeText={setDate} placeholder={tx('e.g. Jan 15, 2026')} placeholderTextColor={c.placeholder} />
             </View>
             <View style={[s.fieldWrap, {flex:1}]}>
               <Text style={s.label}>{t('timeLabel')}</Text>
-              <TextInput style={s.input} value={time} onChangeText={setTime} placeholder="e.g. 3:00 PM" placeholderTextColor={c.placeholder} />
+              <TextInput style={s.input} value={time} onChangeText={setTime} placeholder={tx('e.g. 3:00 PM')} placeholderTextColor={c.placeholder} />
             </View>
           </View>
 
           <View style={s.fieldWrap}>
             <Text style={s.label}>{t('description')}</Text>
-            <TextInput style={[s.input, s.multiline]} value={description} onChangeText={setDescription} placeholder="Tell people about your event..." placeholderTextColor={c.placeholder} multiline />
+            <TextInput style={[s.input, s.multiline]} value={description} onChangeText={setDescription} placeholder={tx('Tell people about your event...')} placeholderTextColor={c.placeholder} multiline />
           </View>
 
           <View style={s.fieldWrap}>

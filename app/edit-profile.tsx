@@ -13,7 +13,7 @@ import { useTranslation } from '../src/lib/i18n';
 export default function EditProfileScreen() {
   const c = useThemeColors();
   const s = makeStyles(c);
-  const { t } = useTranslation();
+  const { t, tx } = useTranslation();
   const { showToast } = useToast();
   const user = useUser();
   const isChurch = user.accountType === 'church';
@@ -54,21 +54,21 @@ export default function EditProfileScreen() {
 
   async function handlePickProfilePhoto() {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== 'granted') { Alert.alert('Permission needed', 'Please allow access to your photo library.'); return; }
+    if (status !== 'granted') { Alert.alert(tx('Permission needed'), tx('Please allow access to your photo library.')); return; }
     const result = await ImagePicker.launchImageLibraryAsync({ quality: 0.8, allowsEditing: true, aspect: [1,1] });
     if (!result.canceled) setProfilePhoto(result.assets[0].uri);
   }
 
   async function handlePickCoverPhoto() {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== 'granted') { Alert.alert('Permission needed', 'Please allow access to your photo library.'); return; }
+    if (status !== 'granted') { Alert.alert(tx('Permission needed'), tx('Please allow access to your photo library.')); return; }
     const result = await ImagePicker.launchImageLibraryAsync({ quality: 0.8, allowsEditing: true, aspect: [16,9] });
     if (!result.canceled) setCoverPhoto(result.assets[0].uri);
   }
 
   async function handleAddGalleryPhoto() {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== 'granted') { Alert.alert('Permission needed', 'Please allow access to your photo library.'); return; }
+    if (status !== 'granted') { Alert.alert(tx('Permission needed'), tx('Please allow access to your photo library.')); return; }
     const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images, allowsMultipleSelection: true, quality: 0.8 });
     if (!result.canceled) {
       const liveUser = getUser();
@@ -84,7 +84,7 @@ export default function EditProfileScreen() {
 
   async function handlePickPhoto() {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== 'granted') { Alert.alert('Permission needed'); return; }
+    if (status !== 'granted') { Alert.alert(tx('Permission needed')); return; }
     const result = await ImagePicker.launchImageLibraryAsync({ quality: 0.8, allowsEditing: true, aspect: [1,1] });
     if (!result.canceled) setAvatar(result.assets[0].uri);
   }
@@ -95,7 +95,7 @@ export default function EditProfileScreen() {
     } else {
       setUser({ firstName, lastName, bio, location, phone, profilePhoto, coverPhoto, lifeVerse, lifeVerseRef });
     }
-    showToast('Saved!', 'Your profile has been updated.', 'success');
+    showToast(tx('Saved!'), tx('Your profile has been updated.'), 'success');
     router.back();
   }
 
@@ -190,11 +190,11 @@ export default function EditProfileScreen() {
               </View>
               <View style={s.fieldWrap}>
                 <Text style={s.label}>{t('serviceTimes')}</Text>
-                <TextInput style={s.input} value={serviceTimes} onChangeText={setServiceTimes} placeholder="Sunday 9AM & 11AM" placeholderTextColor={c.placeholder} />
+                <TextInput style={s.input} value={serviceTimes} onChangeText={setServiceTimes} placeholder={tx('Sunday 9AM & 11AM')} placeholderTextColor={c.placeholder} />
               </View>
               <View style={s.fieldWrap}>
                 <Text style={s.label}>About / Bio</Text>
-                <TextInput style={[s.input, s.bioInput]} value={bio} onChangeText={setBio} placeholder="Tell the community about your church..." placeholderTextColor={c.placeholder} multiline />
+                <TextInput style={[s.input, s.bioInput]} value={bio} onChangeText={setBio} placeholder={tx('Tell the community about your church...')} placeholderTextColor={c.placeholder} multiline />
               </View>
             </>
           ) : (
@@ -212,7 +212,7 @@ export default function EditProfileScreen() {
               </View>
               <View style={s.fieldWrap}>
                 <Text style={s.label}>{t('bio')}</Text>
-                <TextInput style={[s.input, s.bioInput]} value={bio} onChangeText={setBio} placeholder="Tell the community about yourself..." placeholderTextColor={c.placeholder} multiline />
+                <TextInput style={[s.input, s.bioInput]} value={bio} onChangeText={setBio} placeholder={tx('Tell the community about yourself...')} placeholderTextColor={c.placeholder} multiline />
               </View>
 
               <View style={s.fieldWrap}>

@@ -9,7 +9,7 @@ import { deleteAccount } from '../src/lib/userStore';
 import { useTranslation } from '../src/lib/i18n';
 
 export default function PrivacySettingsScreen() {
-  const { t } = useTranslation();
+  const { t, tx } = useTranslation();
   const c = useThemeColors();
   const s = makeStyles(c);
   const { showConfirm } = useConfirm();
@@ -52,7 +52,7 @@ export default function PrivacySettingsScreen() {
 
         <Text style={s.sectionLabel}>{t('security')}</Text>
         <View style={s.card}>
-          <TouchableOpacity style={s.row} onPress={() => Alert.alert('Coming Soon', 'Two-factor authentication is in development and will be available in a future update.')}>
+          <TouchableOpacity style={s.row} onPress={() => Alert.alert(tx('Coming Soon'), tx('Two-factor authentication is in development and will be available in a future update.'))}>
             <View style={[s.iconWrap, {backgroundColor:c.isDark?'rgba(240,104,138,0.16)':'#fce4ec'}]}>
               <Ionicons name="shield-checkmark-outline" size={20} color={c.red} />
             </View>
@@ -68,11 +68,11 @@ export default function PrivacySettingsScreen() {
         <View style={s.card}>
           <TouchableOpacity style={s.row} onPress={() => {
             showConfirm({
-              title: 'Delete Account',
-              message: 'This permanently deletes your profile and data from this device and signs you out. This cannot be undone.',
+              title: tx('Delete Account'),
+              message: tx('This permanently deletes your profile and data from this device and signs you out. This cannot be undone.'),
               buttons: [
-                { text: 'Cancel', style: 'cancel' },
-                { text: 'Delete Account', style: 'destructive', onPress: async () => {
+                { text: t('cancel'), style: 'cancel' },
+                { text: tx('Delete Account'), style: 'destructive', onPress: async () => {
                   await deleteAccount();
                   router.replace('/login');
                 } },
@@ -83,7 +83,7 @@ export default function PrivacySettingsScreen() {
               <Ionicons name="trash-outline" size={18} color={c.red} />
             </View>
             <View style={s.rowInfo}>
-              <Text style={[s.rowLabel,{color:c.red}]}>Delete Account</Text>
+              <Text style={[s.rowLabel,{color:c.red}]}>{tx('Delete Account')}</Text>
               <Text style={s.rowDesc}>{t('deleteAccountDesc')}</Text>
             </View>
             <Ionicons name="chevron-forward" size={16} color={c.placeholder} />

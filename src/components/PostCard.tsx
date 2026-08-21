@@ -7,6 +7,7 @@ import { useThemeColors, ThemeColors } from '../lib/theme';
 import { Post, formatRelativeTime } from '../lib/postsStore';
 import { translateText, detectLanguage } from '../lib/translate';
 import { useSettings } from '../lib/settingsStore';
+import { useTranslation } from '../lib/i18n';
 
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -90,6 +91,7 @@ export function PostCard({post,showLocation,onLike,onComment,onShare,onOpenProfi
 }) {
   const c = useThemeColors();
   const p = makeStyles(c);
+  const { t } = useTranslation();
   return (
     <View style={p.card}>
       <View style={p.authorRow}>
@@ -104,7 +106,7 @@ export function PostCard({post,showLocation,onLike,onComment,onShare,onOpenProfi
         <View style={{flex:1}}>
           <TouchableOpacity onPress={onOpenProfile} style={{flexDirection:'row',alignItems:'center',gap:6,flexWrap:'wrap'}}>
             <Text style={p.authorName}>{post.authorName}</Text>
-            {post.authorType==='church'&&<View style={p.churchBadge}><Text style={p.churchBadgeTxt}>Church</Text></View>}
+            {post.authorType==='church'&&<View style={p.churchBadge}><Text style={p.churchBadgeTxt}>{t('church')}</Text></View>}
           </TouchableOpacity>
           <View style={{flexDirection:'row',alignItems:'center',gap:4,flexWrap:'wrap'}}>
             {showLocation&&!!post.city&&(

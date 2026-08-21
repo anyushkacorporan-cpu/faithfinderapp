@@ -7,7 +7,7 @@ import Logo from '../src/components/Logo';
 import { useTranslation } from '../src/lib/i18n';
 
 export default function AboutScreen() {
-  const { t } = useTranslation();
+  const { t, tx } = useTranslation();
   const c = useThemeColors();
   const s = makeStyles(c);
   return (
@@ -40,7 +40,7 @@ export default function AboutScreen() {
               <View style={[s.iconWrap, {backgroundColor:item.color+'22'}]}>
                 <Ionicons name={item.icon as any} size={20} color={item.color} />
               </View>
-              <Text style={s.rowLabel}>{item.label}</Text>
+              <Text style={s.rowLabel}>{tx(item.label)}</Text>
               <Ionicons name="chevron-forward" size={16} color={c.placeholder} />
             </TouchableOpacity>
           ))}

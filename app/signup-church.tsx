@@ -10,7 +10,7 @@ import { setUser } from '../src/lib/userStore';
 const DENOMINATIONS = ['Non-Denominational','Catholic','Baptist','Methodist','Lutheran','Presbyterian','Episcopal','Pentecostal','Assemblies of God','Evangelical','Reformed','AME','Other'];
 
 export default function SignupChurchScreen() {
-  const { t } = useTranslation();
+  const { t, tx } = useTranslation();
   const [step, setStep] = useState(1);
   const [churchName, setChurchName] = useState('');
   const [email, setEmail] = useState('');
@@ -138,7 +138,7 @@ export default function SignupChurchScreen() {
               <View style={s.fieldWrap}>
                 <Text style={s.label}>{t('password')}</Text>
                 <View style={s.pwWrap}>
-                  <TextInput style={[s.input, {paddingRight:48}, errors.password && s.inputErr]} placeholder="Min. 8 characters" placeholderTextColor={COLORS.placeholder} value={password} onChangeText={v => { setPassword(v); setErrors(e => ({...e, password:''})); }} secureTextEntry={!showPw} />
+                  <TextInput style={[s.input, {paddingRight:48}, errors.password && s.inputErr]} placeholder={tx('Min. 8 characters')} placeholderTextColor={COLORS.placeholder} value={password} onChangeText={v => { setPassword(v); setErrors(e => ({...e, password:''})); }} secureTextEntry={!showPw} />
                   <TouchableOpacity style={s.eyeBtn} onPress={() => setShowPw(!showPw)}>
                     <Ionicons name={showPw ? 'eye-off-outline' : 'eye-outline'} size={20} color="#bbb" />
                   </TouchableOpacity>
@@ -156,7 +156,7 @@ export default function SignupChurchScreen() {
               <View style={s.fieldWrap}>
                 <Text style={s.label}>{t('confirmPassword')}</Text>
                 <View style={s.pwWrap}>
-                  <TextInput style={[s.input, {paddingRight:48}, errors.confirm && s.inputErr]} placeholder="Re-enter password" placeholderTextColor={COLORS.placeholder} value={confirm} onChangeText={v => { setConfirm(v); setErrors(e => ({...e, confirm:''})); }} secureTextEntry={!showConfirm} />
+                  <TextInput style={[s.input, {paddingRight:48}, errors.confirm && s.inputErr]} placeholder={tx('Re-enter password')} placeholderTextColor={COLORS.placeholder} value={confirm} onChangeText={v => { setConfirm(v); setErrors(e => ({...e, confirm:''})); }} secureTextEntry={!showConfirm} />
                   <TouchableOpacity style={s.eyeBtn} onPress={() => setShowConfirm(!showConfirm)}>
                     <Ionicons name={showConfirm ? 'eye-off-outline' : 'eye-outline'} size={20} color="#bbb" />
                   </TouchableOpacity>
@@ -193,7 +193,7 @@ export default function SignupChurchScreen() {
                 <Text style={s.label}>{t('serviceTimes')} <Text style={s.optional}>(optional)</Text></Text>
                 <View style={s.inputIconWrap}>
                   <Ionicons name="time-outline" size={18} color="#bbb" style={s.inputIcon} />
-                  <TextInput style={[s.input, s.inputWithIcon]} placeholder="Sunday 9AM & 11AM" placeholderTextColor={COLORS.placeholder} value={serviceTimes} onChangeText={setServiceTimes} />
+                  <TextInput style={[s.input, s.inputWithIcon]} placeholder={tx('Sunday 9AM & 11AM')} placeholderTextColor={COLORS.placeholder} value={serviceTimes} onChangeText={setServiceTimes} />
                 </View>
               </View>
               <View style={s.fieldWrap}>

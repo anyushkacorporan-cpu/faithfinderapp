@@ -12,7 +12,7 @@ import { addAttending } from '../src/lib/eventActionsStore';
 import { addTicket } from '../src/lib/ticketStore';
 
 export default function EventCheckoutScreen() {
-  const { t } = useTranslation();
+  const { t, tx } = useTranslation();
   const c = useThemeColors();
   const s = makeStyles(c);
   const params = useLocalSearchParams<{
@@ -137,7 +137,7 @@ export default function EventCheckoutScreen() {
             <Text style={s.sectionTitle}>{t('contactEmail')}</Text>
             <TextInput
               style={[s.input, emailError ? {borderColor:c.red} : {}]}
-              placeholder="Enter your email address"
+              placeholder={tx('Enter your email address')}
               placeholderTextColor={c.placeholder}
               keyboardType="email-address"
               autoCapitalize="none"

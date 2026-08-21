@@ -31,7 +31,7 @@ export default function CommunityScreen() {
   const allPosts = usePosts();
   const { showToast } = useToast();
   const appSettings = useSettings();
-  const { t } = useTranslation();
+  const { t, tx } = useTranslation();
   const connections = useConnections();
   const user = getUser();
 
@@ -202,7 +202,7 @@ export default function CommunityScreen() {
               </View>
               <TextInput
                 style={s.composeInput}
-                placeholder="What's on your heart?"
+                placeholder={tx('What\'s on your heart?')}
                 placeholderTextColor={c.placeholder}
                 value={newPostText}
                 onChangeText={(t) => {
@@ -302,11 +302,11 @@ export default function CommunityScreen() {
                   const target = menuPost;
                   setMenuPost(null);
                   showConfirm({
-                    title: 'Delete Post',
-                    message: 'Are you sure you want to delete this post? This cannot be undone.',
+                    title: tx('Delete Post'),
+                    message: tx('Are you sure you want to delete this post? This cannot be undone.'),
                     buttons: [
-                      { text: 'Cancel', style: 'cancel' },
-                      { text: 'Delete', style: 'destructive', onPress: () => deletePost(target!.id) },
+                      { text: tx('Cancel'), style: 'cancel' },
+                      { text: tx('Delete'), style: 'destructive', onPress: () => deletePost(target!.id) },
                     ],
                   });
                 }}>
@@ -348,9 +348,9 @@ export default function CommunityScreen() {
                 const target = reportPostTarget;
                 setReportPostTarget(null);
                 reportPost(target!.id, reason.id as any, displayName);
-                showToast('Reported', 'Thank you for letting us know. Our team will review this post.', 'info');
+                showToast(tx('Reported'), tx('Thank you for letting us know. Our team will review this post.'), 'info');
               }}>
-                <Text style={{fontSize:15,color:c.text}}>{reason.label}</Text>
+                <Text style={{fontSize:15,color:c.text}}>{tx(reason.label)}</Text>
               </TouchableOpacity>
             ))}
             <TouchableOpacity style={{flexDirection:'row',alignItems:'center',justifyContent:'center',paddingVertical:16,marginTop:4}} onPress={() => setReportPostTarget(null)}>
@@ -375,7 +375,7 @@ export default function CommunityScreen() {
               }
               setEditingPost(null);
             }}>
-              <Text style={s.postBtnTxt}>Save</Text>
+              <Text style={s.postBtnTxt}>{t('save')}</Text>
             </TouchableOpacity>
           </View>
           <TextInput
@@ -384,7 +384,7 @@ export default function CommunityScreen() {
             autoFocus
             value={editText}
             onChangeText={setEditText}
-            placeholder="What's on your mind?"
+            placeholder={tx('What\'s on your mind?')}
             placeholderTextColor={c.placeholder}
           />
         </SafeAreaView>
@@ -411,7 +411,7 @@ export default function CommunityScreen() {
             <TouchableOpacity style={{flexDirection:'row',alignItems:'center',gap:14,paddingHorizontal:20,paddingVertical:14}} onPress={() => {
               const m = repostTarget?.repostOf?.content || repostTarget?.content || '';
               setRepostTarget(null);
-              setTimeout(() => Share.share({message:m,title:'Check this out on FaithFinder'}).catch(()=>{}), 350);
+              setTimeout(() => Share.share({message:m,title: tx('Check this out on FaithFinder')}).catch(()=>{}), 350);
             }}>
               <View style={{width:44,height:44,borderRadius:14,backgroundColor:c.cardAlt,alignItems:'center',justifyContent:'center'}}>
                 <Ionicons name="arrow-redo-outline" size={22} color={c.text}/>
@@ -462,7 +462,7 @@ export default function CommunityScreen() {
             autoFocus
             value={repostComment}
             onChangeText={setRepostComment}
-            placeholder="Add a comment (optional)"
+            placeholder={tx('Add a comment (optional)')}
             placeholderTextColor={c.placeholder}
           />
           {repostTarget&&(
@@ -530,7 +530,7 @@ export default function CommunityScreen() {
                   <Text style={s.composeAvatarTxt}>{initials}</Text>
                 </View>
                 <View style={{flex:1}}>
-                  <TextInput style={{fontSize:15,color:c.text,minHeight:60,lineHeight:23}} placeholder="Add your thoughts..." placeholderTextColor={c.placeholder} value={shareMessage} onChangeText={setShareMessage} multiline autoFocus/>
+                  <TextInput style={{fontSize:15,color:c.text,minHeight:60,lineHeight:23}} placeholder={tx('Add your thoughts...')} placeholderTextColor={c.placeholder} value={shareMessage} onChangeText={setShareMessage} multiline autoFocus/>
                   {sharePost&&(
                     <View style={s.quotedCard}>
                       <View style={{flexDirection:'row',alignItems:'center',gap:8,marginBottom:6}}>
@@ -553,13 +553,13 @@ export default function CommunityScreen() {
                 {[
                   {label:'Messages',icon:'chatbubble-outline',color:'#2ecc71',bg:'#e8f8f0',fn:()=>{const m=sharePost?.content||'';require('react-native').Linking.openURL('sms:&body='+encodeURIComponent(m)).catch(()=>{});}},
                   {label:'Email',icon:'mail-outline',color:'#3498db',bg:'#eaf4fb',fn:()=>{const m=sharePost?.content||'';require('react-native').Linking.openURL('mailto:?subject=Check this out&body='+encodeURIComponent(m)).catch(()=>{});}},
-                  {label:'More',icon:'share-social-outline',color:'#9b59b6',bg:'#f5eefb',fn:()=>{const p=sharePost;setSharePost(null);setTimeout(()=>Share.share({message:p?.content||'',title:'Check this out on FaithFinder'}).catch(()=>{}),800);}},
+                  {label:'More',icon:'share-social-outline',color:'#9b59b6',bg:'#f5eefb',fn:()=>{const p=sharePost;setSharePost(null);setTimeout(()=>Share.share({message:p?.content||'',title: tx('Check this out on FaithFinder')}).catch(()=>{}),800);}},
                 ].map(o=>(
                   <TouchableOpacity key={o.label} style={{alignItems:'center',gap:8}} onPress={o.fn}>
                     <View style={{width:54,height:54,borderRadius:16,backgroundColor:o.bg,alignItems:'center',justifyContent:'center'}}>
                       <Ionicons name={o.icon as any} size={22} color={o.color}/>
                     </View>
-                    <Text style={{fontSize:12,color:c.text,fontWeight:'600'}}>{o.label}</Text>
+                    <Text style={{fontSize:12,color:c.text,fontWeight:'600'}}>{tx(o.label)}</Text>
                   </TouchableOpacity>
                 ))}
               </View>

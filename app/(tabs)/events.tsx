@@ -55,7 +55,7 @@ export default function EventsScreen() {
   const c = useThemeColors();
   const s = makeStyles(c);
   const appSettings = useSettings();
-  const { t } = useTranslation();
+  const { t, tx } = useTranslation();
   const [activeTab, setActiveTab] = useState('List');
   const [search, setSearch] = useState('');
   const [showFilter, setShowFilter] = useState(false);
@@ -184,7 +184,7 @@ export default function EventsScreen() {
           <Ionicons name="search-outline" size={17} color={c.gold} />
           <TextInput
             style={s.searchInput}
-            placeholder="Search by name, city, state, venue..."
+            placeholder={tx('Search by name, city, state, venue...')}
             placeholderTextColor={c.placeholder}
             value={search}
             onChangeText={setSearch}
@@ -256,13 +256,13 @@ export default function EventsScreen() {
                   {event.bannerImage ? (
                     <ImageBackground source={{uri: event.bannerImage}} style={s.cardBanner} resizeMode="cover">
                     <View style={{position:'absolute',top:12,right:12,backgroundColor:c.green,borderRadius:6,paddingHorizontal:10,paddingVertical:4}}>
-                      <Text style={{color:'#fff',fontSize:11,fontWeight:'700',letterSpacing:0.5}}>NEARBY</Text>
+                      <Text style={{color:'#fff',fontSize:11,fontWeight:'700',letterSpacing:0.5}}>{t('nearbyBadge')}</Text>
                     </View>
                     </ImageBackground>
                   ) : (
                     <LinearGradient colors={gradient} style={s.cardBanner} start={{x:0,y:0}} end={{x:1,y:1}}>
                     <View style={{position:'absolute',top:12,right:12,backgroundColor:c.green,borderRadius:6,paddingHorizontal:10,paddingVertical:4}}>
-                      <Text style={{color:'#fff',fontSize:11,fontWeight:'700',letterSpacing:0.5}}>NEARBY</Text>
+                      <Text style={{color:'#fff',fontSize:11,fontWeight:'700',letterSpacing:0.5}}>{t('nearbyBadge')}</Text>
                     </View>
                     </LinearGradient>
                   )}
@@ -360,7 +360,7 @@ export default function EventsScreen() {
                 <ImageBackground source={{uri: event.bannerImage}} style={s.cardBanner} resizeMode="cover">
                 {nearbyEvents.some((ne) => ne.id === event.id) && (
                 <View style={{position:'absolute',top:12,right:12,backgroundColor:c.green,borderRadius:6,paddingHorizontal:10,paddingVertical:4}}>
-                    <Text style={{color:'#fff',fontSize:11,fontWeight:'700',letterSpacing:0.5}}>NEARBY</Text>
+                    <Text style={{color:'#fff',fontSize:11,fontWeight:'700',letterSpacing:0.5}}>{t('nearbyBadge')}</Text>
                   </View>
                 )}
                 </ImageBackground>
@@ -368,7 +368,7 @@ export default function EventsScreen() {
                 <LinearGradient colors={gradient} style={s.cardBanner} start={{x:0,y:0}} end={{x:1,y:1}}>
                 {nearbyEvents.some((ne) => ne.id === event.id) && (
                 <View style={{position:'absolute',top:12,right:12,backgroundColor:c.green,borderRadius:6,paddingHorizontal:10,paddingVertical:4}}>
-                    <Text style={{color:'#fff',fontSize:11,fontWeight:'700',letterSpacing:0.5}}>NEARBY</Text>
+                    <Text style={{color:'#fff',fontSize:11,fontWeight:'700',letterSpacing:0.5}}>{t('nearbyBadge')}</Text>
                   </View>
                 )}
                 </LinearGradient>
@@ -484,7 +484,7 @@ export default function EventsScreen() {
                 <View style={s.composerRight}>
                   <TextInput
                     style={s.composerInput}
-                    placeholder="Add your thoughts about this event..."
+                    placeholder={tx('Add your thoughts about this event...')}
                     placeholderTextColor={c.placeholder}
                     value={shareMessage}
                     onChangeText={setShareMessage}
@@ -598,7 +598,7 @@ export default function EventsScreen() {
                       onPress={() => toggleFilter(opt.id)}
                     >
                       {activeFilters.includes(opt.id) && <Ionicons name="checkmark" size={13} color={c.onPrimary} />}
-                      <Text style={[s.filterPillTxt, activeFilters.includes(opt.id) && s.filterPillTxtActive]}>{opt.label}</Text>
+                      <Text style={[s.filterPillTxt, activeFilters.includes(opt.id) && s.filterPillTxtActive]}>{tx(opt.label)}</Text>
                     </TouchableOpacity>
                   ))}
                 </View>
@@ -629,7 +629,7 @@ export default function EventsScreen() {
           <View style={{paddingHorizontal:16,paddingVertical:12}}>
             <TextInput
               style={{borderWidth:1.5,borderColor:c.border,borderRadius:12,paddingHorizontal:14,paddingVertical:10,fontSize:14,color:c.text,marginBottom:12}}
-              placeholder="Filter by city..."
+              placeholder={tx('Filter by city...')}
               placeholderTextColor={c.placeholder}
               value={filterCity}
               onChangeText={setFilterCity}

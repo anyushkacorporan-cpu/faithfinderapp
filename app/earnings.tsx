@@ -20,7 +20,7 @@ const WITHDRAWAL_HISTORY = [
 export default function EarningsScreen() {
   const c = useThemeColors();
   const s = makeStyles(c);
-  const { t } = useTranslation();
+  const { t, tx } = useTranslation();
   const events = useUserEvents();
   const earnings = getEarnings();
   const [activeTab, setActiveTab] = useState('Overview');
@@ -32,7 +32,7 @@ export default function EarningsScreen() {
   const paidEvents = events.filter(e => e.isPaid);
 
   function handleWithdraw() {
-    if (earnings.pendingPayout <= 0) { Alert.alert('No Balance', 'You have no available balance to withdraw.'); return; }
+    if (earnings.pendingPayout <= 0) { Alert.alert(tx('No Balance'), tx('You have no available balance to withdraw.')); return; }
     Alert.alert("Bank Account Required", "Withdrawals require a connected payout account, which is not set up yet. Connect your bank account in Payout Settings to enable real withdrawals.");
   }
 
@@ -213,7 +213,7 @@ export default function EarningsScreen() {
                 <View style={s.stripeBadge}><Text style={s.stripeBadgeTxt}>{t('recommended')}</Text></View>
               </View>
               <Text style={s.stripeConnectDesc}>Connect your Stripe account to receive automatic payouts within 2-3 business days after each event.</Text>
-              <TouchableOpacity style={s.stripeConnectBtn} onPress={() => Alert.alert('Connect Stripe', 'You will be redirected to Stripe to connect your account.')}>
+              <TouchableOpacity style={s.stripeConnectBtn} onPress={() => Alert.alert(tx('Connect Stripe'), tx('You will be redirected to Stripe to connect your account.'))}>
                 <Ionicons name="link-outline" size={16} color={c.onPrimary} />
                 <Text style={s.stripeConnectBtnTxt}>{t('connectStripe')}</Text>
               </TouchableOpacity>

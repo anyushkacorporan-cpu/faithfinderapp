@@ -67,7 +67,7 @@ export default function ChurchesScreen() {
   const c = useThemeColors();
   const s = makeStyles(c);
   const appSettings = useSettings();
-  const { t } = useTranslation();
+  const { t, tx } = useTranslation();
   const [search, setSearch] = useState('');
   const [activeTab, setActiveTab] = useState('List');
   const [filterVisible, setFilterVisible] = useState(false);
@@ -257,7 +257,7 @@ export default function ChurchesScreen() {
             <Ionicons name="search-outline" size={18} color={c.gold} />
             <TextInput
               style={s.searchInput}
-              placeholder="Search city, state, zip, denomination..."
+              placeholder={tx('Search city, state, zip, denomination...')}
               placeholderTextColor={c.placeholder}
               value={search}
               onChangeText={setSearch}

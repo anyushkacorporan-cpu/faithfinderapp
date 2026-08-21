@@ -6,12 +6,12 @@ import { useTranslation } from '../src/lib/i18n';
 import { useToast } from '../src/components/Toast';
 
 export default function ForgotScreen() {
-  const { t } = useTranslation();
+  const { t, tx } = useTranslation();
   const [email, setEmail] = useState('');
   const { showToast } = useToast();
   function handleReset() {
-    if (!email.includes('@')) { showToast('Invalid Email', 'Please enter a valid email address.', 'error'); return; }
-    showToast('Email Sent!', 'Check your inbox for your password reset link.', 'success');
+    if (!email.includes('@')) { showToast(tx('Invalid Email'), tx('Please enter a valid email address.'), 'error'); return; }
+    showToast(tx('Email Sent!'), tx('Check your inbox for your password reset link.'), 'success');
     router.back();
   }
   return (

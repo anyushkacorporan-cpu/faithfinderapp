@@ -7,7 +7,7 @@ import { useThemeColors, ThemeColors } from '../src/lib/theme';
 import { useTranslation } from '../src/lib/i18n';
 
 export default function AppearanceSettingsScreen() {
-  const { t } = useTranslation();
+  const { t, tx } = useTranslation();
   const c = useThemeColors();
   const s = makeStyles(c);
   const appSettings = useSettings();
@@ -24,7 +24,7 @@ export default function AppearanceSettingsScreen() {
       </View>
       <ScrollView contentContainerStyle={s.scroll}>
 
-        <Text style={s.sectionLabel}>Theme</Text>
+        <Text style={s.sectionLabel}>{tx('Theme')}</Text>
         <View style={s.card}>
           {[
             {id:'light', label:'Light', icon:'sunny-outline', color:'#f39c12'},
@@ -35,13 +35,13 @@ export default function AppearanceSettingsScreen() {
               <View style={[s.iconWrap, {backgroundColor: item.color+'22'}]}>
                 <Ionicons name={item.icon as any} size={20} color={item.color} />
               </View>
-              <Text style={s.rowLabel}>{item.label}</Text>
+              <Text style={s.rowLabel}>{tx(item.label)}</Text>
               {theme===item.id && <Ionicons name="checkmark-circle" size={22} color={c.gold} />}
             </TouchableOpacity>
           ))}
         </View>
 
-        <Text style={s.sectionLabel}>Language</Text>
+        <Text style={s.sectionLabel}>{t('language')}</Text>
         <View style={s.card}>
           {['English','Español'].map((lang,i,arr) => (
             <TouchableOpacity key={lang} style={[s.row, i<arr.length-1&&s.rowBorder]} onPress={() => updateAppearancePrefs({language: lang})}>

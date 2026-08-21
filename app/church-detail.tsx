@@ -73,7 +73,7 @@ export default function ChurchDetailScreen() {
   const params = useLocalSearchParams<{ id:string; placeId?:string; name?:string; address?:string; phone?:string; rating?:string; count?:string; website?:string; }>();
   const staticChurch = CHURCHES.find(c => c.id === params.id);
   const appSettings = useSettings();
-  const { t } = useTranslation();
+  const { t, tx } = useTranslation();
   const [details, setDetails] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [activePhoto, setActivePhoto] = useState(0);
@@ -202,12 +202,12 @@ export default function ChurchDetailScreen() {
   }
 
   function handlePhone() {
-    if (!church.phone) { Alert.alert('No phone number available'); return; }
+    if (!church.phone) { Alert.alert(tx('No phone number available')); return; }
     Linking.openURL(`tel:${church.phone.replace(/\D/g, '')}`);
   }
 
   function handleWebsite() {
-    if (!church.website) { Alert.alert('No website available'); return; }
+    if (!church.website) { Alert.alert(tx('No website available')); return; }
     let url = church.website;
     if (!url.startsWith('http')) url = 'https://' + url;
     Linking.openURL(url);
@@ -533,7 +533,7 @@ export default function ChurchDetailScreen() {
               <View style={s.composerRight}>
                 <TextInput
                   style={s.composerInput}
-                  placeholder="Add your thoughts..."
+                  placeholder={tx('Add your thoughts...')}
                   placeholderTextColor={c.placeholder}
                   value={shareMessage}
                   onChangeText={setShareMessage}
@@ -600,7 +600,7 @@ export default function ChurchDetailScreen() {
                   <View style={[s.externalOptionIcon, { backgroundColor: opt.color + '18' }]}>
                     <Ionicons name={opt.icon as any} size={22} color={opt.color} />
                   </View>
-                  <Text style={s.externalOptionLabel}>{opt.label}</Text>
+                  <Text style={s.externalOptionLabel}>{tx(opt.label)}</Text>
                 </TouchableOpacity>
               ))}
             </View>
@@ -630,7 +630,7 @@ export default function ChurchDetailScreen() {
             ))}
           </ScrollView>
           <View style={s.commentInputRow}>
-            <TextInput style={s.commentInput} placeholder="Write a comment..." placeholderTextColor={c.placeholder} value={commentText} onChangeText={setCommentText}/>
+            <TextInput style={s.commentInput} placeholder={tx('Write a comment...')} placeholderTextColor={c.placeholder} value={commentText} onChangeText={setCommentText}/>
             <TouchableOpacity style={s.commentSendBtn} onPress={() => { if(commentModal){addComment(commentModal,'You',commentText);setCommentText('');setCommentModal(null);} }}>
               <Ionicons name="send" size={18} color={c.onPrimary}/>
             </TouchableOpacity>

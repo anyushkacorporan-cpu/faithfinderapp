@@ -78,7 +78,7 @@ export default function CommentsScreen() {
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                   <Text style={s.postAuthorName}>{post.authorName}</Text>
                   {post.authorType === 'church' && (
-                    <View style={s.churchBadge}><Text style={s.churchBadgeTxt}>Church</Text></View>
+                    <View style={s.churchBadge}><Text style={s.churchBadgeTxt}>{t('church')}</Text></View>
                   )}
                 </View>
                 <Text style={s.postMeta}>{post.time}{post.city && post.state ? ` · ${post.city}, ${post.state}` : ''}</Text>

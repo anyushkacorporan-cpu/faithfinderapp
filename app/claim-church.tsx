@@ -24,7 +24,7 @@ async function searchChurchesAPI(query: string) {
 }
 
 export default function ClaimChurchScreen() {
-  const { t } = useTranslation();
+  const { t, tx } = useTranslation();
   const [step, setStep] = useState<'search'|'preview'|'verify'|'submitted'>('search');
   const [search, setSearch] = useState('');
   const [results, setResults] = useState<any[]>([]);
@@ -161,7 +161,7 @@ export default function ClaimChurchScreen() {
               <Ionicons name="search-outline" size={18} color={COLORS.gold} />
               <TextInput
                 style={s.searchInput}
-                placeholder="Search by church name or city..."
+                placeholder={tx('Search by church name or city...')}
                 placeholderTextColor={COLORS.placeholder}
                 value={search}
                 onChangeText={setSearch}
@@ -338,7 +338,7 @@ export default function ClaimChurchScreen() {
                 <Text style={s.label}>{t('additionalNotes')} <Text style={s.optional}>(optional)</Text></Text>
                 <TextInput
                   style={[s.input, {height:80, textAlignVertical:'top', paddingTop:12}]}
-                  placeholder="Any additional information to help verify your claim..."
+                  placeholder={tx('Any additional information to help verify your claim...')}
                   placeholderTextColor={COLORS.placeholder}
                   value={photoNote}
                   onChangeText={setPhotoNote}

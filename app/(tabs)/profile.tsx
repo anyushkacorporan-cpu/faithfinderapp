@@ -39,7 +39,7 @@ export default function ProfileScreen() {
   const s = makeStyles(c);
   const user = useUser();
   const appSettings = useSettings();
-  const { t } = useTranslation();
+  const { t, tx } = useTranslation();
   const [activeTab, setActiveTab] = useState('Posts');
   const allPosts = usePosts();
   const displayName = user.accountType === 'church'
@@ -52,12 +52,12 @@ export default function ProfileScreen() {
 
   function handleDeleteGalleryPhoto(item: { uri: string; post: any }) {
     Alert.alert(
-      'Delete Photo?',
-      'This photo will be removed from your Faith Gallery' + (item.post ? ' and from the Community post it was shared in.' : '.'),
+      tx('Delete Photo?'),
+      tx('This photo will be removed from your Faith Gallery') + (item.post ? ' and from the Community post it was shared in.' : '.'),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: tx('Cancel'), style: 'cancel' },
         {
-          text: 'Delete',
+          text: tx('Delete'),
           style: 'destructive',
           onPress: () => {
             if (item.post) {
@@ -89,7 +89,7 @@ export default function ProfileScreen() {
   async function handleAddPhoto() {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
-      Alert.alert('Permission needed', 'Please allow access to your photo library.');
+      Alert.alert(tx('Permission needed'), tx('Please allow access to your photo library.'));
       return;
     }
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -106,7 +106,7 @@ export default function ProfileScreen() {
   async function handleTakePhoto() {
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
     if (status !== 'granted') {
-      Alert.alert('Permission needed', 'Please allow camera access.');
+      Alert.alert(tx('Permission needed'), tx('Please allow camera access.'));
       return;
     }
     const result = await ImagePicker.launchCameraAsync({ quality: 0.8 });
@@ -116,10 +116,10 @@ export default function ProfileScreen() {
   }
 
   function handleAddPhotoOptions() {
-    Alert.alert('Add Photo', 'Choose a photo source', [
-      { text: 'Camera', onPress: handleTakePhoto },
-      { text: 'Photo Library', onPress: handleAddPhoto },
-      { text: 'Cancel', style: 'cancel' },
+    Alert.alert(tx('Add Photo'), tx('Choose a photo source'), [
+      { text: tx('Camera'), onPress: handleTakePhoto },
+      { text: tx('Photo Library'), onPress: handleAddPhoto },
+      { text: tx('Cancel'), style: 'cancel' },
     ]);
   }
 
@@ -128,24 +128,24 @@ export default function ProfileScreen() {
   }
 
   function handlePhone() {
-    if (!user.phone) { Alert.alert('No phone number set', 'Edit your profile to add a phone number.'); return; }
+    if (!user.phone) { Alert.alert(tx('No phone number set'), tx('Edit your profile to add a phone number.')); return; }
     Linking.openURL(`tel:${user.phone.replace(/\D/g,'')}`);
   }
 
   function handleWebsite() {
-    if (!user.website) { Alert.alert('No website set', 'Edit your profile to add a website.'); return; }
+    if (!user.website) { Alert.alert(tx('No website set'), tx('Edit your profile to add a website.')); return; }
     let url = user.website;
     if (!url.startsWith('http')) url = 'https://' + url;
     Linking.openURL(url);
   }
 
   function handleEmail() {
-    if (!user.churchEmail) { Alert.alert('No email set', 'Edit your profile to add an email.'); return; }
+    if (!user.churchEmail) { Alert.alert(tx('No email set'), tx('Edit your profile to add an email.')); return; }
     Linking.openURL(`mailto:${user.churchEmail}`);
   }
 
   function handleDirections() {
-    if (!user.address) { Alert.alert('No address set', 'Edit your profile to add an address.'); return; }
+    if (!user.address) { Alert.alert(tx('No address set'), tx('Edit your profile to add an address.')); return; }
     const q = encodeURIComponent(user.address);
     Linking.openURL(`maps://?q=${q}`).catch(() => Linking.openURL(`https://maps.google.com/?q=${q}`));
   }
@@ -360,7 +360,7 @@ export default function ProfileScreen() {
                   {AMENITY_LIST.filter(item => !!user.amenities?.[item.key]).map(item => (
                     <View key={`amenity-${item.key}`} style={s.chip}>
                       <Ionicons name={item.icon as any} size={14} color={c.text} />
-                      <Text style={s.chipTxt}>{item.label}</Text>
+                      <Text style={s.chipTxt}>{tx(item.label)}</Text>
                     </View>
                   ))}
                 </View>
@@ -438,7 +438,7 @@ export default function ProfileScreen() {
                 <View style={{width:1,height:12,backgroundColor:c.border}} />
                 <View style={{flexDirection:'row',alignItems:'center',gap:4}}>
                   <Ionicons name="lock-closed" size={13} color={c.gold} />
-                  <Text style={{fontSize:13,color:c.gold,fontWeight:'600'}}>Private</Text>
+                  <Text style={{fontSize:13,color:c.gold,fontWeight:'600'}}>{tx('Private')}</Text>
                 </View>
               </>
             )}
