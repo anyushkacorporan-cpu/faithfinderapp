@@ -162,7 +162,7 @@ export default function CommunityScreen() {
 
   function openProfile(post: Post) {
     router.push({
-      pathname: '/user-profile' as any,
+      pathname: '/user-profile',
       params: { authorId: post.authorId || '', name: post.authorName, initials: post.authorInitials, color: post.authorColor, type: post.authorType, city: post.city || '', state: post.state || '', photo: post.authorPhoto || '' }
     });
   }
@@ -213,7 +213,7 @@ export default function CommunityScreen() {
           <PostCard key={post.id} post={post} showLocation={!!(post.city && post.state)}
             isOwnPost={isAuthoredBy(post, user.id, displayName)}
             onLike={() => toggleLike(post.id)}
-            onComment={() => router.push({ pathname: '/comments' as any, params: { postId: post.id } })}
+            onComment={() => router.push({ pathname: '/comments', params: { postId: post.id } })}
             onShare={() => { setRepostTarget(post); setRepostComment(''); setShowRepostCompose(false); }}
             onOpenProfile={() => openProfile(post)}
             onMenu={() => setMenuPost(post)}

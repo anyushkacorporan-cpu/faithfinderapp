@@ -74,7 +74,7 @@ export default function LoginScreen() {
             </TouchableOpacity>
             <View style={s.termsWrap}>
               <Text style={s.termsTxt}>{t('agreeSignIn')}</Text>
-              <TouchableOpacity onPress={() => router.push('/privacy' as any)}><Text style={s.termsLink}>{t('privacyPolicy')}</Text></TouchableOpacity>
+              <TouchableOpacity onPress={() => router.push('/privacy')}><Text style={s.termsLink}>{t('privacyPolicy')}</Text></TouchableOpacity>
             </View>
           </View>
         </ScrollView>

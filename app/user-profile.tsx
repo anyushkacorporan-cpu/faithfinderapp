@@ -39,7 +39,7 @@ export default function OtherUserProfileScreen() {
 
   useEffect(() => {
     if (isSelf) {
-      router.replace('/profile' as any);
+      router.replace('/profile');
     }
   }, [isSelf]);
   const connectionCount = useConnectionCount();
@@ -92,7 +92,7 @@ export default function OtherUserProfileScreen() {
           )}
 
           {isSelf && (
-            <TouchableOpacity style={{flexDirection:'row',alignItems:'center',gap:5,marginTop:10}} onPress={() => router.push('/connections' as any)}>
+            <TouchableOpacity style={{flexDirection:'row',alignItems:'center',gap:5,marginTop:10}} onPress={() => router.push('/connections')}>
               <Ionicons name="people-outline" size={14} color={c.textMuted} />
               <Text style={{fontSize:13,color:c.textMuted}}>{connectionCount} Connections</Text>
             </TouchableOpacity>
@@ -170,7 +170,7 @@ export default function OtherUserProfileScreen() {
                 <TouchableOpacity
                   key={`${church.id}-${i}`}
                   style={{flexDirection:'row',alignItems:'center',gap:10,paddingVertical:10,borderBottomWidth:i<churchesShared.length-1?1:0,borderBottomColor:c.cardAlt}}
-                  onPress={() => router.push({ pathname: '/church-detail' as any, params: { placeId: church.id } })}
+                  onPress={() => router.push({ pathname: '/church-detail', params: { placeId: church.id } })}
                 >
                   <View style={{width:36,height:36,borderRadius:10,backgroundColor:c.cardAlt,alignItems:'center',justifyContent:'center'}}>
                     <Ionicons name="business" size={16} color={c.text} />
@@ -219,7 +219,7 @@ export default function OtherUserProfileScreen() {
                           </TouchableOpacity>
                           <TouchableOpacity
                             style={{flexDirection:'row',alignItems:'center',gap:6}}
-                            onPress={() => { setPhotoViewerVisible(false); router.push({ pathname: '/comments' as any, params: { postId: item.post!.id } }); }}
+                            onPress={() => { setPhotoViewerVisible(false); router.push({ pathname: '/comments', params: { postId: item.post!.id } }); }}
                           >
                             <Ionicons name="chatbubble-outline" size={18} color="#fff" />
                             <Text style={{color:'#fff',fontSize:13,fontWeight:'600'}}>{item.post.comments.length}</Text>
@@ -255,7 +255,7 @@ export default function OtherUserProfileScreen() {
                 post={post}
                 showLocation={true}
                 onLike={() => {}}
-                onComment={() => router.push({ pathname: '/comments' as any, params: { postId: post.id } })}
+                onComment={() => router.push({ pathname: '/comments', params: { postId: post.id } })}
                 onShare={() => {}}
                 onOpenProfile={() => {}}
               />

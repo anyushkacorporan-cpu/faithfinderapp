@@ -176,7 +176,7 @@ function CommentRow({ comment, postId, onReply, onLike, onReplyLike }: {
     <View style={cs.wrap}>
       {/* Comment */}
       <View style={cs.row}>
-        <TouchableOpacity onPress={() => router.push({pathname:'/user-profile' as any, params:{id:comment.id,name:comment.author,initials:comment.initials,color:comment.color,type:'user',city:comment.city||'',state:comment.state||'',photo:(comment as any).authorPhoto||''}})}>
+        <TouchableOpacity onPress={() => router.push({pathname:'/user-profile', params:{name:comment.author,initials:comment.initials,color:comment.color,type:'user',city:comment.city||'',state:comment.state||'',photo:(comment as any).authorPhoto||''}})}>
           <View style={[cs.avatar, { backgroundColor: comment.color }]}>
             <Text style={cs.avatarTxt}>{comment.initials}</Text>
           </View>
@@ -211,7 +211,7 @@ function CommentRow({ comment, postId, onReply, onLike, onReplyLike }: {
       {/* Replies */}
       {showReplies && comment.replies.map(reply => (
         <View key={reply.id} style={cs.replyWrap}>
-          <TouchableOpacity onPress={() => router.push({pathname:'/user-profile' as any, params:{id:reply.id,name:reply.author,initials:reply.initials,color:reply.color,type:'user',city:reply.city||'',state:reply.state||'',photo:(reply as any).authorPhoto||''}})}>
+          <TouchableOpacity onPress={() => router.push({pathname:'/user-profile', params:{name:reply.author,initials:reply.initials,color:reply.color,type:'user',city:reply.city||'',state:reply.state||'',photo:(reply as any).authorPhoto||''}})}>
             <View style={[cs.replyAvatar, { backgroundColor: reply.color }]}>
               <Text style={cs.replyAvatarTxt}>{reply.initials}</Text>
             </View>

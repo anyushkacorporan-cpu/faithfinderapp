@@ -131,7 +131,7 @@ export default function MyEventsScreen() {
                     <Text style={s.publishBtnTxt}>{t('publish')}</Text>
                   </TouchableOpacity>
                 )}
-                <TouchableOpacity style={s.editBtn} onPress={() => router.push({ pathname: '/edit-event' as any, params: { id: event.id } })}>
+                <TouchableOpacity style={s.editBtn} onPress={() => router.push({ pathname: '/edit-event', params: { id: event.id } })}>
                   <Ionicons name="create-outline" size={16} color={c.text} />
                   <Text style={s.editBtnTxt}>{t('edit')}</Text>
                 </TouchableOpacity>

@@ -53,7 +53,7 @@ export default function ConnectionsScreen() {
           <View style={s.section}>
             <Text style={s.sectionTitle}>{t('churches')} ({churches.length})</Text>
             {churches.map(c => (
-              <TouchableOpacity key={c.id} style={s.row} onPress={() => router.push({ pathname: '/profile' as any, params: { id: c.id, name: c.name, initials: c.initials, color: c.color, type: c.type } })}>
+              <TouchableOpacity key={c.id} style={s.row} onPress={() => router.push({ pathname: '/profile', params: { id: c.id, name: c.name, initials: c.initials, color: c.color, type: c.type } })}>
                 <View style={[s.avatar, { backgroundColor: c.color }]}>
                   <Text style={s.avatarTxt}>{c.initials}</Text>
                 </View>
@@ -73,7 +73,7 @@ export default function ConnectionsScreen() {
           <View style={s.section}>
             <Text style={s.sectionTitle}>{t('people')} ({people.length})</Text>
             {people.map(c => (
-              <TouchableOpacity key={c.id} style={s.row} onPress={() => router.push({ pathname: '/profile' as any, params: { id: c.id, name: c.name, initials: c.initials, color: c.color, type: c.type } })}>
+              <TouchableOpacity key={c.id} style={s.row} onPress={() => router.push({ pathname: '/profile', params: { id: c.id, name: c.name, initials: c.initials, color: c.color, type: c.type } })}>
                 <View style={[s.avatar, { backgroundColor: c.color }]}>
                   <Text style={s.avatarTxt}>{c.initials}</Text>
                 </View>

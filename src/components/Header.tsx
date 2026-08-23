@@ -28,7 +28,7 @@ export function HeaderIcons({ compact = false, overlay = false }: { compact?: bo
   return (
     <>
       <View style={s.icons}>
-        <TouchableOpacity style={[s.iconBtn, compact && s.iconBtnCompact, overlay && s.iconBtnOverlay]} onPress={() => router.push('/notifications' as any)}>
+        <TouchableOpacity style={[s.iconBtn, compact && s.iconBtnCompact, overlay && s.iconBtnOverlay]} onPress={() => router.push('/notifications')}>
           <Ionicons name="notifications-outline" size={compact ? 19 : 22} color={overlay ? '#fff' : c.text} />
           {unread > 0 && (
             <View style={s.badge}><Text style={s.badgeTxt}>{unread > 9 ? '9+' : unread}</Text></View>

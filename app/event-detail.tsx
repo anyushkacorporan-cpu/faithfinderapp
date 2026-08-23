@@ -139,7 +139,7 @@ export default function EventDetailScreen() {
 
   function handleGetTicket() {
     if (attending) { Alert.alert(tx('Already Attending'), "You already have a ticket for this event!"); return; }
-    router.push({ pathname: '/event-checkout' as any, params: { id: params.id, title: (fullEvent?.title || params.title), date: (fullEvent?.date || params.date), location: (fullEvent?.location || params.location), price: (fullEvent?.price || params.price), type: (fullEvent?.type || params.type), organizer: params.organizer || '' } });
+    router.push({ pathname: '/event-checkout', params: { id: params.id, title: (fullEvent?.title || params.title), date: (fullEvent?.date || params.date), location: (fullEvent?.location || params.location), price: (fullEvent?.price || params.price), type: (fullEvent?.type || params.type), organizer: params.organizer || '' } });
   }
 
   function handleDirections() {

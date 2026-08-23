@@ -16,8 +16,8 @@ export default function HelpSupportScreen() {
     { icon:'bug-outline', color:c.red, labelKey:'reportBug', action: () => Linking.openURL('mailto:bugs@faithfinderapp.com?subject=Bug Report') },
     { icon:'star-outline', color:'#f39c12', labelKey:'rateApp', action: () => Alert.alert(tx('Rate Us'), 'FaithFinder isn\\\'t live on the App Store yet — thank you for being an early supporter! We\\\'ll let you know as soon as you can leave a review.') },
     { icon:'share-social-outline', color:'#9b59b6', labelKey:'shareApp', action: () => Share.share({message:'Check out FaithFinder — find your church community! https://faithfinderapp.com'}).catch(()=>{}) },
-    { icon:'document-text-outline', color:c.navy, labelKey:'termsOfService', action: () => router.push('/terms' as any) },
-    { icon:'shield-outline', color:'#7f8c8d', labelKey:'privacyPolicy', action: () => router.push('/privacy' as any) },
+    { icon:'document-text-outline', color:c.navy, labelKey:'termsOfService', action: () => router.push('/terms') },
+    { icon:'shield-outline', color:'#7f8c8d', labelKey:'privacyPolicy', action: () => router.push('/privacy') },
   ];
 
   return (

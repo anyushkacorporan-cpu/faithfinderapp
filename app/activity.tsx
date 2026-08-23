@@ -55,9 +55,9 @@ export default function ActivityScreen() {
                 post={item!.post}
                 showLocation={!!(item!.post.city && item!.post.state)}
                 onLike={() => toggleLike(item!.post.id)}
-                onComment={() => router.push({ pathname: '/comments' as any, params: { postId: item!.post.id } })}
+                onComment={() => router.push({ pathname: '/comments', params: { postId: item!.post.id } })}
                 onShare={() => {}}
-                onOpenProfile={() => router.push({ pathname: '/user-profile' as any, params: { name: item!.post.authorName } })}
+                onOpenProfile={() => router.push({ pathname: '/user-profile', params: { name: item!.post.authorName } })}
               />
             ))}
           </View>

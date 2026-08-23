@@ -179,7 +179,7 @@ export function PostCard({post,showLocation,onLike,onComment,onShare,onOpenProfi
           {!!post.repostOf.eventShareData && (
             <TouchableOpacity
               style={{backgroundColor:c.card,marginTop:8,borderRadius:16,overflow:'hidden',borderWidth:1,borderColor:c.border}}
-              onPress={()=>router.push({pathname:'/event-detail' as any,params:{id:post.repostOf?.eventShareData!.id}})}
+              onPress={()=>router.push({pathname:'/event-detail',params:{id:post.repostOf?.eventShareData!.id}})}
               activeOpacity={0.92}
             >
               {post.repostOf.eventShareData.bannerImage ? (
@@ -211,7 +211,7 @@ export function PostCard({post,showLocation,onLike,onComment,onShare,onOpenProfi
           {!!post.repostOf.churchShareData && (
             <TouchableOpacity
               style={{backgroundColor:c.card,marginTop:8,borderRadius:16,overflow:'hidden',borderWidth:1,borderColor:c.border}}
-              onPress={()=>router.push({pathname:'/church-detail' as any,params:{placeId: post.repostOf?.churchShareData!.placeId || post.repostOf?.churchShareData!.id}})}
+              onPress={()=>router.push({pathname:'/church-detail',params:{placeId: post.repostOf?.churchShareData!.placeId || post.repostOf?.churchShareData!.id}})}
               activeOpacity={0.92}
             >
               {post.repostOf.churchShareData.photo ? (
@@ -241,7 +241,7 @@ export function PostCard({post,showLocation,onLike,onComment,onShare,onOpenProfi
       {post.eventShareData&&(
         <TouchableOpacity
           style={{backgroundColor:c.card,marginTop:8,borderRadius:20,overflow:'hidden',borderWidth:1,borderColor:c.border,shadowColor:'#000',shadowOffset:{width:0,height:2},shadowOpacity:0.06,shadowRadius:8}}
-          onPress={()=>router.push({pathname:'/event-detail' as any,params:{id:post.eventShareData!.id}})}
+          onPress={()=>router.push({pathname:'/event-detail',params:{id:post.eventShareData!.id}})}
           activeOpacity={0.92}
         >
           {post.eventShareData.bannerImage ? (
@@ -281,7 +281,7 @@ export function PostCard({post,showLocation,onLike,onComment,onShare,onOpenProfi
       {post.churchShareData&&(
         <TouchableOpacity
           style={{backgroundColor:c.card,marginTop:8,borderRadius:20,overflow:'hidden',borderWidth:1,borderColor:c.border,shadowColor:'#000',shadowOffset:{width:0,height:2},shadowOpacity:0.06,shadowRadius:8}}
-          onPress={()=>router.push({pathname:'/church-detail' as any,params:{placeId: post.churchShareData!.placeId || post.churchShareData!.id}})}
+          onPress={()=>router.push({pathname:'/church-detail',params:{placeId: post.churchShareData!.placeId || post.churchShareData!.id}})}
           activeOpacity={0.92}
         >
           {post.churchShareData.photo ? (

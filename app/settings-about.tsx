@@ -33,8 +33,8 @@ export default function AboutScreen() {
           {[
             {icon:'globe-outline', color:'#667eea', label:'Website', action:() => Linking.openURL('https://faithfinderapp.com')},
             {icon:'logo-instagram', color:'#e91e63', label:'Instagram', action:() => Linking.openURL('https://instagram.com/faithfinderapp')},
-            {icon:'document-text-outline', color:c.navy, label:'Terms of Service', action:() => router.push('/terms' as any)},
-            {icon:'shield-outline', color:c.green, label:'Privacy Policy', action:() => router.push('/privacy' as any)},
+            {icon:'document-text-outline', color:c.navy, label:'Terms of Service', action:() => router.push('/terms')},
+            {icon:'shield-outline', color:c.green, label:'Privacy Policy', action:() => router.push('/privacy')},
           ].map((item,i,arr) => (
             <TouchableOpacity key={i} style={[s.row, i<arr.length-1&&s.rowBorder]} onPress={item.action}>
               <View style={[s.iconWrap, {backgroundColor:item.color+'22'}]}>

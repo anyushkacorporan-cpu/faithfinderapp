@@ -22,6 +22,10 @@ export default function NotificationsScreen() {
   function handleNotifTap(notif: any) {
     markRead(notif.id);
     if (notif.navigateTo) {
+      // navigateTo is a string carried on the notification record, so it cannot
+      // be checked against the generated route union at compile time. This is
+      // the only place in the app that legitimately needs the cast -- every
+      // other route is a literal and is type-checked.
       if (notif.navigateParams) {
         router.push({ pathname: notif.navigateTo as any, params: notif.navigateParams });
       } else {

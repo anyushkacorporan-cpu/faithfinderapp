@@ -424,7 +424,7 @@ export default function ProfileScreen() {
             <Text style={{fontSize:14,color:c.textSecondary,textAlign:'center',lineHeight:20,marginTop:4,marginBottom:14,paddingHorizontal:8}}>{user.bio}</Text>
           )}
           <View style={{flexDirection:'row',alignItems:'center',gap:16,marginBottom:14}}>
-            <TouchableOpacity style={{flexDirection:'row',alignItems:'center',gap:5}} onPress={() => router.push('/connections' as any)}>
+            <TouchableOpacity style={{flexDirection:'row',alignItems:'center',gap:5}} onPress={() => router.push('/connections')}>
               <Ionicons name="people-outline" size={14} color={c.textMuted} />
               <Text style={{fontSize:13,color:c.textMuted}}>{connectionCount}</Text>
             </TouchableOpacity>
@@ -454,7 +454,7 @@ export default function ProfileScreen() {
               ))}
             </View>
           )}
-          <TouchableOpacity style={s.editBtn} onPress={() => router.push('/edit-profile' as any)}>
+          <TouchableOpacity style={s.editBtn} onPress={() => router.push('/edit-profile')}>
             <Ionicons name="pencil-outline" size={16} color={c.text}/>
             <Text style={s.editTxt}>{t('editProfile')}</Text>
           </TouchableOpacity>
@@ -466,7 +466,7 @@ export default function ProfileScreen() {
             </View>
           </View>
 
-          <TouchableOpacity onPress={() => router.push('/activity' as any)} style={{marginTop:14}}>
+          <TouchableOpacity onPress={() => router.push('/activity')} style={{marginTop:14}}>
             <Text style={{fontSize:13,fontWeight:'600',color:c.gold}}>{t('seeActivity')}</Text>
           </TouchableOpacity>
         </View>
@@ -537,7 +537,7 @@ export default function ProfileScreen() {
                             </TouchableOpacity>
                             <TouchableOpacity
                               style={{flexDirection:'row',alignItems:'center',gap:6}}
-                              onPress={() => { setPhotoViewerVisible(false); router.push({ pathname: '/comments' as any, params: { postId: item.post!.id } }); }}
+                              onPress={() => { setPhotoViewerVisible(false); router.push({ pathname: '/comments', params: { postId: item.post!.id } }); }}
                             >
                               <Ionicons name="chatbubble-outline" size={18} color="#fff" />
                               <Text style={{color:'#fff',fontSize:13,fontWeight:'600'}}>{item.post.comments.length}</Text>
@@ -585,7 +585,7 @@ export default function ProfileScreen() {
                   showLocation={true}
                   isOwnPost={true}
                   onLike={() => toggleLike(post.id)}
-                  onComment={() => router.push({ pathname: '/comments' as any, params: { postId: post.id } })}
+                  onComment={() => router.push({ pathname: '/comments', params: { postId: post.id } })}
                   onShare={() => {}}
                   onOpenProfile={() => {}}
                 />
@@ -674,7 +674,7 @@ function ActivityTabContent() {
             post={post}
             showLocation={!!(post.city && post.state)}
             onLike={() => toggleLike(post.id)}
-            onComment={() => router.push({ pathname: '/comments' as any, params: { postId: post.id } })}
+            onComment={() => router.push({ pathname: '/comments', params: { postId: post.id } })}
             onShare={() => {}}
             onOpenProfile={() => {}}
           />
