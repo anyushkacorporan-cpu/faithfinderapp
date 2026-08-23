@@ -8,7 +8,7 @@ import { Post, formatRelativeTime } from '../lib/postsStore';
 import { translateText, detectLanguage } from '../lib/translate';
 import { useSettings } from '../lib/settingsStore';
 import { useTranslation } from '../lib/i18n';
-import { useConnections, isConnected, addConnection, connectionFromAuthor } from '../lib/connectionsStore';
+import { useConnections, isConnectedTo, addConnection, connectionFromAuthor } from '../lib/connectionsStore';
 import { useToast } from './Toast';
 
 
@@ -98,7 +98,7 @@ export function PostCard({post,showLocation,onLike,onComment,onShare,onOpenProfi
   // Subscribe so the badge disappears the moment the connection is made,
   // including when it was made from somewhere else.
   useConnections();
-  const alreadyConnected = isConnected(post.authorId || post.authorName);
+  const alreadyConnected = isConnectedTo(post.authorId, post.authorName);
   const canConnect = !isOwnPost && !alreadyConnected;
 
   function handleConnect() {

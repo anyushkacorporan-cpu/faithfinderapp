@@ -8,7 +8,7 @@ import { useThemeColors, ThemeColors } from '../src/lib/theme';
 import { useTranslation } from '../src/lib/i18n';
 import { usePosts, toggleLike, isAuthoredBy } from '../src/lib/postsStore';
 import { useUser } from '../src/lib/userStore';
-import { useConnectionCount, useConnections, isConnected, addConnection, removeConnection, connectionFromAuthor } from '../src/lib/connectionsStore';
+import { useConnectionCount, useConnections, isConnectedTo, addConnection, removeConnection, connectionFromAuthor } from '../src/lib/connectionsStore';
 import { useToast } from '../src/components/Toast';
 import { useConfirm } from '../src/components/Confirm';
 import { PostCard } from '../src/components/PostCard';
@@ -50,7 +50,7 @@ export default function OtherUserProfileScreen() {
   // Subscribe so the button flips as soon as the state changes anywhere.
   useConnections();
   const connectionId = params.authorId || displayName;
-  const connected = isConnected(connectionId);
+  const connected = isConnectedTo(params.authorId, displayName);
 
   const combinedGalleryPhotos = isSelf ? [...new Set([...galleryPhotos, ...(currentUser.photos || [])])] : galleryPhotos;
   const galleryItems = combinedGalleryPhotos.map(uri => ({ uri, post: userPosts.find(p => p.image === uri) || null }));

@@ -10,7 +10,7 @@ import { useThemeColors, ThemeColors } from '../src/lib/theme';
 import { buildChurchShareText, buildPostShareText } from '../src/lib/shareLinks';
 import { getUser } from '../src/lib/userStore';
 import { useSavedChurches } from '../src/lib/store';
-import { isConnected, addConnection, removeConnection } from '../src/lib/connectionsStore';
+import { isConnectedTo, addConnection, removeConnection } from '../src/lib/connectionsStore';
 import { useChurchPosts, toggleLike, addComment } from '../src/lib/postsStore';
 import { useSettings } from '../src/lib/settingsStore';
 import { useTranslation } from '../src/lib/i18n';
@@ -86,7 +86,7 @@ export default function ChurchDetailScreen() {
   const { saved, toggle } = useSavedChurches();
   const placeId = params.placeId || staticChurch?.placeId || '';
   const isSaved = saved.includes(params.id || '');
-  const [connected, setConnected] = useState(isConnected(params.id || placeId || ''));
+  const [connected, setConnected] = useState(isConnectedTo(params.id || placeId || '', params.name));
   const allChurchPosts = useChurchPosts(placeId);
 
   const church = {

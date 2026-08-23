@@ -69,6 +69,33 @@ export function useConnectionCount() {
 }
 
 export function getConnections() { return connections; }
+/**
+ * Match on a single value. Kept for callers that only have one thing to hand.
+ * Prefer isConnectedTo() when you have both an id and a name.
+ */
 export function isConnected(nameOrId: string) { return connections.some(c => c.name === nameOrId || c.id === nameOrId); }
+
+/**
+ * Is this account already connected? Pass whatever you have.
+ *
+ * A church can be reached two ways and each stores a different id: following
+ * from the Churches tab records the Google Place ID, while a church account
+ * posting in the feed carries its own account id. Checking id OR name OR
+ * placeId means the same church resolves to one connection either way, instead
+ * of showing "Connect" a second time and creating a duplicate.
+ */
+export function isConnectedTo(id?: string, name?: string): boolean {
+  if (!id && !name) return false;
+  return connections.some(c =>
+    (!!id && (c.id === id || c.placeId === id)) ||
+    (!!name && c.name === name)
+  );
+}
 export function addConnection(c: Connection) { if (!isConnected(c.id)) { connections.push(c); persist(); notify(); } }
-export function removeConnection(id: string) { connections = connections.filter(c => c.id !== id); persist(); notify(); }
+/** Remove by id, placeId or name — whichever the calling screen holds. */
+export function removeConnection(idOrName: string) {
+  connections = connections.filter(c =>
+    c.id !== idOrName && c.name !== idOrName && c.placeId !== idOrName
+  );
+  persist(); notify();
+}
