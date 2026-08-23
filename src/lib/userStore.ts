@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { newId } from './ids';
 
 const USER_KEY = 'faithfinder_user_v1';
 
@@ -12,6 +13,13 @@ const USER_KEY = 'faithfinder_user_v1';
  * which half is meaningful. Fields are grouped below accordingly.
  */
 export type User = {
+  /**
+   * Stable identity for this account. Generated once on first run and never
+   * changed — names change, this does not. Everything that asks "is this mine?"
+   * must compare ids, never display names. When the backend lands this is the
+   * column the server's user id replaces.
+   */
+  id?: string;
   accountType?: 'personal' | 'church';
   email?: string;
   bio?: string;
@@ -43,7 +51,7 @@ export type User = {
   verificationStatus?: 'pending' | 'approved';
 };
 
-let user: User = { createdAt: new Date().toISOString() };
+let user: User = { id: newId(), createdAt: new Date().toISOString() };
 let hydrated = false;
 const listeners: Array<() => void> = [];
 function notify() { listeners.forEach(fn => fn()); }
@@ -60,6 +68,8 @@ async function hydrate() {
     if (raw) {
       const parsed = JSON.parse(raw);
       user = { ...user, ...parsed };
+      // Installs that predate `id` get one now and keep it from here on.
+      if (!user.id) { user.id = newId(); persist(); }
       notify();
     }
   } catch {}
@@ -75,7 +85,7 @@ export function setUser(updates: Partial<User>) {
 }
 
 export async function signOut() {
-  user = {};
+  user = { id: newId() };
   try { await AsyncStorage.removeItem(USER_KEY); } catch {}
   notify();
 }
@@ -84,7 +94,7 @@ export async function signOut() {
 // yet, this only removes local data — it doesn't delete server-side data
 // (there isn't any) or content already posted elsewhere in the app.
 export async function deleteAccount() {
-  user = {};
+  user = { id: newId() };
   try { await AsyncStorage.removeItem(USER_KEY); } catch {}
   notify();
 }

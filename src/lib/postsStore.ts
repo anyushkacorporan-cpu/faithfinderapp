@@ -1,6 +1,8 @@
 import { logActivity, removeActivityByPost } from './activityStore';
 import { useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { newId } from './ids';
+import { getUser } from './userStore';
 
 const POSTS_KEY = 'faithfinder_posts_v1';
 
@@ -235,7 +237,10 @@ export function addPost(post: {
 }) {
   const newPost: Post = {
     ...post,
-    id: Date.now().toString(),
+    id: newId(),
+    // Stamp the author's stable id even when the caller forgot, so ownership
+    // never has to fall back to comparing display names.
+    authorId: post.authorId || getUser().id,
     createdAt: Date.now(),
     likes: 0, liked: false, comments: [], feed: post.feed || 'both',
   };
@@ -248,6 +253,26 @@ export function addPost(post: {
   }
   persist();
   notify();
+}
+
+/**
+ * Does this post belong to the given account?
+ *
+ * Ownership used to be `post.authorName === displayName`, which meant two
+ * people with the same name could edit and delete each other's posts, and
+ * anyone who changed their name lost everything they had written.
+ *
+ * Prefer the stable id. Fall back to the name only for posts written before
+ * ids existed, so old local content does not disappear from the author's
+ * profile on upgrade. Delete the fallback once the backend owns the data.
+ */
+export function isAuthoredBy(
+  post: Pick<Post, 'authorId' | 'authorName'>,
+  userId?: string,
+  displayName?: string,
+): boolean {
+  if (post.authorId && userId) return post.authorId === userId;
+  return !!displayName && post.authorName === displayName;
 }
 
 export function editPost(postId: string, updates: { content?: string; image?: string | null }) {
@@ -279,7 +304,7 @@ export function reportPost(postId: string, reason: ReportReason, reportedBy: str
   };
   posts = posts.map(p => p.id === postId ? {
     ...p,
-    reports: [...(p.reports || []), { id: Date.now().toString(), reason: labels[reason], reportedBy, time: 'now' }],
+    reports: [...(p.reports || []), { id: newId(), reason: labels[reason], reportedBy, time: 'now' }],
   } : p);
   persist();
   notify();
@@ -342,7 +367,7 @@ export function addComment(postId: string, text: string, author: string, initial
   posts = posts.map(p => p.id === postId ? {
     ...p,
     comments: [...p.comments, {
-      id: Date.now().toString(), author, initials, color, text,
+      id: newId(), author, initials, color, text,
       time: 'now', likes: 0, liked: false, city, state, replies: []
     }]
   } : p);
@@ -356,7 +381,7 @@ export function addReply(postId: string, commentId: string, text: string, author
     comments: p.comments.map(c => c.id === commentId ? {
       ...c,
       replies: [...c.replies, {
-        id: Date.now().toString(), author, initials, color, text,
+        id: newId(), author, initials, color, text,
         time: 'now', likes: 0, liked: false, city, state
       }]
     } : c)

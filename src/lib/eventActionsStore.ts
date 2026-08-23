@@ -1,9 +1,21 @@
 import { useState, useEffect } from 'react';
+import { load, save } from './persist';
 
 let savedEvents: string[] = [];
 let attendingEvents: string[] = [];
 const listeners: Array<() => void> = [];
 function notify() { listeners.forEach(fn => fn()); }
+
+// Both lists live under one key: they are always read and written together,
+// so a single record keeps them consistent and halves the storage round-trips.
+const STORAGE_KEY = 'faithfinder_event_actions_v1';
+type Persisted = { saved: string[]; attending: string[] };
+function persist() { save(STORAGE_KEY, { saved: savedEvents, attending: attendingEvents }); }
+load<Persisted>(STORAGE_KEY, v => {
+  savedEvents = v.saved || [];
+  attendingEvents = v.attending || [];
+  notify();
+});
 
 export function getSavedEvents() { return [...savedEvents]; }
 export function getAttendingEvents() { return [...attendingEvents]; }
@@ -16,19 +28,19 @@ export function toggleSaveEvent(id: string) {
   } else {
     savedEvents = [...savedEvents, id];
   }
-  notify();
+  persist(); notify();
 }
 
 export function addAttending(id: string) {
   if (!attendingEvents.includes(id)) {
     attendingEvents = [...attendingEvents, id];
-    notify();
+    persist(); notify();
   }
 }
 
 export function removeAttending(id: string) {
   attendingEvents = attendingEvents.filter(e => e !== id);
-  notify();
+  persist(); notify();
 }
 
 export function useEventActions() {

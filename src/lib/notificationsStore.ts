@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import { load, save } from './persist';
+import { newId } from './ids';
 import { getSettings, useSettings, NotificationPrefs } from './settingsStore';
 
 // Maps each notification type to the preference toggle that controls it
@@ -103,24 +105,28 @@ let notifications: Notification[] = [
 const listeners: Array<() => void> = [];
 function notify() { listeners.forEach(fn => fn()); }
 
+const STORAGE_KEY = 'faithfinder_notifications_v1';
+function persist() { save(STORAGE_KEY, notifications); }
+load<typeof notifications>(STORAGE_KEY, v => { notifications = v; notify(); });
+
 export function getNotifications() { return [...notifications]; }
 export function getUnreadCount() { return notifications.filter(n => !n.read).length; }
 
 export function markRead(id: string) {
   notifications = notifications.map(n => n.id === id ? { ...n, read: true } : n);
-  notify();
+  persist(); notify();
 }
 
 export function markAllRead() {
   notifications = notifications.map(n => ({ ...n, read: true }));
-  notify();
+  persist(); notify();
 }
 
 export function addNotification(notif: Omit<Notification, 'id' | 'read'>) {
   // Respect the user's notification preferences: skip types they've turned off.
   if (!isTypeEnabled(notif.type)) return;
-  notifications = [{ ...notif, id: Date.now().toString(), read: false }, ...notifications];
-  notify();
+  notifications = [{ ...notif, id: newId(), read: false }, ...notifications];
+  persist(); notify();
 }
 
 export function useNotifications() {
@@ -147,9 +153,9 @@ export function useUnreadCount() {
 
 export function clearAllNotifications() {
   notifications = [];
-  notify();
+  persist(); notify();
 }
 export function clearNotification(id: string) {
   notifications = notifications.filter(n => n.id !== id);
-  notify();
+  persist(); notify();
 }

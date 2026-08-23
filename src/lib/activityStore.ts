@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import { load, save } from './persist';
+import { newId } from './ids';
 
 export type ActivityItem = {
   id: string;
@@ -14,16 +16,20 @@ let activity: ActivityItem[] = [];
 const listeners: Array<() => void> = [];
 function notify() { listeners.forEach(fn => fn()); }
 
+const STORAGE_KEY = 'faithfinder_activity_v1';
+function persist() { save(STORAGE_KEY, activity); }
+load<typeof activity>(STORAGE_KEY, v => { activity = v; notify(); });
+
 export function logActivity(item: Omit<ActivityItem, 'id' | 'timestamp'>) {
   const id = Date.now().toString() + Math.random().toString(36).slice(2);
   activity = [{ ...item, id, timestamp: Date.now() }, ...activity];
   console.log('ACTIVITY LOGGED:', item.type, '| total:', activity.length);
-  notify();
+  persist(); notify();
 }
 
 export function removeActivityByPost(postId: string, type: 'like' | 'comment') {
   activity = activity.filter(a => !(a.postId === postId && a.type === type));
-  notify();
+  persist(); notify();
 }
 
 export function getActivity(): ActivityItem[] {

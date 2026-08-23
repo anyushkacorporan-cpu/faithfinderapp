@@ -1,3 +1,4 @@
+import { newId } from './ids';
 export const COLORS = {
   // Core
   navy: '#1a1a2e',
@@ -161,7 +162,7 @@ export function getChurchReviews(placeId: string) {
 
 export function addChurchReview(placeId: string, review: {author:string; rating:number; text:string}) {
   if (!churchReviews[placeId]) churchReviews[placeId] = [];
-  churchReviews[placeId] = [{ ...review, id: Date.now().toString(), time: 'Just now' }, ...churchReviews[placeId]];
+  churchReviews[placeId] = [{ ...review, id: newId(), time: 'Just now' }, ...churchReviews[placeId]];
   reviewListeners.forEach(fn => fn());
 }
 

@@ -6,7 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Header from '../src/components/Header';
 import { useThemeColors, ThemeColors } from '../src/lib/theme';
 import { useTranslation } from '../src/lib/i18n';
-import { usePosts, toggleLike } from '../src/lib/postsStore';
+import { usePosts, toggleLike, isAuthoredBy } from '../src/lib/postsStore';
 import { useUser } from '../src/lib/userStore';
 import { useConnectionCount } from '../src/lib/connectionsStore';
 import { PostCard } from '../src/components/PostCard';
@@ -17,7 +17,7 @@ export default function OtherUserProfileScreen() {
   const { t } = useTranslation();
   const params = useLocalSearchParams<{
     id?: string; name?: string; initials?: string; color?: string;
-    type?: string; city?: string; state?: string; photo?: string;
+    type?: string; city?: string; state?: string; photo?: string; authorId?: string;
   }>();
 
   const allPosts = usePosts();
@@ -25,14 +25,17 @@ export default function OtherUserProfileScreen() {
   const initials = params.initials || displayName.slice(0,2).toUpperCase();
   const color = params.color || c.gold;
   const isChurch = params.type === 'church';
-  const userPosts = allPosts.filter(p => p.authorName === displayName);
+  const userPosts = allPosts.filter(p => isAuthoredBy(p, params.authorId, displayName));
   const galleryPhotos = userPosts.filter(p => !!p.image).map(p => p.image as string);
 
   const currentUser = useUser();
   const currentUserDisplayName = currentUser.accountType === 'church'
     ? currentUser.churchName
     : `${currentUser.firstName || ''} ${currentUser.lastName || ''}`.trim();
-  const isSelf = currentUserDisplayName && currentUserDisplayName === displayName;
+  // Prefer ids: two people can share a display name.
+  const isSelf = (params.authorId && currentUser.id)
+    ? params.authorId === currentUser.id
+    : !!currentUserDisplayName && currentUserDisplayName === displayName;
 
   useEffect(() => {
     if (isSelf) {

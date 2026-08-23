@@ -17,7 +17,7 @@ import { getCurrentCityState } from '../../src/lib/userLocation';
 import { useSettings } from '../../src/lib/settingsStore';
 import { useTranslation } from '../../src/lib/i18n';
 import { PostCard } from '../../src/components/PostCard';
-import { usePosts, addPost, toggleLike, Post, editPost, deletePost, reportPost, repostPost } from '../../src/lib/postsStore';
+import { usePosts, addPost, toggleLike, Post, editPost, deletePost, reportPost, repostPost, isAuthoredBy } from '../../src/lib/postsStore';
 import { getUser } from '../../src/lib/userStore';
 import { buildPostShareText } from '../../src/lib/shareLinks';
 import { useConnections, isConnected } from '../../src/lib/connectionsStore';
@@ -87,11 +87,11 @@ export default function CommunityScreen() {
   const isPublicProfile = appSettings.privacy.publicProfile;
   const posts = activeTab === 'foryou'
     ? allPosts.filter(p =>
-        p.authorName === displayName || connectedNames.includes(p.authorName)
+        isAuthoredBy(p, user.id, displayName) || connectedNames.includes(p.authorName)
       )
     : allPosts.filter(p =>
         (p.feed === 'discover' || p.feed === 'both') &&
-        !(!isPublicProfile && p.authorName === displayName)
+        !(!isPublicProfile && isAuthoredBy(p, user.id, displayName))
       );
 
   const [showCreate, setShowCreate] = useState(false);
@@ -149,7 +149,7 @@ export default function CommunityScreen() {
   function openProfile(post: Post) {
     router.push({
       pathname: '/user-profile' as any,
-      params: { id: post.id, name: post.authorName, initials: post.authorInitials, color: post.authorColor, type: post.authorType, city: post.city || '', state: post.state || '', photo: post.authorPhoto || '' }
+      params: { authorId: post.authorId || '', name: post.authorName, initials: post.authorInitials, color: post.authorColor, type: post.authorType, city: post.city || '', state: post.state || '', photo: post.authorPhoto || '' }
     });
   }
 
@@ -197,7 +197,7 @@ export default function CommunityScreen() {
         )}
         {posts.map(post => (
           <PostCard key={post.id} post={post} showLocation={!!(post.city && post.state)}
-            isOwnPost={post.authorName === displayName}
+            isOwnPost={isAuthoredBy(post, user.id, displayName)}
             onLike={() => toggleLike(post.id)}
             onComment={() => router.push({ pathname: '/comments' as any, params: { postId: post.id } })}
             onShare={() => { setRepostTarget(post); setRepostComment(''); setShowRepostCompose(false); }}
@@ -329,7 +329,7 @@ export default function CommunityScreen() {
         <TouchableOpacity style={{flex:1,backgroundColor:c.overlay,justifyContent:'flex-end'}} activeOpacity={1} onPress={() => setMenuPost(null)}>
           <View style={{backgroundColor:c.card,borderTopLeftRadius:24,borderTopRightRadius:24,paddingTop:8,paddingBottom:32}}>
             <View style={{width:36,height:4,borderRadius:2,backgroundColor:c.border,alignSelf:'center',marginVertical:10}}/>
-            {menuPost && menuPost.authorName === displayName ? (
+            {menuPost && isAuthoredBy(menuPost, user.id, displayName) ? (
               <>
                 <TouchableOpacity style={{flexDirection:'row',alignItems:'center',gap:14,paddingHorizontal:20,paddingVertical:16}} onPress={() => {
                   setEditingPost(menuPost); setEditText(menuPost.repostComment || menuPost.content); setMenuPost(null);

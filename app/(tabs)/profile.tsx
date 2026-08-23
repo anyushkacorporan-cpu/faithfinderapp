@@ -10,7 +10,7 @@ import { useThemeColors, ThemeColors } from '../../src/lib/theme';
 import { useUser, setUser, getUser } from '../../src/lib/userStore';
 import { useActivity } from '../../src/lib/activityStore';
 import { useConnections, useConnectionCount, removeConnection } from '../../src/lib/connectionsStore';
-import { usePosts, toggleLike, editPost } from '../../src/lib/postsStore';
+import { usePosts, toggleLike, editPost, isAuthoredBy } from '../../src/lib/postsStore';
 import { PostCard } from '../../src/components/PostCard';
 import { useEventActions } from '../../src/lib/eventActionsStore';
 import { EVENTS } from '../../src/lib/constants';
@@ -46,7 +46,7 @@ export default function ProfileScreen() {
   const displayName = user.accountType === 'church'
     ? (user.churchName || 'Church')
     : ((user.firstName || 'You') + ' ' + (user.lastName || '')).trim();
-  const myPosts = allPosts.filter(p => p.authorName === displayName);
+  const myPosts = allPosts.filter(p => isAuthoredBy(p, user.id, displayName));
   const postGalleryPhotos = myPosts.filter(p => !!p.image).map(p => p.image as string);
   const galleryPhotos = [...new Set([...postGalleryPhotos, ...(user.photos || [])])];
   const galleryItems = galleryPhotos.map(uri => ({ uri, post: myPosts.find(p => p.image === uri) || null }));

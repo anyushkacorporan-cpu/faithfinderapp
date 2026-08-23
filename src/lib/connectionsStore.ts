@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { load, save } from './persist';
 
 /**
  * Someone (or some church) the user follows. `address` and `placeId` are only
@@ -24,6 +25,10 @@ type Listener = () => void;
 const listeners: Listener[] = [];
 function notify() { listeners.forEach(l => l()); }
 
+const STORAGE_KEY = 'faithfinder_connections_v1';
+function persist() { save(STORAGE_KEY, connections); }
+load<typeof connections>(STORAGE_KEY, v => { connections = v; notify(); });
+
 export function useConnections() {
   const [state, setState] = useState([...connections]);
   useEffect(() => {
@@ -40,5 +45,5 @@ export function useConnectionCount() {
 
 export function getConnections() { return connections; }
 export function isConnected(nameOrId: string) { return connections.some(c => c.name === nameOrId || c.id === nameOrId); }
-export function addConnection(c: Connection) { if (!isConnected(c.id)) { connections.push(c); notify(); } }
-export function removeConnection(id: string) { connections = connections.filter(c => c.id !== id); notify(); }
+export function addConnection(c: Connection) { if (!isConnected(c.id)) { connections.push(c); persist(); notify(); } }
+export function removeConnection(id: string) { connections = connections.filter(c => c.id !== id); persist(); notify(); }

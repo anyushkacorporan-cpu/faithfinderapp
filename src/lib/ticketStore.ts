@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import { load, save } from './persist';
+import { newId, newShortCode } from './ids';
 
 export type Ticket = {
   id: string;
@@ -19,19 +21,25 @@ let tickets: Ticket[] = [];
 const listeners: Array<() => void> = [];
 function notify() { listeners.forEach(fn => fn()); }
 
+const STORAGE_KEY = 'faithfinder_tickets_v1';
+function persist() { save(STORAGE_KEY, tickets); }
+load<typeof tickets>(STORAGE_KEY, v => { tickets = v; notify(); });
+
 export function getTickets() { return [...tickets]; }
 export function getTicketForEvent(eventId: string) { return tickets.find(t => t.eventId === eventId); }
 
 export function addTicket(ticket: Omit<Ticket, 'id' | 'purchasedAt' | 'ticketIds'>) {
-  const ticketIds = Array.from({length: ticket.quantity}, () => 'TKT-' + Math.random().toString(36).substr(2,8).toUpperCase());
+  // Codes get read aloud at a door, so they avoid I/O/0/1. substr is also
+  // deprecated; newShortCode replaces both concerns.
+  const ticketIds = Array.from({length: ticket.quantity}, () => newShortCode('TKT'));
   const newTicket: Ticket = {
     ...ticket,
-    id: Date.now().toString(),
+    id: newId(),
     purchasedAt: Date.now(),
     ticketIds,
   };
   tickets = [newTicket, ...tickets];
-  notify();
+  persist(); notify();
   return newTicket;
 }
 
