@@ -8,6 +8,8 @@ import { Post, formatRelativeTime } from '../lib/postsStore';
 import { translateText, detectLanguage } from '../lib/translate';
 import { useSettings } from '../lib/settingsStore';
 import { useTranslation } from '../lib/i18n';
+import { useConnections, isConnected, addConnection, connectionFromAuthor } from '../lib/connectionsStore';
+import { useToast } from './Toast';
 
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -91,7 +93,18 @@ export function PostCard({post,showLocation,onLike,onComment,onShare,onOpenProfi
 }) {
   const c = useThemeColors();
   const p = makeStyles(c);
-  const { t } = useTranslation();
+  const { t, tx } = useTranslation();
+  const { showToast } = useToast();
+  // Subscribe so the badge disappears the moment the connection is made,
+  // including when it was made from somewhere else.
+  useConnections();
+  const alreadyConnected = isConnected(post.authorId || post.authorName);
+  const canConnect = !isOwnPost && !alreadyConnected;
+
+  function handleConnect() {
+    addConnection(connectionFromAuthor(post));
+    showToast(tx('Connected'), tx('You will now see posts from') + ' ' + post.authorName, 'success');
+  }
   return (
     <View style={[p.card, post.isAnnouncement && p.cardAnnouncement]}>
       {post.isAnnouncement && (
@@ -102,14 +115,30 @@ export function PostCard({post,showLocation,onLike,onComment,onShare,onOpenProfi
       )}
 
       <View style={p.authorRow}>
-        <TouchableOpacity onPress={onOpenProfile}>
-          {post.authorPhoto
-            ? <Image source={{uri:post.authorPhoto}} style={[p.avatar,{overflow:'hidden'}]} resizeMode="cover"/>
-            : <View style={[p.avatar,{backgroundColor:post.authorColor}]}>
-                <Text style={p.avatarTxt}>{post.authorInitials}</Text>
-              </View>
-          }
-        </TouchableOpacity>
+        <View>
+          <TouchableOpacity onPress={onOpenProfile}>
+            {post.authorPhoto
+              ? <Image source={{uri:post.authorPhoto}} style={[p.avatar,{overflow:'hidden'}]} resizeMode="cover"/>
+              : <View style={[p.avatar,{backgroundColor:post.authorColor}]}>
+                  <Text style={p.avatarTxt}>{post.authorInitials}</Text>
+                </View>
+            }
+          </TouchableOpacity>
+          {/* Connect straight from the feed. The badge is only shown when it
+              would do something, so it vanishes once you are connected rather
+              than sitting on every avatar forever. hitSlop gives it a real
+              tap target without making the dot bigger. */}
+          {canConnect && (
+            <TouchableOpacity
+              style={p.connectBadge}
+              onPress={handleConnect}
+              hitSlop={{top:8,bottom:8,left:8,right:8}}
+              accessibilityLabel={`${tx('Connect with')} ${post.authorName}`}
+            >
+              <Ionicons name="add" size={13} color={c.onPrimary}/>
+            </TouchableOpacity>
+          )}
+        </View>
         <View style={{flex:1}}>
           <TouchableOpacity onPress={onOpenProfile} style={{flexDirection:'row',alignItems:'center',gap:6,flexWrap:'wrap'}}>
             <Text style={p.authorName}>{post.authorName}</Text>
@@ -341,6 +370,7 @@ export function PostCard({post,showLocation,onLike,onComment,onShare,onOpenProfi
 
 
 const makeStyles = (c: ThemeColors) => StyleSheet.create({
+  connectBadge:{position:'absolute',right:-2,bottom:-2,width:19,height:19,borderRadius:10,backgroundColor:c.primary,alignItems:'center',justifyContent:'center',borderWidth:2,borderColor:c.card},
   cardAnnouncement:{borderColor:c.gold,borderWidth:1.5,backgroundColor:c.isDark?'rgba(201,169,110,0.07)':'rgba(201,169,110,0.05)'},
   announceBanner:{flexDirection:'row',alignItems:'center',gap:6,marginBottom:12},
   announceBannerTxt:{fontSize:11,fontWeight:'700',color:c.gold,letterSpacing:0.6,textTransform:'uppercase'},

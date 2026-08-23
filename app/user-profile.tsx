@@ -8,13 +8,15 @@ import { useThemeColors, ThemeColors } from '../src/lib/theme';
 import { useTranslation } from '../src/lib/i18n';
 import { usePosts, toggleLike, isAuthoredBy } from '../src/lib/postsStore';
 import { useUser } from '../src/lib/userStore';
-import { useConnectionCount } from '../src/lib/connectionsStore';
+import { useConnectionCount, useConnections, isConnected, addConnection, removeConnection, connectionFromAuthor } from '../src/lib/connectionsStore';
+import { useToast } from '../src/components/Toast';
+import { useConfirm } from '../src/components/Confirm';
 import { PostCard } from '../src/components/PostCard';
 
 export default function OtherUserProfileScreen() {
   const c = useThemeColors();
   const s = makeStyles(c);
-  const { t } = useTranslation();
+  const { t, tx } = useTranslation();
   const params = useLocalSearchParams<{
     id?: string; name?: string; initials?: string; color?: string;
     type?: string; city?: string; state?: string; photo?: string; authorId?: string;
@@ -43,6 +45,12 @@ export default function OtherUserProfileScreen() {
     }
   }, [isSelf]);
   const connectionCount = useConnectionCount();
+  const { showToast } = useToast();
+  const { showConfirm } = useConfirm();
+  // Subscribe so the button flips as soon as the state changes anywhere.
+  useConnections();
+  const connectionId = params.authorId || displayName;
+  const connected = isConnected(connectionId);
 
   const combinedGalleryPhotos = isSelf ? [...new Set([...galleryPhotos, ...(currentUser.photos || [])])] : galleryPhotos;
   const galleryItems = combinedGalleryPhotos.map(uri => ({ uri, post: userPosts.find(p => p.image === uri) || null }));
@@ -89,6 +97,47 @@ export default function OtherUserProfileScreen() {
               <Ionicons name="location-outline" size={14} color={c.textMuted} />
               <Text style={{fontSize:13,color:c.textMuted}}>{params.city}, {params.state}</Text>
             </View>
+          )}
+
+          {/* Connect is the whole point of a profile you do not own — without it
+              there is no way to build the For You feed. Hidden on your own. */}
+          {!isSelf && (
+            connected ? (
+              <TouchableOpacity
+                style={s.connectedBtn}
+                onPress={() => showConfirm({
+                  title: tx('Remove connection'),
+                  message: tx('You will stop seeing their posts in For You.'),
+                  buttons: [
+                    { text: t('cancel'), style: 'cancel' },
+                    { text: tx('Remove'), style: 'destructive', onPress: () => {
+                      removeConnection(connectionId);
+                      showToast(tx('Removed'), displayName, 'info');
+                    } },
+                  ],
+                })}
+              >
+                <Ionicons name="checkmark" size={16} color={c.text} />
+                <Text style={s.connectedTxt}>{tx('Connected')}</Text>
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity
+                style={s.connectBtn}
+                onPress={() => {
+                  addConnection(connectionFromAuthor({
+                    authorId: params.authorId,
+                    authorName: displayName,
+                    authorType: isChurch ? 'church' : 'personal',
+                    authorColor: color,
+                    authorInitials: initials,
+                  }));
+                  showToast(tx('Connected'), tx('You will now see posts from') + ' ' + displayName, 'success');
+                }}
+              >
+                <Ionicons name="add" size={17} color={c.onPrimary} />
+                <Text style={s.connectTxt}>{tx('Connect')}</Text>
+              </TouchableOpacity>
+            )
           )}
 
           {isSelf && (
@@ -270,6 +319,10 @@ export default function OtherUserProfileScreen() {
 }
 
 const makeStyles = (c: ThemeColors) => StyleSheet.create({
+  connectBtn:{flexDirection:'row',alignItems:'center',justifyContent:'center',gap:6,marginTop:14,paddingHorizontal:22,paddingVertical:10,borderRadius:100,backgroundColor:c.primary},
+  connectTxt:{fontSize:14,fontWeight:'700',color:c.onPrimary},
+  connectedBtn:{flexDirection:'row',alignItems:'center',justifyContent:'center',gap:6,marginTop:14,paddingHorizontal:20,paddingVertical:10,borderRadius:100,borderWidth:1,borderColor:c.border,backgroundColor:c.cardAlt},
+  connectedTxt:{fontSize:14,fontWeight:'700',color:c.text},
   root:{flex:1,backgroundColor:c.card},
   coverWrap:{position:'relative'},
   cover:{width:'100%',height:160,backgroundColor:c.primary},

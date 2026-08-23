@@ -6,7 +6,7 @@ import { load, save } from './persist';
  * present on church connections saved from the church-detail screen — they let
  * that screen be reopened later without another Places lookup.
  */
-type Connection = {
+export type Connection = {
   id: string;
   name: string;
   type: 'user' | 'church';
@@ -28,6 +28,31 @@ function notify() { listeners.forEach(l => l()); }
 const STORAGE_KEY = 'faithfinder_connections_v1';
 function persist() { save(STORAGE_KEY, connections); }
 load<typeof connections>(STORAGE_KEY, v => { connections = v; notify(); });
+
+/**
+ * Build a Connection from any author — a post, a comment, a profile screen.
+ *
+ * Both places you can connect from must produce the SAME record, or you would
+ * connect in the feed and the profile would still show "Connect": isConnected()
+ * matches on id OR name, so the id has to be derived the same way every time.
+ * Accounts created before ids existed have only a name, which is why the name
+ * is the fallback id rather than something generated.
+ */
+export function connectionFromAuthor(a: {
+  authorId?: string;
+  authorName: string;
+  authorType?: 'church' | 'personal';
+  authorColor?: string;
+  authorInitials?: string;
+}): Connection {
+  return {
+    id: a.authorId || a.authorName,
+    name: a.authorName,
+    type: a.authorType === 'church' ? 'church' : 'user',
+    color: a.authorColor || '#667eea',
+    initials: a.authorInitials || a.authorName.slice(0, 2).toUpperCase(),
+  };
+}
 
 export function useConnections() {
   const [state, setState] = useState([...connections]);
