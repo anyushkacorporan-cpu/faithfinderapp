@@ -117,8 +117,6 @@ export default function CommunityScreen() {
   const [loadingPreview, setLoadingPreview] = useState(false);
   const [visibility, setVisibility] = useState<Visibility>('public');
   const [showLocation, setShowLocation] = useState(true);
-  const [sharePost, setSharePost] = useState<Post | null>(null);
-  const [shareMessage, setShareMessage] = useState('');
 
   async function handleCreatePost() {
     if (isPosting) return;
@@ -547,70 +545,9 @@ export default function CommunityScreen() {
           )}
         </SafeAreaView>
       </Modal>
-
-      {/* Share */}
-      <Modal visible={!!sharePost} animationType="slide" presentationStyle="pageSheet">
-        <SafeAreaView style={{flex:1,backgroundColor:c.bg}} edges={['top']}>
-          <View style={s.modalHdr}>
-            <TouchableOpacity onPress={() => { setSharePost(null); setShareMessage(''); }}>
-              <Text style={s.cancelTxt}>{t('cancel')}</Text>
-            </TouchableOpacity>
-            <Text style={s.modalTitle}>{t('sharePost')}</Text>
-            <TouchableOpacity style={s.postBtn} onPress={() => {
-              addPost({authorName:displayName,authorInitials:initials,authorType:user.accountType==='church'?'church':'personal',authorColor:'#667eea',content:shareMessage.trim(),time:'now',feed:'both'});
-              setSharePost(null); setShareMessage('');
-            }}>
-              <Text style={s.postBtnTxt}>{t('share')}</Text>
-            </TouchableOpacity>
-          </View>
-          <KeyboardAvoidingView style={{flex:1}} behavior={Platform.OS==='ios'?'padding':undefined}>
-            <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{paddingBottom:40}}>
-              <View style={{flexDirection:'row',padding:16,gap:12}}>
-                <View style={[s.composeAvatar,{backgroundColor:'#667eea'}]}>
-                  <Text style={s.composeAvatarTxt}>{initials}</Text>
-                </View>
-                <View style={{flex:1}}>
-                  <TextInput style={{fontSize:15,color:c.text,minHeight:60,lineHeight:23}} placeholder={tx('Add your thoughts...')} placeholderTextColor={c.placeholder} value={shareMessage} onChangeText={setShareMessage} multiline autoFocus/>
-                  {sharePost&&(
-                    <View style={s.quotedCard}>
-                      <View style={{flexDirection:'row',alignItems:'center',gap:8,marginBottom:6}}>
-                        <View style={[s.composeAvatar,{width:26,height:26,borderRadius:13,backgroundColor:sharePost.authorColor}]}>
-                          <Text style={[s.composeAvatarTxt,{fontSize:10}]}>{sharePost.authorInitials}</Text>
-                        </View>
-                        <Text style={{fontSize:13,fontWeight:'700',color:c.text}}>{sharePost.authorName}</Text>
-                      </View>
-                      <Text style={{fontSize:13,color:c.textSecondary,lineHeight:19}} numberOfLines={3}>{sharePost.content}</Text>
-                    </View>
-                  )}
-                </View>
-              </View>
-              <View style={{flexDirection:'row',alignItems:'center',gap:12,paddingHorizontal:16,marginVertical:20}}>
-                <View style={{flex:1,height:1,backgroundColor:c.border}}/>
-                <Text style={{fontSize:11,color:c.textMuted}}>or share outside FaithFinder</Text>
-                <View style={{flex:1,height:1,backgroundColor:c.border}}/>
-              </View>
-              <View style={{flexDirection:'row',justifyContent:'space-around',paddingHorizontal:20}}>
-                {[
-                  {label:'Messages',icon:'chatbubble-outline',color:'#2ecc71',bg:'#e8f8f0',fn:()=>{const m=buildPostShareText(sharePost);require('react-native').Linking.openURL('sms:&body='+encodeURIComponent(m)).catch(()=>{});}},
-                  {label:'Email',icon:'mail-outline',color:'#3498db',bg:'#eaf4fb',fn:()=>{const m=buildPostShareText(sharePost);require('react-native').Linking.openURL('mailto:?subject=Check this out&body='+encodeURIComponent(m)).catch(()=>{});}},
-                  {label:'More',icon:'share-social-outline',color:'#9b59b6',bg:'#f5eefb',fn:()=>{const p=sharePost;setSharePost(null);setTimeout(()=>Share.share({message:buildPostShareText(p),title: tx('Check this out on FaithFinder')}).catch(()=>{}),800);}},
-                ].map(o=>(
-                  <TouchableOpacity key={o.label} style={{alignItems:'center',gap:8}} onPress={o.fn}>
-                    <View style={{width:54,height:54,borderRadius:16,backgroundColor:o.bg,alignItems:'center',justifyContent:'center'}}>
-                      <Ionicons name={o.icon as any} size={22} color={o.color}/>
-                    </View>
-                    <Text style={{fontSize:12,color:c.text,fontWeight:'600'}}>{tx(o.label)}</Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </ScrollView>
-          </KeyboardAvoidingView>
-        </SafeAreaView>
-      </Modal>
     </SafeAreaView>
   );
 }
-
 
 
 const makeStyles = (c: ThemeColors) => StyleSheet.create({

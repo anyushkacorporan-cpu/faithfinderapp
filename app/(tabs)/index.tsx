@@ -383,8 +383,6 @@ export default function ChurchesScreen() {
 
 const makeStyles = (c: ThemeColors) => StyleSheet.create({
   root:{flex:1,backgroundColor:c.bg},
-  verseBar:{paddingHorizontal:20,paddingVertical:12,borderBottomWidth:1,borderBottomColor:c.border},
-  verseTxt:{fontFamily:'PlayfairDisplay_400Regular_Italic',fontSize:13,color:c.textMuted,textAlign:'center',lineHeight:20},
   searchSection:{backgroundColor:c.card,paddingHorizontal:16,paddingTop:6},
   locationRow:{flexDirection:'row',alignItems:'center',gap:5,marginBottom:10,minHeight:38},
   locationTxt:{flex:1,fontSize:15,color:c.textSecondary,fontWeight:'600'},
