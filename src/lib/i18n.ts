@@ -130,6 +130,8 @@ const translations: Record<string, Record<Lang, string>> = {
   notifyNearChurch: { English: 'Notify when near a saved church', Español: 'Notificar cuando esté cerca de una iglesia guardada' },
   privacy: { English: 'Privacy', Español: 'Privacidad' },
   announcement: { English: 'Announcement', Español: 'Anuncio' },
+  ticketSaved: { English: 'Your ticket is saved in My Events', Español: 'Tu entrada está guardada en Mis Eventos' },
+  ticketsSaved: { English: 'Your tickets are saved in My Events', Español: 'Tus entradas están guardadas en Mis Eventos' },
   blockedUsers: { English: 'Blocked Users', Español: 'Usuarios Bloqueados' },
   publicProfile: { English: 'Public Profile', Español: 'Perfil Público' },
   allowOthersViewProfile: { English: 'Allow others to view your profile', Español: 'Permitir que otros vean tu perfil' },

@@ -71,6 +71,7 @@ export default function EventCheckoutScreen() {
       eventDate: params.date || '',
       eventLocation: params.location || '',
       eventType: params.type || '',
+      email: email.trim(),
       quantity,
       pricePerTicket: ticketPrice,
       totalPaid: total,

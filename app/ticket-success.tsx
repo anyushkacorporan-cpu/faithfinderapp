@@ -10,7 +10,7 @@ import { useTranslation } from '../src/lib/i18n';
 export default function TicketSuccessScreen() {
   const c = useThemeColors();
   const s = makeStyles(c);
-  const { t } = useTranslation();
+  const { t, tx } = useTranslation();
   const params = useLocalSearchParams<{
     id: string; title: string; date: string; location: string;
     price: string; type: string; organizer?: string;
@@ -50,11 +50,14 @@ export default function TicketSuccessScreen() {
               {quantity > 1 ? `${quantity} Tickets Secured` : 'Ticket Secured · You\'re Attending'}
             </Text>
 
-            {/* Email notice */}
+            {/* Where the ticket actually lives. Do not promise an email here:
+                nothing sends one yet, and this screen follows a payment. */}
             <View style={s.emailBanner}>
-              <Ionicons name="mail-outline" size={16} color="rgba(255,255,255,0.8)" />
+              <Ionicons name="bookmark-outline" size={16} color="rgba(255,255,255,0.8)" />
               <Text style={s.emailBannerTxt}>
-                {quantity > 1 ? `${quantity} tickets sent to your Mail app` : 'Ticket sent to your Mail app'}
+                {quantity > 1
+                  ? tx('Your tickets are saved in My Events')
+                  : tx('Your ticket is saved in My Events')}
               </Text>
             </View>
 

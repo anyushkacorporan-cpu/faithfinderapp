@@ -9,6 +9,12 @@ export type Ticket = {
   eventDate: string;
   eventLocation: string;
   eventType: string;
+  /**
+   * Where the buyer wants their ticket sent. Collected and validated at
+   * checkout today but nothing delivers it yet — storing it now means tickets
+   * sold before the email service exists still have a reachable address.
+   */
+  email?: string;
   quantity: number;
   pricePerTicket: number;
   totalPaid: number;
