@@ -37,6 +37,14 @@ export type User = {
 
   // ── Church accounts ────────────────────────────────────────────────
   churchName?: string;
+  /**
+   * Google Place ID of the church this account claimed. This is the only stable
+   * link between a church ACCOUNT and its church PAGE — names diverge, because
+   * Places supplies one spelling and the account holder types another. Set when
+   * claiming; absent for churches registered from scratch, which have no Places
+   * entry to point at.
+   */
+  placeId?: string;
   churchEmail?: string;
   denomination?: string;
   address?: string;

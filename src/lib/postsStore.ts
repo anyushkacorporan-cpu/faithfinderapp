@@ -77,6 +77,18 @@ export type Post = {
   comments: Comment[];
   eventShareData?: EventShareData;
   churchShareData?: ChurchShareData;
+  /**
+   * The church this post belongs to. Set when a church account posts, and when
+   * anyone shares a church to the feed. placeId is the reliable half — Google
+   * supplies one spelling of a church's name and the account holder types
+   * another, so matching on name alone misses posts.
+   *
+   * These were already being written at runtime through an untyped require()
+   * in church-detail; declaring them makes that intentional and lets other
+   * screens set them too.
+   */
+  churchPlaceId?: string;
+  churchName?: string;
   feed: 'foryou' | 'discover' | 'both';
   /**
    * Church announcements. Only church accounts can set this. It changes how the
@@ -237,6 +249,7 @@ export function addPost(post: {
   authorPhoto?: string; content: string; time: string;
   city?: string; state?: string; feed?: 'foryou'|'discover'|'both';
   image?: string; eventShareData?: EventShareData; churchShareData?: ChurchShareData;
+  churchPlaceId?: string; churchName?: string;
   linkUrl?: string; linkPreview?: Post['linkPreview']; isAnnouncement?: boolean;
   sharedPost?: { authorName: string; authorInitials: string; authorColor: string; content: string; };
   repostOf?: Post['repostOf']; repostComment?: string;
@@ -279,6 +292,22 @@ export function isAuthoredBy(
 ): boolean {
   if (post.authorId && userId) return post.authorId === userId;
   return !!displayName && post.authorName === displayName;
+}
+
+/**
+ * Posts belonging to a church.
+ *
+ * Match on the Google Place ID when both sides have one, and fall back to the
+ * name. A church account that CLAIMED its listing carries the place id; one
+ * registered from scratch has no Places entry, so only the name is available.
+ * Checking both means each kind of church still finds its own posts.
+ */
+export function postsForChurch(placeId?: string, churchName?: string): Post[] {
+  if (!placeId && !churchName) return [];
+  return posts.filter(p =>
+    (!!placeId && p.churchPlaceId === placeId) ||
+    (!!churchName && (p.churchName === churchName || p.authorName === churchName))
+  );
 }
 
 export function editPost(postId: string, updates: { content?: string; image?: string | null }) {

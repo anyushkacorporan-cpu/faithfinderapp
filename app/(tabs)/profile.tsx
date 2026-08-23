@@ -11,6 +11,7 @@ import { useUser, setUser, getUser } from '../../src/lib/userStore';
 import { useActivity } from '../../src/lib/activityStore';
 import { useConnections, useConnectionCount, removeConnection } from '../../src/lib/connectionsStore';
 import { usePosts, toggleLike, editPost, isAuthoredBy } from '../../src/lib/postsStore';
+import { useUserEvents } from '../../src/lib/eventsStore';
 import { PostCard } from '../../src/components/PostCard';
 import { useEventActions } from '../../src/lib/eventActionsStore';
 import { EVENTS } from '../../src/lib/constants';
@@ -47,6 +48,7 @@ export default function ProfileScreen() {
     ? (user.churchName || 'Church')
     : ((user.firstName || 'You') + ' ' + (user.lastName || '')).trim();
   const myPosts = allPosts.filter(p => isAuthoredBy(p, user.id, displayName));
+  const myEvents = useUserEvents();
   const postGalleryPhotos = myPosts.filter(p => !!p.image).map(p => p.image as string);
   const galleryPhotos = [...new Set([...postGalleryPhotos, ...(user.photos || [])])];
   const galleryItems = galleryPhotos.map(uri => ({ uri, post: myPosts.find(p => p.image === uri) || null }));
@@ -369,6 +371,81 @@ export default function ProfileScreen() {
 
           <View style={s.divider} />
 
+          {/* Posts. CHURCH_TABS has been declared since the app was written but
+              never rendered, so a church could post and have nowhere on its own
+              profile for those posts to appear. */}
+          <View style={s.churchTabsRow}>
+            {CHURCH_TABS.map(tab => (
+              <TouchableOpacity
+                key={tab}
+                style={[s.churchTab, activeTab === tab && s.churchTabActive]}
+                onPress={() => setActiveTab(tab)}
+              >
+                <Text style={[s.churchTabTxt, activeTab === tab && s.churchTabTxtActive]}>
+                  {tab === 'Posts' ? t('posts') : tab === 'Events' ? t('events') : tx('Members')}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          {activeTab === 'Posts' && (
+            myPosts.length === 0 ? (
+              <View style={s.churchEmpty}>
+                <Ionicons name="create-outline" size={26} color={c.textMuted} />
+                <Text style={s.churchEmptyTitle}>{tx('No posts yet')}</Text>
+                <Text style={s.churchEmptySub}>{tx('Share an update from the Community tab and it will appear here.')}</Text>
+              </View>
+            ) : (
+              myPosts.map(post => (
+                <PostCard
+                  key={post.id}
+                  post={post}
+                  showLocation={!!(post.city && post.state)}
+                  isOwnPost
+                  onLike={() => toggleLike(post.id)}
+                  onComment={() => router.push({ pathname: '/comments', params: { postId: post.id } })}
+                  onShare={() => {}}
+                  onOpenProfile={() => {}}
+                />
+              ))
+            )
+          )}
+
+          {activeTab === 'Events' && (
+            myEvents.length === 0 ? (
+              <View style={s.churchEmpty}>
+                <Ionicons name="calendar-outline" size={26} color={c.textMuted} />
+                <Text style={s.churchEmptyTitle}>{tx('No events yet')}</Text>
+                <Text style={s.churchEmptySub}>{tx('Events you create will be listed here.')}</Text>
+              </View>
+            ) : (
+              myEvents.map(ev => (
+                <TouchableOpacity
+                  key={ev.id}
+                  style={s.churchEventRow}
+                  onPress={() => router.push({ pathname: '/event-detail', params: { id: ev.id, title: ev.title, date: ev.date, location: ev.location, type: ev.type, price: ev.isPaid ? String(ev.ticketPrice) : 'Free', organizer: displayName, description: ev.description || '' } })}
+                >
+                  <View style={s.churchEventIcon}>
+                    <Ionicons name="calendar" size={17} color={c.gold} />
+                  </View>
+                  <View style={{flex:1}}>
+                    <Text style={s.churchEventTitle} numberOfLines={1}>{ev.title}</Text>
+                    <Text style={s.churchEventMeta}>{ev.date}{ev.location ? ' · ' + ev.location : ''}</Text>
+                  </View>
+                  <Ionicons name="chevron-forward" size={16} color={c.placeholder} />
+                </TouchableOpacity>
+              ))
+            )
+          )}
+
+          {activeTab === 'Members' && (
+            <View style={s.churchEmpty}>
+              <Ionicons name="people-outline" size={26} color={c.textMuted} />
+              <Text style={s.churchEmptyTitle}>{tx('Members are coming soon')}</Text>
+              <Text style={s.churchEmptySub}>{tx('Once people can follow your church, they will be listed here.')}</Text>
+            </View>
+          )}
+
           <View style={{height:40}} />
         </ScrollView>
         {/* Bell + gear float over the cover photo. They sit outside the
@@ -685,6 +762,18 @@ function ActivityTabContent() {
 }
 
 const makeStyles = (c: ThemeColors) => StyleSheet.create({
+  churchTabsRow:{flexDirection:'row',backgroundColor:c.cardAlt,borderRadius:100,padding:3,marginHorizontal:16,marginTop:16,marginBottom:14},
+  churchTab:{flex:1,paddingVertical:8,borderRadius:100,alignItems:'center'},
+  churchTabActive:{backgroundColor:c.card,shadowColor:'#000',shadowOffset:{width:0,height:1},shadowOpacity:0.08,shadowRadius:3},
+  churchTabTxt:{fontSize:13,fontWeight:'600',color:c.textMuted},
+  churchTabTxtActive:{color:c.text,fontWeight:'700'},
+  churchEmpty:{alignItems:'center',paddingVertical:34,paddingHorizontal:28,gap:7},
+  churchEmptyTitle:{fontSize:15,fontWeight:'700',color:c.text},
+  churchEmptySub:{fontSize:13,color:c.textMuted,textAlign:'center',lineHeight:19},
+  churchEventRow:{flexDirection:'row',alignItems:'center',gap:12,marginHorizontal:16,marginBottom:10,padding:13,borderRadius:14,borderWidth:1,borderColor:c.border,backgroundColor:c.card},
+  churchEventIcon:{width:36,height:36,borderRadius:11,backgroundColor:'rgba(201,169,110,0.16)',alignItems:'center',justifyContent:'center'},
+  churchEventTitle:{fontSize:14,fontWeight:'700',color:c.text},
+  churchEventMeta:{fontSize:12,color:c.textMuted,marginTop:2},
   root:{flex:1,backgroundColor:c.bg},
   // Gallery
   coverIconBtn:{width:36,height:36,borderRadius:18,backgroundColor:'rgba(0,0,0,0.4)',alignItems:'center',justifyContent:'center'},

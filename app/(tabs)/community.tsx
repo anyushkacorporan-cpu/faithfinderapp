@@ -151,6 +151,9 @@ export default function CommunityScreen() {
       state,
       feed: visibility === 'public' ? 'discover' : 'foryou',
       isAnnouncement: announcing,
+      // Stamp the claimed church so the post shows on that church's page.
+      churchPlaceId: user.accountType === 'church' ? user.placeId : undefined,
+      churchName: user.accountType === 'church' ? user.churchName : undefined,
     });
     if (announcing) {
       announceToFollowers({

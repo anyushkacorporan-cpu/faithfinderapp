@@ -77,6 +77,9 @@ export default function ClaimChurchScreen() {
     await new Promise(r => setTimeout(r, 1500)); // simulate submission
     setUser({
       churchName: selectedChurch.name,
+      // Keep the Place ID: it is what lets this account's posts appear on the
+      // church page, which Places identifies by id rather than by name.
+      placeId: selectedChurch.placeId,
       address: selectedChurch.address,
       website: website,
       verificationStatus: 'pending',

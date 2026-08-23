@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Linking, Share, Alert, Image, FlatList, Dimensions, ActivityIndicator, Modal, TextInput } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -9,6 +9,8 @@ import { CHURCHES } from '../src/lib/constants';
 import { useThemeColors, ThemeColors } from '../src/lib/theme';
 import { buildChurchShareText, buildPostShareText } from '../src/lib/shareLinks';
 import { getUser } from '../src/lib/userStore';
+import { usePosts, postsForChurch } from '../src/lib/postsStore';
+import { isBlocked } from '../src/lib/blockStore';
 import { useSavedChurches } from '../src/lib/store';
 import { isConnectedTo, addConnection, removeConnection } from '../src/lib/connectionsStore';
 import { useChurchPosts, toggleLike, addComment } from '../src/lib/postsStore';
@@ -79,7 +81,6 @@ export default function ChurchDetailScreen() {
   const [loading, setLoading] = useState(true);
   const [activePhoto, setActivePhoto] = useState(0);
   const [showReviews, setShowReviews] = useState(false);
-  const churchPosts: any[] = [];
   const [activeTab, setActiveTab] = useState('About');
   const [commentModal, setCommentModal] = useState<string|null>(null);
   const [commentText, setCommentText] = useState('');
@@ -108,6 +109,15 @@ export default function ChurchDetailScreen() {
     type: '',
     churchEmail: '',
   };
+
+  // Was a hardcoded [] since the app was written, so the Posts tab on every
+  // church page has always been empty even when that church had posted.
+  const allPosts = usePosts();
+  const churchPosts = useMemo(
+    () => postsForChurch(placeId || params.id, church.name)
+            .filter(p => !isBlocked(p.authorId, p.authorName)),
+    [allPosts, placeId, params.id, church.name]
+  );
 
   useEffect(() => {
     async function load() {
@@ -415,7 +425,7 @@ export default function ChurchDetailScreen() {
               </View>
             ) : (
               (churchPosts||[]).map(post => {
-                const liked = post.likes.includes(MY_ID);
+                const liked = post.liked;
                 return (
                   <View key={post.id} style={s.postCard}>
                     <View style={s.postHdr}>
@@ -429,9 +439,9 @@ export default function ChurchDetailScreen() {
                     </View>
                     <Text style={s.postContent}>{post.content}</Text>
                     {!!post.image && <Image source={{uri:post.image}} style={s.postImage} resizeMode="cover"/>}
-                    {(post.likes.length>0||post.comments.length>0) && (
+                    {(post.likes>0||post.comments.length>0) && (
                       <View style={s.postStats}>
-                        {post.likes.length>0&&<Text style={s.statTxt}>{post.likes.length} like{post.likes.length!==1?'s':''}</Text>}
+                        {post.likes>0&&<Text style={s.statTxt}>{post.likes} like{post.likes!==1?'s':''}</Text>}
                         {post.comments.length>0&&<Text style={s.statTxt}>{post.comments.length} comment{post.comments.length!==1?'s':''}</Text>}
                       </View>
                     )}
