@@ -163,7 +163,7 @@ export default function ProfileScreen() {
         <ScrollView showsVerticalScrollIndicator={false}>
 
           {/* Photo Gallery */}
-          {user.photos?.length > 0 ? (
+          {(user.photos?.length ?? 0) > 0 ? (
             <View style={[s.galleryWrap, {height: 320 + insets.top}]}>
 
               <FlatList
@@ -175,7 +175,7 @@ export default function ProfileScreen() {
                 keyExtractor={(_, i) => String(i)}
               />
               <View style={s.dots}>
-                {user.photos.map((_: any, i: number) => <View key={i} style={[s.dot, i===activePhoto && s.dotActive]} />)}
+                {(user.photos || []).map((_, i) => <View key={i} style={[s.dot, i===activePhoto && s.dotActive]} />)}
               </View>
               <TouchableOpacity style={s.addMorePhotosBtn} onPress={handleAddPhotoOptions}>
                 <Ionicons name="camera" size={16} color="#fff" />
@@ -326,10 +326,10 @@ export default function ProfileScreen() {
                 <View style={s.infoIconWrap}><Ionicons name="time-outline" size={18} color={user.serviceTimes ? c.text : c.placeholder} /></View>
                 <View style={s.infoContent}>
                   <Text style={s.infoLabel}>{t('serviceTimes')}</Text>
-                  {!!user.serviceTimes && user.serviceTimes.split('\n').map((line: string, i: number) => {
+                  {!!user.serviceTimes && user.serviceTimes.split('\n').map((line, i, rows) => {
                     const [timePart, notePart] = line.split(' | ');
                     return (
-                      <View key={i} style={{marginBottom: i < user.serviceTimes.split('\n').length - 1 ? 6 : 0}}>
+                      <View key={i} style={{marginBottom: i < rows.length - 1 ? 6 : 0}}>
                         <Text style={s.infoValue}>{timePart}</Text>
                         {!!notePart && <Text style={{fontSize:12,color:c.textMuted,marginTop:1}}>{notePart}</Text>}
                       </View>

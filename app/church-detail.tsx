@@ -8,6 +8,7 @@ import Header from '../src/components/Header';
 import { CHURCHES } from '../src/lib/constants';
 import { useThemeColors, ThemeColors } from '../src/lib/theme';
 import { buildChurchShareText, buildPostShareText } from '../src/lib/shareLinks';
+import { getUser } from '../src/lib/userStore';
 import { useSavedChurches } from '../src/lib/store';
 import { isConnected, addConnection, removeConnection } from '../src/lib/connectionsStore';
 import { useChurchPosts, toggleLike, addComment } from '../src/lib/postsStore';
@@ -101,6 +102,11 @@ export default function ChurchDetailScreen() {
     photos: details?.photos?.slice(0, 8) || [],
     reviews: details?.reviews || [],
     gradient: staticChurch?.gradient || ['#667eea','#764ba2'] as [string,string],
+    // Google Places returns neither of these and no route param carries them,
+    // so they are always blank here. Kept so the read sites stay honest about
+    // the shape; wire them up if/when churches supply this data.
+    type: '',
+    churchEmail: '',
   };
 
   useEffect(() => {
@@ -124,7 +130,7 @@ export default function ChurchDetailScreen() {
         name: church.name,
         type: 'church',
         address: church.address,
-        placeId: church.placeId,
+        placeId: church.id,
         color: c.gold,
         initials: church.name?.slice(0,2).toUpperCase() || 'CH',
       });
@@ -358,8 +364,8 @@ export default function ChurchDetailScreen() {
                 </TouchableOpacity>
                 <View style={s.infoDivider} />
                 <View style={s.infoRow}>
-                <View style={s.infoIcon}><Ionicons name="mail-outline" size={18} color={c.textMuted}/></View>
-                <View style={s.infoText}>
+                <View style={s.infoIconWrap}><Ionicons name="mail-outline" size={18} color={c.textMuted}/></View>
+                <View style={s.infoContent}>
                   <Text style={s.infoLabel}>{t('email').toUpperCase()}</Text>
                   <Text style={s.muted}>{church.churchEmail || 'Not available'}</Text>
                 </View>
@@ -430,7 +436,7 @@ export default function ChurchDetailScreen() {
                       </View>
                     )}
                     <View style={s.postActions}>
-                      <TouchableOpacity style={s.actionBtn} onPress={() => toggleLike(post.id, MY_ID)}>
+                      <TouchableOpacity style={s.actionBtn} onPress={() => toggleLike(post.id)}>
                         <Ionicons name={liked?'heart':'heart-outline'} size={18} color={liked?c.red:c.textMuted}/>
                         <Text style={[s.actionTxt, liked&&{color:c.red}]}>{t('like')}</Text>
                       </TouchableOpacity>
@@ -619,7 +625,7 @@ export default function ChurchDetailScreen() {
             </TouchableOpacity>
           </View>
           <ScrollView style={s.commentList}>
-            {churchPosts.find(p=>p.id===commentModal)?.comments.map(c=>(
+            {churchPosts.find(p=>p.id===commentModal)?.comments.map((c: any)=>(
               <View key={c.id} style={s.commentItem}>
                 <View style={s.commentAvatar}><Text style={s.commentAvatarTxt}>{c.author[0]}</Text></View>
                 <View style={s.commentBubble}>
@@ -631,7 +637,7 @@ export default function ChurchDetailScreen() {
           </ScrollView>
           <View style={s.commentInputRow}>
             <TextInput style={s.commentInput} placeholder={tx('Write a comment...')} placeholderTextColor={c.placeholder} value={commentText} onChangeText={setCommentText}/>
-            <TouchableOpacity style={s.commentSendBtn} onPress={() => { if(commentModal){addComment(commentModal,'You',commentText);setCommentText('');setCommentModal(null);} }}>
+            <TouchableOpacity style={s.commentSendBtn} onPress={() => { if(commentModal && commentText.trim()){ const u = getUser(); const name = u.accountType === 'church' ? (u.churchName || 'Church') : ((u.firstName || 'You') + ' ' + (u.lastName || '')).trim(); const inits = (u.accountType === 'church' ? (u.churchName?.[0] || 'C') : ((u.firstName?.[0] || 'Y') + (u.lastName?.[0] || ''))).toUpperCase(); addComment(commentModal, commentText.trim(), name, inits, '#667eea'); setCommentText(''); setCommentModal(null);} }}>
               <Ionicons name="send" size={18} color={c.onPrimary}/>
             </TouchableOpacity>
           </View>

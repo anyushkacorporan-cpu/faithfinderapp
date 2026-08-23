@@ -1,6 +1,19 @@
 import { useState, useEffect } from 'react';
 
-type Connection = { id: string; name: string; type: 'user' | 'church'; color: string; initials: string; };
+/**
+ * Someone (or some church) the user follows. `address` and `placeId` are only
+ * present on church connections saved from the church-detail screen — they let
+ * that screen be reopened later without another Places lookup.
+ */
+type Connection = {
+  id: string;
+  name: string;
+  type: 'user' | 'church';
+  color: string;
+  initials: string;
+  address?: string;
+  placeId?: string;
+};
 
 let connections: Connection[] = [
   { id: 'grace-community', name: 'Grace Community Church', type: 'church', color: '#c9a96e', initials: 'GC' },

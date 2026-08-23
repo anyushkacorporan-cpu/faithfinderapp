@@ -3,20 +3,44 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const USER_KEY = 'faithfinder_user_v1';
 
+/**
+ * The signed-in user's profile. Everything is optional: the object starts
+ * essentially empty at signup and fills in as the user completes their profile,
+ * so every read site has to cope with a missing value anyway.
+ *
+ * Personal and church accounts share this one shape — `accountType` decides
+ * which half is meaningful. Fields are grouped below accordingly.
+ */
 export type User = {
   accountType?: 'personal' | 'church';
-  firstName?: string;
-  lastName?: string;
-  churchName?: string;
   email?: string;
   bio?: string;
-  location?: string;
   phone?: string;
-  website?: string;
-  address?: string;
-  serviceTimes?: string;
-  avatar?: string;
   createdAt?: string;
+
+  // ── Personal accounts ──────────────────────────────────────────────
+  firstName?: string;
+  lastName?: string;
+  location?: string;      // free-text "City, ST" the user typed
+  profilePhoto?: string;  // local or remote image URI
+  coverPhoto?: string;    // local or remote image URI
+  lifeVerse?: string;     // the verse text itself
+  lifeVerseRef?: string;  // e.g. "Philippians 4:13"
+
+  // ── Church accounts ────────────────────────────────────────────────
+  churchName?: string;
+  churchEmail?: string;
+  denomination?: string;
+  address?: string;
+  website?: string;
+  serviceTimes?: string;
+  avatar?: string;        // church logo image URI
+  photos?: string[];      // gallery image URIs, shown as a pager on the profile
+  ministries?: string[];  // free-text ministry names the church added
+  /** Amenity key -> offered. Keys come from AMENITY_LIST in edit-church-profile. */
+  amenities?: Record<string, boolean>;
+  /** Set to 'pending' when a claim/registration is submitted. */
+  verificationStatus?: 'pending' | 'approved';
 };
 
 let user: User = { createdAt: new Date().toISOString() };

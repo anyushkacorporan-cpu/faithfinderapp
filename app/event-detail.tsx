@@ -26,7 +26,7 @@ const FF_USERS = [
 export default function EventDetailScreen() {
   const c = useThemeColors();
   const s = makeStyles(c);
-  const params = useLocalSearchParams<{ id:string; title:string; description:string; date:string; location:string; type:string; price:string; }>();
+  const params = useLocalSearchParams<{ id:string; title:string; description:string; date:string; location:string; type:string; price:string; organizer:string; }>();
   const fullEvent = getEvents().find(e => e.id === params.id);
   const user = getUser();
   const appSettings = useSettings();

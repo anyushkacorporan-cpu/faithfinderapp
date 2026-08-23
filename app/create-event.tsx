@@ -279,7 +279,7 @@ export default function CreateEventScreen() {
         ))}
       </View>
       <View style={s.progressBar}>
-        <View style={[s.progressFill,{width:((step+1)/STEPS.length*100)+'%'}]}/>
+        <View style={[s.progressFill,{width:`${(step+1)/STEPS.length*100}%`}]}/>
       </View>
 
       <KeyboardAvoidingView style={{flex:1}} behavior={Platform.OS==='ios'?'padding':undefined}>
