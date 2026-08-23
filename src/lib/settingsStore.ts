@@ -19,7 +19,6 @@ export type LocationPrefs = {
 
 export type AppearancePrefs = {
   theme: 'light' | 'dark' | 'system';
-  fontSize: 'small' | 'medium' | 'large';
   language: string;
 };
 
@@ -43,7 +42,7 @@ const DEFAULT_SETTINGS: AppSettings = {
     locationEnabled: true, nearbyChurches: true, nearbyEvents: true, locationNotifs: false,
   },
   appearance: {
-    theme: 'light', fontSize: 'medium', language: 'English',
+    theme: 'light', language: 'English',
   },
 };
 

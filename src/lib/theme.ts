@@ -108,16 +108,3 @@ export function useThemeColors(): ThemeColors {
   const isDark = pref === 'dark' || (pref === 'system' && system === 'dark');
   return isDark ? DARK : LIGHT;
 }
-
-/**
- * Text-size scaling driven by the Appearance setting.
- * Multiply a base font size by this factor to honor Small / Medium / Large.
- */
-export function useFontScale(): number {
-  const settings = useSettings();
-  switch (settings.appearance.fontSize) {
-    case 'small': return 0.9;
-    case 'large': return 1.15;
-    default: return 1;
-  }
-}
