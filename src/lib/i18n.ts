@@ -129,6 +129,7 @@ const translations: Record<string, Record<Lang, string>> = {
   locationNotifications: { English: 'Location Notifications', Español: 'Notificaciones de Ubicación' },
   notifyNearChurch: { English: 'Notify when near a saved church', Español: 'Notificar cuando esté cerca de una iglesia guardada' },
   privacy: { English: 'Privacy', Español: 'Privacidad' },
+  announcement: { English: 'Announcement', Español: 'Anuncio' },
   publicProfile: { English: 'Public Profile', Español: 'Perfil Público' },
   allowOthersViewProfile: { English: 'Allow others to view your profile', Español: 'Permitir que otros vean tu perfil' },
   showLocationOnProfile: { English: 'Show Location on Profile', Español: 'Mostrar Ubicación en el Perfil' },

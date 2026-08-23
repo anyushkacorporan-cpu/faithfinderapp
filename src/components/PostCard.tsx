@@ -93,7 +93,14 @@ export function PostCard({post,showLocation,onLike,onComment,onShare,onOpenProfi
   const p = makeStyles(c);
   const { t } = useTranslation();
   return (
-    <View style={p.card}>
+    <View style={[p.card, post.isAnnouncement && p.cardAnnouncement]}>
+      {post.isAnnouncement && (
+        <View style={p.announceBanner}>
+          <Ionicons name="megaphone" size={13} color={c.gold}/>
+          <Text style={p.announceBannerTxt}>{t('announcement')}</Text>
+        </View>
+      )}
+
       <View style={p.authorRow}>
         <TouchableOpacity onPress={onOpenProfile}>
           {post.authorPhoto
@@ -334,6 +341,9 @@ export function PostCard({post,showLocation,onLike,onComment,onShare,onOpenProfi
 
 
 const makeStyles = (c: ThemeColors) => StyleSheet.create({
+  cardAnnouncement:{borderColor:c.gold,borderWidth:1.5,backgroundColor:c.isDark?'rgba(201,169,110,0.07)':'rgba(201,169,110,0.05)'},
+  announceBanner:{flexDirection:'row',alignItems:'center',gap:6,marginBottom:12},
+  announceBannerTxt:{fontSize:11,fontWeight:'700',color:c.gold,letterSpacing:0.6,textTransform:'uppercase'},
   card:{backgroundColor:c.card,marginHorizontal:14,marginBottom:14,paddingVertical:18,paddingHorizontal:18,borderRadius:22,borderWidth:1,borderColor:c.border,shadowColor:'#000',shadowOffset:{width:0,height:2},shadowOpacity:0.06,shadowRadius:10,elevation:2},
   authorRow:{flexDirection:'row',alignItems:'center',gap:12,marginBottom:14},
   avatar:{width:44,height:44,borderRadius:22,alignItems:'center',justifyContent:'center'},

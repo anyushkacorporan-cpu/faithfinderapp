@@ -15,6 +15,7 @@ const TYPE_PREF: Record<Notification['type'], keyof NotificationPrefs> = {
   event: 'events',
   invite: 'invites',
   verification: 'verification',
+  announcement: 'announcements',
 };
 
 function isTypeEnabled(type: Notification['type'], prefs = getSettings().notifications): boolean {
@@ -24,7 +25,7 @@ function isTypeEnabled(type: Notification['type'], prefs = getSettings().notific
 
 export type Notification = {
   id: string;
-  type: 'like' | 'church_post' | 'event' | 'comment' | 'share' | 'invite' | 'verification';
+  type: 'like' | 'church_post' | 'event' | 'comment' | 'share' | 'invite' | 'verification' | 'announcement';
   title: string;
   body: string;
   time: string;
@@ -127,6 +128,39 @@ export function addNotification(notif: Omit<Notification, 'id' | 'read'>) {
   if (!isTypeEnabled(notif.type)) return;
   notifications = [{ ...notif, id: newId(), read: false }, ...notifications];
   persist(); notify();
+}
+
+/**
+ * Tell a church's followers it posted an announcement.
+ *
+ * This is a client-side stand-in. On a device there is exactly one account, so
+ * the only follower we can reach is this user — and only if they actually
+ * follow the church. That is the correct rule, just applied to an audience of
+ * one; when the backend exists the server fans the same notification out to
+ * every follower and this function becomes the call that asks it to.
+ *
+ * Respects the Announcements preference: addNotification drops it if the user
+ * has that switch off.
+ */
+export function announceToFollowers(opts: {
+  churchName: string;
+  churchId?: string;
+  body: string;
+  postId: string;
+}) {
+  const { isConnected } = require('./connectionsStore');
+  const followsChurch = isConnected(opts.churchId || opts.churchName);
+  if (!followsChurch) return;
+
+  addNotification({
+    type: 'announcement',
+    title: `${opts.churchName} posted an announcement`,
+    body: opts.body.slice(0, 120),
+    time: 'now',
+    icon: 'megaphone',
+    color: '#c9a96e',
+    navigateTo: '/(tabs)/community',
+  });
 }
 
 export function useNotifications() {

@@ -11,7 +11,7 @@ export default function LocationSettingsScreen() {
   const c = useThemeColors();
   const s = makeStyles(c);
   const settings = useSettings();
-  const { locationEnabled, nearbyChurches, nearbyEvents, locationNotifs } = settings.location;
+  const { locationEnabled, nearbyChurches, nearbyEvents } = settings.location;
 
   return (
     <SafeAreaView style={s.root} edges={['top']}>
@@ -45,7 +45,7 @@ export default function LocationSettingsScreen() {
             </View>
             <Switch disabled={!locationEnabled} value={locationEnabled && nearbyChurches} onValueChange={(v) => updateLocationPrefs({nearbyChurches:v})} trackColor={{false:c.cardAlt,true:c.navy}} thumbColor={c.white} />
           </View>
-          <View style={[s.row, s.rowBorder, !locationEnabled && {opacity:0.4}]}>
+          <View style={[s.row, !locationEnabled && {opacity:0.4}]}>
             <View style={[s.iconWrap, {backgroundColor:c.isDark?'rgba(124,131,255,0.18)':'rgba(26,26,46,0.08)'}]}>
               <Ionicons name="calendar-outline" size={20} color={c.navy} />
             </View>
@@ -54,16 +54,6 @@ export default function LocationSettingsScreen() {
               <Text style={s.rowDesc}>{t('showEventsNear')}</Text>
             </View>
             <Switch disabled={!locationEnabled} value={locationEnabled && nearbyEvents} onValueChange={(v) => updateLocationPrefs({nearbyEvents:v})} trackColor={{false:c.cardAlt,true:c.navy}} thumbColor={c.white} />
-          </View>
-          <View style={[s.row, !locationEnabled && {opacity:0.4}]}>
-            <View style={[s.iconWrap, {backgroundColor:c.isDark?'rgba(240,104,138,0.16)':'#fce4ec'}]}>
-              <Ionicons name="notifications-outline" size={20} color={c.red} />
-            </View>
-            <View style={s.rowInfo}>
-              <Text style={s.rowLabel}>{t('locationNotifications')}</Text>
-              <Text style={s.rowDesc}>{t('notifyNearChurch')}</Text>
-            </View>
-            <Switch disabled={!locationEnabled} value={locationEnabled && locationNotifs} onValueChange={(v) => updateLocationPrefs({locationNotifs:v})} trackColor={{false:c.cardAlt,true:c.navy}} thumbColor={c.white} />
           </View>
         </View>
       </ScrollView>

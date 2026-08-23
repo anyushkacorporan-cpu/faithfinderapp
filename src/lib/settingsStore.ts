@@ -14,7 +14,7 @@ export type PrivacyPrefs = {
 };
 
 export type LocationPrefs = {
-  locationEnabled: boolean; nearbyChurches: boolean; nearbyEvents: boolean; locationNotifs: boolean;
+  locationEnabled: boolean; nearbyChurches: boolean; nearbyEvents: boolean;
 };
 
 export type AppearancePrefs = {
@@ -33,13 +33,13 @@ const DEFAULT_SETTINGS: AppSettings = {
   notifications: {
     likes: true, comments: true, shares: true,
     churchPosts: true, events: true, invites: true,
-    verification: true, announcements: false,
+    verification: true, announcements: true,
   },
   privacy: {
     publicProfile: true, showLocation: false,
   },
   location: {
-    locationEnabled: true, nearbyChurches: true, nearbyEvents: true, locationNotifs: false,
+    locationEnabled: true, nearbyChurches: true, nearbyEvents: true,
   },
   appearance: {
     theme: 'light', language: 'English',

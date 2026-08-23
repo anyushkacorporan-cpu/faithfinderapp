@@ -78,6 +78,12 @@ export type Post = {
   eventShareData?: EventShareData;
   churchShareData?: ChurchShareData;
   feed: 'foryou' | 'discover' | 'both';
+  /**
+   * Church announcements. Only church accounts can set this. It changes how the
+   * post renders and, unlike an ordinary post, notifies everyone who follows
+   * the church — gated by the Announcements notification preference.
+   */
+  isAnnouncement?: boolean;
   visibility?: 'public' | 'connections';
   showLocation?: boolean;
   authorId?: string;
@@ -231,7 +237,7 @@ export function addPost(post: {
   authorPhoto?: string; content: string; time: string;
   city?: string; state?: string; feed?: 'foryou'|'discover'|'both';
   image?: string; eventShareData?: EventShareData; churchShareData?: ChurchShareData;
-  linkUrl?: string; linkPreview?: Post['linkPreview'];
+  linkUrl?: string; linkPreview?: Post['linkPreview']; isAnnouncement?: boolean;
   sharedPost?: { authorName: string; authorInitials: string; authorColor: string; content: string; };
   repostOf?: Post['repostOf']; repostComment?: string;
 }) {

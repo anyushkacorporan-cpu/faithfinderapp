@@ -21,6 +21,7 @@ import { usePosts, addPost, toggleLike, Post, editPost, deletePost, reportPost, 
 import { getUser } from '../../src/lib/userStore';
 import { buildPostShareText } from '../../src/lib/shareLinks';
 import { useConnections, isConnected } from '../../src/lib/connectionsStore';
+import { announceToFollowers } from '../../src/lib/notificationsStore';
 
 type Visibility = 'public' | 'connections';
 
@@ -116,6 +117,8 @@ export default function CommunityScreen() {
   const [linkPreviewData, setLinkPreviewData] = useState<LinkPreviewData | null>(null);
   const [loadingPreview, setLoadingPreview] = useState(false);
   const [visibility, setVisibility] = useState<Visibility>('public');
+  // Only church accounts can mark a post as an announcement.
+  const [isAnnouncement, setIsAnnouncement] = useState(false);
   const [showLocation, setShowLocation] = useState(true);
 
   async function handleCreatePost() {
@@ -130,6 +133,8 @@ export default function CommunityScreen() {
       if (loc) { city = loc.city; state = loc.state; }
     }
 
+    const announcing = user.accountType === 'church' && isAnnouncement;
+
     addPost({
       image: newPostImage || undefined,
       linkUrl: detectedUrl || undefined,
@@ -140,9 +145,18 @@ export default function CommunityScreen() {
       city,
       state,
       feed: visibility === 'public' ? 'discover' : 'foryou',
+      isAnnouncement: announcing,
     });
+    if (announcing) {
+      announceToFollowers({
+        churchName: displayName,
+        churchId: user.id,
+        body: newPostText.trim(),
+        postId: '',
+      });
+    }
     setNewPostText(''); setNewPostImage(null); setDetectedUrl(null); setLinkPreviewData(null);
-    setShowCreate(false); setVisibility('public'); setShowLocation(true);
+    setShowCreate(false); setVisibility('public'); setShowLocation(true); setIsAnnouncement(false);
     setIsPosting(false);
   }
 
@@ -239,6 +253,29 @@ export default function CommunityScreen() {
                   </TouchableOpacity>
                 </View>
               </View>
+
+              {/* Announcements are a church-only capability: they notify every
+                  follower, so a personal account never sees this control. */}
+              {user.accountType === 'church' && (
+                <TouchableOpacity
+                  style={[s.announceToggle, isAnnouncement && s.announceToggleOn]}
+                  onPress={() => setIsAnnouncement(v => !v)}
+                  activeOpacity={0.85}
+                >
+                  <View style={[s.announceIcon, isAnnouncement && {backgroundColor:c.gold}]}>
+                    <Ionicons name="megaphone" size={15} color={isAnnouncement ? c.onPrimary : c.gold}/>
+                  </View>
+                  <View style={{flex:1}}>
+                    <Text style={[s.announceLabel, isAnnouncement && {color:c.text}]}>{tx('Post as announcement')}</Text>
+                    <Text style={s.announceDesc}>{tx('Notifies everyone who follows your church')}</Text>
+                  </View>
+                  <Ionicons
+                    name={isAnnouncement ? 'checkmark-circle' : 'ellipse-outline'}
+                    size={22}
+                    color={isAnnouncement ? c.gold : c.placeholder}
+                  />
+                </TouchableOpacity>
+              )}
               <TextInput
                 style={s.composeInput}
                 placeholder={tx('What\'s on your heart?')}
@@ -551,6 +588,11 @@ export default function CommunityScreen() {
 
 
 const makeStyles = (c: ThemeColors) => StyleSheet.create({
+  announceToggle:{flexDirection:'row',alignItems:'center',gap:10,marginHorizontal:16,marginTop:12,paddingHorizontal:12,paddingVertical:10,borderRadius:14,borderWidth:1,borderColor:c.border,backgroundColor:c.card},
+  announceToggleOn:{borderColor:c.gold,backgroundColor:'rgba(201,169,110,0.10)'},
+  announceIcon:{width:30,height:30,borderRadius:9,alignItems:'center',justifyContent:'center',backgroundColor:'rgba(201,169,110,0.16)'},
+  announceLabel:{fontSize:13,fontWeight:'700',color:c.textSecondary},
+  announceDesc:{fontSize:11,color:c.textMuted,marginTop:1},
   verseBar:{flexDirection:'row',alignItems:'stretch',gap:12,paddingVertical:12,paddingRight:16,paddingLeft:14,borderTopWidth:1,borderTopColor:c.border,borderBottomWidth:1,borderBottomColor:c.border,backgroundColor:c.card},
   verseAccent:{width:3,backgroundColor:c.gold},
   verseTxt:{flex:1,fontFamily:'PlayfairDisplay_400Regular',fontSize:14,color:c.text,lineHeight:20},
