@@ -12,11 +12,6 @@ function formatCurrency(n: number): string {
   return '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
-const WITHDRAWAL_HISTORY = [
-  { id: '1', amount: 245.50, status: 'completed', date: 'May 15, 2026', method: 'Bank Transfer' },
-  { id: '2', amount: 180.00, status: 'completed', date: 'Apr 28, 2026', method: 'Bank Transfer' },
-];
-
 export default function EarningsScreen() {
   const c = useThemeColors();
   const s = makeStyles(c);
@@ -145,23 +140,16 @@ export default function EarningsScreen() {
             </View>
 
             <Text style={s.sectionTitle}>{t('withdrawalHistory')}</Text>
-            {WITHDRAWAL_HISTORY.map(w => (
-              <View key={w.id} style={s.withdrawalRow}>
-                <View style={[s.withdrawalIcon, {backgroundColor: w.status === 'completed' ? '#e8f5e9' : '#fff3e0'}]}>
-                  <Ionicons name={w.status === 'completed' ? 'checkmark-circle' : 'time'} size={20} color={w.status === 'completed' ? c.green : c.gold} />
-                </View>
-                <View style={s.withdrawalInfo}>
-                  <Text style={s.withdrawalMethod}>{w.method}</Text>
-                  <Text style={s.withdrawalDate}>{w.date}</Text>
-                </View>
-                <View style={s.withdrawalRight}>
-                  <Text style={s.withdrawalAmt}>${w.amount.toFixed(2)}</Text>
-                  <View style={[s.withdrawalStatus, {backgroundColor: w.status === 'completed' ? '#e8f5e9' : '#fff3e0'}]}>
-                    <Text style={[s.withdrawalStatusTxt, {color: w.status === 'completed' ? c.green : c.gold}]}>{w.status}</Text>
-                  </View>
-                </View>
-              </View>
-            ))}
+            {/* No withdrawals have ever been made — there is no payout system
+                yet. This used to render two invented completed payouts above a
+                $0.00 balance, which is not something to show on a money screen. */}
+            <View style={s.emptyPayouts}>
+              <Ionicons name="receipt-outline" size={26} color={c.textMuted} />
+              <Text style={s.emptyPayoutsTitle}>{tx('No withdrawals yet')}</Text>
+              <Text style={s.emptyPayoutsSub}>
+                {tx('Once you connect a payout account and withdraw, your transfers will appear here.')}
+              </Text>
+            </View>
           </>
         )}
 
@@ -230,6 +218,9 @@ export default function EarningsScreen() {
 import { TextInput } from 'react-native';
 
 const makeStyles = (c: ThemeColors) => StyleSheet.create({
+  emptyPayouts:{alignItems:'center',paddingVertical:32,paddingHorizontal:24,backgroundColor:c.card,borderRadius:16,borderWidth:1,borderColor:c.border,gap:8},
+  emptyPayoutsTitle:{fontSize:15,fontWeight:'700',color:c.text},
+  emptyPayoutsSub:{fontSize:13,color:c.textMuted,textAlign:'center',lineHeight:19},
   root:{flex:1,backgroundColor:c.bg},
   hdr:{flexDirection:'row',alignItems:'center',justifyContent:'space-between',paddingHorizontal:16,paddingVertical:12,borderBottomWidth:1,borderBottomColor:c.border,backgroundColor:c.card},
   backBtn:{width:36,height:36,borderRadius:18,backgroundColor:c.cardAlt,alignItems:'center',justifyContent:'center'},

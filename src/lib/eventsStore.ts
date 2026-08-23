@@ -173,6 +173,28 @@ export function updateEvent(id: string, updates: Partial<AppEvent>) {
   notify();
 }
 
+/**
+ * Record a completed ticket purchase against the event.
+ *
+ * ticketsSold was set to 0 at creation and never touched again, so every
+ * earnings figure — gross, fees, net, pending payout — was derived from zero
+ * and stayed at $0.00 no matter how many tickets were bought. Attendance was
+ * tracked, the ticket itself was stored, but the event never learned it had
+ * sold anything.
+ *
+ * Called from checkout once payment completes. When a real payment processor
+ * exists this becomes the webhook handler's job, so the count reflects money
+ * that actually settled rather than a checkout screen being dismissed.
+ */
+export function recordTicketSale(eventId: string, quantity: number) {
+  if (!eventId || quantity <= 0) return;
+  events = events.map(e =>
+    e.id === eventId ? { ...e, ticketsSold: (e.ticketsSold || 0) + quantity } : e
+  );
+  persist();
+  notify();
+}
+
 export function deleteEvent(id: string) {
   events = events.filter(e => e.id !== id);
   persist();

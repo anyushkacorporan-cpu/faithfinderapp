@@ -10,6 +10,7 @@ import { useThemeColors, ThemeColors } from '../src/lib/theme';
 import { useTranslation } from '../src/lib/i18n';
 import { addAttending } from '../src/lib/eventActionsStore';
 import { addTicket } from '../src/lib/ticketStore';
+import { recordTicketSale } from '../src/lib/eventsStore';
 
 export default function EventCheckoutScreen() {
   const { t, tx } = useTranslation();
@@ -78,6 +79,8 @@ export default function EventCheckoutScreen() {
       platformFee,
     });
 
+    // The event has to learn it sold something, or earnings stay at zero.
+    recordTicketSale(params.id || '', quantity);
     addAttending(params.id || '');
     setProcessing(false);
 
