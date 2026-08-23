@@ -22,6 +22,7 @@ import { getUser } from '../../src/lib/userStore';
 import { buildPostShareText } from '../../src/lib/shareLinks';
 import { useConnections, isConnected } from '../../src/lib/connectionsStore';
 import { announceToFollowers } from '../../src/lib/notificationsStore';
+import { blockUser, isBlocked, useBlocked } from '../../src/lib/blockStore';
 
 type Visibility = 'public' | 'connections';
 
@@ -86,11 +87,15 @@ export default function CommunityScreen() {
   // public Discover feed (strangers can't see them) — they still show under
   // "For You" for the user and their connections.
   const isPublicProfile = appSettings.privacy.publicProfile;
+  // Re-render when the block list changes so a block takes effect immediately.
+  useBlocked();
+  const visible = allPosts.filter(p => !isBlocked(p.authorId, p.authorName));
+
   const posts = activeTab === 'foryou'
-    ? allPosts.filter(p =>
+    ? visible.filter(p =>
         isAuthoredBy(p, user.id, displayName) || connectedNames.includes(p.authorName)
       )
-    : allPosts.filter(p =>
+    : visible.filter(p =>
         (p.feed === 'discover' || p.feed === 'both') &&
         !(!isPublicProfile && isAuthoredBy(p, user.id, displayName))
       );
@@ -391,12 +396,36 @@ export default function CommunityScreen() {
                 </TouchableOpacity>
               </>
             ) : (
-              <TouchableOpacity style={{flexDirection:'row',alignItems:'center',gap:14,paddingHorizontal:20,paddingVertical:16}} onPress={() => {
-                setReportPostTarget(menuPost); setMenuPost(null);
-              }}>
-                <Ionicons name="flag-outline" size={22} color={c.red}/>
-                <Text style={{fontSize:15,fontWeight:'600',color:c.red}}>{t('reportPost')}</Text>
-              </TouchableOpacity>
+              <>
+                <TouchableOpacity style={{flexDirection:'row',alignItems:'center',gap:14,paddingHorizontal:20,paddingVertical:16}} onPress={() => {
+                  setReportPostTarget(menuPost); setMenuPost(null);
+                }}>
+                  <Ionicons name="flag-outline" size={22} color={c.red}/>
+                  <Text style={{fontSize:15,fontWeight:'600',color:c.red}}>{t('reportPost')}</Text>
+                </TouchableOpacity>
+
+                {/* Reporting asks someone else to act; blocking is the control
+                    this person has over their own feed. Both are offered. */}
+                <TouchableOpacity style={{flexDirection:'row',alignItems:'center',gap:14,paddingHorizontal:20,paddingVertical:16}} onPress={() => {
+                  const target = menuPost;
+                  setMenuPost(null);
+                  if (!target) return;
+                  showConfirm({
+                    title: tx('Block') + ' ' + target.authorName,
+                    message: tx('You will no longer see their posts or comments anywhere in FaithFinder. You can undo this in Settings.'),
+                    buttons: [
+                      { text: t('cancel'), style: 'cancel' },
+                      { text: tx('Block'), style: 'destructive', onPress: () => {
+                        blockUser({ id: target.authorId, name: target.authorName });
+                        showToast(tx('Blocked'), tx('You will no longer see posts from') + ' ' + target.authorName, 'info');
+                      } },
+                    ],
+                  });
+                }}>
+                  <Ionicons name="ban-outline" size={22} color={c.red}/>
+                  <Text style={{fontSize:15,fontWeight:'600',color:c.red}}>{tx('Block')} {menuPost?.authorName}</Text>
+                </TouchableOpacity>
+              </>
             )}
             <TouchableOpacity style={{flexDirection:'row',alignItems:'center',justifyContent:'center',paddingVertical:16,marginTop:4}} onPress={() => setMenuPost(null)}>
               <Text style={{fontSize:15,fontWeight:'600',color:c.textMuted}}>{t('cancel')}</Text>

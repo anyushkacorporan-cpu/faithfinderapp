@@ -11,6 +11,7 @@ import {
   usePosts, addComment, addReply,
   toggleCommentLike, toggleReplyLike, Post, Comment
 } from '../src/lib/postsStore';
+import { isBlocked, useBlocked } from '../src/lib/blockStore';
 import { getUser } from '../src/lib/userStore';
 import { TranslateRow } from '../src/components/PostCard';
 import { useTranslation } from '../src/lib/i18n';
@@ -21,6 +22,8 @@ export default function CommentsScreen() {
   const { t } = useTranslation();
   const { postId } = useLocalSearchParams<{ postId: string }>();
   const allPosts = usePosts();
+  // Re-render when the block list changes so an unblock shows immediately.
+  useBlocked();
   const post = allPosts.find(p => p.id === postId);
   const user = getUser();
 
@@ -110,7 +113,7 @@ export default function CommentsScreen() {
           )}
 
           {/* Comments Feed */}
-          {post.comments.map(comment => (
+          {post.comments.filter(cm => !isBlocked(undefined, cm.author)).map(comment => (
             <CommentRow
               key={comment.id}
               comment={comment}
@@ -209,7 +212,7 @@ function CommentRow({ comment, postId, onReply, onLike, onReplyLike }: {
       </View>
 
       {/* Replies */}
-      {showReplies && comment.replies.map(reply => (
+      {showReplies && comment.replies.filter(rp => !isBlocked(undefined, rp.author)).map(reply => (
         <View key={reply.id} style={cs.replyWrap}>
           <TouchableOpacity onPress={() => router.push({pathname:'/user-profile', params:{name:reply.author,initials:reply.initials,color:reply.color,type:'user',city:reply.city||'',state:reply.state||'',photo:(reply as any).authorPhoto||''}})}>
             <View style={[cs.replyAvatar, { backgroundColor: reply.color }]}>

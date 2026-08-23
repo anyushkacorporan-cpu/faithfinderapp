@@ -57,6 +57,7 @@ export function HeaderIcons({ compact = false, overlay = false }: { compact?: bo
               { icon:'notifications-outline', key:'notificationPreferences', color:c.gold },
               { icon:'location-outline', key:'locationSettings', color:c.green },
               { icon:'shield-outline', key:'privacySecurity', color:c.navy },
+              { icon:'ban-outline', key:'blockedUsers', color:c.red },
               { icon:'moon-outline', key:'appearance', color:'#9b59b6' },
               { icon:'help-circle-outline', key:'helpSupport', color:'#e67e22' },
               { icon:'information-circle-outline', key:'aboutApp', color:c.textMuted },
@@ -79,6 +80,8 @@ export function HeaderIcons({ compact = false, overlay = false }: { compact?: bo
                   router.push('/settings-location');
                 } else if (item.key === 'privacySecurity') {
                   router.push('/settings-privacy');
+                } else if (item.key === 'blockedUsers') {
+                  router.push('/settings-blocked');
                 } else if (item.key === 'appearance') {
                   router.push('/settings-appearance');
                 } else if (item.key === 'helpSupport') {
