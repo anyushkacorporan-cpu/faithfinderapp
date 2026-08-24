@@ -219,7 +219,16 @@ const INITIAL_POSTS: Post[] = [
 let posts: Post[] = INITIAL_POSTS;
 let hydrated = false;
 const listeners: Array<() => void> = [];
-function notify() { listeners.forEach(fn => fn()); }
+/**
+ * Notify subscribers over a copy of the list.
+ *
+ * A subscriber's setState can unmount a component, whose cleanup splices itself
+ * out of `listeners` while forEach is still walking it — every listener after
+ * the removed index is then skipped and silently misses that update. Iterating
+ * a snapshot means the removal takes effect on the next notify instead of
+ * halfway through this one.
+ */
+function notify() { [...listeners].forEach(fn => fn()); }
 
 async function persist() {
   try { await AsyncStorage.setItem(POSTS_KEY, JSON.stringify(posts)); } catch {}
@@ -509,6 +518,11 @@ export function usePosts(feed?: 'foryou' | 'discover') {
   const [state, setState] = useState(feed === 'foryou' ? getForYouPosts() : feed === 'discover' ? getDiscoverPosts() : getPosts());
   useEffect(() => {
     const fn = () => setState(feed === 'foryou' ? getForYouPosts() : feed === 'discover' ? getDiscoverPosts() : getPosts());
+    // Re-read on subscribe: hydration from storage can land between the
+    // useState initialiser above and this effect, and that notify would be
+    // missed - leaving this component on the empty pre-hydration value until
+    // something else happened to change the store.
+    fn();
     listeners.push(fn);
     return () => { const i = listeners.indexOf(fn); if (i > -1) listeners.splice(i, 1); };
   }, [feed]);
@@ -519,6 +533,11 @@ export function useChurchPosts(placeId?: string) {
   const [state, setState] = useState(getPosts());
   useEffect(() => {
     const fn = () => setState(getPosts());
+    // Re-read on subscribe: hydration from storage can land between the
+    // useState initialiser above and this effect, and that notify would be
+    // missed - leaving this component on the empty pre-hydration value until
+    // something else happened to change the store.
+    fn();
     listeners.push(fn);
     return () => { const i = listeners.indexOf(fn); if (i > -1) listeners.splice(i, 1); };
   }, []);

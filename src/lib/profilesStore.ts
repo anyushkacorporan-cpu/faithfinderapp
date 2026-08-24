@@ -41,7 +41,16 @@ export type ProfileSnapshot = {
 
 let profiles: Record<string, ProfileSnapshot> = {};
 const listeners: Array<() => void> = [];
-function notify() { listeners.forEach(fn => fn()); }
+/**
+ * Notify subscribers over a copy of the list.
+ *
+ * A subscriber's setState can unmount a component, whose cleanup splices itself
+ * out of `listeners` while forEach is still walking it — every listener after
+ * the removed index is then skipped and silently misses that update. Iterating
+ * a snapshot means the removal takes effect on the next notify instead of
+ * halfway through this one.
+ */
+function notify() { [...listeners].forEach(fn => fn()); }
 
 const STORAGE_KEY = 'faithfinder_profiles_v1';
 function persist() { save(STORAGE_KEY, profiles); }

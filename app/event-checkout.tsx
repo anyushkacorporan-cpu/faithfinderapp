@@ -291,22 +291,22 @@ export default function EventCheckoutScreen() {
             <Text style={s.payNowBtnTxt}>{processing ? 'Processing...' : 'Complete Registration'}</Text>
           </TouchableOpacity>
         ) : paymentMethod === 'apple' ? (
-          <TouchableOpacity style={[s.applePayBtn, !canPay && s.payBtnDisabled]} onPress={handlePay} disabled={!canPay || processing}>
+          <TouchableOpacity style={[s.applePayBtn, (!canPay || processing) && s.payBtnDisabled]} onPress={handlePay} disabled={!canPay || processing}>
             <Ionicons name="logo-apple" size={20} color={c.onPrimary} />
             <Text style={s.applePayBtnTxt}>{processing ? 'Processing...' : 'Pay'}</Text>
           </TouchableOpacity>
         ) : paymentMethod === 'paypal' ? (
           <View style={s.paypalBtns}>
-            <TouchableOpacity style={[s.paypalBtn, !canPay && s.payBtnDisabled]} onPress={handlePay} disabled={!canPay || processing}>
+            <TouchableOpacity style={[s.paypalBtn, (!canPay || processing) && s.payBtnDisabled]} onPress={handlePay} disabled={!canPay || processing}>
               <Text style={s.paypalBtnTxt}>PayPal</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={[s.payLaterBtn, !canPay && s.payBtnDisabled]} onPress={handlePay} disabled={!canPay || processing}>
+            <TouchableOpacity style={[s.payLaterBtn, (!canPay || processing) && s.payBtnDisabled]} onPress={handlePay} disabled={!canPay || processing}>
               <Ionicons name="logo-paypal" size={14} color={c.onPrimary} />
               <Text style={s.payLaterBtnTxt}>{t('payLater')}</Text>
             </TouchableOpacity>
           </View>
         ) : (
-          <TouchableOpacity style={[s.payNowBtn, !canPay && s.payBtnDisabled]} onPress={handlePay} disabled={!canPay || processing}>
+          <TouchableOpacity style={[s.payNowBtn, (!canPay || processing) && s.payBtnDisabled]} onPress={handlePay} disabled={!canPay || processing}>
             <Text style={s.payNowBtnTxt}>{processing ? 'Processing...' : 'Pay Now'}</Text>
           </TouchableOpacity>
         )}

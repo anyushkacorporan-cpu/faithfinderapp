@@ -116,7 +116,16 @@ const INITIAL_EVENTS: AppEvent[] = SEED_EVENTS.map((e: any, idx: number) => {
 let events: AppEvent[] = INITIAL_EVENTS;
 let hydrated = false;
 const listeners: Array<() => void> = [];
-function notify() { listeners.forEach(fn => fn()); }
+/**
+ * Notify subscribers over a copy of the list.
+ *
+ * A subscriber's setState can unmount a component, whose cleanup splices itself
+ * out of `listeners` while forEach is still walking it — every listener after
+ * the removed index is then skipped and silently misses that update. Iterating
+ * a snapshot means the removal takes effect on the next notify instead of
+ * halfway through this one.
+ */
+function notify() { [...listeners].forEach(fn => fn()); }
 
 async function persist() {
   try { await AsyncStorage.setItem(EVENTS_KEY, JSON.stringify(events)); } catch {}
@@ -205,6 +214,11 @@ export function useEvents() {
   const [state, setState] = useState(getEvents());
   useEffect(() => {
     const fn = () => setState(getEvents());
+    // Re-read on subscribe: hydration from storage can land between the
+    // useState initialiser above and this effect, and that notify would be
+    // missed - leaving this component on the empty pre-hydration value until
+    // something else happened to change the store.
+    fn();
     listeners.push(fn);
     if (!hydrated) hydrate();
     return () => { const i = listeners.indexOf(fn); if (i > -1) listeners.splice(i, 1); };
@@ -216,6 +230,11 @@ export function useUserEvents() {
   const [state, setState] = useState(getUserEvents());
   useEffect(() => {
     const fn = () => setState(getUserEvents());
+    // Re-read on subscribe: hydration from storage can land between the
+    // useState initialiser above and this effect, and that notify would be
+    // missed - leaving this component on the empty pre-hydration value until
+    // something else happened to change the store.
+    fn();
     listeners.push(fn);
     if (!hydrated) hydrate();
     return () => { const i = listeners.indexOf(fn); if (i > -1) listeners.splice(i, 1); };

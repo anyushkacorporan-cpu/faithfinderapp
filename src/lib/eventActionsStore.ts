@@ -4,7 +4,16 @@ import { load, save } from './persist';
 let savedEvents: string[] = [];
 let attendingEvents: string[] = [];
 const listeners: Array<() => void> = [];
-function notify() { listeners.forEach(fn => fn()); }
+/**
+ * Notify subscribers over a copy of the list.
+ *
+ * A subscriber's setState can unmount a component, whose cleanup splices itself
+ * out of `listeners` while forEach is still walking it — every listener after
+ * the removed index is then skipped and silently misses that update. Iterating
+ * a snapshot means the removal takes effect on the next notify instead of
+ * halfway through this one.
+ */
+function notify() { [...listeners].forEach(fn => fn()); }
 
 // Both lists live under one key: they are always read and written together,
 // so a single record keeps them consistent and halves the storage round-trips.
@@ -48,6 +57,11 @@ export function useEventActions() {
   const [attending, setAttending] = useState(getAttendingEvents());
   useEffect(() => {
     const fn = () => { setSaved(getSavedEvents()); setAttending(getAttendingEvents()); };
+    // Re-read on subscribe: hydration from storage can land between the
+    // useState initialiser above and this effect, and that notify would be
+    // missed - leaving this component on the empty pre-hydration value until
+    // something else happened to change the store.
+    fn();
     listeners.push(fn);
     return () => { const i = listeners.indexOf(fn); if (i > -1) listeners.splice(i, 1); };
   }, []);
