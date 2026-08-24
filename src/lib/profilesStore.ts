@@ -98,3 +98,14 @@ export function useProfile(id?: string, name?: string): ProfileSnapshot | undefi
   }, [id, name]);
   return state;
 }
+
+/**
+ * Return this store to a fresh-install state. Called only from
+ * `deleteAccountAndData` — see src/lib/accountDeletion.ts for why clearing
+ * storage alone is not enough.
+ */
+export function resetStore() {
+  profiles = {};
+  persist();
+  notify();
+}

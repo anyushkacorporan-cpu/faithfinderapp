@@ -9,7 +9,9 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.faithfinder",
+      "buildNumber": "1"
     },
     "android": {
       "adaptiveIcon": {
@@ -19,7 +21,9 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.faithfinder",
+      "versionCode": 1
     },
     "web": {
       "output": "static",
@@ -45,6 +49,19 @@
         {
           "merchantIdentifier": "merchant.com.faithfinder",
           "enableGooglePay": false
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "FaithFinder uses your photos so you can set a profile or cover photo and add pictures to your posts and events.",
+          "cameraPermission": "FaithFinder uses your camera so you can take a photo for your profile or a post."
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "FaithFinder uses your location to show churches and events near you."
         }
       ]
     ],

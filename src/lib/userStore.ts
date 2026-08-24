@@ -101,6 +101,12 @@ export async function signOut() {
 // Clears the profile stored on this device. Note: since there's no backend
 // yet, this only removes local data — it doesn't delete server-side data
 // (there isn't any) or content already posted elsewhere in the app.
+/**
+ * Clears the user record only. Not the entry point for the Delete Account
+ * button — call `deleteAccountAndData` in accountDeletion.ts, which resets the
+ * rest of the stores too. On its own this leaves the account's posts, comments
+ * and profile snapshot behind.
+ */
 export async function deleteAccount() {
   user = { id: newId() };
   try { await AsyncStorage.removeItem(USER_KEY); } catch {}

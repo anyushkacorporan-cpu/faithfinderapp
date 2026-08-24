@@ -243,3 +243,14 @@ export function getEarnings() {
   // so this is where its payout total is read in, not something to model here.
   return { grossRevenue, totalFees, netRevenue, totalTickets, totalAttendees, pendingPayout: netRevenue, completedPayout: 0 };
 }
+
+/**
+ * Return this store to a fresh-install state. Called only from
+ * `deleteAccountAndData` — see src/lib/accountDeletion.ts for why clearing
+ * storage alone is not enough.
+ */
+export function resetStore() {
+  events = INITIAL_EVENTS;
+  persist();
+  notify();
+}

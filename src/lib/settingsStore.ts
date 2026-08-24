@@ -110,3 +110,17 @@ export function useSettings(): AppSettings {
   }, []);
   return state;
 }
+
+/**
+ * Return settings to defaults on account deletion, keeping theme and language.
+ *
+ * Those two are device preferences rather than account data, and flipping the
+ * app back to light mode and English at the exact moment someone deletes their
+ * account would be gratuitous. Everything else — notification choices, privacy
+ * and location toggles — belongs to the account and goes.
+ */
+export function resetSettings() {
+  settings = { ...DEFAULT_SETTINGS, appearance: settings.appearance };
+  persist();
+  notify();
+}

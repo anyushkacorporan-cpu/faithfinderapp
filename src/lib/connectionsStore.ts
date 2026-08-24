@@ -16,10 +16,12 @@ export type Connection = {
   placeId?: string;
 };
 
-let connections: Connection[] = [
+const INITIAL_CONNECTIONS: Connection[] = [
   { id: 'grace-community', name: 'Grace Community Church', type: 'church', color: '#c9a96e', initials: 'GC' },
   { id: 'pastor-mike', name: 'Pastor Michael Johnson', type: 'user', color: '#667eea', initials: 'MJ' },
 ];
+
+let connections: Connection[] = INITIAL_CONNECTIONS;
 
 type Listener = () => void;
 const listeners: Listener[] = [];
@@ -98,4 +100,15 @@ export function removeConnection(idOrName: string) {
     c.id !== idOrName && c.name !== idOrName && c.placeId !== idOrName
   );
   persist(); notify();
+}
+
+/**
+ * Return this store to a fresh-install state. Called only from
+ * `deleteAccountAndData` — see src/lib/accountDeletion.ts for why clearing
+ * storage alone is not enough.
+ */
+export function resetStore() {
+  connections = INITIAL_CONNECTIONS;
+  persist();
+  notify();
 }

@@ -36,7 +36,7 @@ export type Notification = {
   navigateParams?: Record<string, string>;
 };
 
-let notifications: Notification[] = [
+const INITIAL_NOTIFICATIONS: Notification[] = [
   {
     id: '1',
     type: 'like',
@@ -102,6 +102,8 @@ let notifications: Notification[] = [
     navigateTo: '/(tabs)/community',
   },
 ];
+
+let notifications: Notification[] = INITIAL_NOTIFICATIONS;
 
 const listeners: Array<() => void> = [];
 function notify() { listeners.forEach(fn => fn()); }
@@ -192,4 +194,15 @@ export function clearAllNotifications() {
 export function clearNotification(id: string) {
   notifications = notifications.filter(n => n.id !== id);
   persist(); notify();
+}
+
+/**
+ * Return this store to a fresh-install state. Called only from
+ * `deleteAccountAndData` — see src/lib/accountDeletion.ts for why clearing
+ * storage alone is not enough.
+ */
+export function resetStore() {
+  notifications = INITIAL_NOTIFICATIONS;
+  persist();
+  notify();
 }

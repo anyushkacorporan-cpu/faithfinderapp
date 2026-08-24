@@ -5,7 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSettings, updatePrivacyPrefs } from '../src/lib/settingsStore';
 import { useThemeColors, ThemeColors } from '../src/lib/theme';
 import { useConfirm } from '../src/components/Confirm';
-import { deleteAccount } from '../src/lib/userStore';
+import { deleteAccountAndData } from '../src/lib/accountDeletion';
 import { useTranslation } from '../src/lib/i18n';
 
 export default function PrivacySettingsScreen() {
@@ -73,7 +73,7 @@ export default function PrivacySettingsScreen() {
               buttons: [
                 { text: t('cancel'), style: 'cancel' },
                 { text: tx('Delete Account'), style: 'destructive', onPress: async () => {
-                  await deleteAccount();
+                  await deleteAccountAndData();
                   router.replace('/login');
                 } },
               ],

@@ -43,3 +43,14 @@ export function useActivity() {
   }, []);
   return state;
 }
+
+/**
+ * Return this store to a fresh-install state. Called only from
+ * `deleteAccountAndData` — see src/lib/accountDeletion.ts for why clearing
+ * storage alone is not enough.
+ */
+export function resetStore() {
+  activity = [];
+  persist();
+  notify();
+}
