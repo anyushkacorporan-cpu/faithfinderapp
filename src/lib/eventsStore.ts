@@ -231,5 +231,15 @@ export function getEarnings() {
   const netRevenue = grossRevenue - totalFees;
   const totalTickets = events.reduce((sum, e) => sum + e.ticketsSold, 0);
   const totalAttendees = events.reduce((sum, e) => sum + e.attending, 0);
-  return { grossRevenue, totalFees, netRevenue, totalTickets, totalAttendees, pendingPayout: netRevenue * 0.7, completedPayout: netRevenue * 0.3 };
+  // Everything earned is owed until a transfer actually happens. These used to
+  // be netRevenue * 0.7 and * 0.3 — placeholder numbers from before earnings
+  // were wired to real ticket sales, which survived the wiring and turned into
+  // a second cut on top of the platform fee. Worse, pendingPayout is the
+  // withdrawable balance on the earnings screen, so 30% of real money was
+  // reported as already paid out and could not be withdrawn.
+  //
+  // completedPayout stays at zero until there are real transfers to count.
+  // Stripe Connect owns that ledger — what moved, when, and to which account —
+  // so this is where its payout total is read in, not something to model here.
+  return { grossRevenue, totalFees, netRevenue, totalTickets, totalAttendees, pendingPayout: netRevenue, completedPayout: 0 };
 }
