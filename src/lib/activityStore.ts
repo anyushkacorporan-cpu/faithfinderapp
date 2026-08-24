@@ -21,9 +21,7 @@ function persist() { save(STORAGE_KEY, activity); }
 load<typeof activity>(STORAGE_KEY, v => { activity = v; notify(); });
 
 export function logActivity(item: Omit<ActivityItem, 'id' | 'timestamp'>) {
-  const id = Date.now().toString() + Math.random().toString(36).slice(2);
-  activity = [{ ...item, id, timestamp: Date.now() }, ...activity];
-  console.log('ACTIVITY LOGGED:', item.type, '| total:', activity.length);
+  activity = [{ ...item, id: newId(), timestamp: Date.now() }, ...activity];
   persist(); notify();
 }
 
