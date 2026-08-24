@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Header from '../src/components/Header';
+import { CommentAvatar } from '../src/components/CommentAvatar';
 import { CHURCHES } from '../src/lib/constants';
 import { useThemeColors, ThemeColors } from '../src/lib/theme';
 import { buildChurchShareText, buildPostShareText } from '../src/lib/shareLinks';
@@ -637,7 +638,7 @@ export default function ChurchDetailScreen() {
           <ScrollView style={s.commentList}>
             {churchPosts.find(p=>p.id===commentModal)?.comments.map((c: any)=>(
               <View key={c.id} style={s.commentItem}>
-                <View style={s.commentAvatar}><Text style={s.commentAvatarTxt}>{c.author[0]}</Text></View>
+                <CommentAvatar author={c.author} initials={c.author[0]} avatarStyle={s.commentAvatar} textStyle={s.commentAvatarTxt}/>
                 <View style={s.commentBubble}>
                   <Text style={s.commentBubbleAuthor}>{c.author}</Text>
                   <Text style={s.commentBubbleText}>{c.text}</Text>

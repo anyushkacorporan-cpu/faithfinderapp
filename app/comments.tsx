@@ -14,6 +14,7 @@ import {
 import { isBlocked, useBlocked } from '../src/lib/blockStore';
 import { getUser } from '../src/lib/userStore';
 import { TranslateRow } from '../src/components/PostCard';
+import { CommentAvatar } from '../src/components/CommentAvatar';
 import { useTranslation } from '../src/lib/i18n';
 
 export default function CommentsScreen() {
@@ -179,11 +180,11 @@ function CommentRow({ comment, postId, onReply, onLike, onReplyLike }: {
     <View style={cs.wrap}>
       {/* Comment */}
       <View style={cs.row}>
-        <TouchableOpacity onPress={() => router.push({pathname:'/user-profile', params:{name:comment.author,initials:comment.initials,color:comment.color,type:'user',city:comment.city||'',state:comment.state||'',photo:(comment as any).authorPhoto||''}})}>
-          <View style={[cs.avatar, { backgroundColor: comment.color }]}>
-            <Text style={cs.avatarTxt}>{comment.initials}</Text>
-          </View>
-        </TouchableOpacity>
+        <CommentAvatar
+          author={comment.author} initials={comment.initials} color={comment.color}
+          city={comment.city} state={comment.state}
+          avatarStyle={cs.avatar} textStyle={cs.avatarTxt}
+        />
         <View style={{ flex: 1 }}>
           <View style={cs.metaRow}>
             <Text style={cs.name}>{comment.author}</Text>
@@ -214,11 +215,11 @@ function CommentRow({ comment, postId, onReply, onLike, onReplyLike }: {
       {/* Replies */}
       {showReplies && comment.replies.filter(rp => !isBlocked(undefined, rp.author)).map(reply => (
         <View key={reply.id} style={cs.replyWrap}>
-          <TouchableOpacity onPress={() => router.push({pathname:'/user-profile', params:{name:reply.author,initials:reply.initials,color:reply.color,type:'user',city:reply.city||'',state:reply.state||'',photo:(reply as any).authorPhoto||''}})}>
-            <View style={[cs.replyAvatar, { backgroundColor: reply.color }]}>
-              <Text style={cs.replyAvatarTxt}>{reply.initials}</Text>
-            </View>
-          </TouchableOpacity>
+          <CommentAvatar
+            author={reply.author} initials={reply.initials} color={reply.color}
+            city={reply.city} state={reply.state}
+            avatarStyle={cs.replyAvatar} textStyle={cs.replyAvatarTxt}
+          />
           <View style={{ flex: 1 }}>
             <View style={cs.metaRow}>
               <Text style={cs.name}>{reply.author}</Text>

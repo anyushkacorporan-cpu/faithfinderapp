@@ -54,7 +54,13 @@ load<Record<string, ProfileSnapshot>>(STORAGE_KEY, v => { profiles = v || {}; no
 export function publishProfile(p: Omit<ProfileSnapshot, 'updatedAt'>) {
   if (!p.id || !p.name) return;
   const existing = profiles[p.id];
-  const next: ProfileSnapshot = { ...existing, ...p, updatedAt: Date.now() };
+  // Merge, never erase: callers publish from wherever they happen to be, and a
+  // comment made from a screen that has no city must not blank out the city a
+  // profile edit already recorded. Only fields actually supplied overwrite.
+  const supplied = Object.fromEntries(
+    Object.entries(p).filter(([, v]) => v !== undefined)
+  ) as Partial<ProfileSnapshot>;
+  const next: ProfileSnapshot = { ...existing, ...supplied, id: p.id, name: p.name, updatedAt: Date.now() };
   // Skip the write when nothing actually changed, so posting in a loop does not
   // thrash storage.
   if (existing && sameProfile(existing, next)) return;

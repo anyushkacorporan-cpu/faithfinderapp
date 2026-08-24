@@ -245,6 +245,40 @@ export function getPosts() { return [...posts]; }
 export function getForYouPosts() { return posts.filter(p => p.feed === 'foryou' || p.feed === 'both'); }
 export function getDiscoverPosts() { return posts.filter(p => p.feed === 'discover' || p.feed === 'both'); }
 
+/**
+ * Record this account in the profile directory.
+ *
+ * Called from every action that puts this account's name in front of other
+ * people — posting, commenting, replying. Posting alone was not enough: someone
+ * who only ever comments was absent from the directory, so their comments
+ * showed initials on a coloured circle even though they had a photo set.
+ *
+ * The display name, colour and initials come from the caller because each entry
+ * point already computed them; everything else is read live from userStore, so
+ * a profile edit propagates on the next thing they write.
+ */
+function publishSelf(who: { name: string; color: string; initials: string; city?: string; state?: string }) {
+  const u = getUser();
+  if (!u.id || !who.name) return;
+  // userStore keeps one free-text "City, ST"; the directory keeps them apart.
+  const [savedCity, savedState] = (u.location || '').split(',').map(part => part.trim());
+  publishProfile({
+    id: u.id,
+    name: who.name,
+    accountType: u.accountType,
+    photo: u.profilePhoto || u.avatar,
+    cover: u.coverPhoto,
+    bio: u.bio,
+    city: who.city || savedCity || undefined,
+    state: who.state || savedState || undefined,
+    lifeVerse: u.lifeVerse,
+    lifeVerseRef: u.lifeVerseRef,
+    color: who.color,
+    initials: who.initials,
+    connectionCount: getConnections().length,
+  });
+}
+
 export function addPost(post: {
   authorName: string; authorInitials: string; authorType: 'church'|'personal';
   authorColor: string; authorId?: string;
@@ -267,24 +301,13 @@ export function addPost(post: {
   };
   // Keep this account's public profile current so anyone who taps through from
   // this post sees a real profile rather than a name on a blank cover.
-  const u = getUser();
-  if (u.id) {
-    publishProfile({
-      id: u.id,
-      name: newPost.authorName,
-      accountType: u.accountType,
-      photo: u.profilePhoto || u.avatar,
-      cover: u.coverPhoto,
-      bio: u.bio,
-      city: newPost.city,
-      state: newPost.state,
-      lifeVerse: u.lifeVerse,
-      lifeVerseRef: u.lifeVerseRef,
-      color: newPost.authorColor,
-      initials: newPost.authorInitials,
-      connectionCount: getConnections().length,
-    });
-  }
+  publishSelf({
+    name: newPost.authorName,
+    color: newPost.authorColor,
+    initials: newPost.authorInitials,
+    city: newPost.city,
+    state: newPost.state,
+  });
 
   posts = [newPost, ...posts];
   // bump repost count on the original post if this is a repost
@@ -427,6 +450,9 @@ export function toggleLike(postId: string) {
 }
 
 export function addComment(postId: string, text: string, author: string, initials: string, color: string, city?: string, state?: string) {
+  // A comment is the only trace some people leave, so it has to be enough to
+  // put them in the directory — otherwise their avatar stays initials forever.
+  publishSelf({ name: author, color, initials, city, state });
   posts = posts.map(p => p.id === postId ? {
     ...p,
     comments: [...p.comments, {
@@ -439,6 +465,7 @@ export function addComment(postId: string, text: string, author: string, initial
 }
 
 export function addReply(postId: string, commentId: string, text: string, author: string, initials: string, color: string, city?: string, state?: string) {
+  publishSelf({ name: author, color, initials, city, state });
   posts = posts.map(p => p.id === postId ? {
     ...p,
     comments: p.comments.map(c => c.id === commentId ? {
