@@ -508,8 +508,16 @@ export default function ProfileScreen() {
             </View>
           </View>
 
-          <TouchableOpacity onPress={() => router.push('/activity')} style={{marginTop:14}}>
-            <Text style={{fontSize:13,fontWeight:'600',color:c.gold}}>{t('seeActivity')}</Text>
+          {/* alignSelf overrides the parent's alignItems:'center' for this row
+              only, so the link sits right without moving the name, stats,
+              edit button or verse that share the container. */}
+          <TouchableOpacity
+            onPress={() => router.push('/activity')}
+            style={s.seeActivityBtn}
+            hitSlop={{top:8,bottom:8,left:8,right:8}}
+          >
+            <Text style={s.seeActivityTxt}>{t('seeActivity')}</Text>
+            <Ionicons name="chevron-forward" size={14} color={c.gold} />
           </TouchableOpacity>
         </View>
 
@@ -727,6 +735,8 @@ function ActivityTabContent() {
 }
 
 const makeStyles = (c: ThemeColors) => StyleSheet.create({
+  seeActivityBtn:{flexDirection:'row',alignItems:'center',gap:3,alignSelf:'flex-end',marginTop:14},
+  seeActivityTxt:{fontSize:13,fontWeight:'600',color:c.gold},
   // Copied from church-detail's tabsRow/tab/tabActive so a church's own profile
   // and its public page share one visual language.
   churchTabsRow:{flexDirection:'row',borderTopWidth:1,borderBottomWidth:1,borderColor:c.border,marginTop:8},
