@@ -3,6 +3,7 @@ import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Image, Dimensions
 import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
 import Header from '../src/components/Header';
 import { useThemeColors, ThemeColors } from '../src/lib/theme';
 import { useTranslation } from '../src/lib/i18n';
@@ -49,6 +50,11 @@ export default function OtherUserProfileScreen() {
   const { showConfirm } = useConfirm();
   // Subscribe so the button flips as soon as the state changes anywhere.
   useConnections();
+  // Their avatar colour, darkened, gives every profile a distinct cover that is
+  // still recognisably theirs. shadeHex keeps it a plain string pair so the
+  // gradient types cleanly.
+  const coverGradient: [string, string] = [color, shadeHex(color, -0.45)];
+
   const connectionId = params.authorId || displayName;
   const connected = isConnectedTo(params.authorId, displayName);
 
@@ -69,10 +75,23 @@ export default function OtherUserProfileScreen() {
       <Header />
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={s.coverWrap}>
-          {isSelf && currentUser.coverPhoto
-            ? <Image source={{uri:currentUser.coverPhoto}} style={s.cover} resizeMode="cover" />
-            : <View style={s.cover} />
-          }
+          {/* Only your own cover is available: another person's profile arrives
+              as route params (name, initials, colour, photo) and nothing on the
+              device stores anyone else's cover, bio or verse. Rather than a flat
+              empty block, fall back to a gradient built from that person's own
+              accent colour — so "no cover set" reads as designed, which stays
+              the right treatment once profiles are real and some genuinely
+              have none. */}
+          {isSelf && currentUser.coverPhoto ? (
+            <Image source={{uri:currentUser.coverPhoto}} style={s.cover} resizeMode="cover" />
+          ) : (
+            <LinearGradient
+              colors={coverGradient}
+              start={{x:0,y:0}}
+              end={{x:1,y:1}}
+              style={s.cover}
+            />
+          )}
           <TouchableOpacity style={s.backBtn} onPress={() => router.back()}>
             <Ionicons name="arrow-back" size={20} color={c.onPrimary} />
           </TouchableOpacity>
@@ -316,6 +335,18 @@ export default function OtherUserProfileScreen() {
       </ScrollView>
     </SafeAreaView>
   );
+}
+
+/** Lighten (amount > 0) or darken (amount < 0) a #rrggbb colour. */
+function shadeHex(hex: string, amount: number): string {
+  const m = /^#?([0-9a-f]{6})$/i.exec(hex.trim());
+  if (!m) return hex;
+  const n = parseInt(m[1], 16);
+  const ch = [(n >> 16) & 255, (n >> 8) & 255, n & 255].map(v => {
+    const shifted = amount < 0 ? v * (1 + amount) : v + (255 - v) * amount;
+    return Math.max(0, Math.min(255, Math.round(shifted)));
+  });
+  return '#' + ch.map(v => v.toString(16).padStart(2, '0')).join('');
 }
 
 const makeStyles = (c: ThemeColors) => StyleSheet.create({
