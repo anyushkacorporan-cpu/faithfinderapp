@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Image, Linking, Alert, Share, FlatList, Dimensions, Modal } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Image, Linking, Alert, Share, FlatList, Dimensions, Modal, TextInput } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -10,8 +10,9 @@ import { useThemeColors, ThemeColors } from '../../src/lib/theme';
 import { useUser, setUser, getUser } from '../../src/lib/userStore';
 import { useActivity } from '../../src/lib/activityStore';
 import { useConnections, useConnectionCount, removeConnection } from '../../src/lib/connectionsStore';
-import { usePosts, toggleLike, editPost, isAuthoredBy } from '../../src/lib/postsStore';
+import { usePosts, toggleLike, editPost, deletePost, isAuthoredBy, Post } from '../../src/lib/postsStore';
 import { PostCard } from '../../src/components/PostCard';
+import { useConfirm } from '../../src/components/Confirm';
 import { useEventActions } from '../../src/lib/eventActionsStore';
 import { EVENTS } from '../../src/lib/constants';
 import { useEvents } from '../../src/lib/eventsStore';
@@ -42,6 +43,8 @@ export default function ProfileScreen() {
   const appSettings = useSettings();
   const { t, tx } = useTranslation();
   const [activeTab, setActiveTab] = useState('About');
+  // Which of your own posts has its menu open. Both profile layouts use it.
+  const [menuPost, setMenuPost] = useState<Post | null>(null);
   const allPosts = usePosts();
   const displayName = user.accountType === 'church'
     ? (user.churchName || 'Church')
@@ -406,6 +409,7 @@ export default function ProfileScreen() {
                   onComment={() => router.push({ pathname: '/comments', params: { postId: post.id } })}
                   onShare={() => {}}
                   onOpenProfile={() => {}}
+                  onMenu={() => setMenuPost(post)}
                 />
               ))
             )
@@ -419,6 +423,7 @@ export default function ProfileScreen() {
         <View style={[s.floatingIcons, {top: insets.top + 8}]} pointerEvents="box-none">
           <HeaderIcons overlay />
         </View>
+        <OwnPostActions post={menuPost} onClose={() => setMenuPost(null)} />
       </SafeAreaView>
     );
   }
@@ -647,6 +652,7 @@ export default function ProfileScreen() {
                   onComment={() => router.push({ pathname: '/comments', params: { postId: post.id } })}
                   onShare={() => {}}
                   onOpenProfile={() => {}}
+                  onMenu={() => setMenuPost(post)}
                 />
               ))}
             </View>
@@ -662,7 +668,98 @@ export default function ProfileScreen() {
       <View style={[s.floatingIcons, {top: insets.top + 8}]} pointerEvents="box-none">
         <HeaderIcons overlay />
       </View>
+      <OwnPostActions post={menuPost} onClose={() => setMenuPost(null)} />
     </SafeAreaView>
+  );
+}
+
+
+/**
+ * Edit and delete for your own posts, from your own profile.
+ *
+ * The Posts tab rendered PostCard with `isOwnPost` but no `onMenu`, and
+ * PostCard only draws the "..." button when it has somewhere to send the tap -
+ * so your own posts were the one place you could not edit or delete them. You
+ * had to find the post again in Community to do either.
+ *
+ * Personal and church profiles are two separate returns in this file, so this
+ * lives in one component both render rather than two copies of the same modals.
+ * Only your own posts reach it, which is why there is no report or block here -
+ * those exist in Community because that feed shows other people's posts too.
+ */
+function OwnPostActions({ post, onClose }: { post: Post | null; onClose: () => void }) {
+  const c = useThemeColors();
+  const { t, tx } = useTranslation();
+  const { showConfirm } = useConfirm();
+  const [editing, setEditing] = useState<Post | null>(null);
+  const [text, setText] = useState('');
+
+  const row: any = { flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: 20, paddingVertical: 16 };
+
+  return (
+    <>
+      <Modal visible={!!post && !editing} transparent animationType="fade" onRequestClose={onClose}>
+        <TouchableOpacity style={{flex:1,backgroundColor:c.overlay,justifyContent:'flex-end'}} activeOpacity={1} onPress={onClose}>
+          <View style={{backgroundColor:c.card,borderTopLeftRadius:24,borderTopRightRadius:24,paddingTop:8,paddingBottom:32}}>
+            <View style={{width:36,height:4,borderRadius:2,backgroundColor:c.border,alignSelf:'center',marginVertical:10}}/>
+            <TouchableOpacity style={row} onPress={() => {
+              if (!post) return;
+              // A repost carries its own caption; the original body belongs to
+              // whoever wrote it and is not yours to edit.
+              setText(post.repostComment || post.content);
+              setEditing(post);
+            }}>
+              <Ionicons name="create-outline" size={22} color={c.text}/>
+              <Text style={{fontSize:15,fontWeight:'600',color:c.text}}>{t('editPost')}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={row} onPress={() => {
+              const target = post;
+              onClose();
+              showConfirm({
+                title: tx('Delete Post'),
+                message: tx('Are you sure you want to delete this post? This cannot be undone.'),
+                buttons: [
+                  { text: tx('Cancel'), style: 'cancel' },
+                  { text: tx('Delete'), style: 'destructive', onPress: () => { if (target) deletePost(target.id); } },
+                ],
+              });
+            }}>
+              <Ionicons name="trash-outline" size={22} color={c.red}/>
+              <Text style={{fontSize:15,fontWeight:'600',color:c.red}}>{t('deletePost')}</Text>
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
+      <Modal visible={!!editing} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => { setEditing(null); onClose(); }}>
+        <SafeAreaView style={{flex:1,backgroundColor:c.bg}} edges={['top']}>
+          <View style={{flexDirection:'row',alignItems:'center',justifyContent:'space-between',paddingHorizontal:16,paddingVertical:14,borderBottomWidth:1,borderBottomColor:c.border}}>
+            <TouchableOpacity onPress={() => { setEditing(null); onClose(); }}>
+              <Text style={{fontSize:15,color:c.textMuted}}>{t('cancel')}</Text>
+            </TouchableOpacity>
+            <Text style={{fontSize:16,fontWeight:'700',color:c.text}}>{t('editPost')}</Text>
+            <TouchableOpacity
+              style={{backgroundColor:c.primary,paddingHorizontal:18,paddingVertical:8,borderRadius:100}}
+              onPress={() => {
+                if (editing) editPost(editing.id, editing.repostOf ? {} : { content: text });
+                setEditing(null);
+                onClose();
+              }}>
+              <Text style={{fontSize:14,fontWeight:'700',color:c.onPrimary}}>{t('save')}</Text>
+            </TouchableOpacity>
+          </View>
+          <TextInput
+            style={{flex:1,fontSize:16,color:c.text,padding:20,textAlignVertical:'top'}}
+            multiline
+            autoFocus
+            value={text}
+            onChangeText={setText}
+            placeholder={tx('What\'s on your mind?')}
+            placeholderTextColor={c.placeholder}
+          />
+        </SafeAreaView>
+      </Modal>
+    </>
   );
 }
 
