@@ -326,7 +326,7 @@ export default function CommunityScreen() {
                 onPress={async () => {
                   const {status} = await ImagePicker.requestMediaLibraryPermissionsAsync();
                   if (status !== 'granted') return;
-                  const result = await ImagePicker.launchImageLibraryAsync({mediaTypes:ImagePicker.MediaTypeOptions.Images,allowsEditing:true,quality:0.8});
+                  const result = await ImagePicker.launchImageLibraryAsync({mediaTypes:['images'],allowsEditing:true,quality:0.8});
                   if (!result.canceled) setNewPostImage(result.assets[0].uri);
                 }}
               >

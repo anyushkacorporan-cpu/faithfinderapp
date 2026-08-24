@@ -94,7 +94,7 @@ export default function ProfileScreen() {
       return;
     }
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: ['images'],
       allowsMultipleSelection: true,
       quality: 0.8,
     });
@@ -435,7 +435,7 @@ export default function ProfileScreen() {
           <TouchableOpacity style={s.addCoverBtn} onPress={async () => {
             const {status} = await ImagePicker.requestMediaLibraryPermissionsAsync();
             if (status !== 'granted') return;
-            const result = await ImagePicker.launchImageLibraryAsync({mediaTypes:ImagePicker.MediaTypeOptions.Images,allowsEditing:true,aspect:[16,9],quality:0.8});
+            const result = await ImagePicker.launchImageLibraryAsync({mediaTypes:['images'],allowsEditing:true,aspect:[16,9],quality:0.8});
             if (!result.canceled) setUser({coverPhoto:result.assets[0].uri});
           }}>
             <Ionicons name="camera-outline" size={14} color="#fff" />
@@ -445,7 +445,7 @@ export default function ProfileScreen() {
             <TouchableOpacity style={{width:90,height:90}} onPress={async () => {
               const {status} = await ImagePicker.requestMediaLibraryPermissionsAsync();
               if (status !== 'granted') return;
-              const result = await ImagePicker.launchImageLibraryAsync({mediaTypes:ImagePicker.MediaTypeOptions.Images,allowsEditing:true,aspect:[1,1],quality:0.8});
+              const result = await ImagePicker.launchImageLibraryAsync({mediaTypes:['images'],allowsEditing:true,aspect:[1,1],quality:0.8});
               if (!result.canceled) setUser({profilePhoto:result.assets[0].uri});
             }}>
               {user.profilePhoto
