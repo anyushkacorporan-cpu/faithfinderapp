@@ -304,15 +304,22 @@ export default function OtherUserProfileScreen() {
           </View>
         </Modal>
 
-        <View style={s.tabsRow}>
-          <View style={[s.tab, s.tabActive]}>
-            <Text style={[s.tabTxt, s.tabTxtActive]}>{t('posts')}</Text>
+        {/* The tab bar is a single non-interactive tab, so it is a heading, not
+            navigation. With no posts it labels a list that is not there —
+            dropping it and tightening the empty state saves roughly 170px of
+            chrome on a profile that has nothing to show, which is most of them
+            until people fill their profiles in. */}
+        {userPosts.length > 0 && (
+          <View style={s.tabsRow}>
+            <View style={[s.tab, s.tabActive]}>
+              <Text style={[s.tabTxt, s.tabTxtActive]}>{t('posts')}</Text>
+            </View>
           </View>
-        </View>
+        )}
 
         {userPosts.length === 0 ? (
           <View style={s.emptyState}>
-            <Ionicons name="document-text-outline" size={40} color={c.placeholder} />
+            <Ionicons name="document-text-outline" size={26} color={c.placeholder} />
             <Text style={s.emptyTxt}>{t('noPostsYet')}</Text>
           </View>
         ) : (
@@ -374,6 +381,6 @@ const makeStyles = (c: ThemeColors) => StyleSheet.create({
   tabActive:{borderBottomWidth:2,borderBottomColor:c.navy},
   tabTxt:{fontSize:14,fontWeight:'600',color:c.textMuted},
   tabTxtActive:{color:c.text,fontWeight:'700'},
-  emptyState:{paddingVertical:40,alignItems:'center',gap:8,paddingHorizontal:40},
-  emptyTxt:{fontSize:15,fontWeight:'600',color:c.textMuted},
+  emptyState:{paddingVertical:22,alignItems:'center',gap:6,paddingHorizontal:40},
+  emptyTxt:{fontSize:13,fontWeight:'600',color:c.textMuted},
 });
