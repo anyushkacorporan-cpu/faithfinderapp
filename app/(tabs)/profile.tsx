@@ -11,7 +11,6 @@ import { useUser, setUser, getUser } from '../../src/lib/userStore';
 import { useActivity } from '../../src/lib/activityStore';
 import { useConnections, useConnectionCount, removeConnection } from '../../src/lib/connectionsStore';
 import { usePosts, toggleLike, editPost, isAuthoredBy } from '../../src/lib/postsStore';
-import { useUserEvents } from '../../src/lib/eventsStore';
 import { PostCard } from '../../src/components/PostCard';
 import { useEventActions } from '../../src/lib/eventActionsStore';
 import { EVENTS } from '../../src/lib/constants';
@@ -32,7 +31,7 @@ const AMENITY_LIST = [
   { key: 'communityOutreach', label: 'Community Outreach', icon: 'heart-outline' },
 ];
 
-const CHURCH_TABS = ['Posts', 'Events', 'Members'];
+const CHURCH_TABS = ['About', 'Posts'];
 const PERSONAL_TABS = ['Community Sharing'];
 
 export default function ProfileScreen() {
@@ -42,13 +41,12 @@ export default function ProfileScreen() {
   const user = useUser();
   const appSettings = useSettings();
   const { t, tx } = useTranslation();
-  const [activeTab, setActiveTab] = useState('Posts');
+  const [activeTab, setActiveTab] = useState('About');
   const allPosts = usePosts();
   const displayName = user.accountType === 'church'
     ? (user.churchName || 'Church')
     : ((user.firstName || 'You') + ' ' + (user.lastName || '')).trim();
   const myPosts = allPosts.filter(p => isAuthoredBy(p, user.id, displayName));
-  const myEvents = useUserEvents();
   const postGalleryPhotos = myPosts.filter(p => !!p.image).map(p => p.image as string);
   const galleryPhotos = [...new Set([...postGalleryPhotos, ...(user.photos || [])])];
   const galleryItems = galleryPhotos.map(uri => ({ uri, post: myPosts.find(p => p.image === uri) || null }));
@@ -255,125 +253,9 @@ export default function ProfileScreen() {
 
           <View style={s.divider} />
 
-          {/* About */}
-          {!!user.bio && (
-            <>
-              <View style={s.section}>
-                <View style={s.sectionHdr}>
-                  <Text style={s.sectionTitle}>{t('about')}</Text>
-                </View>
-                <Text style={{fontSize:14,color:c.textSecondary,lineHeight:20}}>{user.bio}</Text>
-              </View>
-              <View style={s.divider} />
-            </>
-          )}
-
-          {/* Information Card */}
-          <View style={s.section}>
-            <View style={s.sectionHdr}>
-              <Text style={s.sectionTitle}>{t('information')}</Text>
-            </View>
-            <View style={s.infoCard}>
-
-              {/* Address */}
-              <View style={s.infoRow}>
-                <View style={s.infoIconWrap}><Ionicons name="location-outline" size={18} color={user.address ? c.text : c.placeholder} /></View>
-                <View style={s.infoContent}>
-                  <Text style={s.infoLabel}>{t('address')}</Text>
-                  {!!user.address && <Text style={s.infoValue}>{user.address}</Text>}
-                </View>
-                {!!user.address && (
-                  <TouchableOpacity style={s.infoBadge} onPress={handleDirections}>
-                    <Text style={s.infoBadgeTxt}>{t('directions')}</Text>
-                  </TouchableOpacity>
-                )}
-              </View>
-              <View style={s.infoDivider} />
-
-              {/* Phone */}
-              <TouchableOpacity style={s.infoRow} onPress={handlePhone} activeOpacity={user.phone ? 0.7 : 1}>
-                <View style={s.infoIconWrap}><Ionicons name="call-outline" size={18} color={user.phone ? c.text : c.placeholder} /></View>
-                <View style={s.infoContent}>
-                  <Text style={s.infoLabel}>{t('phone')}</Text>
-                  {!!user.phone && <Text style={[s.infoValue, s.tappable]}>{user.phone}</Text>}
-                </View>
-                {!!user.phone && <View style={s.callBadge}><Text style={s.callBadgeTxt}>{t('call')}</Text></View>}
-              </TouchableOpacity>
-              <View style={s.infoDivider} />
-
-              {/* Website */}
-              <TouchableOpacity style={s.infoRow} onPress={handleWebsite} activeOpacity={user.website ? 0.7 : 1}>
-                <View style={s.infoIconWrap}><Ionicons name="globe-outline" size={18} color={user.website ? c.text : c.placeholder} /></View>
-                <View style={s.infoContent}>
-                  <Text style={s.infoLabel}>{t('website')}</Text>
-                  {!!user.website && <Text style={[s.infoValue, s.goldTxt]} numberOfLines={1}>{user.website.replace(/^https?:\/\//,'').replace(/\/$/,'')}</Text>}
-                </View>
-                {!!user.website && <View style={s.visitBadge}><Text style={s.visitBadgeTxt}>{t('visit')}</Text></View>}
-              </TouchableOpacity>
-              <View style={s.infoDivider} />
-
-              {/* Email */}
-              <TouchableOpacity style={s.infoRow} onPress={handleEmail} activeOpacity={user.churchEmail ? 0.7 : 1}>
-                <View style={s.infoIconWrap}><Ionicons name="mail-outline" size={18} color={user.churchEmail ? c.text : c.placeholder} /></View>
-                <View style={s.infoContent}>
-                  <Text style={s.infoLabel}>{t('email')}</Text>
-                  {!!user.churchEmail && <Text style={[s.infoValue, s.tappable]}>{user.churchEmail}</Text>}
-                </View>
-                {!!user.churchEmail && <View style={s.callBadge}><Text style={s.callBadgeTxt}>{t('email')}</Text></View>}
-              </TouchableOpacity>
-              <View style={s.infoDivider} />
-
-              {/* Service Times */}
-              <View style={s.infoRow}>
-                <View style={s.infoIconWrap}><Ionicons name="time-outline" size={18} color={user.serviceTimes ? c.text : c.placeholder} /></View>
-                <View style={s.infoContent}>
-                  <Text style={s.infoLabel}>{t('serviceTimes')}</Text>
-                  {!!user.serviceTimes && user.serviceTimes.split('\n').map((line, i, rows) => {
-                    const [timePart, notePart] = line.split(' | ');
-                    return (
-                      <View key={i} style={{marginBottom: i < rows.length - 1 ? 6 : 0}}>
-                        <Text style={s.infoValue}>{timePart}</Text>
-                        {!!notePart && <Text style={{fontSize:12,color:c.textMuted,marginTop:1}}>{notePart}</Text>}
-                      </View>
-                    );
-                  })}
-                </View>
-              </View>
-
-            </View>
-          </View>
-
-          {/* Ministries & Amenities */}
-          {((user.ministries || []).length > 0 || AMENITY_LIST.some(item => !!user.amenities?.[item.key])) && (
-            <>
-              <View style={s.divider} />
-              <View style={s.section}>
-                <View style={s.sectionHdr}>
-                  <Text style={s.sectionTitle}>{t('ministriesAmenities')}</Text>
-                </View>
-                <View style={s.chipsWrap}>
-                  {(user.ministries || []).map((name: string) => (
-                    <View key={`ministry-${name}`} style={s.chip}>
-                      <Ionicons name="pricetag-outline" size={14} color={c.text} />
-                      <Text style={s.chipTxt}>{name}</Text>
-                    </View>
-                  ))}
-                  {AMENITY_LIST.filter(item => !!user.amenities?.[item.key]).map(item => (
-                    <View key={`amenity-${item.key}`} style={s.chip}>
-                      <Ionicons name={item.icon as any} size={14} color={c.text} />
-                      <Text style={s.chipTxt}>{tx(item.label)}</Text>
-                    </View>
-                  ))}
-                </View>
-              </View>
-            </>
-          )}
-
-          <View style={s.divider} />
-
-          {/* Posts. CHURCH_TABS has been declared since the app was written but
-              never rendered, so a church could post and have nowhere on its own
-              profile for those posts to appear. */}
+          {/* About | Posts — the same two tabs, in the same order and with the
+              same styling, as the public church page. A church looking at its own
+              profile should see what visitors see. */}
           <View style={s.churchTabsRow}>
             {CHURCH_TABS.map(tab => (
               <TouchableOpacity
@@ -382,11 +264,129 @@ export default function ProfileScreen() {
                 onPress={() => setActiveTab(tab)}
               >
                 <Text style={[s.churchTabTxt, activeTab === tab && s.churchTabTxtActive]}>
-                  {tab === 'Posts' ? t('posts') : tab === 'Events' ? t('events') : tx('Members')}
+                  {tab === 'About' ? tx('About') : tx('Posts')}
+                  {tab === 'Posts' && myPosts.length > 0 ? ` (${myPosts.length})` : ''}
                 </Text>
               </TouchableOpacity>
             ))}
           </View>
+
+          {activeTab === 'About' && (
+            <>
+            {!!user.bio && (
+              <>
+                <View style={s.section}>
+                  <View style={s.sectionHdr}>
+                    <Text style={s.sectionTitle}>{t('about')}</Text>
+                  </View>
+                  <Text style={{fontSize:14,color:c.textSecondary,lineHeight:20}}>{user.bio}</Text>
+                </View>
+                <View style={s.divider} />
+              </>
+            )}
+  
+            {/* Information Card */}
+            <View style={s.section}>
+              <View style={s.sectionHdr}>
+                <Text style={s.sectionTitle}>{t('information')}</Text>
+              </View>
+              <View style={s.infoCard}>
+  
+                {/* Address */}
+                <View style={s.infoRow}>
+                  <View style={s.infoIconWrap}><Ionicons name="location-outline" size={18} color={user.address ? c.text : c.placeholder} /></View>
+                  <View style={s.infoContent}>
+                    <Text style={s.infoLabel}>{t('address')}</Text>
+                    {!!user.address && <Text style={s.infoValue}>{user.address}</Text>}
+                  </View>
+                  {!!user.address && (
+                    <TouchableOpacity style={s.infoBadge} onPress={handleDirections}>
+                      <Text style={s.infoBadgeTxt}>{t('directions')}</Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
+                <View style={s.infoDivider} />
+  
+                {/* Phone */}
+                <TouchableOpacity style={s.infoRow} onPress={handlePhone} activeOpacity={user.phone ? 0.7 : 1}>
+                  <View style={s.infoIconWrap}><Ionicons name="call-outline" size={18} color={user.phone ? c.text : c.placeholder} /></View>
+                  <View style={s.infoContent}>
+                    <Text style={s.infoLabel}>{t('phone')}</Text>
+                    {!!user.phone && <Text style={[s.infoValue, s.tappable]}>{user.phone}</Text>}
+                  </View>
+                  {!!user.phone && <View style={s.callBadge}><Text style={s.callBadgeTxt}>{t('call')}</Text></View>}
+                </TouchableOpacity>
+                <View style={s.infoDivider} />
+  
+                {/* Website */}
+                <TouchableOpacity style={s.infoRow} onPress={handleWebsite} activeOpacity={user.website ? 0.7 : 1}>
+                  <View style={s.infoIconWrap}><Ionicons name="globe-outline" size={18} color={user.website ? c.text : c.placeholder} /></View>
+                  <View style={s.infoContent}>
+                    <Text style={s.infoLabel}>{t('website')}</Text>
+                    {!!user.website && <Text style={[s.infoValue, s.goldTxt]} numberOfLines={1}>{user.website.replace(/^https?:\/\//,'').replace(/\/$/,'')}</Text>}
+                  </View>
+                  {!!user.website && <View style={s.visitBadge}><Text style={s.visitBadgeTxt}>{t('visit')}</Text></View>}
+                </TouchableOpacity>
+                <View style={s.infoDivider} />
+  
+                {/* Email */}
+                <TouchableOpacity style={s.infoRow} onPress={handleEmail} activeOpacity={user.churchEmail ? 0.7 : 1}>
+                  <View style={s.infoIconWrap}><Ionicons name="mail-outline" size={18} color={user.churchEmail ? c.text : c.placeholder} /></View>
+                  <View style={s.infoContent}>
+                    <Text style={s.infoLabel}>{t('email')}</Text>
+                    {!!user.churchEmail && <Text style={[s.infoValue, s.tappable]}>{user.churchEmail}</Text>}
+                  </View>
+                  {!!user.churchEmail && <View style={s.callBadge}><Text style={s.callBadgeTxt}>{t('email')}</Text></View>}
+                </TouchableOpacity>
+                <View style={s.infoDivider} />
+  
+                {/* Service Times */}
+                <View style={s.infoRow}>
+                  <View style={s.infoIconWrap}><Ionicons name="time-outline" size={18} color={user.serviceTimes ? c.text : c.placeholder} /></View>
+                  <View style={s.infoContent}>
+                    <Text style={s.infoLabel}>{t('serviceTimes')}</Text>
+                    {!!user.serviceTimes && user.serviceTimes.split('\n').map((line, i, rows) => {
+                      const [timePart, notePart] = line.split(' | ');
+                      return (
+                        <View key={i} style={{marginBottom: i < rows.length - 1 ? 6 : 0}}>
+                          <Text style={s.infoValue}>{timePart}</Text>
+                          {!!notePart && <Text style={{fontSize:12,color:c.textMuted,marginTop:1}}>{notePart}</Text>}
+                        </View>
+                      );
+                    })}
+                  </View>
+                </View>
+  
+              </View>
+            </View>
+  
+            {/* Ministries & Amenities */}
+            {((user.ministries || []).length > 0 || AMENITY_LIST.some(item => !!user.amenities?.[item.key])) && (
+              <>
+                <View style={s.divider} />
+                <View style={s.section}>
+                  <View style={s.sectionHdr}>
+                    <Text style={s.sectionTitle}>{t('ministriesAmenities')}</Text>
+                  </View>
+                  <View style={s.chipsWrap}>
+                    {(user.ministries || []).map((name: string) => (
+                      <View key={`ministry-${name}`} style={s.chip}>
+                        <Ionicons name="pricetag-outline" size={14} color={c.text} />
+                        <Text style={s.chipTxt}>{name}</Text>
+                      </View>
+                    ))}
+                    {AMENITY_LIST.filter(item => !!user.amenities?.[item.key]).map(item => (
+                      <View key={`amenity-${item.key}`} style={s.chip}>
+                        <Ionicons name={item.icon as any} size={14} color={c.text} />
+                        <Text style={s.chipTxt}>{tx(item.label)}</Text>
+                      </View>
+                    ))}
+                  </View>
+                </View>
+              </>
+            )}
+            </>
+          )}
 
           {activeTab === 'Posts' && (
             myPosts.length === 0 ? (
@@ -409,41 +409,6 @@ export default function ProfileScreen() {
                 />
               ))
             )
-          )}
-
-          {activeTab === 'Events' && (
-            myEvents.length === 0 ? (
-              <View style={s.churchEmpty}>
-                <Ionicons name="calendar-outline" size={26} color={c.textMuted} />
-                <Text style={s.churchEmptyTitle}>{tx('No events yet')}</Text>
-                <Text style={s.churchEmptySub}>{tx('Events you create will be listed here.')}</Text>
-              </View>
-            ) : (
-              myEvents.map(ev => (
-                <TouchableOpacity
-                  key={ev.id}
-                  style={s.churchEventRow}
-                  onPress={() => router.push({ pathname: '/event-detail', params: { id: ev.id, title: ev.title, date: ev.date, location: ev.location, type: ev.type, price: ev.isPaid ? String(ev.ticketPrice) : 'Free', organizer: displayName, description: ev.description || '' } })}
-                >
-                  <View style={s.churchEventIcon}>
-                    <Ionicons name="calendar" size={17} color={c.gold} />
-                  </View>
-                  <View style={{flex:1}}>
-                    <Text style={s.churchEventTitle} numberOfLines={1}>{ev.title}</Text>
-                    <Text style={s.churchEventMeta}>{ev.date}{ev.location ? ' · ' + ev.location : ''}</Text>
-                  </View>
-                  <Ionicons name="chevron-forward" size={16} color={c.placeholder} />
-                </TouchableOpacity>
-              ))
-            )
-          )}
-
-          {activeTab === 'Members' && (
-            <View style={s.churchEmpty}>
-              <Ionicons name="people-outline" size={26} color={c.textMuted} />
-              <Text style={s.churchEmptyTitle}>{tx('Members are coming soon')}</Text>
-              <Text style={s.churchEmptySub}>{tx('Once people can follow your church, they will be listed here.')}</Text>
-            </View>
           )}
 
           <View style={{height:40}} />
@@ -762,18 +727,16 @@ function ActivityTabContent() {
 }
 
 const makeStyles = (c: ThemeColors) => StyleSheet.create({
-  churchTabsRow:{flexDirection:'row',backgroundColor:c.cardAlt,borderRadius:100,padding:3,marginHorizontal:16,marginTop:16,marginBottom:14},
-  churchTab:{flex:1,paddingVertical:8,borderRadius:100,alignItems:'center'},
-  churchTabActive:{backgroundColor:c.card,shadowColor:'#000',shadowOffset:{width:0,height:1},shadowOpacity:0.08,shadowRadius:3},
-  churchTabTxt:{fontSize:13,fontWeight:'600',color:c.textMuted},
+  // Copied from church-detail's tabsRow/tab/tabActive so a church's own profile
+  // and its public page share one visual language.
+  churchTabsRow:{flexDirection:'row',borderTopWidth:1,borderBottomWidth:1,borderColor:c.border,marginTop:8},
+  churchTab:{flex:1,paddingVertical:13,alignItems:'center',borderBottomWidth:2,borderBottomColor:'transparent'},
+  churchTabActive:{borderBottomColor:c.navy},
+  churchTabTxt:{fontSize:14,fontWeight:'600',color:c.textMuted},
   churchTabTxtActive:{color:c.text,fontWeight:'700'},
   churchEmpty:{alignItems:'center',paddingVertical:34,paddingHorizontal:28,gap:7},
   churchEmptyTitle:{fontSize:15,fontWeight:'700',color:c.text},
   churchEmptySub:{fontSize:13,color:c.textMuted,textAlign:'center',lineHeight:19},
-  churchEventRow:{flexDirection:'row',alignItems:'center',gap:12,marginHorizontal:16,marginBottom:10,padding:13,borderRadius:14,borderWidth:1,borderColor:c.border,backgroundColor:c.card},
-  churchEventIcon:{width:36,height:36,borderRadius:11,backgroundColor:'rgba(201,169,110,0.16)',alignItems:'center',justifyContent:'center'},
-  churchEventTitle:{fontSize:14,fontWeight:'700',color:c.text},
-  churchEventMeta:{fontSize:12,color:c.textMuted,marginTop:2},
   root:{flex:1,backgroundColor:c.bg},
   // Gallery
   coverIconBtn:{width:36,height:36,borderRadius:18,backgroundColor:'rgba(0,0,0,0.4)',alignItems:'center',justifyContent:'center'},
