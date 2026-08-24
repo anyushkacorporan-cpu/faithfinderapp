@@ -501,12 +501,21 @@ export default function ProfileScreen() {
             <Text style={s.editTxt}>{t('editProfile')}</Text>
           </TouchableOpacity>
 
-          <View style={s.verseWrap}>
-            <Text style={s.verseItalic}>{user.lifeVerse}</Text>
-            <View style={s.verseRefRow}>
-              <Text style={s.verseRef}>{user.lifeVerseRef}</Text>
+          {/* Rendered unconditionally before, so a profile with no life verse
+              still paid for verseItalic's lineHeight and the reference row --
+              about 44px of blank space between Edit Profile and See Activity.
+              Each line is gated separately so a verse without a reference does
+              not leave a phantom row behind it. */}
+          {!!(user.lifeVerse || user.lifeVerseRef) && (
+            <View style={s.verseWrap}>
+              {!!user.lifeVerse && <Text style={s.verseItalic}>{user.lifeVerse}</Text>}
+              {!!user.lifeVerseRef && (
+                <View style={s.verseRefRow}>
+                  <Text style={s.verseRef}>{user.lifeVerseRef}</Text>
+                </View>
+              )}
             </View>
-          </View>
+          )}
 
           {/* alignSelf overrides the parent's alignItems:'center' for this row
               only, so the link sits right without moving the name, stats,
