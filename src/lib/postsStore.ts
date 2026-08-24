@@ -3,6 +3,8 @@ import { useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { newId } from './ids';
 import { getUser } from './userStore';
+import { publishProfile } from './profilesStore';
+import { getConnections } from './connectionsStore';
 
 const POSTS_KEY = 'faithfinder_posts_v1';
 
@@ -263,6 +265,27 @@ export function addPost(post: {
     createdAt: Date.now(),
     likes: 0, liked: false, comments: [], feed: post.feed || 'both',
   };
+  // Keep this account's public profile current so anyone who taps through from
+  // this post sees a real profile rather than a name on a blank cover.
+  const u = getUser();
+  if (u.id) {
+    publishProfile({
+      id: u.id,
+      name: newPost.authorName,
+      accountType: u.accountType,
+      photo: u.profilePhoto || u.avatar,
+      cover: u.coverPhoto,
+      bio: u.bio,
+      city: newPost.city,
+      state: newPost.state,
+      lifeVerse: u.lifeVerse,
+      lifeVerseRef: u.lifeVerseRef,
+      color: newPost.authorColor,
+      initials: newPost.authorInitials,
+      connectionCount: getConnections().length,
+    });
+  }
+
   posts = [newPost, ...posts];
   // bump repost count on the original post if this is a repost
   if (post.repostOf) {
@@ -290,7 +313,12 @@ export function isAuthoredBy(
   userId?: string,
   displayName?: string,
 ): boolean {
-  if (post.authorId && userId) return post.authorId === userId;
+  // id OR name, deliberately. Comparing ids alone looks stricter but orphans
+  // content whenever the stored id stops matching -- posts written before ids
+  // existed, or after signOut generated a new one -- and the visible symptom is
+  // your own posts offering to connect you to yourself. Once a server owns
+  // identity the name half can go.
+  if (post.authorId && userId && post.authorId === userId) return true;
   return !!displayName && post.authorName === displayName;
 }
 

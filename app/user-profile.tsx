@@ -7,6 +7,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import Header from '../src/components/Header';
 import { useThemeColors, ThemeColors } from '../src/lib/theme';
 import { useTranslation } from '../src/lib/i18n';
+import { useProfile } from '../src/lib/profilesStore';
 import { usePosts, toggleLike, isAuthoredBy } from '../src/lib/postsStore';
 import { useUser } from '../src/lib/userStore';
 import { useConnectionCount, useConnections, isConnectedTo, addConnection, removeConnection, connectionFromAuthor } from '../src/lib/connectionsStore';
@@ -36,15 +37,29 @@ export default function OtherUserProfileScreen() {
     ? currentUser.churchName
     : `${currentUser.firstName || ''} ${currentUser.lastName || ''}`.trim();
   // Prefer ids: two people can share a display name.
-  const isSelf = (params.authorId && currentUser.id)
-    ? params.authorId === currentUser.id
-    : !!currentUserDisplayName && currentUserDisplayName === displayName;
+  const isSelf =
+    (!!params.authorId && !!currentUser.id && params.authorId === currentUser.id) ||
+    (!!currentUserDisplayName && currentUserDisplayName === displayName);
 
   useEffect(() => {
     if (isSelf) {
       router.replace('/profile');
     }
   }, [isSelf]);
+  // What to display. Your own profile reads live from userStore; anyone else's
+  // comes from the directory, with the route params as a last resort for
+  // someone this device has never recorded.
+  const snapshot = useProfile(params.authorId, displayName);
+  const view = {
+    cover:        isSelf ? currentUser.coverPhoto   : snapshot?.cover,
+    photo:        isSelf ? currentUser.profilePhoto : (snapshot?.photo || params.photo),
+    bio:          isSelf ? currentUser.bio          : snapshot?.bio,
+    lifeVerse:    isSelf ? currentUser.lifeVerse    : snapshot?.lifeVerse,
+    lifeVerseRef: isSelf ? currentUser.lifeVerseRef : snapshot?.lifeVerseRef,
+    city:         snapshot?.city  || params.city,
+    state:        snapshot?.state || params.state,
+  };
+
   const connectionCount = useConnectionCount();
   const { showToast } = useToast();
   const { showConfirm } = useConfirm();
@@ -82,8 +97,8 @@ export default function OtherUserProfileScreen() {
               accent colour — so "no cover set" reads as designed, which stays
               the right treatment once profiles are real and some genuinely
               have none. */}
-          {isSelf && currentUser.coverPhoto ? (
-            <Image source={{uri:currentUser.coverPhoto}} style={s.cover} resizeMode="cover" />
+          {view.cover ? (
+            <Image source={{uri:view.cover}} style={s.cover} resizeMode="cover" />
           ) : (
             <LinearGradient
               colors={coverGradient}
@@ -96,8 +111,8 @@ export default function OtherUserProfileScreen() {
             <Ionicons name="arrow-back" size={20} color={c.onPrimary} />
           </TouchableOpacity>
           <View style={s.avatarWrap}>
-            {(isSelf && currentUser.profilePhoto) || params.photo
-              ? <Image source={{uri: (isSelf && currentUser.profilePhoto) || params.photo}} style={[s.avatar,{overflow:'hidden'}]} resizeMode="cover"/>
+            {view.photo
+              ? <Image source={{uri: view.photo}} style={[s.avatar,{overflow:'hidden'}]} resizeMode="cover"/>
               : <View style={[s.avatar,{backgroundColor:color}]}>
                   <Text style={s.avatarTxt}>{initials}</Text>
                 </View>
@@ -111,10 +126,10 @@ export default function OtherUserProfileScreen() {
             {isChurch && <View style={s.churchBadge}><Text style={s.churchBadgeTxt}>{t('church')}</Text></View>}
           </View>
 
-          {!!(params.city && params.state) && (
+          {!!(view.city && view.state) && (
             <View style={{flexDirection:'row',alignItems:'center',gap:4,marginTop:10}}>
               <Ionicons name="location-outline" size={14} color={c.textMuted} />
-              <Text style={{fontSize:13,color:c.textMuted}}>{params.city}, {params.state}</Text>
+              <Text style={{fontSize:13,color:c.textMuted}}>{view.city}, {view.state}</Text>
             </View>
           )}
 
@@ -159,19 +174,24 @@ export default function OtherUserProfileScreen() {
             )
           )}
 
-          {isSelf && (
+          {isSelf ? (
             <TouchableOpacity style={{flexDirection:'row',alignItems:'center',gap:5,marginTop:10}} onPress={() => router.push('/connections')}>
               <Ionicons name="people-outline" size={14} color={c.textMuted} />
-              <Text style={{fontSize:13,color:c.textMuted}}>{connectionCount} Connections</Text>
+              <Text style={{fontSize:13,color:c.textMuted}}>{connectionCount} {tx('Connections')}</Text>
             </TouchableOpacity>
-          )}
+          ) : typeof snapshot?.connectionCount === 'number' ? (
+            <View style={{flexDirection:'row',alignItems:'center',gap:5,marginTop:10}}>
+              <Ionicons name="people-outline" size={14} color={c.textMuted} />
+              <Text style={{fontSize:13,color:c.textMuted}}>{snapshot.connectionCount} {tx('Connections')}</Text>
+            </View>
+          ) : null}
 
-          {isSelf && !!currentUser.bio && (
-            <Text style={{fontSize:14,color:c.textSecondary,textAlign:'center',lineHeight:20,marginTop:12,paddingHorizontal:8}}>{currentUser.bio}</Text>
+          {!!view.bio && (
+            <Text style={{fontSize:14,color:c.textSecondary,textAlign:'center',lineHeight:20,marginTop:12,paddingHorizontal:8}}>{view.bio}</Text>
           )}
         </View>
 
-        {isSelf && !!(currentUser.lifeVerse || currentUser.lifeVerseRef) && (
+        {!!(view.lifeVerse || view.lifeVerseRef) && (
           <>
             <View style={s.divider} />
             <View style={s.section}>
@@ -181,11 +201,11 @@ export default function OtherUserProfileScreen() {
                   <Text style={s.sectionTitle}>{t('favoriteVerse')}</Text>
                 </View>
               </View>
-              {!!currentUser.lifeVerse && (
-                <Text style={{fontSize:15,fontStyle:'italic',color:c.text,lineHeight:22,textAlign:'center'}}>"{currentUser.lifeVerse}"</Text>
+              {!!view.lifeVerse && (
+                <Text style={{fontSize:15,fontStyle:'italic',color:c.text,lineHeight:22,textAlign:'center'}}>"{view.lifeVerse}"</Text>
               )}
-              {!!currentUser.lifeVerseRef && (
-                <Text style={{fontSize:13,fontWeight:'700',color:c.gold,textAlign:'center',marginTop:8}}>{currentUser.lifeVerseRef}</Text>
+              {!!view.lifeVerseRef && (
+                <Text style={{fontSize:13,fontWeight:'700',color:c.gold,textAlign:'center',marginTop:8}}>{view.lifeVerseRef}</Text>
               )}
             </View>
           </>
@@ -220,36 +240,6 @@ export default function OtherUserProfileScreen() {
                   </Text>
                 </TouchableOpacity>
               )}
-            </View>
-            <View style={s.divider} />
-          </>
-        )}
-
-        {churchesShared.length > 0 && (
-          <>
-            <View style={s.section}>
-              <View style={s.sectionHdr}>
-                <View style={{flexDirection:'row',alignItems:'center'}}>
-                  <Ionicons name="business-outline" size={16} color={c.text} style={{marginRight:6}} />
-                  <Text style={s.sectionTitle}>{t('churchesShared')}</Text>
-                </View>
-              </View>
-              {churchesShared.map((church, i) => (
-                <TouchableOpacity
-                  key={`${church.id}-${i}`}
-                  style={{flexDirection:'row',alignItems:'center',gap:10,paddingVertical:10,borderBottomWidth:i<churchesShared.length-1?1:0,borderBottomColor:c.cardAlt}}
-                  onPress={() => router.push({ pathname: '/church-detail', params: { placeId: church.id } })}
-                >
-                  <View style={{width:36,height:36,borderRadius:10,backgroundColor:c.cardAlt,alignItems:'center',justifyContent:'center'}}>
-                    <Ionicons name="business" size={16} color={c.text} />
-                  </View>
-                  <View style={{flex:1}}>
-                    <Text style={{fontSize:14,fontWeight:'600',color:c.text}}>{church.name}</Text>
-                    <Text style={{fontSize:12,color:c.textMuted}}>{church.address}</Text>
-                  </View>
-                  <Ionicons name="chevron-forward" size={16} color={c.placeholder} />
-                </TouchableOpacity>
-              ))}
             </View>
             <View style={s.divider} />
           </>

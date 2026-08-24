@@ -9,6 +9,7 @@ import { useUser, setUser, getUser } from '../src/lib/userStore';
 import { useToast } from '../src/components/Toast';
 import { autocompleteCity } from '../src/lib/googlePlaces';
 import { useTranslation } from '../src/lib/i18n';
+import { publishProfile } from '../src/lib/profilesStore';
 
 export default function EditProfileScreen() {
   const c = useThemeColors();
@@ -94,6 +95,23 @@ export default function EditProfileScreen() {
       setUser({ churchName, bio, location, phone, website, address, serviceTimes, avatar });
     } else {
       setUser({ firstName, lastName, bio, location, phone, profilePhoto, coverPhoto, lifeVerse, lifeVerseRef });
+    }
+    // Push the edit into the directory immediately, so it reaches people who
+    // look you up before you next post.
+    const u = getUser();
+    const name = isChurch ? (churchName || 'Church') : `${firstName || ''} ${lastName || ''}`.trim();
+    if (u.id && name) {
+      publishProfile({
+        id: u.id,
+        name,
+        accountType: u.accountType,
+        photo: isChurch ? avatar : profilePhoto,
+        cover: isChurch ? undefined : coverPhoto,
+        bio,
+        lifeVerse: isChurch ? undefined : lifeVerse,
+        lifeVerseRef: isChurch ? undefined : lifeVerseRef,
+        initials,
+      });
     }
     showToast(tx('Saved!'), tx('Your profile has been updated.'), 'success');
     router.back();
