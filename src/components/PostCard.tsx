@@ -87,9 +87,9 @@ export function TranslateRow({text}:{text:string}) {
   );
 }
 
-export function PostCard({post,showLocation,onLike,onComment,onShare,onOpenProfile,isOwnPost,onMenu,onRepost}:{
+export function PostCard({post,showLocation,onLike,onComment,onShare,onOpenProfile,isOwnPost,onMenu}:{
   post:Post; showLocation:boolean; onLike:()=>void; onComment:()=>void; onShare:()=>void; onOpenProfile:()=>void;
-  isOwnPost?:boolean; onMenu?:()=>void; onRepost?:()=>void;
+  isOwnPost?:boolean; onMenu?:()=>void;
 }) {
   const c = useThemeColors();
   const p = makeStyles(c);

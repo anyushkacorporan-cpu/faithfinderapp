@@ -13,6 +13,7 @@ import { useConnections, useConnectionCount, removeConnection } from '../../src/
 import { usePosts, toggleLike, editPost, deletePost, isAuthoredBy, Post } from '../../src/lib/postsStore';
 import { PostCard } from '../../src/components/PostCard';
 import { useConfirm } from '../../src/components/Confirm';
+import { PostShareSheet } from '../../src/components/PostShareSheet';
 import { useEventActions } from '../../src/lib/eventActionsStore';
 import { EVENTS } from '../../src/lib/constants';
 import { useEvents } from '../../src/lib/eventsStore';
@@ -45,6 +46,8 @@ export default function ProfileScreen() {
   const [activeTab, setActiveTab] = useState('About');
   // Which of your own posts has its menu open. Both profile layouts use it.
   const [menuPost, setMenuPost] = useState<Post | null>(null);
+  // Which post's Repost/Share sheet is open.
+  const [shareTarget, setShareTarget] = useState<Post | null>(null);
   const allPosts = usePosts();
   const displayName = user.accountType === 'church'
     ? (user.churchName || 'Church')
@@ -407,7 +410,7 @@ export default function ProfileScreen() {
                   isOwnPost
                   onLike={() => toggleLike(post.id)}
                   onComment={() => router.push({ pathname: '/comments', params: { postId: post.id } })}
-                  onShare={() => {}}
+                  onShare={() => setShareTarget(post)}
                   onOpenProfile={() => {}}
                   onMenu={() => setMenuPost(post)}
                 />
@@ -424,6 +427,7 @@ export default function ProfileScreen() {
           <HeaderIcons overlay />
         </View>
         <OwnPostActions post={menuPost} onClose={() => setMenuPost(null)} />
+        <PostShareSheet post={shareTarget} onClose={() => setShareTarget(null)} />
       </SafeAreaView>
     );
   }
@@ -650,7 +654,7 @@ export default function ProfileScreen() {
                   isOwnPost={true}
                   onLike={() => toggleLike(post.id)}
                   onComment={() => router.push({ pathname: '/comments', params: { postId: post.id } })}
-                  onShare={() => {}}
+                  onShare={() => setShareTarget(post)}
                   onOpenProfile={() => {}}
                   onMenu={() => setMenuPost(post)}
                 />
@@ -669,6 +673,7 @@ export default function ProfileScreen() {
         <HeaderIcons overlay />
       </View>
       <OwnPostActions post={menuPost} onClose={() => setMenuPost(null)} />
+      <PostShareSheet post={shareTarget} onClose={() => setShareTarget(null)} />
     </SafeAreaView>
   );
 }

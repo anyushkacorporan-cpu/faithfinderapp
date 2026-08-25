@@ -1,8 +1,7 @@
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity, StyleSheet,
-  TextInput, Modal, KeyboardAvoidingView, Platform, Share, Alert, Image, ActivityIndicator, RefreshControl, ImageBackground} from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+  TextInput, Modal, KeyboardAvoidingView, Platform, Alert, Image, ActivityIndicator, RefreshControl} from 'react-native';
 import { router } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import { extractFirstUrl, fetchLinkPreview, LinkPreviewData } from '../../src/lib/linkPreview';
@@ -17,9 +16,9 @@ import { getCurrentCityState } from '../../src/lib/userLocation';
 import { useSettings } from '../../src/lib/settingsStore';
 import { useTranslation } from '../../src/lib/i18n';
 import { PostCard } from '../../src/components/PostCard';
-import { usePosts, addPost, toggleLike, Post, editPost, deletePost, reportPost, repostPost, isAuthoredBy } from '../../src/lib/postsStore';
+import { PostShareSheet } from '../../src/components/PostShareSheet';
+import { usePosts, addPost, toggleLike, Post, editPost, deletePost, reportPost, isAuthoredBy } from '../../src/lib/postsStore';
 import { getUser } from '../../src/lib/userStore';
-import { buildPostShareText } from '../../src/lib/shareLinks';
 import { useConnections, isConnected } from '../../src/lib/connectionsStore';
 import { announceToFollowers } from '../../src/lib/notificationsStore';
 import { blockUser, isBlocked, useBlocked } from '../../src/lib/blockStore';
@@ -38,43 +37,6 @@ export default function CommunityScreen() {
   const connections = useConnections();
   const user = getUser();
 
-  // ── Sharing to the OS share sheet ───────────────────────────────────────
-  // iOS refuses to present the share sheet while a React Native <Modal> is
-  // still on screen (or still animating away) — the promise rejects and the
-  // button looks dead. So the Share row does NOT call Share.share() directly:
-  // it stashes the text, closes the sheet, and we fire the share from the
-  // Modal's onDismiss (iOS) once the sheet is genuinely gone. Android has no
-  // onDismiss, so a short timer covers it, and a longer timer is a backstop in
-  // case onDismiss never arrives. `shareFiredRef` makes sure only one wins.
-  const pendingShareRef = useRef<string | null>(null);
-  const shareFiredRef = useRef(false);
-  const shareTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
-
-  function clearShareTimers() {
-    shareTimersRef.current.forEach(clearTimeout);
-    shareTimersRef.current = [];
-  }
-
-  function queueShare(message: string) {
-    clearShareTimers();
-    pendingShareRef.current = message;
-    shareFiredRef.current = false;
-    // Android never fires Modal.onDismiss; the backstop covers a missing one.
-    shareTimersRef.current.push(setTimeout(flushPendingShare, Platform.OS === 'android' ? 300 : 900));
-  }
-
-  function flushPendingShare() {
-    const message = pendingShareRef.current;
-    if (!message || shareFiredRef.current) return;
-    shareFiredRef.current = true;
-    pendingShareRef.current = null;
-    clearShareTimers();
-    Share.share({ message, title: tx('Check this out on FaithFinder') })
-      .catch((err: any) => {
-        // Never fail silently — a dead-looking button is what sent us here.
-        showToast(t('share'), String(err?.message || err), 'error');
-      });
-  }
 
   const connectedNames = connections.map(c => c.name);
   const displayName = user.accountType === 'church'
@@ -105,9 +67,9 @@ export default function CommunityScreen() {
   const [reportPostTarget, setReportPostTarget] = useState<Post | null>(null);
   const [editingPost, setEditingPost] = useState<Post | null>(null);
   const [editText, setEditText] = useState('');
-  const [repostTarget, setRepostTarget] = useState<Post | null>(null);
-  const [showRepostCompose, setShowRepostCompose] = useState(false);
-  const [repostComment, setRepostComment] = useState('');
+  // Which post's Repost/Share sheet is open. The sheet itself lives in
+  // PostShareSheet, which the profile screen renders too.
+  const [shareTarget, setShareTarget] = useState<Post | null>(null);
   const [newPostText, setNewPostText] = useState('');
   const [isPosting, setIsPosting] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -222,10 +184,9 @@ export default function CommunityScreen() {
             isOwnPost={isAuthoredBy(post, user.id, displayName)}
             onLike={() => toggleLike(post.id)}
             onComment={() => router.push({ pathname: '/comments', params: { postId: post.id } })}
-            onShare={() => { setRepostTarget(post); setRepostComment(''); setShowRepostCompose(false); }}
+            onShare={() => setShareTarget(post)}
             onOpenProfile={() => openProfile(post)}
             onMenu={() => setMenuPost(post)}
-            onRepost={() => { setRepostTarget(post); setRepostComment(''); }}
           />
         ))}
         <View style={{ height: 24 }} />
@@ -498,122 +459,7 @@ export default function CommunityScreen() {
         </SafeAreaView>
       </Modal>
 
-      {/* Share/Repost Bottom Sheet */}
-      <Modal visible={!!repostTarget && !showRepostCompose} transparent animationType="fade" onRequestClose={() => setRepostTarget(null)} onDismiss={flushPendingShare}>
-        <TouchableOpacity style={{flex:1,backgroundColor:c.overlay,justifyContent:'flex-end'}} activeOpacity={1} onPress={() => setRepostTarget(null)}>
-          <View style={{backgroundColor:c.card,borderTopLeftRadius:24,borderTopRightRadius:24,paddingTop:8,paddingBottom:32}}>
-            <View style={{width:36,height:4,borderRadius:2,backgroundColor:c.border,alignSelf:'center',marginVertical:10}}/>
-            <Text style={{fontSize:16,fontWeight:'700',color:c.text,textAlign:'center',marginBottom:16}}>{t('sharePost')}</Text>
-
-            <TouchableOpacity style={{flexDirection:'row',alignItems:'center',gap:14,paddingHorizontal:20,paddingVertical:14}} onPress={() => setShowRepostCompose(true)}>
-              <View style={{width:44,height:44,borderRadius:14,backgroundColor:'rgba(102,126,234,0.16)',alignItems:'center',justifyContent:'center'}}>
-                <Ionicons name="repeat" size={22} color="#667eea"/>
-              </View>
-              <View style={{flex:1}}>
-                <Text style={{fontSize:15,fontWeight:'700',color:c.text}}>{t('repost')}</Text>
-                <Text style={{fontSize:12,color:c.textMuted,marginTop:1}}>{t('shareToFeed')}</Text>
-              </View>
-              <Ionicons name="chevron-forward" size={18} color={c.placeholder}/>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={{flexDirection:'row',alignItems:'center',gap:14,paddingHorizontal:20,paddingVertical:14}} onPress={() => {
-              queueShare(buildPostShareText(repostTarget));
-              setRepostTarget(null);
-            }}>
-              <View style={{width:44,height:44,borderRadius:14,backgroundColor:c.cardAlt,alignItems:'center',justifyContent:'center'}}>
-                <Ionicons name="arrow-redo-outline" size={22} color={c.text}/>
-              </View>
-              <View style={{flex:1}}>
-                <Text style={{fontSize:15,fontWeight:'700',color:c.text}}>{t('share')}</Text>
-                <Text style={{fontSize:12,color:c.textMuted,marginTop:1}}>{t('sendVia')}</Text>
-              </View>
-              <Ionicons name="chevron-forward" size={18} color={c.placeholder}/>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={{paddingVertical:16,marginTop:6,alignItems:'center'}} onPress={() => setRepostTarget(null)}>
-              <Text style={{fontSize:15,fontWeight:'600',color:c.textMuted}}>{t('cancel')}</Text>
-            </TouchableOpacity>
-          </View>
-        </TouchableOpacity>
-      </Modal>
-
-      {/* Repost Compose Screen */}
-      <Modal visible={!!repostTarget && showRepostCompose} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => { setShowRepostCompose(false); setRepostTarget(null); }}>
-        <SafeAreaView style={{flex:1,backgroundColor:c.bg}} edges={['top']}>
-          <View style={s.modalHdr}>
-            <TouchableOpacity onPress={() => { setShowRepostCompose(false); setRepostTarget(null); }}><Text style={s.cancelTxt}>{t('cancel')}</Text></TouchableOpacity>
-            <Text style={s.modalTitle}>{t('repost')}</Text>
-            <TouchableOpacity style={s.postBtn} onPress={() => {
-              if (repostTarget) {
-                repostPost(repostTarget, {
-                  authorName: displayName, authorInitials: initials,
-                  authorType: user.accountType === 'church' ? 'church' : 'personal',
-                  authorColor: '#667eea', authorPhoto: user.profilePhoto,
-                }, repostComment.trim());
-              }
-              setShowRepostCompose(false);
-              setRepostTarget(null);
-            }}>
-              <Text style={s.postBtnTxt}>{t('repost')}</Text>
-            </TouchableOpacity>
-          </View>
-          <View style={s.composeAuthor}>
-            <View style={[s.composeAvatar,{backgroundColor:'#667eea'}]}>
-              <Text style={s.composeAvatarTxt}>{initials}</Text>
-            </View>
-            <Text style={s.composeAuthorName}>{displayName}</Text>
-          </View>
-          <TextInput
-            style={[s.composeInput,{minHeight:80}]}
-            multiline
-            autoFocus
-            value={repostComment}
-            onChangeText={setRepostComment}
-            placeholder={tx('Add a comment (optional)')}
-            placeholderTextColor={c.placeholder}
-          />
-          {repostTarget&&(
-            <View style={[s.quotedCard,{marginHorizontal:16}]}>
-              <View style={{flexDirection:'row',alignItems:'center',gap:8,marginBottom:6}}>
-                <View style={{width:26,height:26,borderRadius:13,backgroundColor:(repostTarget.repostOf?.authorColor)||repostTarget.authorColor,alignItems:'center',justifyContent:'center'}}>
-                  <Text style={{color:'#fff',fontSize:10,fontWeight:'700'}}>{(repostTarget.repostOf?.authorInitials)||repostTarget.authorInitials}</Text>
-                </View>
-                <Text style={{fontSize:13,fontWeight:'700',color:c.text}}>{(repostTarget.repostOf?.authorName)||repostTarget.authorName}</Text>
-              </View>
-              <Text style={{fontSize:13,color:c.textSecondary}} numberOfLines={3}>{(repostTarget.repostOf?.content)||repostTarget.content}</Text>
-              {!!((repostTarget.repostOf?.image)||repostTarget.image) && (
-                <Image source={{uri:(repostTarget.repostOf?.image)||repostTarget.image}} style={{width:'100%',aspectRatio:16/9,borderRadius:10,marginTop:8}} resizeMode="cover"/>
-              )}
-              {!!((repostTarget.repostOf?.eventShareData)||repostTarget.eventShareData) && (
-                <View style={{marginTop:8,borderRadius:12,overflow:'hidden',borderWidth:1,borderColor:c.border}}>
-                  {(((repostTarget.repostOf?.eventShareData)||repostTarget.eventShareData)!.bannerImage) ? (
-                    <ImageBackground source={{uri: ((repostTarget.repostOf?.eventShareData)||repostTarget.eventShareData)!.bannerImage}} style={{aspectRatio:16/9,backgroundColor:c.cardAlt}} imageStyle={{width:'100%',height:'100%'}} resizeMode="cover" />
-                  ) : (
-                    <LinearGradient colors={((repostTarget.repostOf?.eventShareData)||repostTarget.eventShareData)!.bannerColor || ['#667eea','#764ba2']} style={{aspectRatio:16/9}} start={{x:0,y:0}} end={{x:1,y:1}} />
-                  )}
-                  <View style={{padding:10}}>
-                    <Text style={{fontFamily:'PlayfairDisplay_700Bold',fontSize:14,color:c.text}} numberOfLines={1}>{((repostTarget.repostOf?.eventShareData)||repostTarget.eventShareData)!.title}</Text>
-                    <Text style={{fontSize:11,color:c.textMuted,marginTop:2}}>{((repostTarget.repostOf?.eventShareData)||repostTarget.eventShareData)!.date}</Text>
-                  </View>
-                </View>
-              )}
-              {!!((repostTarget.repostOf?.churchShareData)||repostTarget.churchShareData) && (
-                <View style={{marginTop:8,borderRadius:12,overflow:'hidden',borderWidth:1,borderColor:c.border}}>
-                  {(((repostTarget.repostOf?.churchShareData)||repostTarget.churchShareData)!.photo) ? (
-                    <ImageBackground source={{uri: ((repostTarget.repostOf?.churchShareData)||repostTarget.churchShareData)!.photo}} style={{aspectRatio:16/9,backgroundColor:'#c9a96e'}} imageStyle={{width:'100%',height:'100%'}} resizeMode="cover" />
-                  ) : (
-                    <LinearGradient colors={((repostTarget.repostOf?.churchShareData)||repostTarget.churchShareData)!.gradient || ['#c9a96e','#1a1a2e']} style={{aspectRatio:16/9}} start={{x:0,y:0}} end={{x:1,y:1}} />
-                  )}
-                  <View style={{padding:10}}>
-                    <Text style={{fontFamily:'PlayfairDisplay_700Bold',fontSize:14,color:c.text}} numberOfLines={1}>{((repostTarget.repostOf?.churchShareData)||repostTarget.churchShareData)!.name}</Text>
-                    <Text style={{fontSize:11,color:c.textMuted,marginTop:2}} numberOfLines={1}>{((repostTarget.repostOf?.churchShareData)||repostTarget.churchShareData)!.address}</Text>
-                  </View>
-                </View>
-              )}
-            </View>
-          )}
-        </SafeAreaView>
-      </Modal>
+      <PostShareSheet post={shareTarget} onClose={() => setShareTarget(null)} />
     </SafeAreaView>
   );
 }
@@ -670,7 +516,6 @@ const makeStyles = (c: ThemeColors) => StyleSheet.create({
   toggleThumbOn:{transform:[{translateX:19}]},
   composeHint:{flexDirection:'row',alignItems:'flex-start',gap:8,marginHorizontal:16,paddingVertical:10},
   composeHintTxt:{flex:1,fontSize:12,color:c.textMuted,lineHeight:18},
-  quotedCard:{borderWidth:1.5,borderColor:c.border,borderRadius:12,padding:12,marginTop:8,backgroundColor:c.cardAlt},
   filterBtn:{flexDirection:'row',alignItems:'center',gap:5,backgroundColor:c.cardAlt,borderWidth:1.5,borderColor:c.border,borderRadius:12,paddingHorizontal:10,paddingVertical:8},
   filterBtnActive:{backgroundColor:c.navy,borderColor:c.navy},
   filterBtnTxt:{fontSize:12,fontWeight:'600',color:c.text},
