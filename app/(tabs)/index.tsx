@@ -39,16 +39,28 @@ async function searchByQuery(query: string) {
   } catch { return []; }
 }
 
-async function searchNearby(lat: number, lng: number) {
+/**
+ * Returns the churches within 50km, [] if Google genuinely found none, or null
+ * if the lookup itself failed.
+ *
+ * That third case used to also return [], which the screen then rendered as
+ * "0 found" - so a blocked network, a rejected API key or billing being off
+ * looked exactly like an empty neighbourhood. Callers need to tell those apart
+ * to fall back to the full list instead of showing a blank screen.
+ */
+async function searchNearby(lat: number, lng: number): Promise<any[] | null> {
   try {
     const res = await fetch(`https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&radius=50000&type=church&key=${KEY}`);
     const data = await res.json();
+    // Places reports its own failures in the body with a 200, so the HTTP
+    // status alone does not tell us whether this worked.
+    if (data.status && data.status !== 'OK' && data.status !== 'ZERO_RESULTS') return null;
     return (data.results || []).slice(0, 20).map((p: any, i: number) => ({
       id: `n${i}_${p.place_id}`, name: p.name, address: p.vicinity || '',
       phone: '', type: 'Church', rating: p.rating || 0, count: p.user_ratings_total || 0,
       hours: '', website: '', placeId: p.place_id, gradient: ['#43e97b','#38f9d7'] as [string,string], state: '',
     }));
-  } catch { return []; }
+  } catch { return null; }
 }
 
 async function searchByState(stateCode: string) {
@@ -79,6 +91,9 @@ export default function ChurchesScreen() {
   const [searching, setSearching] = useState(false);
   const [locationLabel, setLocationLabel] = useState('Near you');
   const [nearbyChurches, setNearbyChurches] = useState<any[]|null>(null);
+  // Why we are not showing a nearby list, when we are not. Drives the note
+  // above the fallback list so an empty result is never unexplained.
+  const [nearbyNote, setNearbyNote] = useState<'off'|'denied'|'failed'|'none'|null>(null);
   const [loadingNearby, setLoadingNearby] = useState(false);
   const { saved } = useSavedChurches();
   const timer = useRef<any>(null);
@@ -100,11 +115,14 @@ export default function ChurchesScreen() {
 
   useEffect(() => {
     async function getLocation() {
-      if (!appSettings.location.locationEnabled || !appSettings.location.nearbyChurches) { setNearbyChurches(null); setLoadingNearby(false); return; }
+      if (!appSettings.location.locationEnabled || !appSettings.location.nearbyChurches) {
+        setNearbyChurches(null); setNearbyNote('off'); setLoadingNearby(false); return;
+      }
       setLoadingNearby(true);
+      setNearbyNote(null);
       try {
         const { status } = await Location.requestForegroundPermissionsAsync();
-        if (status !== 'granted') { setLoadingNearby(false); return; }
+        if (status !== 'granted') { setNearbyChurches(null); setNearbyNote('denied'); setLoadingNearby(false); return; }
         const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
         const { latitude, longitude } = loc.coords;
         const geo = await Location.reverseGeocodeAsync({ latitude, longitude });
@@ -114,6 +132,14 @@ export default function ChurchesScreen() {
           setLocationLabel(`Near ${city}, ${state}`);
         }
         const nearby = await searchNearby(latitude, longitude);
+        if (nearby === null) {
+          // Lookup failed. Fall back to the full list rather than an empty
+          // screen, and say why.
+          setNearbyChurches(null); setNearbyNote('failed'); setLoadingNearby(false); return;
+        }
+        if (nearby.length === 0) {
+          setNearbyChurches(null); setNearbyNote('none'); setLoadingNearby(false); return;
+        }
         setNearbyChurches(nearby);
         const refs: Record<string,string> = {};
         for (const c of nearby.slice(0,10)) {
@@ -121,7 +147,11 @@ export default function ChurchesScreen() {
           if (ref) refs[c.id] = ref;
         }
         setPhotoRefs(p => ({ ...p, ...refs }));
-      } catch {}
+      } catch {
+        // Location itself failed (services off, timeout). Same treatment.
+        setNearbyChurches(null);
+        setNearbyNote(n => n ?? 'failed');
+      }
       setLoadingNearby(false);
     }
     getLocation();
@@ -300,6 +330,27 @@ export default function ChurchesScreen() {
           <Text style={s.sectionSub}>{displayed.length} found</Text>
         </View>
 
+        {/* When there is no nearby list, say why rather than quietly showing the
+            full directory as though it were local results. */}
+        {activeTab !== 'Saved' && searchResults === null && nearbyChurches === null && !loadingNearby && !!nearbyNote && (
+          <View style={s.nearbyNote}>
+            <Ionicons
+              name={nearbyNote === 'none' ? 'information-circle-outline' : 'location-outline'}
+              size={15}
+              color={c.textMuted}
+            />
+            <Text style={s.nearbyNoteTxt}>
+              {nearbyNote === 'off'
+                ? tx('Nearby churches are turned off. Turn on location in Settings to see churches around you.')
+                : nearbyNote === 'denied'
+                ? tx('FaithFinder needs location access to find churches near you. You can allow it in your phone settings.')
+                : nearbyNote === 'none'
+                ? tx('No churches found within 30 miles. Showing all churches instead.')
+                : tx("Couldn't load churches near you. Showing all churches instead.")}
+            </Text>
+          </View>
+        )}
+
         {hasActiveFilter && activeState !== 'All States' && (
           <View style={s.activeFilterBar}>
             <Ionicons name="filter" size={14} color={c.gold} />
@@ -404,6 +455,8 @@ const makeStyles = (c: ThemeColors) => StyleSheet.create({
   greenPin:{width:28,height:28,backgroundColor:c.lightGreen,borderRadius:14,alignItems:'center',justifyContent:'center'},
   sectionTitle:{fontSize:15,fontWeight:'700',color:c.text,flex:1},
   sectionSub:{fontSize:13,color:c.textMuted},
+  nearbyNote:{flexDirection:'row',alignItems:'flex-start',gap:8,marginHorizontal:16,marginBottom:12,paddingHorizontal:12,paddingVertical:10,borderRadius:12,backgroundColor:c.cardAlt,borderWidth:1,borderColor:c.border},
+  nearbyNoteTxt:{flex:1,fontSize:12,lineHeight:17,color:c.textMuted},
   activeFilterBar:{flexDirection:'row',alignItems:'center',gap:8,marginHorizontal:16,marginBottom:8,backgroundColor:'rgba(201,169,110,0.12)',borderRadius:10,paddingHorizontal:12,paddingVertical:8},
   activeFilterTxt:{flex:1,fontSize:13,color:c.gold,fontWeight:'600'},
   emptyState:{alignItems:'center',paddingVertical:60,gap:10},
