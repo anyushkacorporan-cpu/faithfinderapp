@@ -7,6 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { HeaderIcons } from '../../src/components/Header';
 import { EVENTS } from '../../src/lib/constants';
 import { useThemeColors, ThemeColors } from '../../src/lib/theme';
+import { TAB_BAR_CLEARANCE } from './_layout';
 import { getUser } from '../../src/lib/userStore';
 import * as Location from 'expo-location';
 import { useEvents } from '../../src/lib/eventsStore';
@@ -419,7 +420,7 @@ export default function EventsScreen() {
             </TouchableOpacity>
           );
         })}
-        <View style={{height:20}} />
+        <View style={{height:TAB_BAR_CLEARANCE}} />
       </ScrollView>
 
       {/* Share Composer Modal — same as church share */}

@@ -7,6 +7,7 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import * as ImagePicker from 'expo-image-picker';
 import { HeaderIcons } from '../../src/components/Header';
 import { useThemeColors, ThemeColors } from '../../src/lib/theme';
+import { TAB_BAR_CLEARANCE } from './_layout';
 import { useUser, setUser, getUser } from '../../src/lib/userStore';
 import { useActivity } from '../../src/lib/activityStore';
 import { useConnections, useConnectionCount, removeConnection } from '../../src/lib/connectionsStore';
@@ -418,7 +419,7 @@ export default function ProfileScreen() {
             )
           )}
 
-          <View style={{height:40}} />
+          <View style={{height:TAB_BAR_CLEARANCE}} />
         </ScrollView>
         {/* Bell + gear float over the cover photo. They sit outside the
             ScrollView so they stay pinned as you scroll — the settings sheet is
@@ -664,7 +665,7 @@ export default function ProfileScreen() {
         )}
 
 
-        <View style={{height:40}} />
+        <View style={{height:TAB_BAR_CLEARANCE}} />
       </ScrollView>
       {/* Bell + gear float over the cover photo. They sit outside the
           ScrollView so they stay pinned as you scroll — the settings sheet is
