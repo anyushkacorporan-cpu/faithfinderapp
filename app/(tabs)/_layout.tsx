@@ -91,8 +91,11 @@ const makeStyles = (c: ThemeColors) => StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 2,
-    // No fixed width: let the four items divide the capsule evenly, so the
-    // spacing holds at any screen size.
+    // Stretch to fill the slot React Navigation hands us. Without this the
+    // column shrinks to the width of the 21px icon and the label truncates to
+    // "Chu…"; with a fixed width instead it would overflow on a small phone.
+    alignSelf: 'stretch',
+    paddingHorizontal: 2,
   },
   // One ink colour throughout: the filled glyph marks the active tab, not hue.
   icon: { color: c.text },
