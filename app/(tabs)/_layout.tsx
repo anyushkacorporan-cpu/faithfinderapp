@@ -67,8 +67,11 @@ export default function TabLayout() {
 const makeStyles = (c: ThemeColors) => StyleSheet.create({
   tabBar: {
     position: 'absolute',
-    left: 20,
-    right: 20,
+    // Pulled well in from the edges: at 20pt the capsule nearly touched both
+    // sides and read as a bar with rounded ends. With this much air around it
+    // it reads as an object sitting on top of the page.
+    left: 38,
+    right: 38,
     height: TAB_BAR_HEIGHT,
     borderRadius: TAB_BAR_HEIGHT / 2,
     backgroundColor: c.card,
