@@ -79,15 +79,18 @@ const makeStyles = (c: ThemeColors) => StyleSheet.create({
     // a shadow alone leaves it looking as though it is dissolving.
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: c.border,
-    // The shadow is what makes it read as floating rather than pasted on.
+    // The shadow is what makes it read as floating rather than pasted on, and
+    // it has to survive the worst case: sitting over a photograph, where a
+    // faint one vanishes into the image. Wide and soft rather than dark and
+    // tight - a tight shadow reads as a drop shadow, a wide one as height.
     ...Platform.select({
       ios: {
         shadowColor: '#1a1a2e',
-        shadowOffset: { width: 0, height: 5 },
-        shadowOpacity: c.isDark ? 0.5 : 0.12,
-        shadowRadius: 14,
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: c.isDark ? 0.55 : 0.20,
+        shadowRadius: 22,
       },
-      android: { elevation: 10 },
+      android: { elevation: 16 },
       default: {},
     }),
   },
