@@ -1,5 +1,5 @@
 import { Tabs } from 'expo-router';
-import { View, Text, StyleSheet, Platform } from 'react-native';
+import { StyleSheet, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useThemeColors, ThemeColors } from '../../src/lib/theme';
@@ -7,7 +7,7 @@ import { useTranslation } from '../../src/lib/i18n';
 import { TAB_BAR_HEIGHT, TAB_BAR_GAP } from '../../src/lib/tabBar';
 
 /**
- * A floating capsule rather than a full-width bar.
+ * A floating capsule of icons, no labels.
  *
  * The old bar put a tinted rounded rectangle behind the active icon — Material
  * Design's selection indicator, which reads as borrowed on iOS — and marked the
@@ -17,18 +17,11 @@ import { TAB_BAR_HEIGHT, TAB_BAR_GAP } from '../../src/lib/tabBar';
  * Gold is deliberately absent. It stays the accent for content — verses,
  * ratings, links — so navigation reads as chrome rather than competing with
  * what it navigates to.
+ *
+ * The labels are gone, so the icons carry the meaning and get the room the
+ * text used to take. `tabBarAccessibilityLabel` keeps each tab named for
+ * VoiceOver, which is what the visible text was doing for screen readers.
  */
-function TabIcon({ focused, name, label, s }: {
-  focused: boolean; name: any; label: string; s: ReturnType<typeof makeStyles>;
-}) {
-  return (
-    <View style={s.tabItem}>
-      <Ionicons name={name} size={21} style={s.icon} />
-      <Text style={[s.label, focused && s.labelActive]} numberOfLines={1}>{label}</Text>
-    </View>
-  );
-}
-
 export default function TabLayout() {
   const { t } = useTranslation();
   const c = useThemeColors();
@@ -36,8 +29,21 @@ export default function TabLayout() {
   const s = makeStyles(c);
 
   // Sit above the home indicator where there is one, and keep a sensible margin
-  // where there isn't, instead of the hardcoded height this screen used to use.
+  // where there isn't, instead of the hardcoded height this used to use.
   const bottom = Math.max(insets.bottom, 12) + TAB_BAR_GAP;
+
+  const tab = (name: string, icon: string, label: string) => (
+    <Tabs.Screen
+      key={name}
+      name={name}
+      options={{
+        tabBarAccessibilityLabel: label,
+        tabBarIcon: ({ focused }) => (
+          <Ionicons name={(focused ? icon : `${icon}-outline`) as any} size={25} color={c.text} />
+        ),
+      }}
+    />
+  );
 
   return (
     <Tabs
@@ -48,10 +54,10 @@ export default function TabLayout() {
         tabBarStyle: [s.tabBar, { bottom }],
       }}
     >
-      <Tabs.Screen name="index"     options={{ tabBarIcon: ({ focused }) => <TabIcon focused={focused} name={focused ? 'home'     : 'home-outline'}     label={t('churches')}  s={s} /> }} />
-      <Tabs.Screen name="events"    options={{ tabBarIcon: ({ focused }) => <TabIcon focused={focused} name={focused ? 'calendar' : 'calendar-outline'} label={t('events')}    s={s} /> }} />
-      <Tabs.Screen name="community" options={{ tabBarIcon: ({ focused }) => <TabIcon focused={focused} name={focused ? 'people'   : 'people-outline'}   label={t('community')} s={s} /> }} />
-      <Tabs.Screen name="profile"   options={{ tabBarIcon: ({ focused }) => <TabIcon focused={focused} name={focused ? 'person'   : 'person-outline'}   label={t('profile')}   s={s} /> }} />
+      {tab('index', 'home', t('churches'))}
+      {tab('events', 'calendar', t('events'))}
+      {tab('community', 'people', t('community'))}
+      {tab('profile', 'person', t('profile'))}
     </Tabs>
   );
 }
@@ -83,28 +89,6 @@ const makeStyles = (c: ThemeColors) => StyleSheet.create({
       default: {},
     }),
   },
-  tabBarItem: {
-    height: TAB_BAR_HEIGHT,
-    paddingVertical: 0,
-  },
-  tabItem: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 2,
-    // Stretch to fill the slot React Navigation hands us. Without this the
-    // column shrinks to the width of the 21px icon and the label truncates to
-    // "Chu…"; with a fixed width instead it would overflow on a small phone.
-    alignSelf: 'stretch',
-    paddingHorizontal: 2,
-  },
-  // One ink colour throughout: the filled glyph marks the active tab, not hue.
-  icon: { color: c.text },
-  label: {
-    fontSize: 10.5,
-    color: c.text,
-    fontWeight: '500',
-    textAlign: 'center',
-    letterSpacing: 0.1,
-  },
-  labelActive: { fontWeight: '700' },
+  // With no label the icon should sit dead centre, not high in the capsule.
+  tabBarItem: { height: TAB_BAR_HEIGHT, paddingVertical: 0 },
 });

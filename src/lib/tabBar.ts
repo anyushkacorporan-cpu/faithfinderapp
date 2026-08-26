@@ -7,7 +7,7 @@
  * defined at the time, which can be `undefined` — a spacer of `undefined`
  * silently collapses and content ends up under the bar.
  */
-export const TAB_BAR_HEIGHT = 62;
+export const TAB_BAR_HEIGHT = 58;
 
 /** Gap between the capsule and the safe-area edge below it. */
 export const TAB_BAR_GAP = 10;
