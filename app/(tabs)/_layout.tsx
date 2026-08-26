@@ -4,7 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useThemeColors, ThemeColors } from '../../src/lib/theme';
 import { useTranslation } from '../../src/lib/i18n';
-import { TAB_BAR_HEIGHT, TAB_BAR_GAP } from '../../src/lib/tabBar';
+import { TAB_BAR_HEIGHT, tabBarBottom } from '../../src/lib/tabBar';
 
 /**
  * A floating capsule rather than a full-width bar.
@@ -29,9 +29,7 @@ export default function TabLayout() {
   const insets = useSafeAreaInsets();
   const s = makeStyles(c);
 
-  // Sit above the home indicator where there is one, and keep a sensible margin
-  // where there isn't, instead of the hardcoded height this used to use.
-  const bottom = Math.max(insets.bottom, 12) + TAB_BAR_GAP;
+  const bottom = tabBarBottom(insets.bottom);
 
   const tab = (name: string, icon: string, label: string) => (
     <Tabs.Screen
