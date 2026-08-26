@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { load, save } from './persist';
+import { removeConnection } from './connectionsStore';
 
 /**
  * People this account has blocked.
@@ -58,6 +59,11 @@ export function blockUser(user: { id?: string; name: string }) {
   if (!user.name) return;
   if (isBlocked(user.id, user.name)) return;
   blocked = [...blocked, { id: user.id, name: user.name, blockedAt: Date.now() }];
+  // Blocking implies disconnecting. Leaving someone in the connections list
+  // after blocking them means they still appear in the one place the list is
+  // shown, and still count towards the connection total.
+  removeConnection(user.id || user.name);
+  if (user.id) removeConnection(user.name);
   persist();
   notify();
 }

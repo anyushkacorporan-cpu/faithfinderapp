@@ -5,6 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useThemeColors, ThemeColors } from '../src/lib/theme';
 import { useActivity } from '../src/lib/activityStore';
 import { usePosts, toggleLike } from '../src/lib/postsStore';
+import { isBlocked, useBlocked } from '../src/lib/blockStore';
 import { PostCard } from '../src/components/PostCard';
 import { useTranslation } from '../src/lib/i18n';
 
@@ -15,13 +16,18 @@ export default function ActivityScreen() {
   const activity = useActivity();
   const allPosts = usePosts();
 
+  // Re-render when the block list changes so an unblock shows immediately.
+  useBlocked();
+
   const likedCommentedPosts = activity
     .filter(a => a.type === 'like' || a.type === 'comment')
     .map(a => {
       const post = allPosts.find(p => p.id === a.postId);
       return post ? { activity: a, post } : null;
     })
-    .filter(Boolean);
+    // Something you liked last week belongs to someone you may have blocked
+    // since. Your own history is not a way back to their content.
+    .filter(item => !!item && !isBlocked(item.post.authorId, item.post.authorName));
 
   // Deduplicate by postId (show each post once even if both liked and commented)
   const seen = new Set<string>();

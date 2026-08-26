@@ -9,6 +9,7 @@ import { useThemeColors, ThemeColors } from '../src/lib/theme';
 import { useTranslation } from '../src/lib/i18n';
 import { useProfile } from '../src/lib/profilesStore';
 import { usePosts, toggleLike, isAuthoredBy } from '../src/lib/postsStore';
+import { isBlocked, useBlocked } from '../src/lib/blockStore';
 import { useUser } from '../src/lib/userStore';
 import { useConnectionCount, useConnections, isConnectedTo, addConnection, removeConnection, connectionFromAuthor } from '../src/lib/connectionsStore';
 import { useToast } from '../src/components/Toast';
@@ -29,7 +30,15 @@ export default function OtherUserProfileScreen() {
   const initials = params.initials || displayName.slice(0,2).toUpperCase();
   const color = params.color || c.gold;
   const isChurch = params.type === 'church';
-  const userPosts = allPosts.filter(p => isAuthoredBy(p, params.authorId, displayName));
+  // Re-render when the block list changes so an unblock shows immediately.
+  useBlocked();
+  // Blocking has to hold here too. Their posts were hidden from the feeds and
+  // from comment threads, but their profile still listed every one of them -
+  // so blocking someone and then opening their profile undid the block.
+  const authorBlocked = isBlocked(params.authorId, displayName);
+  const userPosts = authorBlocked
+    ? []
+    : allPosts.filter(p => isAuthoredBy(p, params.authorId, displayName));
   const galleryPhotos = userPosts.filter(p => !!p.image).map(p => p.image as string);
 
   const currentUser = useUser();
