@@ -10,7 +10,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Header from '../../src/components/Header';
 import { getDailyVerse } from '../../src/lib/dailyVerse';
 import { useThemeColors, ThemeColors } from '../../src/lib/theme';
-import { TAB_BAR_CLEARANCE } from './_layout';
+import { TAB_BAR_CLEARANCE } from '../../src/lib/tabBar';
 import { useConfirm } from '../../src/components/Confirm';
 import { useToast } from '../../src/components/Toast';
 import { getCurrentCityState } from '../../src/lib/userLocation';

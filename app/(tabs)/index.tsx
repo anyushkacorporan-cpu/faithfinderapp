@@ -8,7 +8,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { HeaderIcons } from '../../src/components/Header';
 import { CHURCHES } from '../../src/lib/constants';
 import { useThemeColors, ThemeColors } from '../../src/lib/theme';
-import { TAB_BAR_CLEARANCE } from './_layout';
+import { TAB_BAR_CLEARANCE } from '../../src/lib/tabBar';
 import { useSavedChurches, toggleSavedChurch } from '../../src/lib/store';
 import { DENOMINATIONS, STATES } from '../../src/lib/filters';
 import { useSettings } from '../../src/lib/settingsStore';
