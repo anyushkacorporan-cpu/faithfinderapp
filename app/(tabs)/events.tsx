@@ -13,6 +13,7 @@ import { useEvents } from '../../src/lib/eventsStore';
 import { useEventActions, toggleSaveEvent, addAttending, removeAttending } from '../../src/lib/eventActionsStore';
 import { useSettings } from '../../src/lib/settingsStore';
 import { useTranslation } from '../../src/lib/i18n';
+import { stateCode, eventStateCode } from '../../src/lib/filters';
 
 const TABS = ['List', 'Attending', 'Saved'];
 const GRADIENTS: Record<string,[string,string]> = {
@@ -99,13 +100,15 @@ export default function EventsScreen() {
     const loc = locationLabel.replace('Near ', '').toLowerCase();
     const parts = loc.split(',').map((s: string) => s.trim());
     const city = parts[0] || '';
-    const state = parts[1] || '';
     if (!city || city === 'near you' || city === 'set your location') return [];
-    return allEvents.filter((e: any) =>
-      e.city?.toLowerCase().includes(city) ||
-      e.location?.toLowerCase().includes(city) ||
-      (state && (e.state?.toLowerCase().includes(state) || e.location?.toLowerCase().includes(state)))
-    ).slice(0, 5);
+    // reverseGeocode gives the full state name; events store the abbreviation.
+    // Compare them as codes, or a traveller in Florida matches nothing.
+    const myState = stateCode(parts[1]);
+    return allEvents.filter((e: any) => {
+      if (e.city && e.city.toLowerCase().includes(city)) return true;
+      if (e.location && e.location.toLowerCase().includes(city)) return true;
+      return !!myState && eventStateCode(e) === myState;
+    }).slice(0, 5);
   }, [allEvents, locationLabel, activeTab, appSettings.location.nearbyEvents, appSettings.location.locationEnabled]);
 
   const filtered = useMemo(() => {
