@@ -1,5 +1,5 @@
 import { Tabs } from 'expo-router';
-import { StyleSheet, Platform } from 'react-native';
+import { Text, StyleSheet, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useThemeColors, ThemeColors } from '../../src/lib/theme';
@@ -7,7 +7,7 @@ import { useTranslation } from '../../src/lib/i18n';
 import { TAB_BAR_HEIGHT, TAB_BAR_GAP } from '../../src/lib/tabBar';
 
 /**
- * A floating capsule of icons, no labels.
+ * A floating capsule rather than a full-width bar.
  *
  * The old bar put a tinted rounded rectangle behind the active icon — Material
  * Design's selection indicator, which reads as borrowed on iOS — and marked the
@@ -18,9 +18,10 @@ import { TAB_BAR_HEIGHT, TAB_BAR_GAP } from '../../src/lib/tabBar';
  * ratings, links — so navigation reads as chrome rather than competing with
  * what it navigates to.
  *
- * The labels are gone, so the icons carry the meaning and get the room the
- * text used to take. `tabBarAccessibilityLabel` keeps each tab named for
- * VoiceOver, which is what the visible text was doing for screen readers.
+ * Icon and label are handed to React Navigation as separate options rather than
+ * drawn together inside one View in `tabBarIcon`. That earlier arrangement made
+ * the column shrink to the icon's width and truncated every label to "Chu…";
+ * when the library owns the label it lays it out across the whole tab slot.
  */
 export default function TabLayout() {
   const { t } = useTranslation();
@@ -37,9 +38,11 @@ export default function TabLayout() {
       key={name}
       name={name}
       options={{
-        tabBarAccessibilityLabel: label,
         tabBarIcon: ({ focused }) => (
-          <Ionicons name={(focused ? icon : `${icon}-outline`) as any} size={25} color={c.text} />
+          <Ionicons name={(focused ? icon : `${icon}-outline`) as any} size={21} color={c.text} />
+        ),
+        tabBarLabel: ({ focused }) => (
+          <Text style={[s.label, focused && s.labelActive]} numberOfLines={1}>{label}</Text>
         ),
       }}
     />
@@ -49,8 +52,9 @@ export default function TabLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarShowLabel: false,
+        tabBarShowLabel: true,
         tabBarItemStyle: s.tabBarItem,
+        tabBarIconStyle: s.iconStyle,
         tabBarStyle: [s.tabBar, { bottom }],
       }}
     >
@@ -71,8 +75,8 @@ const makeStyles = (c: ThemeColors) => StyleSheet.create({
     borderRadius: TAB_BAR_HEIGHT / 2,
     backgroundColor: c.card,
     borderTopWidth: 0,
-    paddingTop: 0,
-    paddingBottom: 0,
+    paddingTop: 9,
+    paddingBottom: 9,
     // A hairline keeps the capsule's edge defined on a white background, where
     // a shadow alone leaves it looking as though it is dissolving.
     borderWidth: StyleSheet.hairlineWidth,
@@ -89,6 +93,16 @@ const makeStyles = (c: ThemeColors) => StyleSheet.create({
       default: {},
     }),
   },
-  // With no label the icon should sit dead centre, not high in the capsule.
-  tabBarItem: { height: TAB_BAR_HEIGHT, paddingVertical: 0 },
+  // No horizontal padding: the label needs the full slot to stay whole.
+  tabBarItem: { paddingHorizontal: 0 },
+  iconStyle: { marginTop: 0 },
+  label: {
+    fontSize: 10.5,
+    color: c.text,
+    fontWeight: '500',
+    textAlign: 'center',
+    letterSpacing: 0.1,
+    marginTop: 2,
+  },
+  labelActive: { fontWeight: '700' },
 });
