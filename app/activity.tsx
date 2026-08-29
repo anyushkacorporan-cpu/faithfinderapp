@@ -6,6 +6,7 @@ import { useThemeColors, ThemeColors } from '../src/lib/theme';
 import { useActivity } from '../src/lib/activityStore';
 import { usePosts, toggleLike } from '../src/lib/postsStore';
 import { isBlocked, useBlocked } from '../src/lib/blockStore';
+import { isHidden, useHidden } from '../src/lib/hiddenStore';
 import { PostCard } from '../src/components/PostCard';
 import { useTranslation } from '../src/lib/i18n';
 
@@ -18,6 +19,7 @@ export default function ActivityScreen() {
 
   // Re-render when the block list changes so an unblock shows immediately.
   useBlocked();
+  useHidden();
 
   const likedCommentedPosts = activity
     .filter(a => a.type === 'like' || a.type === 'comment')
@@ -27,7 +29,7 @@ export default function ActivityScreen() {
     })
     // Something you liked last week belongs to someone you may have blocked
     // since. Your own history is not a way back to their content.
-    .filter(item => !!item && !isBlocked(item.post.authorId, item.post.authorName));
+    .filter(item => !!item && !isBlocked(item.post.authorId, item.post.authorName) && !isHidden(item.post.id));
 
   // Deduplicate by postId (show each post once even if both liked and commented)
   const seen = new Set<string>();

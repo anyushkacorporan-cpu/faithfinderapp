@@ -23,6 +23,7 @@ import { getUser } from '../../src/lib/userStore';
 import { useConnections, isConnected } from '../../src/lib/connectionsStore';
 import { announceToFollowers } from '../../src/lib/notificationsStore';
 import { blockUser, isBlocked, useBlocked } from '../../src/lib/blockStore';
+import { hidePost, isHidden, useHidden } from '../../src/lib/hiddenStore';
 
 type Visibility = 'public' | 'connections';
 
@@ -52,7 +53,9 @@ export default function CommunityScreen() {
   const isPublicProfile = appSettings.privacy.publicProfile;
   // Re-render when the block list changes so a block takes effect immediately.
   useBlocked();
-  const visible = allPosts.filter(p => !isBlocked(p.authorId, p.authorName));
+  // Re-render when either list changes so an unhide or unblock shows at once.
+  useHidden();
+  const visible = allPosts.filter(p => !isBlocked(p.authorId, p.authorName) && !isHidden(p.id));
 
   const posts = activeTab === 'foryou'
     ? visible.filter(p =>
@@ -418,7 +421,10 @@ export default function CommunityScreen() {
                 const target = reportPostTarget;
                 setReportPostTarget(null);
                 reportPost(target!.id, reason.id as any, displayName);
-                showToast(tx('Reported'), tx('Thank you for letting us know. Our team will review this post.'), 'info');
+                // Take it out of their feed as well as filing the report. The
+                // old copy promised a review by a team that does not exist yet.
+                hidePost(target!.id);
+                showToast(tx('Reported'), tx("Thanks for telling us. You won't see this post again."), 'info');
               }}>
                 <Text style={{fontSize:15,color:c.text}}>{tx(reason.label)}</Text>
               </TouchableOpacity>

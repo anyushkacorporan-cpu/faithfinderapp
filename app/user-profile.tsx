@@ -10,6 +10,7 @@ import { useTranslation } from '../src/lib/i18n';
 import { useProfile } from '../src/lib/profilesStore';
 import { usePosts, toggleLike, isAuthoredBy } from '../src/lib/postsStore';
 import { isBlocked, useBlocked } from '../src/lib/blockStore';
+import { isHidden, useHidden } from '../src/lib/hiddenStore';
 import { useUser } from '../src/lib/userStore';
 import { useConnectionCount, useConnections, isConnectedTo, addConnection, removeConnection, connectionFromAuthor } from '../src/lib/connectionsStore';
 import { useToast } from '../src/components/Toast';
@@ -36,9 +37,10 @@ export default function OtherUserProfileScreen() {
   // from comment threads, but their profile still listed every one of them -
   // so blocking someone and then opening their profile undid the block.
   const authorBlocked = isBlocked(params.authorId, displayName);
+  useHidden();
   const userPosts = authorBlocked
     ? []
-    : allPosts.filter(p => isAuthoredBy(p, params.authorId, displayName));
+    : allPosts.filter(p => isAuthoredBy(p, params.authorId, displayName) && !isHidden(p.id));
   const galleryPhotos = userPosts.filter(p => !!p.image).map(p => p.image as string);
 
   const currentUser = useUser();

@@ -70,3 +70,19 @@ export function setCachedNearby(key: string, results: any[]) {
   nearby = { ...nearby, [key]: { value: results, at: Date.now() } };
   save(NEARBY_KEY, nearby);
 }
+
+/**
+ * Return this store to a fresh-install state, for account deletion.
+ *
+ * The nearby cache is keyed by the person's own coordinates, so it is a record
+ * of roughly where they have been - which has no business surviving "delete my
+ * account". Clearing storage alone would not do it either: the in-memory copy
+ * would be written straight back on the next cache write.
+ */
+export function resetStore() {
+  photos = {};
+  nearby = {};
+  save(PHOTO_KEY, photos);
+  save(NEARBY_KEY, nearby);
+}
+

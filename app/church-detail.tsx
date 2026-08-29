@@ -12,6 +12,7 @@ import { buildChurchShareText, buildPostShareText } from '../src/lib/shareLinks'
 import { getUser } from '../src/lib/userStore';
 import { usePosts, postsForChurch } from '../src/lib/postsStore';
 import { isBlocked } from '../src/lib/blockStore';
+import { isHidden, useHidden } from '../src/lib/hiddenStore';
 import { useSavedChurches } from '../src/lib/store';
 import { isConnectedTo, addConnection, removeConnection } from '../src/lib/connectionsStore';
 import { useChurchPosts, toggleLike, addComment } from '../src/lib/postsStore';
@@ -116,7 +117,7 @@ export default function ChurchDetailScreen() {
   const allPosts = usePosts();
   const churchPosts = useMemo(
     () => postsForChurch(placeId || params.id, church.name)
-            .filter(p => !isBlocked(p.authorId, p.authorName)),
+            .filter(p => !isBlocked(p.authorId, p.authorName) && !isHidden(p.id)),
     [allPosts, placeId, params.id, church.name]
   );
 

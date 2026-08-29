@@ -7,6 +7,8 @@ import { resetStore as resetConnections } from './connectionsStore';
 import { resetStore as resetNotifications } from './notificationsStore';
 import { resetStore as resetActivity } from './activityStore';
 import { resetStore as resetBlocked } from './blockStore';
+import { resetStore as resetHidden } from './hiddenStore';
+import { resetStore as resetPlacesCache } from './placesCache';
 import { resetStore as resetProfiles } from './profilesStore';
 import { resetStore as resetEventActions } from './eventActionsStore';
 import { resetSettings } from './settingsStore';
@@ -43,6 +45,8 @@ export async function deleteAccountAndData(): Promise<void> {
   resetNotifications();
   resetActivity();
   resetBlocked();
+  resetHidden();
+  resetPlacesCache();
   resetProfiles();
   resetEventActions();
   resetSettings();
