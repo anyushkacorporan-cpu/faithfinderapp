@@ -8,7 +8,6 @@ import { EVENT_DETAILS } from '../src/lib/constants';
 import { useThemeColors, ThemeColors } from '../src/lib/theme';
 import { buildEventShareText } from '../src/lib/shareLinks';
 import { addPost } from '../src/lib/postsStore';
-import { addNotification } from '../src/lib/notificationsStore';
 import { getUser } from '../src/lib/userStore';
 import { isEventSaved, isEventAttending, toggleSaveEvent, addAttending, removeAttending } from '../src/lib/eventActionsStore';
 import { getEvents } from '../src/lib/eventsStore';
