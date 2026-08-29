@@ -11,16 +11,12 @@ import { addPost } from '../src/lib/postsStore';
 import { getUser } from '../src/lib/userStore';
 import { isEventSaved, isEventAttending, toggleSaveEvent, addAttending, removeAttending } from '../src/lib/eventActionsStore';
 import { getEvents } from '../src/lib/eventsStore';
+import { useConnections } from '../src/lib/connectionsStore';
+import { searchPeople, getProfile, PersonResult } from '../src/lib/profilesStore';
 import { useSettings } from '../src/lib/settingsStore';
 import { useTranslation } from '../src/lib/i18n';
 
-const FF_USERS = [
-  { id: '1', name: 'Sarah Johnson', initials: 'SJ', color: '#667eea' },
-  { id: '2', name: 'David Okonkwo', initials: 'DO', color: '#ce93d8' },
-  { id: '3', name: 'Isaiah Williams', initials: 'IW', color: '#ef9a9a' },
-  { id: '4', name: 'Rachel Park', initials: 'RP', color: '#b39ddb' },
-  { id: '5', name: 'Marcus Johnson', initials: 'MJ', color: '#80cbc4' },
-];
+
 
 export default function EventDetailScreen() {
   const c = useThemeColors();
@@ -39,6 +35,7 @@ export default function EventDetailScreen() {
   const [sharedToast, setSharedToast] = useState(false);
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
   const [inviteSent, setInviteSent] = useState(false);
+  const [inviteSearch, setInviteSearch] = useState('');
 
   const details = EVENT_DETAILS[params.id] || {
     bannerColor: ['#667eea', '#764ba2'],
@@ -110,10 +107,57 @@ export default function EventDetailScreen() {
     setSelectedUsers(p => p.includes(userId) ? p.filter(id => id !== userId) : [...p, userId]);
   }
 
+  // Two ways in, as the feature needs: browse the people you are already
+  // connected to, or search for someone by name.
+  const myConnections = useConnections();
+  const me = getUser();
+
+  const connectionPeople: PersonResult[] = myConnections
+    .filter(c => c.type === 'user')
+    .map(c => {
+      // Prefer the directory's copy, which carries a photo and city.
+      const p = getProfile(c.id, c.name);
+      return {
+        id: c.id, name: c.name,
+        photo: p?.photo, city: p?.city, state: p?.state,
+        color: p?.color || c.color, initials: p?.initials || c.initials,
+      };
+    });
+
+  const searchResultsPeople: PersonResult[] = inviteSearch.trim()
+    ? searchPeople(inviteSearch, { excludeId: me.id })
+        .filter(p => p.accountType !== 'church')
+    : [];
+
+  const connectionIds = new Set(connectionPeople.map(p => p.id));
+  const connectionNames = new Set(connectionPeople.map(p => p.name));
+  // Someone already in your connections should not appear twice; the list above
+  // already offers them, and the search half is for finding new people.
+  const newPeople = searchResultsPeople.filter(
+    p => !connectionIds.has(p.id) && !connectionNames.has(p.name)
+  );
+
+  const shownPeople = inviteSearch.trim()
+    ? [...connectionPeople.filter(p => p.name.toLowerCase().split(/\s+/)
+         .some(w => w.startsWith(inviteSearch.trim().toLowerCase()))), ...newPeople]
+    : connectionPeople;
+
   function handleSendInvites() {
-    if (selectedUsers.length === 0) { Alert.alert(tx('Select users'), tx('Please select at least one person.')); return; }
-    setInviteSent(true);
-    setTimeout(() => { setShowInviteModal(false); setSelectedUsers([]); setInviteSent(false); }, 1500);
+    if (selectedUsers.length === 0) { Alert.alert(tx('Select someone'), tx('Please choose at least one person to invite.')); return; }
+    const names = shownPeople.filter(p => selectedUsers.includes(p.id)).map(p => p.name);
+    const title = fullEvent?.title || params.title || 'an event';
+    // There is no server yet, so nothing can appear on someone else's phone.
+    // The share sheet is the one channel that genuinely delivers, so the invite
+    // goes out through it rather than a toast claiming it was sent.
+    setShowInviteModal(false);
+    setSelectedUsers([]);
+    setInviteSearch('');
+    setTimeout(() => {
+      Share.share({
+        message: `I'd love for you to join me at ${title} on FaithFinder.`
+          + (names.length ? `\n\nFor: ${names.join(', ')}` : ''),
+      }).catch(() => {});
+    }, 350);
   }
 
   async function handleAddToCalendar() {
@@ -331,23 +375,70 @@ export default function EventDetailScreen() {
               </TouchableOpacity>
             </View>
             <Text style={s.inviteSubtitle}>{(fullEvent?.title || params.title)}</Text>
-            {FF_USERS.map(u => {
-              const selected = selectedUsers.includes(u.id);
-              return (
-                <TouchableOpacity key={u.id} style={[s.inviteUserRow, selected && s.inviteUserRowSelected]} onPress={() => toggleUserSelect(u.id)}>
-                  <View style={[s.inviteAvatar, {backgroundColor: u.color}]}>
-                    <Text style={s.inviteAvatarTxt}>{u.initials}</Text>
-                  </View>
-                  <Text style={s.inviteUserName}>{u.name}</Text>
-                  <View style={[s.inviteCheck, selected && s.inviteCheckSelected]}>
-                    {selected && <Ionicons name="checkmark" size={14} color={c.onPrimary} />}
-                  </View>
+
+            <View style={s.inviteSearchRow}>
+              <Ionicons name="search" size={16} color={c.placeholder} />
+              <TextInput
+                style={s.inviteSearchInput}
+                value={inviteSearch}
+                onChangeText={setInviteSearch}
+                placeholder={tx('Search by name')}
+                placeholderTextColor={c.placeholder}
+                autoCorrect={false}
+                autoCapitalize="words"
+              />
+              {!!inviteSearch && (
+                <TouchableOpacity onPress={() => setInviteSearch('')}>
+                  <Ionicons name="close-circle" size={16} color={c.placeholder} />
                 </TouchableOpacity>
-              );
-            })}
+              )}
+            </View>
+
+            <ScrollView style={s.inviteList} keyboardShouldPersistTaps="handled">
+              {shownPeople.length === 0 ? (
+                <View style={s.inviteEmpty}>
+                  <Ionicons
+                    name={inviteSearch.trim() ? 'search-outline' : 'people-outline'}
+                    size={26}
+                    color={c.textMuted}
+                  />
+                  <Text style={s.inviteEmptyTxt}>
+                    {inviteSearch.trim()
+                      ? tx('No one found by that name.')
+                      : tx('You have no connections yet. Connect with people, or search for someone by name.')}
+                  </Text>
+                </View>
+              ) : shownPeople.map(u => {
+                const selected = selectedUsers.includes(u.id);
+                const isConnection = connectionIds.has(u.id) || connectionNames.has(u.name);
+                return (
+                  <TouchableOpacity key={u.id} style={[s.inviteUserRow, selected && s.inviteUserRowSelected]} onPress={() => toggleUserSelect(u.id)}>
+                    {u.photo ? (
+                      <Image source={{uri: u.photo}} style={s.inviteAvatar} resizeMode="cover" />
+                    ) : (
+                      <View style={[s.inviteAvatar, {backgroundColor: u.color || c.navy, alignItems:'center', justifyContent:'center'}]}>
+                        <Text style={s.inviteAvatarTxt}>{u.initials || u.name.slice(0,2).toUpperCase()}</Text>
+                      </View>
+                    )}
+                    <View style={{flex:1, minWidth:0}}>
+                      <Text style={s.inviteUserName} numberOfLines={1}>{u.name}</Text>
+                      {/* City and state only: enough to tell two people with the
+                          same name apart, and nothing a stranger should not see. */}
+                      {!!(u.city && u.state) && (
+                        <Text style={s.inviteUserMeta} numberOfLines={1}>{u.city}, {u.state}</Text>
+                      )}
+                    </View>
+                    {isConnection && <Text style={s.inviteConnectedTag}>{tx('Connected')}</Text>}
+                    <View style={[s.inviteCheck, selected && s.inviteCheckSelected]}>
+                      {selected && <Ionicons name="checkmark" size={14} color={c.onPrimary} />}
+                    </View>
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
             <TouchableOpacity style={[s.sendInviteBtn, inviteSent && s.sendInviteBtnSent]} onPress={handleSendInvites}>
-              <Ionicons name={inviteSent ? 'checkmark-circle' : 'send-outline'} size={18} color={c.onPrimary} />
-              <Text style={s.sendInviteTxt}>{inviteSent ? 'Invites Sent!' : 'Send Invites' + (selectedUsers.length > 0 ? ' (' + selectedUsers.length + ')' : '')}</Text>
+              <Ionicons name="send-outline" size={18} color={c.onPrimary} />
+              <Text style={s.sendInviteTxt}>{tx('Send Invite') + (selectedUsers.length > 0 ? ' (' + selectedUsers.length + ')' : '')}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -661,11 +752,18 @@ const makeStyles = (c: ThemeColors) => StyleSheet.create({
   inviteTitle:{fontSize:20,fontWeight:'700',color:c.text},
   closeBtn:{width:32,height:32,borderRadius:16,backgroundColor:c.cardAlt,alignItems:'center',justifyContent:'center'},
   inviteSubtitle:{fontSize:13,color:c.gold,fontWeight:'600',marginBottom:16},
+  inviteSearchRow:{flexDirection:'row',alignItems:'center',gap:8,backgroundColor:c.inputBg,borderRadius:12,paddingHorizontal:12,paddingVertical:10,marginTop:12,marginBottom:4},
+  inviteSearchInput:{flex:1,fontSize:15,color:c.text,padding:0},
+  inviteList:{maxHeight:320},
+  inviteEmpty:{alignItems:'center',gap:10,paddingVertical:30,paddingHorizontal:20},
+  inviteEmptyTxt:{fontSize:13,color:c.textMuted,textAlign:'center',lineHeight:19},
+  inviteUserMeta:{fontSize:12,color:c.textMuted,marginTop:1},
+  inviteConnectedTag:{fontSize:10,fontWeight:'700',color:c.gold,letterSpacing:0.4,textTransform:'uppercase'},
   inviteUserRow:{flexDirection:'row',alignItems:'center',gap:12,paddingVertical:12,borderBottomWidth:1,borderBottomColor:c.border},
   inviteUserRowSelected:{backgroundColor:'rgba(201,169,110,0.05)'},
   inviteAvatar:{width:42,height:42,borderRadius:21,alignItems:'center',justifyContent:'center'},
   inviteAvatarTxt:{color:c.onPrimary,fontWeight:'700',fontSize:14},
-  inviteUserName:{flex:1,fontSize:15,color:c.text,fontWeight:'500'},
+  inviteUserName:{fontSize:15,color:c.text,fontWeight:'500'},
   inviteCheck:{width:24,height:24,borderRadius:12,borderWidth:1.5,borderColor:c.placeholder,alignItems:'center',justifyContent:'center'},
   inviteCheckSelected:{backgroundColor:c.primary,borderColor:c.primary},
   sendInviteBtn:{backgroundColor:c.primary,borderRadius:16,paddingVertical:15,flexDirection:'row',alignItems:'center',justifyContent:'center',gap:8,marginTop:16},

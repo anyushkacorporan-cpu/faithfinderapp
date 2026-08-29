@@ -130,3 +130,54 @@ export function resetStore() {
   persist();
   notify();
 }
+
+/**
+ * A person as they appear in a search result.
+ *
+ * Deliberately narrower than ProfileSnapshot. Searching is how you find someone
+ * you are not connected to, so a result must carry enough to tell two people
+ * with the same name apart - and nothing more. Name, photo and city/state do
+ * that; bio, life verse and connection count do not help you identify anyone
+ * and have no business being returned to a stranger's search.
+ */
+export type PersonResult = {
+  id: string;
+  name: string;
+  accountType?: 'personal' | 'church';
+  photo?: string;
+  city?: string;
+  state?: string;
+  color?: string;
+  initials?: string;
+};
+
+function toResult(p: ProfileSnapshot): PersonResult {
+  return {
+    id: p.id, name: p.name, accountType: p.accountType,
+    photo: p.photo, city: p.city, state: p.state,
+    color: p.color, initials: p.initials,
+  };
+}
+
+/**
+ * People this device knows of, matching a name query.
+ *
+ * Matches on whole words as well as prefixes, so "smith" finds "John Smith"
+ * and "jo" finds "John" — but "ohn" does not, because substring-anywhere
+ * matching turns a search box into a way to trawl the directory.
+ *
+ * An empty query returns nothing rather than everyone: browsing the full list
+ * of every account this device has encountered is not a feature anyone asked
+ * for, and it is the sort of thing that quietly becomes one.
+ */
+export function searchPeople(query: string, opts?: { excludeId?: string }): PersonResult[] {
+  const q = query.trim().toLowerCase();
+  if (!q) return [];
+  return Object.values(profiles)
+    .filter(p => p.id !== opts?.excludeId)
+    .filter(p => p.name.toLowerCase().split(/\s+/).some(word => word.startsWith(q))
+              || p.name.toLowerCase().startsWith(q))
+    .sort((a, b) => a.name.localeCompare(b.name))
+    .map(toResult);
+}
+
