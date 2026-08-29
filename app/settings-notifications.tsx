@@ -3,18 +3,20 @@ import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSettings, updateNotificationPrefs, NotificationPrefs } from '../src/lib/settingsStore';
+import { useSavedToast } from '../src/lib/useSavedToast';
 import { useThemeColors, ThemeColors } from '../src/lib/theme';
 import { useTranslation } from '../src/lib/i18n';
 
 export default function NotificationSettingsScreen() {
   const { t } = useTranslation();
   const c = useThemeColors();
+  const confirmSaved = useSavedToast();
   const s = makeStyles(c);
   const settings = useSettings();
   const prefs = settings.notifications;
 
   function toggle(key: keyof NotificationPrefs) {
-    updateNotificationPrefs({ [key]: !prefs[key] });
+    updateNotificationPrefs({ [key]: !prefs[key] }); confirmSaved();
   }
 
   const items = [

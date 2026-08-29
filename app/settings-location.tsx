@@ -3,12 +3,14 @@ import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSettings, updateLocationPrefs } from '../src/lib/settingsStore';
+import { useSavedToast } from '../src/lib/useSavedToast';
 import { useThemeColors, ThemeColors } from '../src/lib/theme';
 import { useTranslation } from '../src/lib/i18n';
 
 export default function LocationSettingsScreen() {
   const { t } = useTranslation();
   const c = useThemeColors();
+  const confirmSaved = useSavedToast();
   const s = makeStyles(c);
   const settings = useSettings();
   const { locationEnabled, nearbyChurches, nearbyEvents } = settings.location;
@@ -33,7 +35,7 @@ export default function LocationSettingsScreen() {
               <Text style={s.rowLabel}>{t('enableLocation')}</Text>
               <Text style={s.rowDesc}>{t('allowLocationAccess')}</Text>
             </View>
-            <Switch value={locationEnabled} onValueChange={(v) => updateLocationPrefs({locationEnabled:v})} trackColor={{false:c.cardAlt,true:c.navy}} thumbColor={c.white} />
+            <Switch value={locationEnabled} onValueChange={(v) => { updateLocationPrefs({locationEnabled:v}); confirmSaved(); }} trackColor={{false:c.cardAlt,true:c.navy}} thumbColor={c.white} />
           </View>
           <View style={[s.row, s.rowBorder, !locationEnabled && {opacity:0.4}]}>
             <View style={[s.iconWrap, {backgroundColor:'rgba(201,169,110,0.16)'}]}>
@@ -43,7 +45,7 @@ export default function LocationSettingsScreen() {
               <Text style={s.rowLabel}>{t('nearbyChurches')}</Text>
               <Text style={s.rowDesc}>{t('showChurchesNear')}</Text>
             </View>
-            <Switch disabled={!locationEnabled} value={locationEnabled && nearbyChurches} onValueChange={(v) => updateLocationPrefs({nearbyChurches:v})} trackColor={{false:c.cardAlt,true:c.navy}} thumbColor={c.white} />
+            <Switch disabled={!locationEnabled} value={locationEnabled && nearbyChurches} onValueChange={(v) => { updateLocationPrefs({nearbyChurches:v}); confirmSaved(); }} trackColor={{false:c.cardAlt,true:c.navy}} thumbColor={c.white} />
           </View>
           <View style={[s.row, !locationEnabled && {opacity:0.4}]}>
             <View style={[s.iconWrap, {backgroundColor:c.isDark?'rgba(124,131,255,0.18)':'rgba(26,26,46,0.08)'}]}>
@@ -53,7 +55,7 @@ export default function LocationSettingsScreen() {
               <Text style={s.rowLabel}>{t('nearbyEventsLabel')}</Text>
               <Text style={s.rowDesc}>{t('showEventsNear')}</Text>
             </View>
-            <Switch disabled={!locationEnabled} value={locationEnabled && nearbyEvents} onValueChange={(v) => updateLocationPrefs({nearbyEvents:v})} trackColor={{false:c.cardAlt,true:c.navy}} thumbColor={c.white} />
+            <Switch disabled={!locationEnabled} value={locationEnabled && nearbyEvents} onValueChange={(v) => { updateLocationPrefs({nearbyEvents:v}); confirmSaved(); }} trackColor={{false:c.cardAlt,true:c.navy}} thumbColor={c.white} />
           </View>
         </View>
       </ScrollView>

@@ -3,6 +3,7 @@ import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSettings, updatePrivacyPrefs } from '../src/lib/settingsStore';
+import { useSavedToast } from '../src/lib/useSavedToast';
 import { useThemeColors, ThemeColors } from '../src/lib/theme';
 import { useConfirm } from '../src/components/Confirm';
 import { deleteAccountAndData } from '../src/lib/accountDeletion';
@@ -11,6 +12,7 @@ import { useTranslation } from '../src/lib/i18n';
 export default function PrivacySettingsScreen() {
   const { t, tx } = useTranslation();
   const c = useThemeColors();
+  const confirmSaved = useSavedToast();
   const s = makeStyles(c);
   const { showConfirm } = useConfirm();
   const settings = useSettings();
@@ -36,7 +38,7 @@ export default function PrivacySettingsScreen() {
               <Text style={s.rowLabel}>{t('publicProfile')}</Text>
               <Text style={s.rowDesc}>{t('allowOthersViewProfile')}</Text>
             </View>
-            <Switch value={publicProfile} onValueChange={(v) => updatePrivacyPrefs({publicProfile:v})} trackColor={{false:c.cardAlt,true:c.navy}} thumbColor={c.white} />
+            <Switch value={publicProfile} onValueChange={(v) => { updatePrivacyPrefs({publicProfile:v}); confirmSaved(); }} trackColor={{false:c.cardAlt,true:c.navy}} thumbColor={c.white} />
           </View>
           <View style={s.row}>
             <View style={[s.iconWrap, {backgroundColor:c.lightGreen}]}>
@@ -46,7 +48,7 @@ export default function PrivacySettingsScreen() {
               <Text style={s.rowLabel}>{t('showLocationOnProfile')}</Text>
               <Text style={s.rowDesc}>{t('displayCityOnProfile')}</Text>
             </View>
-            <Switch value={showLocation} onValueChange={(v) => updatePrivacyPrefs({showLocation:v})} trackColor={{false:c.cardAlt,true:c.navy}} thumbColor={c.white} />
+            <Switch value={showLocation} onValueChange={(v) => { updatePrivacyPrefs({showLocation:v}); confirmSaved(); }} trackColor={{false:c.cardAlt,true:c.navy}} thumbColor={c.white} />
           </View>
         </View>
 

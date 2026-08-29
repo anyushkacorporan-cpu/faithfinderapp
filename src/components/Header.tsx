@@ -125,8 +125,10 @@ const makeStyles = (c: ThemeColors) => StyleSheet.create({
   iconBtn:{width:38,height:38,borderRadius:12,backgroundColor:c.cardAlt,alignItems:'center',justifyContent:'center',position:'relative'},
   iconBtnCompact:{width:32,height:32,borderRadius:10},
   iconBtnOverlay:{backgroundColor:'rgba(0,0,0,0.42)',borderRadius:19},
-  badge:{position:'absolute',top:-4,right:-4,minWidth:18,height:18,borderRadius:9,backgroundColor:c.red,alignItems:'center',justifyContent:'center',paddingHorizontal:3,borderWidth:2,borderColor:c.card},
-  badgeTxt:{color:c.white,fontSize:9,fontWeight:'700'},
+  badge:{position:'absolute',top:-5,right:-5,minWidth:20,height:20,borderRadius:10,backgroundColor:c.red,alignItems:'center',justifyContent:'center',paddingHorizontal:5,borderWidth:2,borderColor:c.card},
+  // 9px in an 18px circle read as a plain red dot - the number was there and
+  // nobody could see it. Big enough to actually count at a glance.
+  badgeTxt:{color:c.white,fontSize:11,fontWeight:'800',lineHeight:13},
   overlay:{flex:1,backgroundColor:c.overlay},
   sheet:{backgroundColor:c.card,borderTopLeftRadius:28,borderTopRightRadius:28,padding:20,maxHeight:'80%'},
   sheetHdr:{flexDirection:'row',justifyContent:'space-between',alignItems:'center',marginBottom:20},

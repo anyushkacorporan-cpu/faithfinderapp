@@ -1,10 +1,14 @@
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { useState } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert, TextInput, Image } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useThemeColors, ThemeColors } from '../src/lib/theme';
 import { useConfirm } from '../src/components/Confirm';
-import { useConnections, removeConnection } from '../src/lib/connectionsStore';
+import { useConnections, removeConnection, addConnection } from '../src/lib/connectionsStore';
+import { searchPeople, PersonResult } from '../src/lib/profilesStore';
+import { getUser } from '../src/lib/userStore';
+import { useToast } from '../src/components/Toast';
 import { useTranslation } from '../src/lib/i18n';
 
 export default function ConnectionsScreen() {
@@ -12,9 +16,31 @@ export default function ConnectionsScreen() {
   const s = makeStyles(c);
   const { t } = useTranslation();
   const { showConfirm } = useConfirm();
+  const { showToast } = useToast();
   const connections = useConnections();
   const churches = connections.filter(c => c.type === 'church');
   const people = connections.filter(c => c.type === 'user');
+
+  // Finding someone new belongs here, at the top of the list of people you
+  // already know - the screen was otherwise a dead end when you had nobody.
+  const [query, setQuery] = useState('');
+  const me = getUser();
+  const connectedIds = new Set(connections.map(c => c.id));
+  const connectedNames = new Set(connections.map(c => c.name));
+  const found: PersonResult[] = query.trim()
+    ? searchPeople(query, { excludeId: me.id })
+        .filter(p => !connectedIds.has(p.id) && !connectedNames.has(p.name))
+    : [];
+
+  function handleConnect(p: PersonResult) {
+    addConnection({
+      id: p.id, name: p.name,
+      type: p.accountType === 'church' ? 'church' : 'user',
+      color: p.color || c.navy,
+      initials: p.initials || p.name.slice(0, 2).toUpperCase(),
+    });
+    showToast('Connected', `You are now connected with ${p.name}.`, 'success');
+  }
 
   function handleRemove(id: string, name: string) {
     showConfirm({
@@ -37,8 +63,57 @@ export default function ConnectionsScreen() {
         <View style={{ width: 40 }} />
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false}>
-        {connections.length === 0 && (
+      <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+        <View style={s.searchRow}>
+          <Ionicons name="search" size={16} color={c.placeholder} />
+          <TextInput
+            style={s.searchInput}
+            value={query}
+            onChangeText={setQuery}
+            placeholder={t('findConnections')}
+            placeholderTextColor={c.placeholder}
+            autoCorrect={false}
+            autoCapitalize="words"
+          />
+          {!!query && (
+            <TouchableOpacity onPress={() => setQuery('')}>
+              <Ionicons name="close-circle" size={16} color={c.placeholder} />
+            </TouchableOpacity>
+          )}
+        </View>
+
+        {!!query.trim() && (
+          <View style={s.section}>
+            <Text style={s.sectionTitle}>{t('searchResults')} ({found.length})</Text>
+            {found.length === 0 ? (
+              <Text style={s.noResults}>{t('noOneFound')}</Text>
+            ) : found.map(p => (
+              <View key={p.id} style={s.row}>
+                {p.photo ? (
+                  <Image source={{ uri: p.photo }} style={s.avatar} resizeMode="cover" />
+                ) : (
+                  <View style={[s.avatar, { backgroundColor: p.color || c.navy }]}>
+                    <Text style={s.avatarTxt}>{p.initials || p.name.slice(0,2).toUpperCase()}</Text>
+                  </View>
+                )}
+                <View style={{ flex: 1, minWidth: 0 }}>
+                  <Text style={s.name} numberOfLines={1}>{p.name}</Text>
+                  {/* Name, photo, city - enough to know you found the right
+                      person, and nothing more about someone you do not know. */}
+                  {!!(p.city && p.state) && (
+                    <Text style={s.meta} numberOfLines={1}>{p.city}, {p.state}</Text>
+                  )}
+                </View>
+                <TouchableOpacity style={s.connectBtn} onPress={() => handleConnect(p)}>
+                  <Ionicons name="person-add-outline" size={14} color={c.onPrimary} />
+                  <Text style={s.connectBtnTxt}>{t('connect')}</Text>
+                </TouchableOpacity>
+              </View>
+            ))}
+          </View>
+        )}
+
+        {connections.length === 0 && !query.trim() && (
           <View style={s.empty}>
             <Ionicons name="people-outline" size={48} color={c.placeholder} />
             <Text style={s.emptyTitle}>{t('noConnectionsYet')}</Text>
@@ -104,6 +179,12 @@ const makeStyles = (c: ThemeColors) => StyleSheet.create({
   emptySub: { fontSize: 13, color: c.textMuted, textAlign: 'center', lineHeight: 20 },
   discoverBtn: { marginTop: 8, backgroundColor: c.primary, borderRadius: 22, paddingHorizontal: 28, paddingVertical: 12 },
   discoverBtnTxt: { color: c.onPrimary, fontSize: 14, fontWeight: '700' },
+  searchRow: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: c.inputBg, borderRadius: 14, paddingHorizontal: 14, paddingVertical: 12, marginHorizontal: 16, marginTop: 14 },
+  searchInput: { flex: 1, fontSize: 15, color: c.text, padding: 0 },
+  noResults: { fontSize: 13, color: c.textMuted, paddingBottom: 16 },
+  meta: { fontSize: 12, color: c.textMuted, marginTop: 1 },
+  connectBtn: { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: c.primary, borderRadius: 100, paddingHorizontal: 13, paddingVertical: 7 },
+  connectBtnTxt: { color: c.onPrimary, fontSize: 13, fontWeight: '700' },
   section: { backgroundColor: c.card, marginTop: 8, paddingHorizontal: 16, paddingTop: 14 },
   sectionTitle: { fontSize: 13, fontWeight: '700', color: c.textMuted, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 10 },
   row: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 12, borderTopWidth: 1, borderTopColor: c.cardAlt },

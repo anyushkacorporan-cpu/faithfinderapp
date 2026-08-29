@@ -3,12 +3,14 @@ import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSettings, updateAppearancePrefs } from '../src/lib/settingsStore';
+import { useSavedToast } from '../src/lib/useSavedToast';
 import { useThemeColors, ThemeColors } from '../src/lib/theme';
 import { useTranslation } from '../src/lib/i18n';
 
 export default function AppearanceSettingsScreen() {
   const { t, tx } = useTranslation();
   const c = useThemeColors();
+  const confirmSaved = useSavedToast();
   const s = makeStyles(c);
   const appSettings = useSettings();
   const { theme, language } = appSettings.appearance;
@@ -31,7 +33,7 @@ export default function AppearanceSettingsScreen() {
             {id:'dark', label:'Dark', icon:'moon-outline', color:'#7c83ff'},
             {id:'system', label:'System Default', icon:'phone-portrait-outline', color:'#7f8c8d'},
           ].map((item,i,arr) => (
-            <TouchableOpacity key={item.id} style={[s.row, i<arr.length-1&&s.rowBorder]} onPress={() => updateAppearancePrefs({theme: item.id as any})}>
+            <TouchableOpacity key={item.id} style={[s.row, i<arr.length-1&&s.rowBorder]} onPress={() => { updateAppearancePrefs({theme: item.id as any}); confirmSaved(); }}>
               <View style={[s.iconWrap, {backgroundColor: item.color+'22'}]}>
                 <Ionicons name={item.icon as any} size={20} color={item.color} />
               </View>
@@ -44,7 +46,7 @@ export default function AppearanceSettingsScreen() {
         <Text style={s.sectionLabel}>{t('language')}</Text>
         <View style={s.card}>
           {['English','Español'].map((lang,i,arr) => (
-            <TouchableOpacity key={lang} style={[s.row, i<arr.length-1&&s.rowBorder]} onPress={() => updateAppearancePrefs({language: lang})}>
+            <TouchableOpacity key={lang} style={[s.row, i<arr.length-1&&s.rowBorder]} onPress={() => { updateAppearancePrefs({language: lang}); confirmSaved(); }}>
               <Text style={s.rowLabel}>{lang}</Text>
               {language===lang && <Ionicons name="checkmark-circle" size={22} color={c.gold} />}
             </TouchableOpacity>
