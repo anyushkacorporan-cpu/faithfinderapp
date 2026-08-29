@@ -35,6 +35,9 @@ export type ProfileSnapshot = {
   /** Their own connection count at publish time — not something a viewer
    *  could otherwise know, since connections live on each device. */
   connectionCount?: number;
+  /** The gallery they curate in Edit Profile. Distinct from photos that came
+   *  from their posts, which a viewer can already derive from the posts. */
+  photos?: string[];
   /** Last time this snapshot was refreshed, so a newer one always wins. */
   updatedAt: number;
 };
@@ -83,7 +86,16 @@ function sameProfile(a: ProfileSnapshot, b: ProfileSnapshot): boolean {
     'name','accountType','photo','cover','bio','city','state',
     'lifeVerse','lifeVerseRef','color','initials','connectionCount',
   ];
-  return keys.every(k => a[k] === b[k]);
+  if (!keys.every(k => a[k] === b[k])) return false;
+  // photos is an array: === compares references, so a rebuilt list identical
+  // in content would read as a change and rewrite storage on every publish.
+  return sameList(a.photos, b.photos);
+}
+
+function sameList(a?: string[], b?: string[]): boolean {
+  if (a === b) return true;
+  if (!a || !b) return (a?.length ?? 0) === (b?.length ?? 0);
+  return a.length === b.length && a.every((v, i) => v === b[i]);
 }
 
 /**

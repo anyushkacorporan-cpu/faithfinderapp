@@ -84,7 +84,11 @@ export default function OtherUserProfileScreen() {
   const connectionId = params.authorId || displayName;
   const connected = isConnectedTo(params.authorId, displayName);
 
-  const combinedGalleryPhotos = isSelf ? [...new Set([...galleryPhotos, ...(currentUser.photos || [])])] : galleryPhotos;
+  // The gallery is images from their posts plus the ones they curated in Edit
+  // Profile. The curated set used to be visible only to its owner, because the
+  // directory did not carry it - so a viewer saw a partial gallery.
+  const ownGallery = isSelf ? (currentUser.photos || []) : (snapshot?.photos || []);
+  const combinedGalleryPhotos = [...new Set([...galleryPhotos, ...ownGallery])];
   const galleryItems = combinedGalleryPhotos.map(uri => ({ uri, post: userPosts.find(p => p.image === uri) || null }));
   const churchesShared = userPosts.filter(p => !!p.churchShareData).map(p => p.churchShareData!);
 

@@ -111,6 +111,7 @@ export default function EditProfileScreen() {
         lifeVerse: isChurch ? undefined : lifeVerse,
         lifeVerseRef: isChurch ? undefined : lifeVerseRef,
         initials,
+        photos: u.photos,
       });
     }
     showToast(tx('Saved!'), tx('Your profile has been updated.'), 'success');

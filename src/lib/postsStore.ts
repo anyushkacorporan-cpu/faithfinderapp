@@ -285,6 +285,7 @@ function publishSelf(who: { name: string; color: string; initials: string; city?
     color: who.color,
     initials: who.initials,
     connectionCount: getConnections().length,
+    photos: u.photos,
   });
 }
 
