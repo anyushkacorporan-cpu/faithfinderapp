@@ -35,13 +35,15 @@ export default function PrivacyScreen() {
         <Text style={s.p}>Your name, profile photo, bio, and posts marked "Public" are visible to other users. Posts marked "Connections" are visible only to people you're connected with. Your exact location is never shown to other users — only the city-level area you choose to display, if any.</Text>
 
         <Text style={s.h2}>6. Data Storage</Text>
-        <Text style={s.p}>Your information is stored on secure servers operated by FaithFinder and our infrastructure providers. We take reasonable measures to protect your data but cannot guarantee absolute security.</Text>
+        <Text style={s.p}>Your information is stored on your device, and — for features that require it, such as sharing posts and processing ticket purchases — on secure servers operated by our infrastructure providers. We take reasonable measures to protect your data but cannot guarantee absolute security.</Text>
 
         <Text style={s.h2}>7. Data Sharing</Text>
         <Text style={s.p}>We do not sell your personal information. We share data only with service providers necessary to operate the App (such as Stripe for payments and Google for location/maps services), and when required by law.</Text>
 
         <Text style={s.h2}>8. Your Choices</Text>
-        <Text style={s.p}>You can edit or delete your profile information at any time through Edit Profile. You can disable location access and notifications through Settings or your device's system settings. You may request deletion of your account by contacting support@faithfinderapp.com.</Text>
+        <Text style={s.p}>You can edit or delete your profile information at any time through Edit Profile. You can disable location access and notifications through Settings or your device's system settings.</Text>
+        <Text style={s.p}>You can delete your account from within the App at any time: Settings → Privacy → Delete Account. This removes your profile, posts, comments, connections and saved items. It cannot be undone.</Text>
+        <Text style={s.p}>Records of ticket purchases and payments are kept after account deletion, as tax and accounting law requires us to retain transaction records. These records are separated from your profile and are not shown to other users.</Text>
 
         <Text style={s.h2}>9. Children's Privacy</Text>
         <Text style={s.p}>FaithFinder is not intended for children under 13. We do not knowingly collect information from children under 13.</Text>
