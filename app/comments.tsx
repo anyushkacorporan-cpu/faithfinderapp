@@ -445,11 +445,11 @@ function CommentRow({ comment, postId, onReply, onLike, onReplyLike, onMenu }: {
 
 const makeStyles = (c: ThemeColors) => StyleSheet.create({
   root: { flex: 1, backgroundColor: c.card },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 12, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: c.border },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 8, paddingVertical: 2, borderBottomWidth: 1, borderBottomColor: c.border },
   backBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
   headerTitle: { fontSize: 16, fontWeight: '700', color: c.text },
   scroll: { flex: 1 },
-  originalPost: { padding: 16, backgroundColor: c.card },
+  originalPost: { paddingHorizontal: 16, paddingTop: 12, paddingBottom: 16, backgroundColor: c.card },
   postAuthorRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 10 },
   avatar: { width: 42, height: 42, borderRadius: 21, alignItems: 'center', justifyContent: 'center' },
   avatarTxt: { color: '#fff', fontWeight: '700', fontSize: 15 },
