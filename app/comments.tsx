@@ -110,7 +110,8 @@ export default function CommentsScreen() {
           belongs to is the first thing on it. The row stays so the back button
           keeps its position. */}
       <View style={s.header}>
-        <TouchableOpacity style={s.backBtn} onPress={() => router.back()}>
+        <TouchableOpacity style={s.backBtn} onPress={() => router.back()}
+          hitSlop={{ top: 10, bottom: 10, left: 12, right: 12 }}>
           <Ionicons name="chevron-back" size={24} color={c.text} />
         </TouchableOpacity>
         <View style={{ flex: 1 }} />
@@ -445,11 +446,11 @@ function CommentRow({ comment, postId, onReply, onLike, onReplyLike, onMenu }: {
 
 const makeStyles = (c: ThemeColors) => StyleSheet.create({
   root: { flex: 1, backgroundColor: c.card },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 8, paddingVertical: 2, borderBottomWidth: 1, borderBottomColor: c.border },
-  backBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 8, height: 38 },
+  backBtn: { width: 38, height: 38, alignItems: 'center', justifyContent: 'center' },
   headerTitle: { fontSize: 16, fontWeight: '700', color: c.text },
   scroll: { flex: 1 },
-  originalPost: { paddingHorizontal: 16, paddingTop: 12, paddingBottom: 16, backgroundColor: c.card },
+  originalPost: { paddingHorizontal: 16, paddingTop: 4, paddingBottom: 16, backgroundColor: c.card },
   postAuthorRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 10 },
   avatar: { width: 42, height: 42, borderRadius: 21, alignItems: 'center', justifyContent: 'center' },
   avatarTxt: { color: '#fff', fontWeight: '700', fontSize: 15 },
