@@ -26,7 +26,14 @@ export default function RootLayout() {
     <ConfirmProvider>
     <StripeProvider publishableKey={STRIPE_PUBLISHABLE_KEY} merchantIdentifier={STRIPE_MERCHANT_ID}>
       <ThemedStatusBar />
-      <Stack screenOptions={{ headerShown: false }}>
+      {/*
+        Push screens in from the right and take them back out the same way.
+        Without this the native stack falls back to each platform's default,
+        which is a right-to-left push on iOS but a bottom fade on Android —
+        so the same tap felt like two different gestures depending on the
+        phone. Naming it pins both to one direction.
+      */}
+      <Stack screenOptions={{ headerShown: false, animation: 'slide_from_right' }}>
         <Stack.Screen name="index" />
         <Stack.Screen name="login" />
         <Stack.Screen name="signup" />
@@ -44,6 +51,10 @@ export default function RootLayout() {
         <Stack.Screen name="notifications" />
         <Stack.Screen name="user-profile" />
         <Stack.Screen name="activity" />
+        <Stack.Screen name="comments" />
+        <Stack.Screen name="connections" />
+        <Stack.Screen name="edit-event" />
+        <Stack.Screen name="settings" />
         <Stack.Screen name="terms" />
         <Stack.Screen name="privacy" />
         <Stack.Screen name="settings-notifications" />

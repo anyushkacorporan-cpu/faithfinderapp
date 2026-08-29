@@ -10,9 +10,11 @@ import { TAB_BAR_HEIGHT, tabBarBottom } from '../../src/lib/tabBar';
  * A floating capsule rather than a full-width bar.
  *
  * The old bar put a tinted rounded rectangle behind the active icon — Material
- * Design's selection indicator, which reads as borrowed on iOS — and marked the
- * active tab three ways at once: filled glyph, gold tint, and that box. The
- * filled glyph now does it alone, in one ink colour.
+ * Design's selection indicator, which reads as borrowed on iOS. That box is
+ * gone; the active tab is now marked by ink weight instead. The selected tab
+ * is drawn in full text colour with a filled glyph and a bold label, the
+ * unselected ones in a lighter grey with outline glyphs — the same
+ * dark-means-here convention the rest of the app uses.
  *
  * Gold is deliberately absent. It stays the accent for content — verses,
  * ratings, links — so navigation reads as chrome rather than competing with
@@ -31,16 +33,29 @@ export default function TabLayout() {
 
   const bottom = tabBarBottom(insets.bottom);
 
+  // Selected reads dark, unselected reads light. The unselected greys are
+  // picked per theme rather than shared: c.textMuted is nearly white in dark
+  // mode, so it would sit almost on top of the active colour there.
+  const active = c.text;
+  const inactive = c.isDark ? c.placeholder : c.textSecondary;
+
   const tab = (name: string, icon: string, label: string) => (
     <Tabs.Screen
       key={name}
       name={name}
       options={{
         tabBarIcon: ({ focused }) => (
-          <Ionicons name={(focused ? icon : `${icon}-outline`) as any} size={21} color={c.text} />
+          <Ionicons
+            name={(focused ? icon : `${icon}-outline`) as any}
+            size={21}
+            color={focused ? active : inactive}
+          />
         ),
         tabBarLabel: ({ focused }) => (
-          <Text style={[s.label, focused && s.labelActive]} numberOfLines={1}>{label}</Text>
+          <Text
+            style={[s.label, { color: focused ? active : inactive }, focused && s.labelActive]}
+            numberOfLines={1}
+          >{label}</Text>
         ),
       }}
     />
@@ -50,6 +65,12 @@ export default function TabLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
+        // Bottom tabs offer none / fade / shift. 'shift' is the only one that
+        // moves: the outgoing screen slides 50px out and the incoming one
+        // slides in from the opposite side over 150ms, with the direction
+        // taken from the tabs' order — so Churches → Events travels left,
+        // and Events → Churches travels back right.
+        animation: 'shift',
         tabBarShowLabel: true,
         tabBarItemStyle: s.tabBarItem,
         tabBarIconStyle: s.iconStyle,
