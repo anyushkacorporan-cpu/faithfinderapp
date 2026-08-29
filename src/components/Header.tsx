@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Modal, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
@@ -109,11 +109,19 @@ export function HeaderIcons({ compact = false, overlay = false }: { compact?: bo
  * A slim, right-aligned row carrying HeaderIcons. Replaces the old wordmark bar:
  * same controls, no repeated "FaithFinder App" on every tab.
  */
-export default function Header() {
+/**
+ * The app's top bar: a slot on the left, the bell and gear on the right.
+ *
+ * `left` exists so a screen can put its own control up here - the Community
+ * tab's search field - without this shared component learning about any
+ * particular screen. Screens that pass nothing get exactly what they had.
+ */
+export default function Header({ left }: { left?: React.ReactNode } = {}) {
   const c = useThemeColors();
   const s = makeStyles(c);
   return (
-    <View style={s.header}>
+    <View style={[s.header, !!left && s.headerWithLeft]}>
+      {!!left && <View style={s.headerLeft}>{left}</View>}
       <HeaderIcons />
     </View>
   );
@@ -121,6 +129,8 @@ export default function Header() {
 
 const makeStyles = (c: ThemeColors) => StyleSheet.create({
   header:{flexDirection:'row',justifyContent:'flex-end',alignItems:'center',paddingHorizontal:16,paddingTop:6,paddingBottom:8,backgroundColor:c.card},
+  headerWithLeft:{justifyContent:'space-between',gap:10},
+  headerLeft:{flex:1,minWidth:0},
   icons:{flexDirection:'row',gap:6},
   iconBtn:{width:38,height:38,borderRadius:12,backgroundColor:c.cardAlt,alignItems:'center',justifyContent:'center',position:'relative'},
   iconBtnCompact:{width:32,height:32,borderRadius:10},

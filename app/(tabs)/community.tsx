@@ -24,6 +24,8 @@ import { useConnections, isConnected } from '../../src/lib/connectionsStore';
 import { announceToFollowers } from '../../src/lib/notificationsStore';
 import { blockUser, isBlocked, useBlocked } from '../../src/lib/blockStore';
 import { hidePost, isHidden, useHidden } from '../../src/lib/hiddenStore';
+import { searchPeople, PersonResult } from '../../src/lib/profilesStore';
+import { addConnection, isConnectedTo } from '../../src/lib/connectionsStore';
 
 type Visibility = 'public' | 'connections';
 
@@ -74,6 +76,13 @@ export default function CommunityScreen() {
   // Which post's Repost/Share sheet is open. The sheet itself lives in
   // PostShareSheet, which the profile screen renders too.
   const [shareTarget, setShareTarget] = useState<Post | null>(null);
+
+  // Finding people, from the top of the feed. Sits in the header slot beside
+  // the bell rather than in the scroll, so it does not move as posts load.
+  const [peopleQuery, setPeopleQuery] = useState('');
+  const peopleResults: PersonResult[] = peopleQuery.trim()
+    ? searchPeople(peopleQuery, { excludeId: user.id })
+    : [];
   const [newPostText, setNewPostText] = useState('');
   const [isPosting, setIsPosting] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -143,7 +152,82 @@ export default function CommunityScreen() {
 
   return (
     <SafeAreaView style={s.root} edges={['top']}>
-      <Header />
+      <Header
+        left={
+          <View style={s.peopleSearchRow}>
+            <Ionicons name="search" size={15} color={c.placeholder} />
+            <TextInput
+              style={s.peopleSearchInput}
+              value={peopleQuery}
+              onChangeText={setPeopleQuery}
+              placeholder={tx('Search for connections...')}
+              placeholderTextColor={c.placeholder}
+              autoCorrect={false}
+              autoCapitalize="words"
+              returnKeyType="search"
+            />
+            {!!peopleQuery && (
+              <TouchableOpacity onPress={() => setPeopleQuery('')}>
+                <Ionicons name="close-circle" size={15} color={c.placeholder} />
+              </TouchableOpacity>
+            )}
+          </View>
+        }
+      />
+      {!!peopleQuery.trim() && (
+        <View style={s.peopleResults}>
+          <Text style={s.peopleResultsTitle}>
+            {tx('People')} ({peopleResults.length})
+          </Text>
+          {peopleResults.length === 0 ? (
+            <Text style={s.peopleNoResults}>{tx('No one found by that name.')}</Text>
+          ) : (
+            <ScrollView style={{maxHeight:260}} keyboardShouldPersistTaps="handled">
+              {peopleResults.map(p => {
+                const already = isConnectedTo(p.id, p.name);
+                return (
+                  <View key={p.id} style={s.peopleRow}>
+                    {p.photo ? (
+                      <Image source={{uri:p.photo}} style={s.peopleAvatar} resizeMode="cover" />
+                    ) : (
+                      <View style={[s.peopleAvatar,{backgroundColor:p.color||c.navy,alignItems:'center',justifyContent:'center'}]}>
+                        <Text style={s.peopleAvatarTxt}>{p.initials || p.name.slice(0,2).toUpperCase()}</Text>
+                      </View>
+                    )}
+                    <TouchableOpacity
+                      style={{flex:1,minWidth:0}}
+                      onPress={() => router.push({ pathname:'/user-profile', params:{ authorId:p.id, name:p.name, initials:p.initials||'', color:p.color||'', type:p.accountType==='church'?'church':'user' } })}
+                    >
+                      <Text style={s.peopleName} numberOfLines={1}>{p.name}</Text>
+                      {/* Name, photo and city only — the same fields a search
+                          result carries everywhere else in the app. */}
+                      {!!(p.city && p.state) && (
+                        <Text style={s.peopleMeta} numberOfLines={1}>{p.city}, {p.state}</Text>
+                      )}
+                    </TouchableOpacity>
+                    {already ? (
+                      <Text style={s.peopleConnected}>{tx('Connected')}</Text>
+                    ) : (
+                      <TouchableOpacity style={s.peopleConnectBtn} onPress={() => {
+                        addConnection({
+                          id: p.id, name: p.name,
+                          type: p.accountType === 'church' ? 'church' : 'user',
+                          color: p.color || c.navy,
+                          initials: p.initials || p.name.slice(0,2).toUpperCase(),
+                        });
+                        showToast(tx('Connected'), tx('You will now see posts from') + ' ' + p.name, 'success');
+                      }}>
+                        <Text style={s.peopleConnectTxt}>{t('connect')}</Text>
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                );
+              })}
+            </ScrollView>
+          )}
+        </View>
+      )}
+
       <View style={s.tabBar}>
         <View style={s.tabToggle}>
           {(['foryou','discover'] as const).map(tab => (
@@ -473,6 +557,19 @@ export default function CommunityScreen() {
 
 
 const makeStyles = (c: ThemeColors) => StyleSheet.create({
+  peopleSearchRow:{flexDirection:'row',alignItems:'center',gap:7,backgroundColor:c.inputBg,borderRadius:12,paddingHorizontal:11,paddingVertical:9},
+  peopleSearchInput:{flex:1,fontSize:14,color:c.text,padding:0},
+  peopleResults:{backgroundColor:c.card,paddingHorizontal:16,paddingTop:12,paddingBottom:4,borderBottomWidth:1,borderBottomColor:c.border},
+  peopleResultsTitle:{fontSize:12,fontWeight:'700',color:c.textMuted,textTransform:'uppercase',letterSpacing:0.5,marginBottom:8},
+  peopleNoResults:{fontSize:13,color:c.textMuted,paddingBottom:14},
+  peopleRow:{flexDirection:'row',alignItems:'center',gap:11,paddingVertical:9},
+  peopleAvatar:{width:40,height:40,borderRadius:20,overflow:'hidden'},
+  peopleAvatarTxt:{color:'#fff',fontSize:13,fontWeight:'700'},
+  peopleName:{fontSize:15,fontWeight:'600',color:c.text},
+  peopleMeta:{fontSize:12,color:c.textMuted,marginTop:1},
+  peopleConnected:{fontSize:10,fontWeight:'700',color:c.gold,letterSpacing:0.4,textTransform:'uppercase'},
+  peopleConnectBtn:{backgroundColor:c.primary,borderRadius:100,paddingHorizontal:14,paddingVertical:7},
+  peopleConnectTxt:{color:c.onPrimary,fontSize:13,fontWeight:'700'},
   announceToggle:{flexDirection:'row',alignItems:'center',gap:10,marginHorizontal:16,marginTop:12,paddingHorizontal:12,paddingVertical:10,borderRadius:14,borderWidth:1,borderColor:c.border,backgroundColor:c.card},
   announceToggleOn:{borderColor:c.gold,backgroundColor:'rgba(201,169,110,0.10)'},
   announceIcon:{width:30,height:30,borderRadius:9,alignItems:'center',justifyContent:'center',backgroundColor:'rgba(201,169,110,0.16)'},

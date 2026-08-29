@@ -122,7 +122,15 @@ function persist() { save(STORAGE_KEY, notifications); }
 load<typeof notifications>(STORAGE_KEY, v => { notifications = v; notify(); });
 
 export function getNotifications() { return [...notifications]; }
-export function getUnreadCount() { return notifications.filter(n => !n.read).length; }
+/**
+ * Unread count, counting only types the user has switched on - the same rule
+ * the badge and the notifications list use. Without the type filter this
+ * returned a different number than the badge showed, which is precisely the
+ * kind of quiet disagreement that makes a count look buggy.
+ */
+export function getUnreadCount() {
+  return notifications.filter(n => isTypeEnabled(n.type) && !n.read).length;
+}
 
 export function markRead(id: string) {
   notifications = notifications.map(n => n.id === id ? { ...n, read: true } : n);
