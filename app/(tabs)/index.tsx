@@ -7,6 +7,7 @@ import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { HeaderIcons } from '../../src/components/Header';
 import { CHURCHES } from '../../src/lib/constants';
+import { getCachedPhotoRef, setCachedPhotoRef, getCachedNearby, setCachedNearby, nearbyKey } from '../../src/lib/placesCache';
 import { useThemeColors, ThemeColors } from '../../src/lib/theme';
 import { TAB_BAR_CLEARANCE } from '../../src/lib/tabBar';
 import { useSavedChurches, toggleSavedChurch } from '../../src/lib/store';
@@ -17,11 +18,20 @@ import { useTranslation } from '../../src/lib/i18n';
 const KEY = 'AIzaSyAHZO8wyxyCmx0k8u059QSX7QpsEvZ82sU';
 
 async function getPhotoRef(placeId: string): Promise<string> {
+  // A place's photo does not change between app launches. Asking Google again
+  // costs the same as asking the first time, so ask once.
+  const cached = getCachedPhotoRef(placeId);
+  if (cached !== undefined) return cached;
   try {
     const res = await fetch(`https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&fields=photos&key=${KEY}`);
     const data = await res.json();
-    return data?.result?.photos?.[0]?.photo_reference || '';
-  } catch { return ''; }
+    const ref = data?.result?.photos?.[0]?.photo_reference || '';
+    setCachedPhotoRef(placeId, ref);
+    return ref;
+  } catch {
+    // A failure is not cached: the next launch should be free to retry.
+    return '';
+  }
 }
 
 function photoUrl(ref: string) {
@@ -102,16 +112,18 @@ export default function ChurchesScreen() {
   const hasActiveFilter = activeDenom !== 'All' || activeState !== 'All States';
   const activeFilterCount = (activeDenom !== 'All' ? 1 : 0) + (activeState !== 'All States' ? 1 : 0);
 
+  // Photos for the built-in list. This used to fetch ten Place Details on
+  // every single mount - including the usual case, where nearby results
+  // replace this list before the user ever sees it. Now it serves whatever the
+  // cache already holds and asks Google for nothing; the fallback list gets its
+  // photos filled in only once a card is actually shown without one.
   useEffect(() => {
-    async function loadDefaultPhotos() {
-      const refs: Record<string,string> = {};
-      for (const c of CHURCHES.slice(0,10)) {
-        const ref = await getPhotoRef(c.placeId);
-        if (ref) refs[c.id] = ref;
-      }
-      setPhotoRefs(refs);
+    const refs: Record<string,string> = {};
+    for (const c of CHURCHES.slice(0, 10)) {
+      const ref = getCachedPhotoRef(c.placeId);
+      if (ref) refs[c.id] = ref;
     }
-    loadDefaultPhotos();
+    if (Object.keys(refs).length) setPhotoRefs(p => ({ ...p, ...refs }));
   }, []);
 
   useEffect(() => {
@@ -132,7 +144,14 @@ export default function ChurchesScreen() {
           const state = geo[0].region || '';
           setLocationLabel(`Near ${city}, ${state}`);
         }
-        const nearby = await searchNearby(latitude, longitude);
+        // Which churches sit within 50km of a street corner does not change
+        // between sessions. Reuse the answer rather than buying it again.
+        const key = nearbyKey(latitude, longitude);
+        let nearby = getCachedNearby(key) ?? null;
+        if (!nearby) {
+          nearby = await searchNearby(latitude, longitude);
+          if (nearby && nearby.length) setCachedNearby(key, nearby);
+        }
         if (nearby === null) {
           // Lookup failed. Fall back to the full list rather than an empty
           // screen, and say why.
