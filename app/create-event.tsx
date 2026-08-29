@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet,
   Switch, Alert, Image, KeyboardAvoidingView, Platform, Modal
@@ -13,6 +13,7 @@ import { useThemeColors, ThemeColors } from '../src/lib/theme';
 import { addEvent } from '../src/lib/eventsStore';
 import { getUser } from '../src/lib/userStore';
 import { useTranslation } from '../src/lib/i18n';
+import { suggestAddresses, resolveAddress, newSessionToken, AddressSuggestion } from '../src/lib/addressAutocomplete';
 
 const EVENT_TYPES = ['Conference','Festival','Workshop','Revival','Service','Concert','Retreat','Other'];
 const SPEAKER_COLORS = ['#667eea','#f093fb','#4facfe','#43e97b','#fa709a','#c9a96e'];
@@ -91,6 +92,54 @@ export default function CreateEventScreen() {
   const [city, setCity] = useState('');
   const [stateName, setStateName] = useState('');
   const [zip, setZip] = useState('');
+
+  // Address autocomplete. The session token is created on the first keystroke
+  // and cleared when a suggestion is taken, so Google bills the whole exchange
+  // - every keystroke plus the details lookup - as one session rather than as
+  // a request per character.
+  const [addrSuggestions, setAddrSuggestions] = useState<AddressSuggestion[]>([]);
+  const [addrLoading, setAddrLoading] = useState(false);
+  const addrSession = useRef<string | null>(null);
+  const addrTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Rising number, so a slow response for an earlier query cannot overwrite the
+  // suggestions for a later one.
+  const addrSeq = useRef(0);
+
+  function onAddressChange(text: string) {
+    setVenueAddress(text);
+    setErrors(e => ({ ...e, venueAddress: '' }));
+    if (addrTimer.current) clearTimeout(addrTimer.current);
+    if (text.trim().length < 3) { setAddrSuggestions([]); setAddrLoading(false); return; }
+    if (!addrSession.current) addrSession.current = newSessionToken();
+    setAddrLoading(true);
+    // Wait for a pause in typing: a request per character would be both slow
+    // and, without this, a lot of requests.
+    addrTimer.current = setTimeout(async () => {
+      const seq = ++addrSeq.current;
+      const results = await suggestAddresses(text, addrSession.current!);
+      if (seq !== addrSeq.current) return; // a newer query has since been sent
+      setAddrSuggestions(results);
+      setAddrLoading(false);
+    }, 350);
+  }
+
+  async function onPickAddress(sug: AddressSuggestion) {
+    setAddrSuggestions([]);
+    setAddrLoading(false);
+    if (addrTimer.current) clearTimeout(addrTimer.current);
+    setVenueAddress(sug.main);
+    const token = addrSession.current || newSessionToken();
+    const resolved = await resolveAddress(sug.placeId, token);
+    // Selecting closes the session either way; the next edit starts a new one.
+    addrSession.current = null;
+    if (!resolved) return;
+    // Only fill what came back. A blank from Google should not wipe something
+    // the person already typed.
+    if (resolved.street) setVenueAddress(resolved.street);
+    if (resolved.city) setCity(resolved.city);
+    if (resolved.state) setStateName(resolved.state);
+    if (resolved.zip) setZip(resolved.zip);
+  }
   const [parking, setParking] = useState('');
   const [venueInstructions, setVenueInstructions] = useState('');
   const [liveStreamUrl, setLiveStreamUrl] = useState('');
@@ -470,7 +519,33 @@ export default function CreateEventScreen() {
                     <TextInput style={s.input} placeholder="Grace Community Church" placeholderTextColor={c.placeholder} value={venueName} onChangeText={setVenueName}/>
                   </LField>
                   <LField label="Street Address *" error={errors.venueAddress}>
-                    <TextInput style={[s.input,!!errors.venueAddress&&s.inputErr]} placeholder="123 Faith Ave" placeholderTextColor={c.placeholder} value={venueAddress} onChangeText={v=>{setVenueAddress(v);setErrors(e=>({...e,venueAddress:''}));}}/>
+                    <TextInput
+                      style={[s.input,!!errors.venueAddress&&s.inputErr]}
+                      placeholder="Start typing an address..."
+                      placeholderTextColor={c.placeholder}
+                      value={venueAddress}
+                      onChangeText={onAddressChange}
+                      autoCorrect={false}
+                    />
+                    {/* Suggestions are additive: the field above stays a plain
+                        text input, so nothing here can stop someone entering an
+                        address Google does not know. */}
+                    {addrLoading && addrSuggestions.length === 0 && (
+                      <Text style={s.addrHint}>{tx('Looking up addresses...')}</Text>
+                    )}
+                    {addrSuggestions.length > 0 && (
+                      <View style={s.addrList}>
+                        {addrSuggestions.map(sug => (
+                          <TouchableOpacity key={sug.placeId} style={s.addrRow} onPress={() => onPickAddress(sug)}>
+                            <Ionicons name="location-outline" size={15} color={c.textMuted} />
+                            <View style={{flex:1,minWidth:0}}>
+                              <Text style={s.addrMain} numberOfLines={1}>{sug.main}</Text>
+                              {!!sug.secondary && <Text style={s.addrSecondary} numberOfLines={1}>{sug.secondary}</Text>}
+                            </View>
+                          </TouchableOpacity>
+                        ))}
+                      </View>
+                    )}
                   </LField>
                   <View style={{flexDirection:'row',gap:8}}>
                     <View style={{flex:2}}>
@@ -793,6 +868,11 @@ const makeStyles = (c: ThemeColors) => StyleSheet.create({
   bannerTxt:{fontSize:14,fontWeight:'600',color:'rgba(255,255,255,0.9)'},
   bannerSub:{fontSize:11,color:'rgba(255,255,255,0.6)'},
   fieldLbl:{fontSize:13,fontWeight:'600',color:c.textSecondary,marginBottom:8},
+  addrHint:{fontSize:12,color:c.textMuted,marginTop:6,marginLeft:2},
+  addrList:{marginTop:6,borderWidth:1,borderColor:c.border,borderRadius:12,backgroundColor:c.card,overflow:'hidden'},
+  addrRow:{flexDirection:'row',alignItems:'center',gap:10,paddingHorizontal:12,paddingVertical:11,borderBottomWidth:StyleSheet.hairlineWidth,borderBottomColor:c.rowBorder},
+  addrMain:{fontSize:14,color:c.text,fontWeight:'500'},
+  addrSecondary:{fontSize:12,color:c.textMuted,marginTop:1},
   input:{borderWidth:1.5,borderColor:c.border,borderRadius:12,paddingHorizontal:14,paddingVertical:12,fontSize:14,color:c.text},
   inputErr:{borderColor:c.red},
   multiline:{height:80,textAlignVertical:'top',paddingTop:12},
