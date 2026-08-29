@@ -24,14 +24,24 @@ export type Reply = {
 export type Comment = {
   id: string;
   author: string;
+  /** Stable id of the author, so "is this mine?" never compares display names. */
+  authorId?: string;
   initials: string;
   color: string;
   text: string;
+  /** An optional photo, the same as a post can carry. */
+  image?: string;
   time: string;
   likes: number;
   liked: boolean;
   city?: string;
   state?: string;
+  /** Set once edited, so the comment can say so rather than changing silently. */
+  edited?: boolean;
+  /** The post's author may pin one comment to the top. */
+  pinned?: boolean;
+  /** Reports filed against this comment, alongside the ones filed on posts. */
+  reports?: { id: string; reason: string; reportedBy: string; time: string }[];
   replies: Reply[];
 };
 
@@ -459,19 +469,98 @@ export function toggleLike(postId: string) {
   }
 }
 
-export function addComment(postId: string, text: string, author: string, initials: string, color: string, city?: string, state?: string) {
+export function addComment(postId: string, text: string, author: string, initials: string, color: string, city?: string, state?: string, image?: string) {
   // A comment is the only trace some people leave, so it has to be enough to
   // put them in the directory — otherwise their avatar stays initials forever.
   publishSelf({ name: author, color, initials, city, state });
   posts = posts.map(p => p.id === postId ? {
     ...p,
     comments: [...p.comments, {
-      id: newId(), author, initials, color, text,
+      id: newId(), author, authorId: getUser().id, initials, color, text, image,
       time: 'now', likes: 0, liked: false, city, state, replies: []
     }]
   } : p);
   persist();
   notify();
+}
+
+/** Is this comment mine? Matches on id, falling back to display name. */
+export function isCommentMine(comment: Comment, userId?: string, displayName?: string): boolean {
+  if (comment.authorId && userId && comment.authorId === userId) return true;
+  return !!displayName && comment.author === displayName;
+}
+
+export function editComment(postId: string, commentId: string, text: string) {
+  posts = posts.map(p => p.id !== postId ? p : {
+    ...p,
+    comments: p.comments.map(cm => cm.id === commentId ? { ...cm, text, edited: true } : cm),
+  });
+  persist();
+  notify();
+}
+
+export function deleteComment(postId: string, commentId: string) {
+  posts = posts.map(p => p.id !== postId ? p : {
+    ...p,
+    comments: p.comments.filter(cm => cm.id !== commentId),
+  });
+  persist();
+  notify();
+}
+
+/**
+ * Pin one comment to the top, or unpin it.
+ *
+ * One at a time on purpose: pinning is for the organiser highlighting the one
+ * thing everyone needs to read, and a list of six pinned comments is just the
+ * list again. Pinning a second comment moves the pin rather than adding one.
+ */
+export function togglePinComment(postId: string, commentId: string) {
+  posts = posts.map(p => {
+    if (p.id !== postId) return p;
+    const already = p.comments.find(cm => cm.id === commentId)?.pinned;
+    return {
+      ...p,
+      comments: p.comments.map(cm => ({ ...cm, pinned: !already && cm.id === commentId })),
+    };
+  });
+  persist();
+  notify();
+}
+
+/** File a report against one comment, the same shape posts use. */
+export function reportComment(postId: string, commentId: string, reason: ReportReason, reportedBy: string) {
+  const labels: Record<ReportReason, string> = {
+    spam: 'Spam',
+    harassment: 'Harassment or bullying',
+    inappropriate: 'Inappropriate content',
+    misleading: 'False or misleading information',
+    hate_speech: 'Hate speech',
+    other: 'Other',
+  };
+  posts = posts.map(p => p.id !== postId ? p : {
+    ...p,
+    comments: p.comments.map(cm => cm.id !== commentId ? cm : {
+      ...cm,
+      reports: [...(cm.reports || []), { id: newId(), reason: labels[reason], reportedBy, time: 'now' }],
+    }),
+  });
+  persist();
+  notify();
+}
+
+/**
+ * Comments in display order: the pinned one first, then by the chosen sort.
+ * Pinning outranks sorting - that is the point of a pin.
+ */
+export function sortComments(comments: Comment[], by: 'recent' | 'liked'): Comment[] {
+  const rest = [...comments].filter(cm => !cm.pinned);
+  rest.sort((a, b) =>
+    by === 'liked' ? (b.likes - a.likes) : 0   // newest last already; 'recent' keeps insertion order
+  );
+  if (by === 'recent') rest.reverse();
+  const pinned = comments.filter(cm => cm.pinned);
+  return [...pinned, ...rest];
 }
 
 export function addReply(postId: string, commentId: string, text: string, author: string, initials: string, color: string, city?: string, state?: string) {
