@@ -446,11 +446,17 @@ export default function ProfileScreen() {
             ? <Image source={{uri:user.coverPhoto}} style={{width:'100%',height:200 + insets.top}} resizeMode="cover"/>
             : <View style={[s.cover, {height: 200 + insets.top}]} />
           }
-          {/* The cover used to stop dead against white, which put a hard line
-              directly behind the avatar. A short fade at its foot gives the
-              photo somewhere to end. */}
+          {/* The cover stopped dead against the page, which put a hard line
+              right behind the avatar.
+
+              This fades to the page colour rather than to black. Darkening the
+              photo's foot and *then* cutting to white puts black next to white
+              — the sharpest edge there is — so it made the seam worse, not
+              softer. Ending in the colour the page continues in is what
+              actually dissolves it. c.card rather than a literal white, so the
+              same fade works in dark mode. */}
           <LinearGradient
-            colors={['transparent', 'rgba(0,0,0,0.35)']}
+            colors={['transparent', c.card]}
             style={s.coverFade}
             pointerEvents="none"
           />
@@ -979,7 +985,7 @@ const makeStyles = (c: ThemeColors) => StyleSheet.create({
   coverWrap:{position:'relative',height:220,marginBottom:50,overflow:'visible'},
   floatingIcons:{position:'absolute',right:12,zIndex:10},
   cover:{width:'100%',height:200,backgroundColor:c.navy},
-  coverFade:{position:'absolute',left:0,right:0,bottom:20,height:90},
+  coverFade:{position:'absolute',left:0,right:0,bottom:20,height:72},
   addCoverBtn:{position:'absolute',bottom:50,left:12,flexDirection:'row',alignItems:'center',gap:5,backgroundColor:'rgba(0,0,0,0.4)',borderRadius:8,paddingHorizontal:10,paddingVertical:5},
   addCoverTxt:{color:'#fff',fontSize:12},
   avatarWrap:{position:'absolute',bottom:-45,left:0,right:0,alignItems:'center'},
