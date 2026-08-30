@@ -85,10 +85,17 @@ export const LIGHT: ThemeColors = {
   white: '#ffffff',
   // Light: the capsule is near-white glass and the selected tab is the one
   // dark shape on the bar, so it reads as pressed into the surface from above.
+  //
+  // The pill is not the app's flat navy. Solid #1a1a2e sat on the glass as a
+  // hard black slab — the one opaque thing on a bar whose whole point is that
+  // light passes through it. Lifting the base a few steps and holding a little
+  // transparency lets the surface behind tint it, so it belongs to the glass
+  // instead of being pasted onto it. It stays far enough down that white text
+  // clears AA over anything the feed puts behind it.
   navSurface: 'rgba(255,255,255,0.70)',
   navSurfaceSolid: '#ffffff',
   navRim: 'rgba(26,26,46,0.08)',
-  navPill: '#1a1a2e',
+  navPill: 'rgba(46,46,68,0.88)',
   navPillRim: 'transparent',
   navOn: '#ffffff',
   navOff: '#666666',
