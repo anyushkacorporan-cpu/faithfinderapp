@@ -983,9 +983,13 @@ const makeStyles = (c: ThemeColors) => StyleSheet.create({
   statChipPrivate:{backgroundColor:c.isDark?'rgba(201,169,110,0.14)':'rgba(201,169,110,0.10)'},
   statChipTxtPrivate:{color:c.gold},
   name:{fontFamily:'PlayfairDisplay_700Bold',fontSize:30,lineHeight:36,letterSpacing:-0.5,color:c.text,marginBottom:2,textAlign:'center'},
-  // Italic serif under the roman serif name - the same voice, quieter, rather
-  // than a sans-serif line that reads as a different system.
-  bio:{fontFamily:'PlayfairDisplay_400Regular_Italic',fontSize:14,lineHeight:21,color:c.textMuted,textAlign:'center',marginTop:2,marginBottom:14,paddingHorizontal:8},
+  // System sans, not the serif italic this started as. Playfair is the app's
+  // display face and nothing else uses it for body copy; setting the bio in it
+  // too put the same voice twice under one another and read as a pull-quote.
+  // Letting the name be the only serif on the screen is what makes it land.
+  // 15/22 with a touch of tracking, in the secondary text colour rather than
+  // the muted one, which at 14px was faint enough to look like placeholder.
+  bio:{fontSize:15,lineHeight:22,letterSpacing:0.1,color:c.textSecondary,textAlign:'center',marginTop:6,marginBottom:16,paddingHorizontal:24},
   connectionsRow:{flexDirection:'row',alignItems:'center',marginBottom:16},
   connectionsNum:{fontSize:15,fontWeight:'700',color:c.text},
   connectionsTxt:{fontSize:15,color:c.textMuted},
