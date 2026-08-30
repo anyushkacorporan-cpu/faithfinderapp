@@ -44,6 +44,20 @@ export type ThemeColors = {
   red: string;
   cream: string;
   white: string;       // literal white, for text/icons on colored fills
+  // Navigation capsule
+  //
+  // The bar gets tokens of its own rather than reusing card/border/text,
+  // because its two themes are designed separately rather than derived from
+  // one another. In light the selected tab is the dark solid; in dark it is
+  // the raised, lighter one — the same idea expressed by opposite means, which
+  // a shared token could not carry.
+  navSurface: string;     // translucent tint painted over the blur (iOS)
+  navSurfaceSolid: string; // opaque fallback where there is no blur
+  navRim: string;         // hairline along the capsule's top edge
+  navPill: string;        // the selected tab's card
+  navPillRim: string;     // that card's own top-edge highlight
+  navOn: string;          // icon + label on the selected pill
+  navOff: string;         // icon + label of an unselected tab
   // Misc
   overlay: string;     // modal scrim
   inputBg: string;     // text input background
@@ -69,6 +83,15 @@ export const LIGHT: ThemeColors = {
   red: '#e74c6f',
   cream: '#faf9f6',
   white: '#ffffff',
+  // Light: the capsule is near-white glass and the selected tab is the one
+  // dark shape on the bar, so it reads as pressed into the surface from above.
+  navSurface: 'rgba(255,255,255,0.70)',
+  navSurfaceSolid: '#ffffff',
+  navRim: 'rgba(26,26,46,0.08)',
+  navPill: '#1a1a2e',
+  navPillRim: 'transparent',
+  navOn: '#ffffff',
+  navOff: '#666666',
   overlay: 'rgba(0,0,0,0.45)',
   inputBg: '#f5f3ef',
 };
@@ -93,6 +116,17 @@ export const DARK: ThemeColors = {
   red: '#f0688a',
   cream: '#1b1b21',
   white: '#ffffff',
+  // Dark: the reverse would be a dark pill on a dark bar, which vanishes. The
+  // selected tab is instead the *raised* one — a lighter surface with a lit top
+  // edge — and the bar itself is a shade off the app background rather than a
+  // lightened card, so it sits in the page instead of hovering as a pale slab.
+  navSurface: 'rgba(30,30,38,0.62)',
+  navSurfaceSolid: '#1b1b21',
+  navRim: 'rgba(255,255,255,0.12)',
+  navPill: '#33333f',
+  navPillRim: 'rgba(255,255,255,0.10)',
+  navOn: '#ffffff',
+  navOff: '#8a8a94',
   overlay: 'rgba(0,0,0,0.65)',
   inputBg: '#26262e',
 };
