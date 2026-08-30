@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity, StyleSheet,
-  TextInput, Modal, KeyboardAvoidingView, Platform, Alert, Image, ActivityIndicator, RefreshControl} from 'react-native';
+  TextInput, Modal, Alert, Image, ActivityIndicator, RefreshControl} from 'react-native';
 import { router } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import { extractFirstUrl, fetchLinkPreview, LinkPreviewData } from '../../src/lib/linkPreview';
@@ -27,7 +27,7 @@ import { hidePost, isHidden, useHidden } from '../../src/lib/hiddenStore';
 import { searchPeople, PersonResult } from '../../src/lib/profilesStore';
 import { addConnection, isConnectedTo } from '../../src/lib/connectionsStore';
 
-import { KEYBOARD_SCROLL_PROPS } from '../../src/components/KeyboardScreen';
+import { KeyboardScreen, KEYBOARD_SCROLL_PROPS } from '../../src/components/KeyboardScreen';
 type Visibility = 'public' | 'connections';
 
 export default function CommunityScreen() {
@@ -294,7 +294,7 @@ export default function CommunityScreen() {
               <Text style={s.postBtnTxt}>{t('post')}</Text>
             </TouchableOpacity>
           </View>
-          <KeyboardAvoidingView style={{flex:1}} behavior={Platform.OS==='ios'?'padding':undefined}>
+          <KeyboardScreen>
             <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{paddingBottom:40}}>
               <View style={s.composeAuthor}>
                 <View style={[s.composeAvatar,{backgroundColor:'#667eea'}]}>
@@ -416,7 +416,7 @@ export default function CommunityScreen() {
                 <Text style={s.composeHintTxt}>{visibility==='public'?'Visible to everyone in Discover':'Visible only to your connections in For You'}</Text>
               </View>
             </ScrollView>
-          </KeyboardAvoidingView>
+          </KeyboardScreen>
         </SafeAreaView>
       </Modal>
 

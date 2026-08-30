@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, TextInput, Modal, Share, KeyboardAvoidingView, Platform, ImageBackground } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, TextInput, Modal, Share, ImageBackground } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -16,7 +16,7 @@ import { useSettings } from '../../src/lib/settingsStore';
 import { useTranslation } from '../../src/lib/i18n';
 import { stateCode, eventStateCode } from '../../src/lib/filters';
 
-import { KEYBOARD_SCROLL_PROPS } from '../../src/components/KeyboardScreen';
+import { KeyboardScreen, KEYBOARD_SCROLL_PROPS } from '../../src/components/KeyboardScreen';
 const TABS = ['List', 'Attending', 'Saved'];
 const GRADIENTS: Record<string,[string,string]> = {
   Conference:['#1a1a2e','#2d2240'],
@@ -478,7 +478,7 @@ export default function EventsScreen() {
             </TouchableOpacity>
           </View>
 
-          <KeyboardAvoidingView style={{flex:1}} behavior={Platform.OS==='ios'?'padding':undefined}>
+          <KeyboardScreen>
             <ScrollView style={s.shareScroll} contentContainerStyle={{paddingBottom:40}} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
               {/* Composer row */}
               <View style={s.composerRow}>
@@ -567,7 +567,7 @@ export default function EventsScreen() {
                 </TouchableOpacity>
               </View>
             </ScrollView>
-          </KeyboardAvoidingView>
+          </KeyboardScreen>
         </SafeAreaView>
       </Modal>
 

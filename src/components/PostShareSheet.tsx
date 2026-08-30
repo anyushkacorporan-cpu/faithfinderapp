@@ -129,7 +129,7 @@ export function PostShareSheet({ post, onClose }: { post: Post | null; onClose: 
 
       <Modal visible={!!post && composing} animationType="slide" presentationStyle="pageSheet" onRequestClose={close}>
         <SafeAreaView style={{flex:1,backgroundColor:c.bg}} edges={['top']}>
-        <KeyboardScreen dismissOnTap={false}>
+        <KeyboardScreen>
           <View style={s.modalHdr}>
             <TouchableOpacity onPress={close}><Text style={s.cancelTxt}>{t('cancel')}</Text></TouchableOpacity>
             <Text style={s.modalTitle}>{t('repost')}</Text>

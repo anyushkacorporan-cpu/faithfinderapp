@@ -2,10 +2,10 @@ import { logActivity } from '../src/lib/activityStore';
 import { useState, useRef } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity, StyleSheet,
-  TextInput, KeyboardAvoidingView, Platform, Alert, Image, Modal} from 'react-native';
+  TextInput, Platform, Alert, Image, Modal} from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useThemeColors, ThemeColors } from '../src/lib/theme';
 import {
   usePosts, addComment, addReply, editComment, deleteComment,
@@ -21,10 +21,11 @@ import { TranslateRow } from '../src/components/PostCard';
 import { CommentAvatar } from '../src/components/CommentAvatar';
 import { useTranslation } from '../src/lib/i18n';
 
-import { KEYBOARD_SCROLL_PROPS } from '../src/components/KeyboardScreen';
+import { KeyboardScreen, KEYBOARD_SCROLL_PROPS } from '../src/components/KeyboardScreen';
 export default function CommentsScreen() {
   const c = useThemeColors();
   const s = makeStyles(c);
+  const insets = useSafeAreaInsets();
   const { t, tx } = useTranslation();
   const { postId } = useLocalSearchParams<{ postId: string }>();
   const allPosts = usePosts();
@@ -118,7 +119,7 @@ export default function CommentsScreen() {
         <View style={{ flex: 1 }} />
       </View>
 
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+      <KeyboardScreen offset={-insets.bottom}>
         <ScrollView
           ref={scrollRef}
           {...KEYBOARD_SCROLL_PROPS}
@@ -252,7 +253,7 @@ export default function CommentsScreen() {
             </TouchableOpacity>
           </View>
         </View>
-      </KeyboardAvoidingView>
+      </KeyboardScreen>
 
       {/* Per-comment actions. What appears depends on who you are: the author
           may edit or delete, the post's author may pin, anyone else may report. */}

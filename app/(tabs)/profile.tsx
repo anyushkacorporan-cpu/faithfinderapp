@@ -744,7 +744,7 @@ function OwnPostActions({ post, onClose }: { post: Post | null; onClose: () => v
 
       <Modal visible={!!editing} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => { setEditing(null); onClose(); }}>
         <SafeAreaView style={{flex:1,backgroundColor:c.bg}} edges={['top']}>
-        <KeyboardScreen dismissOnTap={false}>
+        <KeyboardScreen>
           <View style={{flexDirection:'row',alignItems:'center',justifyContent:'space-between',paddingHorizontal:16,paddingVertical:14,borderBottomWidth:1,borderBottomColor:c.border}}>
             <TouchableOpacity onPress={() => { setEditing(null); onClose(); }}>
               <Text style={{fontSize:15,color:c.textMuted}}>{t('cancel')}</Text>

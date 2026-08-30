@@ -300,7 +300,7 @@ export default function ChurchesScreen() {
 
   return (
     <SafeAreaView style={s.root} edges={['top']}>
-    <KeyboardScreen dismissOnTap={false}>
+    <KeyboardScreen>
       <View style={s.searchSection}>
         {/* The bell and gear ride on the location line rather than a bar of
             their own, so removing the wordmark costs the screen no height. */}

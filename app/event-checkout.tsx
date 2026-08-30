@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import {
   View, Text, TouchableOpacity, StyleSheet,
-  ScrollView, KeyboardAvoidingView, Platform, TextInput
+  ScrollView, TextInput
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -11,6 +11,7 @@ import { useTranslation } from '../src/lib/i18n';
 import { addAttending } from '../src/lib/eventActionsStore';
 import { addTicket } from '../src/lib/ticketStore';
 import { recordTicketSale } from '../src/lib/eventsStore';
+import { KeyboardScreen } from '../src/components/KeyboardScreen';
 
 export default function EventCheckoutScreen() {
   const { t, tx } = useTranslation();
@@ -112,7 +113,7 @@ export default function EventCheckoutScreen() {
         </TouchableOpacity>
       </View>
 
-      <KeyboardAvoidingView style={{flex:1}} behavior={Platform.OS==='ios'?'padding':undefined}>
+      <KeyboardScreen>
         <ScrollView style={s.scroll} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
 
           {/* Ticket Quantity */}
@@ -278,7 +279,7 @@ export default function EventCheckoutScreen() {
 
           <View style={{height:120}} />
         </ScrollView>
-      </KeyboardAvoidingView>
+      </KeyboardScreen>
 
       {/* Bottom bar */}
       <View style={s.footer}>

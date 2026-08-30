@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet, KeyboardAvoidingView, Platform, Modal, TextInput, Image, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Modal, TextInput, Image, Alert } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -9,7 +9,7 @@ import { useTranslation } from '../src/lib/i18n';
 import { useUser, setUser, getUser } from '../src/lib/userStore';
 import { useToast } from '../src/components/Toast';
 
-import { KEYBOARD_SCROLL_PROPS } from '../src/components/KeyboardScreen';
+import { KeyboardScreen, KEYBOARD_SCROLL_PROPS } from '../src/components/KeyboardScreen';
 const DENOMINATIONS = ['Non-Denominational','Catholic','Baptist','Methodist','Lutheran','Presbyterian','Episcopal','Pentecostal','Assemblies of God','Evangelical','Reformed','AME','Other'];
 const DAYS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
 const HOURS = Array.from({length:12},(_,i)=>String(i+1).padStart(2,'0'));
@@ -140,7 +140,7 @@ export default function EditChurchProfileScreen() {
 
   return (
     <SafeAreaView style={s.root} edges={['top']}>
-      <KeyboardAvoidingView style={{flex:1}} behavior={Platform.OS==='ios'?'padding':undefined}>
+      <KeyboardScreen>
         <View style={s.hdr}>
           <TouchableOpacity style={s.backBtn} onPress={() => router.back()}>
             <Ionicons name="arrow-back" size={20} color={c.text} />
@@ -382,7 +382,7 @@ export default function EditChurchProfileScreen() {
 
           <View style={{height:40}} />
         </ScrollView>
-      </KeyboardAvoidingView>
+      </KeyboardScreen>
 
       {picker && (
         <InlinePicker

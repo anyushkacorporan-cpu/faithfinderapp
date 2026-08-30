@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, Alert, Image, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, Alert, Image } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -11,7 +11,7 @@ import { autocompleteCity } from '../src/lib/googlePlaces';
 import { useTranslation } from '../src/lib/i18n';
 import { publishProfile } from '../src/lib/profilesStore';
 
-import { KEYBOARD_SCROLL_PROPS } from '../src/components/KeyboardScreen';
+import { KeyboardScreen, KEYBOARD_SCROLL_PROPS } from '../src/components/KeyboardScreen';
 export default function EditProfileScreen() {
   const c = useThemeColors();
   const s = makeStyles(c);
@@ -134,7 +134,7 @@ export default function EditProfileScreen() {
           <Text style={s.saveBtn}>{t('save')}</Text>
         </TouchableOpacity>
       </View>
-      <KeyboardAvoidingView style={{flex:1}} behavior={Platform.OS==='ios'?'padding':undefined}>
+      <KeyboardScreen>
         <ScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
 
           {/* Photos */}
@@ -308,7 +308,7 @@ export default function EditProfileScreen() {
           </TouchableOpacity>
           <View style={{height:40}} />
         </ScrollView>
-      </KeyboardAvoidingView>
+      </KeyboardScreen>
     </SafeAreaView>
   );
 }

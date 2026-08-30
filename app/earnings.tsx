@@ -51,7 +51,7 @@ export default function EarningsScreen() {
         ))}
       </View>
 
-      <KeyboardScreen dismissOnTap={false}>
+      <KeyboardScreen>
       <ScrollView
             {...KEYBOARD_SCROLL_PROPS} style={s.scroll} showsVerticalScrollIndicator={false}>
 

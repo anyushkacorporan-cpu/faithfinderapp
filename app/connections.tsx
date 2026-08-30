@@ -56,7 +56,7 @@ export default function ConnectionsScreen() {
 
   return (
     <SafeAreaView style={s.root} edges={['top']}>
-      <KeyboardScreen dismissOnTap={false}>
+      <KeyboardScreen>
       <View style={s.header}>
         <TouchableOpacity onPress={() => router.back()} style={s.backBtn}>
           <Ionicons name="chevron-back" size={24} color={c.text} />

@@ -16,7 +16,7 @@ export default function ForgotScreen() {
     router.back();
   }
   return (
-    <KeyboardScreen dismissOnTap={false}>
+    <KeyboardScreen>
     <ScrollView
             {...KEYBOARD_SCROLL_PROPS} contentContainerStyle={s.scroll}>
       <View style={s.logoWrap}>

@@ -137,7 +137,7 @@ export default function ClaimChurchScreen() {
 
   return (
     <SafeAreaView style={s.root} edges={['top']}>
-      <KeyboardScreen dismissOnTap={false}>
+      <KeyboardScreen>
       <ScrollView
             {...KEYBOARD_SCROLL_PROPS} showsVerticalScrollIndicator={false}>
 

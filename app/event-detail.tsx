@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Linking, Share, Alert, Modal, TextInput, KeyboardAvoidingView, Platform, ImageBackground, Image } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Linking, Share, Alert, Modal, TextInput, ImageBackground, Image } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -18,7 +18,7 @@ import { useTranslation } from '../src/lib/i18n';
 
 
 
-import { KEYBOARD_SCROLL_PROPS } from '../src/components/KeyboardScreen';
+import { KeyboardScreen, KEYBOARD_SCROLL_PROPS } from '../src/components/KeyboardScreen';
 export default function EventDetailScreen() {
   const c = useThemeColors();
   const s = makeStyles(c);
@@ -460,7 +460,7 @@ export default function EventDetailScreen() {
               <Text style={{color:'#fff',fontSize:14,fontWeight:'700'}}>{t('share')}</Text>
             </TouchableOpacity>
           </View>
-          <KeyboardAvoidingView style={{flex:1}} behavior={Platform.OS==='ios'?'padding':undefined}>
+          <KeyboardScreen>
             <ScrollView contentContainerStyle={{paddingBottom:40}} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
               <View style={{flexDirection:'row',paddingHorizontal:16,paddingTop:16,paddingBottom:8}}>
                 <View style={{alignItems:'center',marginRight:12}}>
@@ -543,7 +543,7 @@ export default function EventDetailScreen() {
                 </TouchableOpacity>
               </View>
             </ScrollView>
-          </KeyboardAvoidingView>
+          </KeyboardScreen>
         </SafeAreaView>
       </Modal>
 
@@ -574,7 +574,7 @@ export default function EventDetailScreen() {
               <Text style={{color:'#fff',fontSize:14,fontWeight:'700'}}>{t('share')}</Text>
             </TouchableOpacity>
           </View>
-          <KeyboardAvoidingView style={{flex:1}} behavior={Platform.OS==='ios'?'padding':undefined}>
+          <KeyboardScreen>
             <ScrollView contentContainerStyle={{paddingBottom:40}} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
               <View style={{flexDirection:'row',paddingHorizontal:16,paddingTop:16,paddingBottom:8}}>
                 <View style={{alignItems:'center',marginRight:12}}>
@@ -657,7 +657,7 @@ export default function EventDetailScreen() {
                 </TouchableOpacity>
               </View>
             </ScrollView>
-          </KeyboardAvoidingView>
+          </KeyboardScreen>
         </SafeAreaView>
       </Modal>
 

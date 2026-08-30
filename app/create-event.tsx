@@ -1,7 +1,7 @@
 import { useState, useCallback, useRef } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet,
-  Switch, Alert, Image, KeyboardAvoidingView, Platform, Modal
+  Switch, Alert, Image, Platform, Modal
 } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -15,7 +15,7 @@ import { getUser } from '../src/lib/userStore';
 import { useTranslation } from '../src/lib/i18n';
 import { suggestAddresses, resolveAddress, newSessionToken, AddressSuggestion } from '../src/lib/addressAutocomplete';
 
-import { KEYBOARD_SCROLL_PROPS } from '../src/components/KeyboardScreen';
+import { KeyboardScreen, KEYBOARD_SCROLL_PROPS } from '../src/components/KeyboardScreen';
 const EVENT_TYPES = ['Conference','Festival','Workshop','Revival','Service','Concert','Retreat','Other'];
 const SPEAKER_COLORS = ['#667eea','#f093fb','#4facfe','#43e97b','#fa709a','#c9a96e'];
 const RECURRENCE_OPTIONS = [
@@ -332,7 +332,7 @@ export default function CreateEventScreen() {
         <View style={[s.progressFill,{width:`${(step+1)/STEPS.length*100}%`}]}/>
       </View>
 
-      <KeyboardAvoidingView style={{flex:1}} behavior={Platform.OS==='ios'?'padding':undefined}>
+      <KeyboardScreen>
         <ScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
 
           {/* ── STEP 0: Basics ── */}
@@ -722,7 +722,7 @@ export default function CreateEventScreen() {
           </View>
           <View style={{height:40}}/>
         </ScrollView>
-      </KeyboardAvoidingView>
+      </KeyboardScreen>
 
       {/* Date/Time Picker Modal */}
       <Modal visible={showPicker} transparent animationType="slide">

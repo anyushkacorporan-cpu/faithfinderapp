@@ -528,7 +528,7 @@ export default function ChurchDetailScreen() {
       {/* Share Composer Modal */}
       <Modal visible={showShareComposer} animationType="slide" presentationStyle="pageSheet">
         <SafeAreaView style={s.modalRoot} edges={['top']}>
-        <KeyboardScreen dismissOnTap={false}>
+        <KeyboardScreen>
           {/* Header */}
           <View style={s.shareHdr}>
             <TouchableOpacity style={s.shareCancelBtn} onPress={() => { setShowShareComposer(false); setShareMessage(''); }}>

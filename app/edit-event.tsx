@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { useTranslation } from '../src/lib/i18n';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, KeyboardAvoidingView, Platform, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useThemeColors, ThemeColors } from '../src/lib/theme';
 import { getEvents, updateEvent } from '../src/lib/eventsStore';
+import { KeyboardScreen } from '../src/components/KeyboardScreen';
 
 export default function EditEventScreen() {
   const { t, tx } = useTranslation();
@@ -74,7 +75,7 @@ export default function EditEventScreen() {
           <Text style={s.saveTxt}>{t('save')}</Text>
         </TouchableOpacity>
       </View>
-      <KeyboardAvoidingView style={{flex:1}} behavior={Platform.OS==='ios'?'padding':undefined}>
+      <KeyboardScreen>
         <ScrollView contentContainerStyle={s.scroll} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
           <View style={s.fieldWrap}>
             <Text style={s.label}>{t('title')}</Text>
@@ -125,7 +126,7 @@ export default function EditEventScreen() {
           </TouchableOpacity>
           <View style={{height:40}} />
         </ScrollView>
-      </KeyboardAvoidingView>
+      </KeyboardScreen>
     </SafeAreaView>
   );
 }
