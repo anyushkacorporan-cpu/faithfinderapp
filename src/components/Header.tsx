@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { BlurView } from 'expo-blur';
 import { router } from 'expo-router';
 import { useThemeColors, ThemeColors } from '../lib/theme';
 import { useUnreadCount } from '../lib/notificationsStore';
@@ -26,13 +27,15 @@ export function HeaderIcons({ compact = false, overlay = false }: { compact?: bo
   return (
     <>
       <View style={s.icons}>
-        <TouchableOpacity style={[s.iconBtn, compact && s.iconBtnCompact, overlay && s.iconBtnOverlay]} onPress={() => router.push('/notifications')}>
+        <TouchableOpacity style={[s.iconBtn, compact && s.iconBtnCompact, overlay && s.iconBtnOverlay]} activeOpacity={0.7} onPress={() => router.push('/notifications')}>
+          {overlay && <BlurView intensity={26} tint="dark" style={[StyleSheet.absoluteFill, s.overlayBlur]} />}
           <Ionicons name="notifications-outline" size={compact ? 19 : 22} color={overlay ? '#fff' : c.text} />
           {unread > 0 && (
             <View style={s.badge}><Text style={s.badgeTxt}>{unread > 9 ? '9+' : unread}</Text></View>
           )}
         </TouchableOpacity>
-        <TouchableOpacity style={[s.iconBtn, compact && s.iconBtnCompact, overlay && s.iconBtnOverlay]} onPress={() => router.push('/settings')}>
+        <TouchableOpacity style={[s.iconBtn, compact && s.iconBtnCompact, overlay && s.iconBtnOverlay]} activeOpacity={0.7} onPress={() => router.push('/settings')}>
+          {overlay && <BlurView intensity={26} tint="dark" style={[StyleSheet.absoluteFill, s.overlayBlur]} />}
           <Ionicons name="settings-outline" size={compact ? 19 : 22} color={overlay ? '#fff' : c.text} />
         </TouchableOpacity>
       </View>
@@ -70,7 +73,8 @@ const makeStyles = (c: ThemeColors) => StyleSheet.create({
   icons:{flexDirection:'row',gap:6},
   iconBtn:{width:38,height:38,borderRadius:12,backgroundColor:c.cardAlt,alignItems:'center',justifyContent:'center',position:'relative'},
   iconBtnCompact:{width:32,height:32,borderRadius:10},
-  iconBtnOverlay:{backgroundColor:'rgba(0,0,0,0.42)',borderRadius:19},
+  iconBtnOverlay:{backgroundColor:'rgba(255,255,255,0.20)',borderRadius:19,borderWidth:StyleSheet.hairlineWidth,borderColor:'rgba(255,255,255,0.35)'},
+  overlayBlur:{borderRadius:19,overflow:'hidden'},
   badge:{position:'absolute',top:-5,right:-5,minWidth:20,height:20,borderRadius:10,backgroundColor:c.red,alignItems:'center',justifyContent:'center',paddingHorizontal:5,borderWidth:2,borderColor:c.card},
   // 9px in an 18px circle read as a plain red dot - the number was there and
   // nobody could see it. Big enough to actually count at a glance.

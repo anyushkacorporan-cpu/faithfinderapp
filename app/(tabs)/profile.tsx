@@ -446,6 +446,14 @@ export default function ProfileScreen() {
             ? <Image source={{uri:user.coverPhoto}} style={{width:'100%',height:200 + insets.top}} resizeMode="cover"/>
             : <View style={[s.cover, {height: 200 + insets.top}]} />
           }
+          {/* The cover used to stop dead against white, which put a hard line
+              directly behind the avatar. A short fade at its foot gives the
+              photo somewhere to end. */}
+          <LinearGradient
+            colors={['transparent', 'rgba(0,0,0,0.35)']}
+            style={s.coverFade}
+            pointerEvents="none"
+          />
           <TouchableOpacity style={s.addCoverBtn} onPress={async () => {
             const {status} = await ImagePicker.requestMediaLibraryPermissionsAsync();
             if (status !== 'granted') return;
@@ -456,7 +464,7 @@ export default function ProfileScreen() {
             <Text style={s.addCoverTxt}>{user.coverPhoto ? 'Change cover' : 'Add cover'}</Text>
           </TouchableOpacity>
           <View style={s.avatarWrap}>
-            <TouchableOpacity style={{width:90,height:90}} onPress={async () => {
+            <TouchableOpacity style={{width:90,height:90}} activeOpacity={0.7} onPress={async () => {
               const {status} = await ImagePicker.requestMediaLibraryPermissionsAsync();
               if (status !== 'granted') return;
               const result = await ImagePicker.launchImageLibraryAsync({mediaTypes:['images'],allowsEditing:true,aspect:[1,1],quality:0.8});
@@ -477,30 +485,27 @@ export default function ProfileScreen() {
         <View style={s.personalInfo}>
           <Text style={s.name}>{user.firstName || 'Annie'} {user.lastName || 'Johnson'}</Text>
           {!!user.bio && (
-            <Text style={{fontSize:14,color:c.textSecondary,textAlign:'center',lineHeight:20,marginTop:4,marginBottom:14,paddingHorizontal:8}}>{user.bio}</Text>
+            <Text style={s.bio}>{user.bio}</Text>
           )}
-          <View style={{flexDirection:'row',alignItems:'center',gap:16,marginBottom:14}}>
-            <TouchableOpacity style={{flexDirection:'row',alignItems:'center',gap:5}} onPress={() => router.push('/connections')}>
-              <Ionicons name="people-outline" size={14} color={c.textMuted} />
-              <Text style={{fontSize:13,color:c.textMuted}}>{connectionCount}</Text>
+          {/* Chips rather than a run of text separated by hairlines. Each
+              fact gets its own shape, which is what lets the connection count
+              read as tappable - as an inline number it did not. */}
+          <View style={s.statChipRow}>
+            <TouchableOpacity style={s.statChip} activeOpacity={0.7} onPress={() => router.push('/connections')}>
+              <Ionicons name="people-outline" size={14} color={c.textSecondary} />
+              <Text style={s.statChipTxt}>{connectionCount}</Text>
             </TouchableOpacity>
             {appSettings.privacy.showLocation && !!user.location && (
-              <>
-                <View style={{width:1,height:12,backgroundColor:c.border}} />
-                <View style={{flexDirection:'row',alignItems:'center',gap:4}}>
-                  <Ionicons name="location-outline" size={14} color={c.textMuted} />
-                  <Text style={{fontSize:13,color:c.textMuted}}>{user.location.split(',').slice(0,2).join(',').trim()}</Text>
-                </View>
-              </>
+              <View style={s.statChip}>
+                <Ionicons name="location-outline" size={14} color={c.textSecondary} />
+                <Text style={s.statChipTxt}>{user.location.split(',').slice(0,2).join(',').trim()}</Text>
+              </View>
             )}
             {!appSettings.privacy.publicProfile && (
-              <>
-                <View style={{width:1,height:12,backgroundColor:c.border}} />
-                <View style={{flexDirection:'row',alignItems:'center',gap:4}}>
-                  <Ionicons name="lock-closed" size={13} color={c.gold} />
-                  <Text style={{fontSize:13,color:c.gold,fontWeight:'600'}}>{tx('Private')}</Text>
-                </View>
-              </>
+              <View style={[s.statChip, s.statChipPrivate]}>
+                <Ionicons name="lock-closed" size={13} color={c.gold} />
+                <Text style={[s.statChipTxt, s.statChipTxtPrivate]}>{tx('Private')}</Text>
+              </View>
             )}
           </View>
           {user.ministries && user.ministries.length > 0 && (
@@ -510,7 +515,7 @@ export default function ProfileScreen() {
               ))}
             </View>
           )}
-          <TouchableOpacity style={s.editBtn} onPress={() => router.push('/edit-profile')}>
+          <TouchableOpacity style={s.editBtn} activeOpacity={0.7} onPress={() => router.push('/edit-profile')}>
             <Ionicons name="pencil-outline" size={16} color={c.text}/>
             <Text style={s.editTxt}>{t('editProfile')}</Text>
           </TouchableOpacity>
@@ -550,9 +555,12 @@ export default function ProfileScreen() {
             <View style={s.divider} />
             <View style={s.section}>
               <View style={s.sectionHdr}>
-                <View style={{flexDirection:'row',alignItems:'center'}}>
-                  <Ionicons name="images-outline" size={16} color={c.text} style={{marginRight:6}} />
-                  <Text style={s.sectionTitle}>{t('faithGallery')}</Text>
+                <View>
+                  <View style={{flexDirection:'row',alignItems:'center'}}>
+                    <Ionicons name="images-outline" size={16} color={c.text} style={{marginRight:6}} />
+                    <Text style={s.sectionTitle}>{t('faithGallery')}</Text>
+                  </View>
+                  <View style={s.titleRule} />
                 </View>
               </View>
               <View style={{flexDirection:'row',flexWrap:'wrap',gap:6}}>
@@ -560,8 +568,13 @@ export default function ProfileScreen() {
                   const thumbSize = (Dimensions.get('window').width - 32 - 6 * 3) / 4;
                   const fullIndex = galleryPhotos.indexOf(uri);
                   return (
-                    <TouchableOpacity key={uri} onPress={() => { setPhotoViewerIndex(fullIndex); setPhotoViewerVisible(true); }} activeOpacity={0.85}>
-                      <Image source={{uri}} style={{width:thumbSize,height:thumbSize,borderRadius:8,backgroundColor:c.cardAlt}} resizeMode="cover" />
+                    <TouchableOpacity
+                      key={uri}
+                      onPress={() => { setPhotoViewerIndex(fullIndex); setPhotoViewerVisible(true); }}
+                      activeOpacity={0.7}
+                      style={s.thumbLift}
+                    >
+                      <Image source={{uri}} style={[s.thumb, {width:thumbSize,height:thumbSize}]} resizeMode="cover" />
                     </TouchableOpacity>
                   );
                 })}
@@ -640,7 +653,10 @@ export default function ProfileScreen() {
         <View style={s.divider} />
         <View style={s.section}>
           <View style={s.sectionHdr}>
-            <Text style={s.sectionTitle}>{t('posts')}</Text>
+            <View>
+              <Text style={s.sectionTitle}>{t('posts')}</Text>
+              <View style={s.titleRule} />
+            </View>
           </View>
         </View>
         {(
@@ -911,8 +927,13 @@ const makeStyles = (c: ThemeColors) => StyleSheet.create({
   divider:{height:1,backgroundColor:c.border,marginHorizontal:16,marginVertical:16},
   // Section
   section:{paddingHorizontal:16,marginBottom:4},
+  // The lift sits on the wrapper, not the Image: a view that clips its content
+  // to a radius cannot also cast a shadow.
+  thumbLift:{borderRadius:18,backgroundColor:c.card,shadowColor:c.navy,shadowOffset:{width:0,height:3},shadowOpacity:0.15,shadowRadius:9,elevation:3},
+  thumb:{borderRadius:18,backgroundColor:c.cardAlt},
   sectionHdr:{flexDirection:'row',justifyContent:'space-between',alignItems:'center',marginBottom:14},
   sectionTitle:{fontSize:17,fontWeight:'700',color:c.text},
+  titleRule:{width:24,height:2,borderRadius:1,backgroundColor:c.gold,marginTop:5},
   sectionSub:{fontSize:12,color:c.textMuted},
   editLink:{fontSize:13,color:c.gold,fontWeight:'700'},
   // Info card
@@ -958,13 +979,22 @@ const makeStyles = (c: ThemeColors) => StyleSheet.create({
   coverWrap:{position:'relative',height:220,marginBottom:50,overflow:'visible'},
   floatingIcons:{position:'absolute',right:12,zIndex:10},
   cover:{width:'100%',height:200,backgroundColor:c.navy},
+  coverFade:{position:'absolute',left:0,right:0,bottom:20,height:90},
   addCoverBtn:{position:'absolute',bottom:50,left:12,flexDirection:'row',alignItems:'center',gap:5,backgroundColor:'rgba(0,0,0,0.4)',borderRadius:8,paddingHorizontal:10,paddingVertical:5},
   addCoverTxt:{color:'#fff',fontSize:12},
   avatarWrap:{position:'absolute',bottom:-45,left:0,right:0,alignItems:'center'},
-  avatar:{width:90,height:90,borderRadius:45,backgroundColor:c.navy,borderWidth:3,borderColor:c.card,alignItems:'center',justifyContent:'center',shadowColor:'#000',shadowOffset:{width:0,height:2},shadowOpacity:0.15,shadowRadius:6},
+  avatar:{width:90,height:90,borderRadius:45,backgroundColor:c.navy,borderWidth:3,borderColor:c.card,alignItems:'center',justifyContent:'center',shadowColor:c.navy,shadowOffset:{width:0,height:4},shadowOpacity:0.15,shadowRadius:12,elevation:6},
   avatarTxt:{color:'#fff',fontSize:32,fontWeight:'700'},
   personalInfo:{paddingHorizontal:16,alignItems:'center',paddingBottom:16},
-  name:{fontFamily:'PlayfairDisplay_700Bold',fontSize:22,color:c.text,marginBottom:4},
+  statChipRow:{flexDirection:'row',alignItems:'center',justifyContent:'center',flexWrap:'wrap',gap:8,marginBottom:16},
+  statChip:{flexDirection:'row',alignItems:'center',gap:6,backgroundColor:c.cardAlt,borderRadius:20,paddingHorizontal:12,paddingVertical:7},
+  statChipTxt:{fontSize:13,color:c.textSecondary,fontWeight:'600'},
+  statChipPrivate:{backgroundColor:c.isDark?'rgba(201,169,110,0.14)':'rgba(201,169,110,0.10)'},
+  statChipTxtPrivate:{color:c.gold},
+  name:{fontFamily:'PlayfairDisplay_700Bold',fontSize:30,lineHeight:36,letterSpacing:-0.5,color:c.text,marginBottom:2,textAlign:'center'},
+  // Italic serif under the roman serif name - the same voice, quieter, rather
+  // than a sans-serif line that reads as a different system.
+  bio:{fontFamily:'PlayfairDisplay_400Regular_Italic',fontSize:14,lineHeight:21,color:c.textMuted,textAlign:'center',marginTop:2,marginBottom:14,paddingHorizontal:8},
   connectionsRow:{flexDirection:'row',alignItems:'center',marginBottom:16},
   connectionsNum:{fontSize:15,fontWeight:'700',color:c.text},
   connectionsTxt:{fontSize:15,color:c.textMuted},
