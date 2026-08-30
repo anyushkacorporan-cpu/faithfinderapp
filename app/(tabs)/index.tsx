@@ -11,7 +11,7 @@ import { getCachedPhotoRef, setCachedPhotoRef, getCachedNearby, setCachedNearby,
 import { useThemeColors, ThemeColors } from '../../src/lib/theme';
 import { TAB_BAR_CLEARANCE } from '../../src/lib/tabBar';
 import { useSavedChurches, toggleSavedChurch } from '../../src/lib/store';
-import { DENOMINATIONS, STATES } from '../../src/lib/filters';
+import { DENOMINATIONS, US_STATES, CA_PROVINCES, COUNTRY_NAME, regionLabel, Region } from '../../src/lib/filters';
 import { useSettings } from '../../src/lib/settingsStore';
 import { useTranslation } from '../../src/lib/i18n';
 
@@ -74,14 +74,19 @@ async function searchNearby(lat: number, lng: number): Promise<any[] | null> {
   } catch { return null; }
 }
 
-async function searchByState(stateCode: string) {
+// Searched by full name and country, not by code. "church ON" returns very
+// little; "church in Ontario, Canada" returns Ontario churches. The bare code
+// only ever half-worked for the US because Google could guess from the key's
+// own region.
+async function searchByRegion(region: Region) {
   try {
-    const res = await fetch(`https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent('church ' + stateCode)}&type=church&key=${KEY}`);
+    const q = `church in ${region.name}, ${COUNTRY_NAME[region.country]}`;
+    const res = await fetch(`https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(q)}&type=church&key=${KEY}`);
     const data = await res.json();
     return (data.results || []).slice(0, 20).map((p: any, i: number) => ({
       id: `st${i}_${p.place_id}`, name: p.name, address: p.formatted_address || '',
       phone: '', type: 'Church', rating: p.rating || 0, count: p.user_ratings_total || 0,
-      hours: '', website: '', placeId: p.place_id, gradient: ['#667eea','#764ba2'] as [string,string], state: stateCode,
+      hours: '', website: '', placeId: p.place_id, gradient: ['#667eea','#764ba2'] as [string,string], state: region.code,
     }));
   } catch { return []; }
 }
@@ -94,9 +99,9 @@ export default function ChurchesScreen() {
   const [search, setSearch] = useState('');
   const [activeTab, setActiveTab] = useState('List');
   const [filterVisible, setFilterVisible] = useState(false);
-  const [filterSection, setFilterSection] = useState<'denom'|'state'>('denom');
+  const [filterSection, setFilterSection] = useState<'denom'|'region'>('denom');
   const [activeDenom, setActiveDenom] = useState('All');
-  const [activeState, setActiveState] = useState('All States');
+  const [activeRegion, setActiveRegion] = useState<Region | null>(null);
   const [photoRefs, setPhotoRefs] = useState<Record<string,string>>({});
   const [searchResults, setSearchResults] = useState<any[]|null>(null);
   const [searching, setSearching] = useState(false);
@@ -109,8 +114,8 @@ export default function ChurchesScreen() {
   const { saved } = useSavedChurches();
   const timer = useRef<any>(null);
 
-  const hasActiveFilter = activeDenom !== 'All' || activeState !== 'All States';
-  const activeFilterCount = (activeDenom !== 'All' ? 1 : 0) + (activeState !== 'All States' ? 1 : 0);
+  const hasActiveFilter = activeDenom !== 'All' || !!activeRegion;
+  const activeFilterCount = (activeDenom !== 'All' ? 1 : 0) + (activeRegion ? 1 : 0);
 
   // Photos for the built-in list. This used to fetch ten Place Details on
   // every single mount - including the usual case, where nearby results
@@ -196,10 +201,9 @@ export default function ChurchesScreen() {
 
   async function applyFilters() {
     setFilterVisible(false);
-    if (activeState !== 'All States') {
-      const stateCode = activeState.split(' - ')[0];
+    if (activeRegion) {
       setSearching(true);
-      const results = await searchByState(stateCode);
+      const results = await searchByRegion(activeRegion);
       setSearchResults(results);
       const refs: Record<string,string> = {};
       for (const c of results.slice(0,8)) {
@@ -213,7 +217,7 @@ export default function ChurchesScreen() {
 
   function resetFilters() {
     setActiveDenom('All');
-    setActiveState('All States');
+    setActiveRegion(null);
     setSearchResults(null);
     setFilterVisible(false);
   }
@@ -309,7 +313,7 @@ export default function ChurchesScreen() {
             <Ionicons name="search-outline" size={18} color={c.gold} />
             <TextInput
               style={s.searchInput}
-              placeholder={tx('Search city, state, zip, denomination...')}
+              placeholder={tx('Search city, state or province, denomination...')}
               placeholderTextColor={c.placeholder}
               value={search}
               onChangeText={setSearch}
@@ -345,7 +349,7 @@ export default function ChurchesScreen() {
         <View style={s.sectionHdr}>
           <View style={s.greenPin}><Ionicons name="location" size={14} color={c.green} /></View>
           <Text style={s.sectionTitle}>
-            {activeTab === 'Saved' ? t('savedChurches') : searchResults !== null ? `${t('resultsFor')} "${search || activeState}"` : nearbyChurches !== null ? t('nearbyChurches') : t('allChurches')}
+            {activeTab === 'Saved' ? t('savedChurches') : searchResults !== null ? `${t('resultsFor')} "${search || activeRegion?.name || ''}"` : nearbyChurches !== null ? t('nearbyChurches') : t('allChurches')}
           </Text>
           <Text style={s.sectionSub}>{displayed.length} found</Text>
         </View>
@@ -371,12 +375,12 @@ export default function ChurchesScreen() {
           </View>
         )}
 
-        {hasActiveFilter && activeState !== 'All States' && (
+        {hasActiveFilter && !!activeRegion && (
           <View style={s.activeFilterBar}>
             <Ionicons name="filter" size={14} color={c.gold} />
             <Text style={s.activeFilterTxt}>
-              {activeState !== 'All States' ? activeState.split(' - ')[1] : ''}
-              {activeDenom !== 'All' ? (activeState !== 'All States' ? ' · ' : '') + activeDenom : ''}
+              {activeRegion.name}
+              {activeDenom !== 'All' ? ' · ' + activeDenom : ''}
             </Text>
             <TouchableOpacity onPress={resetFilters}>
               <Ionicons name="close-circle" size={16} color={c.gold} />
@@ -415,9 +419,9 @@ export default function ChurchesScreen() {
                 Denomination{activeDenom !== 'All' ? ' ✓' : ''}
               </Text>
             </TouchableOpacity>
-            <TouchableOpacity style={[s.sectionTab, filterSection==='state' && s.sectionTabActive]} onPress={() => setFilterSection('state')}>
-              <Text style={[s.sectionTabTxt, filterSection==='state' && s.sectionTabTxtActive]}>
-                State{activeState !== 'All States' ? ' ✓' : ''}
+            <TouchableOpacity style={[s.sectionTab, filterSection==='region' && s.sectionTabActive]} onPress={() => setFilterSection('region')}>
+              <Text style={[s.sectionTabTxt, filterSection==='region' && s.sectionTabTxtActive]}>
+                State / Province{activeRegion ? ' ✓' : ''}
               </Text>
             </TouchableOpacity>
           </View>
@@ -434,11 +438,31 @@ export default function ChurchesScreen() {
             </ScrollView>
           ) : (
             <ScrollView style={s.filterScroll} showsVerticalScrollIndicator={false}>
-              {STATES.map(state => (
-                <TouchableOpacity key={state} style={[s.stateRow, activeState===state && s.stateRowActive]} onPress={() => setActiveState(state)}>
-                  <Text style={[s.stateTxt, activeState===state && s.stateTxtActive]}>{state}</Text>
-                  {activeState===state && <Ionicons name="checkmark" size={18} color={c.gold} />}
-                </TouchableOpacity>
+              <TouchableOpacity style={[s.stateRow, !activeRegion && s.stateRowActive]} onPress={() => setActiveRegion(null)}>
+                <Text style={[s.stateTxt, !activeRegion && s.stateTxtActive]}>All Regions</Text>
+                {!activeRegion && <Ionicons name="checkmark" size={18} color={c.gold} />}
+              </TouchableOpacity>
+              {/* Grouped by country and left in each country's own order rather
+                  than merged alphabetically, where "AB - Alberta" would land
+                  above Alabama and read as a typo. */}
+              {([['United States', US_STATES], ['Canada', CA_PROVINCES]] as const).map(([country, list]) => (
+                <View key={country}>
+                  <Text style={s.regionHeader}>{country}</Text>
+                  {list.map(r => (
+                    <TouchableOpacity
+                      key={r.country + r.code}
+                      style={[s.stateRow, activeRegion?.code===r.code && activeRegion?.country===r.country && s.stateRowActive]}
+                      onPress={() => setActiveRegion(r)}
+                    >
+                      <Text style={[s.stateTxt, activeRegion?.code===r.code && activeRegion?.country===r.country && s.stateTxtActive]}>
+                        {regionLabel(r)}
+                      </Text>
+                      {activeRegion?.code===r.code && activeRegion?.country===r.country && (
+                        <Ionicons name="checkmark" size={18} color={c.gold} />
+                      )}
+                    </TouchableOpacity>
+                  ))}
+                </View>
               ))}
             </ScrollView>
           )}
@@ -518,6 +542,7 @@ const makeStyles = (c: ThemeColors) => StyleSheet.create({
   denomTxtActive:{color:c.onPrimary},
   stateRow:{flexDirection:'row',justifyContent:'space-between',alignItems:'center',paddingVertical:13,borderBottomWidth:1,borderBottomColor:c.rowBorder},
   stateRowActive:{backgroundColor:'rgba(201,169,110,0.10)'},
+  regionHeader:{fontSize:11,fontWeight:'700',letterSpacing:0.8,textTransform:'uppercase',color:c.textMuted,paddingTop:16,paddingBottom:7},
   stateTxt:{fontSize:15,color:c.textSecondary},
   stateTxtActive:{color:c.text,fontWeight:'700'},
   applyBtn:{backgroundColor:c.primary,borderRadius:100,paddingVertical:16,alignItems:'center',marginTop:16},

@@ -53,7 +53,7 @@ export default function EventCheckoutScreen() {
   }
 
   const cardComplete = cardNumber.replace(/\s/g,'').length === 16 &&
-    expiry.length === 5 && cvv.length >= 3 && zip.length >= 5;
+    expiry.length === 5 && cvv.length >= 3 && zip.replace(/\s/g, '').length >= 5;
 
   async function handlePay() {
     if (!email.trim() || !email.includes('@')) {
@@ -241,8 +241,8 @@ export default function EventCheckoutScreen() {
                       <TextInput style={s.cardInputSingle} placeholder="123" placeholderTextColor={c.placeholder} keyboardType="numeric" secureTextEntry value={cvv} onChangeText={t=>setCvv(t.replace(/\D/g,'').slice(0,4))} maxLength={4}/>
                     </View>
                     <View style={[s.cardFieldRow,{flex:1}]}>
-                      <Text style={s.cardFieldLabel}>ZIP</Text>
-                      <TextInput style={s.cardInputSingle} placeholder="10001" placeholderTextColor={c.placeholder} keyboardType="numeric" value={zip} onChangeText={t=>setZip(t.replace(/\D/g,'').slice(0,5))} maxLength={5}/>
+                      <Text style={s.cardFieldLabel}>ZIP / POSTAL</Text>
+                      <TextInput style={s.cardInputSingle} placeholder="10001" placeholderTextColor={c.placeholder} autoCapitalize="characters" value={zip} onChangeText={t=>setZip(t.replace(/[^A-Za-z0-9 ]/g,'').slice(0,7))} maxLength={7}/>
                     </View>
                   </View>
                   <View style={s.saveCardRow}>

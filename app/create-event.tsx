@@ -554,13 +554,13 @@ export default function CreateEventScreen() {
                       </LField>
                     </View>
                     <View style={{flex:1}}>
-                      <LField label="State">
-                        <TextInput style={s.input} placeholder="NY" placeholderTextColor={c.placeholder} value={stateName} onChangeText={setStateName}/>
+                      <LField label="State / Prov">
+                        <TextInput style={s.input} placeholder="NY" placeholderTextColor={c.placeholder} value={stateName} onChangeText={setStateName} autoCapitalize="characters"/>
                       </LField>
                     </View>
                     <View style={{flex:1}}>
-                      <LField label="Zip">
-                        <TextInput style={s.input} placeholder="10001" placeholderTextColor={c.placeholder} value={zip} onChangeText={setZip} keyboardType="number-pad"/>
+                      <LField label="Postal">
+                        <TextInput style={s.input} placeholder="10001" placeholderTextColor={c.placeholder} value={zip} onChangeText={setZip} autoCapitalize="characters"/>
                       </LField>
                     </View>
                   </View>

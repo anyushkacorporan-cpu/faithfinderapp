@@ -47,7 +47,7 @@ export async function suggestAddresses(query: string, sessionToken: string): Pro
   try {
     const url = 'https://maps.googleapis.com/maps/api/place/autocomplete/json'
       + `?input=${encodeURIComponent(q)}`
-      + '&types=address&components=country:us'
+      + '&types=address&components=country:us|country:ca'
       + `&sessiontoken=${sessionToken}&key=${KEY}`;
     const res = await fetch(url);
     const data = await res.json();
