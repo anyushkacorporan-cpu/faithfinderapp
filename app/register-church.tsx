@@ -8,6 +8,7 @@ import { COLORS } from '../src/lib/constants';
 import { useTranslation } from '../src/lib/i18n';
 import { setUser } from '../src/lib/userStore';
 
+import { KEYBOARD_SCROLL_PROPS } from '../src/components/KeyboardScreen';
 const DENOMINATIONS = ['Non-Denominational','Catholic','Baptist','Methodist','Lutheran','Presbyterian','Episcopal','Pentecostal','Assemblies of God','Evangelical','Reformed','AME','Other'];
 
 export default function RegisterChurchScreen() {
@@ -100,7 +101,8 @@ export default function RegisterChurchScreen() {
   return (
     <SafeAreaView style={s.root} edges={['top']}>
       <KeyboardAvoidingView style={{flex:1}} behavior={Platform.OS==='ios'?'padding':undefined}>
-        <ScrollView showsVerticalScrollIndicator={false}>
+        <ScrollView
+            {...KEYBOARD_SCROLL_PROPS} showsVerticalScrollIndicator={false}>
           <View style={s.hdr}>
             <TouchableOpacity style={s.backBtn} onPress={() => router.back()}>
               <Ionicons name="arrow-back" size={20} color={COLORS.navy} />

@@ -7,6 +7,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useThemeColors, ThemeColors } from '../src/lib/theme';
 import { useTranslation } from '../src/lib/i18n';
 import { useUserEvents, getEarnings } from '../src/lib/eventsStore';
+import { KeyboardScreen, KEYBOARD_SCROLL_PROPS } from '../src/components/KeyboardScreen';
 
 function formatCurrency(n: number): string {
   return '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -50,7 +51,9 @@ export default function EarningsScreen() {
         ))}
       </View>
 
-      <ScrollView style={s.scroll} showsVerticalScrollIndicator={false}>
+      <KeyboardScreen dismissOnTap={false}>
+      <ScrollView
+            {...KEYBOARD_SCROLL_PROPS} style={s.scroll} showsVerticalScrollIndicator={false}>
 
         {activeTab === 'Overview' && (
           <>
@@ -211,6 +214,7 @@ export default function EarningsScreen() {
 
         <View style={{height:30}} />
       </ScrollView>
+      </KeyboardScreen>
     </SafeAreaView>
   );
 }

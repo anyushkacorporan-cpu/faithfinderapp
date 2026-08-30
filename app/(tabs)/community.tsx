@@ -27,6 +27,7 @@ import { hidePost, isHidden, useHidden } from '../../src/lib/hiddenStore';
 import { searchPeople, PersonResult } from '../../src/lib/profilesStore';
 import { addConnection, isConnectedTo } from '../../src/lib/connectionsStore';
 
+import { KEYBOARD_SCROLL_PROPS } from '../../src/components/KeyboardScreen';
 type Visibility = 'public' | 'connections';
 
 export default function CommunityScreen() {
@@ -256,7 +257,8 @@ export default function CommunityScreen() {
         </View>
       )}
 
-      <ScrollView style={s.scroll} showsVerticalScrollIndicator={false} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={c.gold} colors={[c.gold]} />}>
+      <ScrollView
+            {...KEYBOARD_SCROLL_PROPS} style={s.scroll} showsVerticalScrollIndicator={false} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={c.gold} colors={[c.gold]} />}>
         {posts.length === 0 && activeTab === 'foryou' && (
           <View style={s.emptyFeed}>
             <Ionicons name="people-outline" size={48} color={c.placeholder} />

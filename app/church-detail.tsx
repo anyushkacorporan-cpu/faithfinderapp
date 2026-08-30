@@ -19,6 +19,7 @@ import { useChurchPosts, toggleLike, addComment } from '../src/lib/postsStore';
 import { useSettings } from '../src/lib/settingsStore';
 import { useTranslation } from '../src/lib/i18n';
 
+import { KeyboardScreen, KEYBOARD_SCROLL_PROPS } from '../src/components/KeyboardScreen';
 const KEY = 'AIzaSyAHZO8wyxyCmx0k8u059QSX7QpsEvZ82sU';
 const { width: W } = Dimensions.get('window');
 const MY_ID = 'current_user';
@@ -243,7 +244,8 @@ export default function ChurchDetailScreen() {
   return (
     <SafeAreaView style={s.root} edges={['top']}>
       <Header />
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView
+            {...KEYBOARD_SCROLL_PROPS} showsVerticalScrollIndicator={false}>
 
         {/* Photo Gallery */}
         {loading ? (
@@ -255,6 +257,7 @@ export default function ChurchDetailScreen() {
         ) : church.photos.length > 0 ? (
           <View style={s.galleryWrap}>
             <FlatList
+            {...KEYBOARD_SCROLL_PROPS}
               data={church.photos}
               horizontal pagingEnabled
               showsHorizontalScrollIndicator={false}
@@ -492,7 +495,8 @@ export default function ChurchDetailScreen() {
               <Ionicons name="close" size={20} color={c.text}/>
             </TouchableOpacity>
           </View>
-          <ScrollView style={s.modalScroll} showsVerticalScrollIndicator={false}>
+          <ScrollView
+            {...KEYBOARD_SCROLL_PROPS} style={s.modalScroll} showsVerticalScrollIndicator={false}>
             {church.reviews.length>0?church.reviews.map((r:any,i:number)=>(
               <View key={i} style={s.reviewCard}>
                 <View style={s.reviewHdr}>
@@ -524,6 +528,7 @@ export default function ChurchDetailScreen() {
       {/* Share Composer Modal */}
       <Modal visible={showShareComposer} animationType="slide" presentationStyle="pageSheet">
         <SafeAreaView style={s.modalRoot} edges={['top']}>
+        <KeyboardScreen dismissOnTap={false}>
           {/* Header */}
           <View style={s.shareHdr}>
             <TouchableOpacity style={s.shareCancelBtn} onPress={() => { setShowShareComposer(false); setShareMessage(''); }}>
@@ -623,6 +628,7 @@ export default function ChurchDetailScreen() {
               ))}
             </View>
           </ScrollView>
+        </KeyboardScreen>
         </SafeAreaView>
       </Modal>
 
@@ -636,7 +642,8 @@ export default function ChurchDetailScreen() {
               <Ionicons name="close" size={22} color={c.text}/>
             </TouchableOpacity>
           </View>
-          <ScrollView style={s.commentList}>
+          <ScrollView
+            {...KEYBOARD_SCROLL_PROPS} style={s.commentList}>
             {churchPosts.find(p=>p.id===commentModal)?.comments.map((c: any)=>(
               <View key={c.id} style={s.commentItem}>
                 <CommentAvatar author={c.author} initials={c.author[0]} avatarStyle={s.commentAvatar} textStyle={s.commentAvatarTxt}/>

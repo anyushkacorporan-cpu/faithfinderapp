@@ -10,6 +10,7 @@ import { searchPeople, PersonResult } from '../src/lib/profilesStore';
 import { getUser } from '../src/lib/userStore';
 import { useToast } from '../src/components/Toast';
 import { useTranslation } from '../src/lib/i18n';
+import { KeyboardScreen, KEYBOARD_SCROLL_PROPS } from '../src/components/KeyboardScreen';
 
 export default function ConnectionsScreen() {
   const c = useThemeColors();
@@ -55,6 +56,7 @@ export default function ConnectionsScreen() {
 
   return (
     <SafeAreaView style={s.root} edges={['top']}>
+      <KeyboardScreen dismissOnTap={false}>
       <View style={s.header}>
         <TouchableOpacity onPress={() => router.back()} style={s.backBtn}>
           <Ionicons name="chevron-back" size={24} color={c.text} />
@@ -63,7 +65,7 @@ export default function ConnectionsScreen() {
         <View style={{ width: 40 }} />
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+      <ScrollView {...KEYBOARD_SCROLL_PROPS} showsVerticalScrollIndicator={false}>
         <View style={s.searchRow}>
           <Ionicons name="search" size={16} color={c.placeholder} />
           <TextInput
@@ -165,6 +167,7 @@ export default function ConnectionsScreen() {
         )}
         <View style={{ height: 40 }} />
       </ScrollView>
+      </KeyboardScreen>
     </SafeAreaView>
   );
 }

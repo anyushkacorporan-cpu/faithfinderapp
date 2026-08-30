@@ -21,6 +21,7 @@ import { useEvents } from '../../src/lib/eventsStore';
 import { useSettings } from '../../src/lib/settingsStore';
 import { useTranslation } from '../../src/lib/i18n';
 
+import { KeyboardScreen, KEYBOARD_SCROLL_PROPS } from '../../src/components/KeyboardScreen';
 const { width: W } = Dimensions.get('window');
 
 const AMENITY_LIST = [
@@ -167,13 +168,15 @@ export default function ProfileScreen() {
   if (isChurch) {
     return (
       <SafeAreaView style={s.root} edges={[]}>
-        <ScrollView showsVerticalScrollIndicator={false}>
+        <ScrollView
+            {...KEYBOARD_SCROLL_PROPS} showsVerticalScrollIndicator={false}>
 
           {/* Photo Gallery */}
           {(user.photos?.length ?? 0) > 0 ? (
             <View style={[s.galleryWrap, {height: 320 + insets.top}]}>
 
               <FlatList
+            {...KEYBOARD_SCROLL_PROPS}
                 data={user.photos}
                 horizontal pagingEnabled
                 showsHorizontalScrollIndicator={false}
@@ -436,7 +439,8 @@ export default function ProfileScreen() {
   // ── PERSONAL PROFILE ────────────────────────────────
   return (
     <SafeAreaView style={s.root} edges={[]}>
-        <ScrollView showsVerticalScrollIndicator={false}>
+        <ScrollView
+            {...KEYBOARD_SCROLL_PROPS} showsVerticalScrollIndicator={false}>
         <View style={[s.coverWrap, {height: 220 + insets.top}]}>
           {user.coverPhoto
             ? <Image source={{uri:user.coverPhoto}} style={{width:'100%',height:200 + insets.top}} resizeMode="cover"/>
@@ -582,6 +586,7 @@ export default function ProfileScreen() {
               <Ionicons name="close" size={20} color="#fff" />
             </TouchableOpacity>
             <FlatList
+            {...KEYBOARD_SCROLL_PROPS}
               data={galleryItems}
               horizontal
               pagingEnabled
@@ -739,6 +744,7 @@ function OwnPostActions({ post, onClose }: { post: Post | null; onClose: () => v
 
       <Modal visible={!!editing} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => { setEditing(null); onClose(); }}>
         <SafeAreaView style={{flex:1,backgroundColor:c.bg}} edges={['top']}>
+        <KeyboardScreen dismissOnTap={false}>
           <View style={{flexDirection:'row',alignItems:'center',justifyContent:'space-between',paddingHorizontal:16,paddingVertical:14,borderBottomWidth:1,borderBottomColor:c.border}}>
             <TouchableOpacity onPress={() => { setEditing(null); onClose(); }}>
               <Text style={{fontSize:15,color:c.textMuted}}>{t('cancel')}</Text>
@@ -763,6 +769,7 @@ function OwnPostActions({ post, onClose }: { post: Post | null; onClose: () => v
             placeholder={tx('What\'s on your mind?')}
             placeholderTextColor={c.placeholder}
           />
+        </KeyboardScreen>
         </SafeAreaView>
       </Modal>
     </>

@@ -12,6 +12,7 @@ import { useToast } from './Toast';
 import { Post, repostPost } from '../lib/postsStore';
 import { getUser } from '../lib/userStore';
 import { buildPostShareText } from '../lib/shareLinks';
+import { KeyboardScreen } from './KeyboardScreen';
 
 /**
  * The Repost / Share sheet for a post.
@@ -128,6 +129,7 @@ export function PostShareSheet({ post, onClose }: { post: Post | null; onClose: 
 
       <Modal visible={!!post && composing} animationType="slide" presentationStyle="pageSheet" onRequestClose={close}>
         <SafeAreaView style={{flex:1,backgroundColor:c.bg}} edges={['top']}>
+        <KeyboardScreen dismissOnTap={false}>
           <View style={s.modalHdr}>
             <TouchableOpacity onPress={close}><Text style={s.cancelTxt}>{t('cancel')}</Text></TouchableOpacity>
             <Text style={s.modalTitle}>{t('repost')}</Text>
@@ -205,6 +207,7 @@ export function PostShareSheet({ post, onClose }: { post: Post | null; onClose: 
               )}
             </View>
           )}
+        </KeyboardScreen>
         </SafeAreaView>
       </Modal>
     </>

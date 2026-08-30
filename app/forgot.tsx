@@ -5,6 +5,7 @@ import { COLORS } from '../src/lib/constants';
 import { useTranslation } from '../src/lib/i18n';
 import { useToast } from '../src/components/Toast';
 
+import { KeyboardScreen, KEYBOARD_SCROLL_PROPS } from '../src/components/KeyboardScreen';
 export default function ForgotScreen() {
   const { t, tx } = useTranslation();
   const [email, setEmail] = useState('');
@@ -15,7 +16,9 @@ export default function ForgotScreen() {
     router.back();
   }
   return (
-    <ScrollView contentContainerStyle={s.scroll}>
+    <KeyboardScreen dismissOnTap={false}>
+    <ScrollView
+            {...KEYBOARD_SCROLL_PROPS} contentContainerStyle={s.scroll}>
       <View style={s.logoWrap}>
         <Text style={s.title}>{t('resetPassword')}</Text>
         <Text style={s.sub}>{t('resetPasswordSub')}</Text>
@@ -34,6 +37,7 @@ export default function ForgotScreen() {
         </TouchableOpacity>
       </View>
     </ScrollView>
+    </KeyboardScreen>
   );
 }
 const s = StyleSheet.create({

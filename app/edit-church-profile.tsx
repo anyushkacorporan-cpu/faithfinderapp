@@ -9,6 +9,7 @@ import { useTranslation } from '../src/lib/i18n';
 import { useUser, setUser, getUser } from '../src/lib/userStore';
 import { useToast } from '../src/components/Toast';
 
+import { KEYBOARD_SCROLL_PROPS } from '../src/components/KeyboardScreen';
 const DENOMINATIONS = ['Non-Denominational','Catholic','Baptist','Methodist','Lutheran','Presbyterian','Episcopal','Pentecostal','Assemblies of God','Evangelical','Reformed','AME','Other'];
 const DAYS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
 const HOURS = Array.from({length:12},(_,i)=>String(i+1).padStart(2,'0'));
@@ -45,7 +46,8 @@ function InlinePicker({visible,options,selected,onSelect,onClose,title}:PickerPr
           <Text style={{fontSize:16,fontWeight:'700',color:c.text}}>{title}</Text>
           <TouchableOpacity onPress={onClose}><Ionicons name="close" size={22} color={c.text}/></TouchableOpacity>
         </View>
-        <ScrollView style={{maxHeight:300}}>
+        <ScrollView
+            {...KEYBOARD_SCROLL_PROPS} style={{maxHeight:300}}>
           {options.map(opt => (
             <TouchableOpacity key={opt} style={{flexDirection:'row',alignItems:'center',justifyContent:'space-between',paddingHorizontal:20,paddingVertical:14,borderBottomWidth:1,borderBottomColor:c.cardAlt}} onPress={()=>{onSelect(opt);onClose();}}>
               <Text style={{fontSize:15,color:selected===opt?c.navy:c.textSecondary,fontWeight:selected===opt?'700':'400'}}>{opt}</Text>
@@ -172,7 +174,8 @@ export default function EditChurchProfileScreen() {
 
           <View style={{marginBottom:20}}>
             <Text style={s.label}>{t('galleryPhotos')}</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{marginTop:8}}>
+            <ScrollView
+            {...KEYBOARD_SCROLL_PROPS} horizontal showsHorizontalScrollIndicator={false} style={{marginTop:8}}>
               {(user.photos || []).map((uri: string) => (
                 <View key={uri} style={{marginRight:10,position:'relative'}}>
                   <Image source={{uri}} style={{width:80,height:80,borderRadius:12}} resizeMode="cover" />

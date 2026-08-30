@@ -11,6 +11,7 @@ import { autocompleteCity } from '../src/lib/googlePlaces';
 import { useTranslation } from '../src/lib/i18n';
 import { publishProfile } from '../src/lib/profilesStore';
 
+import { KEYBOARD_SCROLL_PROPS } from '../src/components/KeyboardScreen';
 export default function EditProfileScreen() {
   const c = useThemeColors();
   const s = makeStyles(c);
@@ -281,7 +282,8 @@ export default function EditProfileScreen() {
               <Text style={s.sectionTitle}>{t('faithGallery')}</Text>
               <View style={{marginBottom:20}}>
                 <Text style={{fontSize:12,color:c.textMuted,marginBottom:8}}>{t('faithGalleryDesc')}</Text>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                <ScrollView
+            {...KEYBOARD_SCROLL_PROPS} horizontal showsHorizontalScrollIndicator={false}>
                   {(user.photos || []).map((uri: string) => (
                     <View key={uri} style={{marginRight:10,position:'relative'}}>
                       <Image source={{uri}} style={{width:80,height:80,borderRadius:12}} resizeMode="cover" />

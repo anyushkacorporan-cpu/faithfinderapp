@@ -16,6 +16,7 @@ import { useSettings } from '../../src/lib/settingsStore';
 import { useTranslation } from '../../src/lib/i18n';
 import { stateCode, eventStateCode } from '../../src/lib/filters';
 
+import { KEYBOARD_SCROLL_PROPS } from '../../src/components/KeyboardScreen';
 const TABS = ['List', 'Attending', 'Saved'];
 const GRADIENTS: Record<string,[string,string]> = {
   Conference:['#1a1a2e','#2d2240'],
@@ -213,7 +214,8 @@ export default function EventsScreen() {
 
       {/* Active filter pills */}
       {activeFilters.length > 0 && (
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={s.activePillsRow} contentContainerStyle={s.activePillsContent}>
+        <ScrollView
+            {...KEYBOARD_SCROLL_PROPS} horizontal showsHorizontalScrollIndicator={false} style={s.activePillsRow} contentContainerStyle={s.activePillsContent}>
           {activeFilters.map(f => (
             <TouchableOpacity key={f} style={s.activePill} onPress={() => toggleFilter(f)}>
               <Text style={s.activePillTxt}>{FILTER_OPTIONS.find(o => o.id === f)?.label || f}</Text>
@@ -239,7 +241,8 @@ export default function EventsScreen() {
         </View>
       </View>
 
-      <ScrollView style={s.scroll} showsVerticalScrollIndicator={false}>
+      <ScrollView
+            {...KEYBOARD_SCROLL_PROPS} style={s.scroll} showsVerticalScrollIndicator={false}>
 
         {/* Nearby Events */}
         {nearbyEvents.length > 0 && (
@@ -590,7 +593,8 @@ export default function EventsScreen() {
               <Ionicons name="close" size={20} color={c.text} />
             </TouchableOpacity>
           </View>
-          <ScrollView contentContainerStyle={s.filterScroll}>
+          <ScrollView
+            {...KEYBOARD_SCROLL_PROPS} contentContainerStyle={s.filterScroll}>
             {filterGroups.map(group => (
               <View key={group} style={s.filterGroup}>
                 <Text style={s.filterGroupTitle}>{group}</Text>
@@ -639,7 +643,8 @@ export default function EventsScreen() {
               onChangeText={setFilterCity}
             />
           </View>
-          <ScrollView contentContainerStyle={{paddingHorizontal:16,paddingBottom:40}}>
+          <ScrollView
+            {...KEYBOARD_SCROLL_PROPS} contentContainerStyle={{paddingHorizontal:16,paddingBottom:40}}>
             <View style={{flexDirection:'row',flexWrap:'wrap',gap:10}}>
               {STATE_LIST.map(state => (
                 <TouchableOpacity

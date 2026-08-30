@@ -8,6 +8,7 @@ import { COLORS, CHURCHES } from '../src/lib/constants';
 import { useTranslation } from '../src/lib/i18n';
 import { setUser } from '../src/lib/userStore';
 
+import { KeyboardScreen, KEYBOARD_SCROLL_PROPS } from '../src/components/KeyboardScreen';
 const KEY = 'AIzaSyAHZO8wyxyCmx0k8u059QSX7QpsEvZ82sU';
 
 async function searchChurchesAPI(query: string) {
@@ -136,7 +137,9 @@ export default function ClaimChurchScreen() {
 
   return (
     <SafeAreaView style={s.root} edges={['top']}>
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <KeyboardScreen dismissOnTap={false}>
+      <ScrollView
+            {...KEYBOARD_SCROLL_PROPS} showsVerticalScrollIndicator={false}>
 
         {/* Header */}
         <View style={s.hdr}>
@@ -370,6 +373,7 @@ export default function ClaimChurchScreen() {
 
         <View style={{height:40}} />
       </ScrollView>
+      </KeyboardScreen>
     </SafeAreaView>
   );
 }

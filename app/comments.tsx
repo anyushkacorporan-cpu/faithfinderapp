@@ -21,6 +21,7 @@ import { TranslateRow } from '../src/components/PostCard';
 import { CommentAvatar } from '../src/components/CommentAvatar';
 import { useTranslation } from '../src/lib/i18n';
 
+import { KEYBOARD_SCROLL_PROPS } from '../src/components/KeyboardScreen';
 export default function CommentsScreen() {
   const c = useThemeColors();
   const s = makeStyles(c);
@@ -120,8 +121,8 @@ export default function CommentsScreen() {
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
         <ScrollView
           ref={scrollRef}
+          {...KEYBOARD_SCROLL_PROPS}
           style={s.scroll}
-          keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
           {/* Original Post */}

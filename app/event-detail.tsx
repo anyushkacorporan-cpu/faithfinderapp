@@ -18,6 +18,7 @@ import { useTranslation } from '../src/lib/i18n';
 
 
 
+import { KEYBOARD_SCROLL_PROPS } from '../src/components/KeyboardScreen';
 export default function EventDetailScreen() {
   const c = useThemeColors();
   const s = makeStyles(c);
@@ -193,7 +194,8 @@ export default function EventDetailScreen() {
   return (
     <>
     <SafeAreaView style={s.root} edges={['top']}>
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView
+            {...KEYBOARD_SCROLL_PROPS} showsVerticalScrollIndicator={false}>
 
         {/* Banner */}
         {fullEvent?.bannerImage ? (

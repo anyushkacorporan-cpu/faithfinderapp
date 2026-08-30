@@ -15,6 +15,7 @@ import { DENOMINATIONS, US_STATES, CA_PROVINCES, COUNTRY_NAME, regionLabel, Regi
 import { useSettings } from '../../src/lib/settingsStore';
 import { useTranslation } from '../../src/lib/i18n';
 
+import { KeyboardScreen, KEYBOARD_SCROLL_PROPS } from '../../src/components/KeyboardScreen';
 const KEY = 'AIzaSyAHZO8wyxyCmx0k8u059QSX7QpsEvZ82sU';
 
 async function getPhotoRef(placeId: string): Promise<string> {
@@ -299,6 +300,7 @@ export default function ChurchesScreen() {
 
   return (
     <SafeAreaView style={s.root} edges={['top']}>
+    <KeyboardScreen dismissOnTap={false}>
       <View style={s.searchSection}>
         {/* The bell and gear ride on the location line rather than a bar of
             their own, so removing the wordmark costs the screen no height. */}
@@ -345,7 +347,8 @@ export default function ChurchesScreen() {
         </View>
       </View>
 
-      <ScrollView style={s.scroll} showsVerticalScrollIndicator={false}>
+      <ScrollView
+            {...KEYBOARD_SCROLL_PROPS} style={s.scroll} showsVerticalScrollIndicator={false}>
         <View style={s.sectionHdr}>
           <View style={s.greenPin}><Ionicons name="location" size={14} color={c.green} /></View>
           <Text style={s.sectionTitle}>
@@ -427,7 +430,8 @@ export default function ChurchesScreen() {
           </View>
 
           {filterSection === 'denom' ? (
-            <ScrollView style={s.filterScroll} showsVerticalScrollIndicator={false}>
+            <ScrollView
+            {...KEYBOARD_SCROLL_PROPS} style={s.filterScroll} showsVerticalScrollIndicator={false}>
               <View style={s.denomGrid}>
                 {DENOMINATIONS.map(d => (
                   <TouchableOpacity key={d} style={[s.denomBtn, activeDenom===d && s.denomBtnActive]} onPress={() => setActiveDenom(d)}>
@@ -437,7 +441,8 @@ export default function ChurchesScreen() {
               </View>
             </ScrollView>
           ) : (
-            <ScrollView style={s.filterScroll} showsVerticalScrollIndicator={false}>
+            <ScrollView
+            {...KEYBOARD_SCROLL_PROPS} style={s.filterScroll} showsVerticalScrollIndicator={false}>
               <TouchableOpacity style={[s.stateRow, !activeRegion && s.stateRowActive]} onPress={() => setActiveRegion(null)}>
                 <Text style={[s.stateTxt, !activeRegion && s.stateTxtActive]}>All Regions</Text>
                 {!activeRegion && <Ionicons name="checkmark" size={18} color={c.gold} />}
@@ -472,6 +477,7 @@ export default function ChurchesScreen() {
           </TouchableOpacity>
         </View>
       </Modal>
+    </KeyboardScreen>
     </SafeAreaView>
   );
 }
