@@ -8,10 +8,18 @@ import { TabBar } from '../../src/components/TabBar';
  * screen contributes a title, and the bar reads titles and route names to
  * decide what to draw.
  *
- * Tab-to-tab motion is `shift` — bottom tabs offer none / fade / shift, and
- * shift is the only one that moves: the outgoing screen slides out and the
- * incoming one slides in from the opposite side, direction taken from the
- * order below. Churches → Events travels left, and back travels right.
+ * There is deliberately no tab-to-tab `animation`.
+ *
+ * Bottom tabs offer none / fade / shift, and both moving options drive the
+ * screen's OPACITY from a shared progress value — `shift` interpolates
+ * [-1, 0, 1] to [0, 1, 0], so a screen is fully visible only while progress
+ * sits at exactly 0. Interrupt a transition, or land a re-render mid-flight,
+ * and progress never settles: the screen stays at opacity 0 and the tab shows
+ * blank until the next switch nudges it back. That is the blank/visible/blank
+ * flicker `shift` caused here.
+ *
+ * A tab change is instant now. If tab motion is wanted later it needs a pager
+ * that moves the screens themselves rather than fading them.
  */
 export default function TabLayout() {
   const { t } = useTranslation();
@@ -19,7 +27,7 @@ export default function TabLayout() {
   return (
     <Tabs
       tabBar={(props) => <TabBar {...props} />}
-      screenOptions={{ headerShown: false, animation: 'shift' }}
+      screenOptions={{ headerShown: false }}
     >
       <Tabs.Screen name="index" options={{ title: t('churches') }} />
       <Tabs.Screen name="events" options={{ title: t('events') }} />
