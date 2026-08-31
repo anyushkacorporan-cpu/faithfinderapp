@@ -507,10 +507,23 @@ export default function ProfileScreen() {
               ))}
             </View>
           )}
-          <TouchableOpacity style={s.editBtn} activeOpacity={0.7} onPress={() => router.push('/edit-profile')}>
-            <Ionicons name="pencil-outline" size={16} color={c.text}/>
-            <Text style={s.editTxt}>{t('editProfile')}</Text>
-          </TouchableOpacity>
+          {/* Edit and See Activity share a row. See Activity used to sit
+              alone below the (usually empty) life-verse block, which left it
+              stranded in about 100pt of white and reading as an accident. */}
+          <View style={s.actionRow}>
+            <TouchableOpacity style={s.editBtn} activeOpacity={0.7} onPress={() => router.push('/edit-profile')}>
+              <Ionicons name="pencil-outline" size={16} color={c.text}/>
+              <Text style={s.editTxt}>{t('editProfile')}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={s.seeActivityChip}
+              activeOpacity={0.7}
+              onPress={() => router.push('/activity')}
+            >
+              <Text style={s.seeActivityTxt}>{t('seeActivity')}</Text>
+              <Ionicons name="chevron-forward" size={14} color={c.gold} />
+            </TouchableOpacity>
+          </View>
 
           {/* Rendered unconditionally before, so a profile with no life verse
               still paid for verseItalic's lineHeight and the reference row --
@@ -531,14 +544,6 @@ export default function ProfileScreen() {
           {/* alignSelf overrides the parent's alignItems:'center' for this row
               only, so the link sits right without moving the name, stats,
               edit button or verse that share the container. */}
-          <TouchableOpacity
-            onPress={() => router.push('/activity')}
-            style={s.seeActivityBtn}
-            hitSlop={{top:8,bottom:8,left:8,right:8}}
-          >
-            <Text style={s.seeActivityTxt}>{t('seeActivity')}</Text>
-            <Ionicons name="chevron-forward" size={14} color={c.gold} />
-          </TouchableOpacity>
         </View>
 
         {/* Faith Gallery */}
@@ -998,7 +1003,9 @@ const makeStyles = (c: ThemeColors) => StyleSheet.create({
   ministriesRow:{flexDirection:'row',flexWrap:'wrap',gap:10,marginBottom:14},
   ministryTag:{borderWidth:1.5,borderColor:c.gold,borderRadius:100,paddingHorizontal:16,paddingVertical:6},
   ministryTagTxt:{fontSize:13,color:c.gold,fontWeight:'600'},
-  editBtn:{flexDirection:'row',alignItems:'center',gap:8,borderWidth:1,borderColor:c.border,borderRadius:12,paddingHorizontal:20,paddingVertical:12,marginBottom:16,width:'100%',justifyContent:'center'},
+  actionRow:{flexDirection:'row',alignItems:'center',gap:10,width:'100%',marginBottom:16},
+  editBtn:{flex:1,flexDirection:'row',alignItems:'center',gap:8,borderWidth:1,borderColor:c.border,borderRadius:12,paddingHorizontal:20,paddingVertical:12,justifyContent:'center'},
+  seeActivityChip:{flexDirection:'row',alignItems:'center',gap:3,borderWidth:1,borderColor:c.border,borderRadius:12,paddingHorizontal:14,paddingVertical:12},
   activityBtn:{flexDirection:'row',alignItems:'center',justifyContent:'space-between',borderWidth:1,borderColor:c.border,borderRadius:16,paddingHorizontal:16,paddingVertical:16},
   editTxt:{fontSize:15,fontWeight:'700',color:c.text},
   verseWrap:{alignItems:'center',paddingHorizontal:16},

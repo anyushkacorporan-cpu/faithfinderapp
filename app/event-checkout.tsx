@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import {
   View, Text, TouchableOpacity, StyleSheet,
-  ScrollView, TextInput
+  ScrollView, TextInput, Alert
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -67,6 +67,18 @@ export default function EventCheckoutScreen() {
     setProcessing(true);
     await new Promise(r => setTimeout(r, 2000));
 
+    // Claim the seats first. Issuing the ticket and then finding the event
+    // full would leave someone holding a ticket for a seat that is gone.
+    if (!recordTicketSale(params.id || '', quantity)) {
+      setProcessing(false);
+      Alert.alert(
+        tx('Not enough seats'),
+        tx('This event sold out while you were checking out. Nothing has been charged.'),
+        [{ text: tx('OK'), onPress: () => router.back() }],
+      );
+      return;
+    }
+
     const ticket = addTicket({
       eventId: params.id || '',
       eventTitle: params.title || '',
@@ -80,8 +92,6 @@ export default function EventCheckoutScreen() {
       platformFee,
     });
 
-    // The event has to learn it sold something, or earnings stay at zero.
-    recordTicketSale(params.id || '', quantity);
     addAttending(params.id || '');
     setProcessing(false);
 

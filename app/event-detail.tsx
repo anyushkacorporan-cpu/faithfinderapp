@@ -10,7 +10,7 @@ import { buildEventShareText } from '../src/lib/shareLinks';
 import { addPost } from '../src/lib/postsStore';
 import { getUser } from '../src/lib/userStore';
 import { isEventSaved, isEventAttending, toggleSaveEvent, addAttending, removeAttending } from '../src/lib/eventActionsStore';
-import { getEvents } from '../src/lib/eventsStore';
+import { getEvents, seatsLeft } from '../src/lib/eventsStore';
 import { useConnections } from '../src/lib/connectionsStore';
 import { searchPeople, getProfile, PersonResult } from '../src/lib/profilesStore';
 import { useSettings } from '../src/lib/settingsStore';
@@ -24,6 +24,8 @@ export default function EventDetailScreen() {
   const s = makeStyles(c);
   const params = useLocalSearchParams<{ id:string; title:string; description:string; date:string; location:string; type:string; price:string; organizer:string; }>();
   const fullEvent = getEvents().find(e => e.id === params.id);
+  const remaining = fullEvent ? seatsLeft(fullEvent) : null;
+  const soldOut = remaining === 0;
   const user = getUser();
   const appSettings = useSettings();
   const { t, tx } = useTranslation();
@@ -354,11 +356,28 @@ export default function EventDetailScreen() {
             </TouchableOpacity>
           </View>
 
-          {/* Get Ticket */}
-          <TouchableOpacity style={[s.ticketBtn, attending && s.ticketBtnActive]} onPress={handleGetTicket} activeOpacity={0.88}>
-            <Ionicons name={attending ? 'checkmark-circle' : 'ticket-outline'} size={22} color={c.onPrimary} />
+          {/* Get Ticket. Sold out is shown before the tap rather than after:
+              letting someone fill in a card and then refusing them is a worse
+              way to learn the room is full. Someone already holding a ticket
+              still sees their own registered state. */}
+          {!!remaining && remaining <= 10 && !attending && (
+            <Text style={s.seatsLeft}>
+              {remaining === 1 ? tx('1 seat left') : `${remaining} ${tx('seats left')}`}
+            </Text>
+          )}
+          <TouchableOpacity
+            style={[s.ticketBtn, attending && s.ticketBtnActive, soldOut && !attending && s.ticketBtnDisabled]}
+            onPress={handleGetTicket}
+            disabled={soldOut && !attending}
+            activeOpacity={0.88}
+          >
+            <Ionicons
+              name={attending ? 'checkmark-circle' : soldOut ? 'close-circle-outline' : 'ticket-outline'}
+              size={22}
+              color={c.onPrimary}
+            />
             <Text style={s.ticketBtnTxt}>
-              {attending ? t('youreRegistered') : t('register')}
+              {attending ? t('youreRegistered') : soldOut ? tx('Sold out') : t('register')}
             </Text>
           </TouchableOpacity>
 
@@ -746,6 +765,8 @@ const makeStyles = (c: ThemeColors) => StyleSheet.create({
   actionBtnTxt:{fontSize:12,fontWeight:'700',color:c.text},
   ticketBtn:{backgroundColor:c.primary,borderRadius:16,paddingVertical:16,flexDirection:'row',alignItems:'center',justifyContent:'center',gap:10,shadowColor:c.navy,shadowOffset:{width:0,height:4},shadowOpacity:0.3,shadowRadius:8},
   ticketBtnActive:{backgroundColor:c.green},
+  ticketBtnDisabled:{opacity:0.45},
+  seatsLeft:{fontSize:13,fontWeight:'700',color:c.red,textAlign:'center',marginBottom:8},
   ticketBtnTxt:{color:c.onPrimary,fontSize:16,fontWeight:'700'},
   modalOverlay:{position:'absolute',top:0,left:0,right:0,bottom:0,justifyContent:'flex-end'},
   modalBg:{position:'absolute',top:0,left:0,right:0,bottom:0,backgroundColor:'rgba(0,0,0,0.5)'},

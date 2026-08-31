@@ -5,7 +5,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useThemeColors, ThemeColors } from '../src/lib/theme';
-import { getEvents, updateEvent } from '../src/lib/eventsStore';
+import { getEvents, updateEvent, formatPrice } from '../src/lib/eventsStore';
 import { KeyboardScreen } from '../src/components/KeyboardScreen';
 
 export default function EditEventScreen() {
@@ -21,6 +21,7 @@ export default function EditEventScreen() {
   const [time, setTime] = useState(event?.time || '');
   const [isPaid, setIsPaid] = useState(event?.isPaid || false);
   const [priceText, setPriceText] = useState(event?.isPaid ? String(event.ticketPrice) : '');
+  const [capacityText, setCapacityText] = useState(event?.capacity ? String(event.capacity) : '');
 
   if (!event) {
     return (
@@ -57,7 +58,12 @@ export default function EditEventScreen() {
       time: time.trim(),
       isPaid,
       ticketPrice: parsedPrice,
-      price: isPaid ? '$' + parsedPrice.toFixed(2) : 'Free',
+      capacity: Math.max(
+        // Never below what is already sold.
+        event?.ticketsSold ?? 0,
+        parseInt(capacityText, 10) || 0,
+      ),
+      price: isPaid ? formatPrice(parsedPrice, event?.currency ?? 'USD') : 'Free',
       platformFee,
       creatorPayout,
     });
@@ -114,10 +120,23 @@ export default function EditEventScreen() {
 
           {isPaid && (
             <View style={s.fieldWrap}>
-              <Text style={s.label}>Ticket Price ($)</Text>
+              <Text style={s.label}>Ticket Price ({event?.currency ?? 'USD'})</Text>
               <TextInput style={s.input} value={priceText} onChangeText={setPriceText} placeholder="25.00" placeholderTextColor={c.placeholder} keyboardType="decimal-pad" />
             </View>
           )}
+
+          <View style={s.fieldWrap}>
+            <Text style={s.label}>Capacity</Text>
+            <TextInput style={s.input} value={capacityText} onChangeText={v=>setCapacityText(v.replace(/\D/g,''))} placeholder="No limit" placeholderTextColor={c.placeholder} keyboardType="number-pad" />
+            {/* Lowering capacity below what is already sold would put the
+                event into a state where it has oversold itself, so the floor
+                is whatever has gone already. */}
+            <Text style={s.capacityHint}>
+              {event && event.ticketsSold > 0
+                ? `${event.ticketsSold} sold so far. Leave blank for no limit.`
+                : 'Seats available. Leave blank for no limit.'}
+            </Text>
+          </View>
 
           <Text style={s.note}>Note: this quick-edit updates the core event details. Venue, speakers, and agenda aren't editable here yet.</Text>
 
@@ -148,6 +167,7 @@ const makeStyles = (c: ThemeColors) => StyleSheet.create({
   ticketBtnActive:{backgroundColor:c.primary,borderColor:c.primary},
   ticketBtnTxt:{fontSize:14,fontWeight:'700',color:c.textMuted},
   ticketBtnTxtActive:{color:c.onPrimary},
+  capacityHint:{fontSize:12,color:c.textMuted,marginTop:6},
   note:{fontSize:12,color:c.textMuted,marginBottom:20,lineHeight:17},
   saveFullBtn:{backgroundColor:c.primary,borderRadius:16,paddingVertical:16,alignItems:'center',shadowColor:c.navy,shadowOffset:{width:0,height:4},shadowOpacity:0.25,shadowRadius:8},
   saveFullBtnTxt:{color:c.onPrimary,fontSize:16,fontWeight:'700'},

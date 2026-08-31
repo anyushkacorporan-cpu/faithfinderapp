@@ -10,7 +10,8 @@ import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from 'expo-linear-gradient';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useThemeColors, ThemeColors } from '../src/lib/theme';
-import { addEvent } from '../src/lib/eventsStore';
+import { addEvent, formatPrice, Currency } from '../src/lib/eventsStore';
+import { stateCode, CA_PROVINCES } from '../src/lib/filters';
 import { getUser } from '../src/lib/userStore';
 import { useTranslation } from '../src/lib/i18n';
 import { suggestAddresses, resolveAddress, newSessionToken, AddressSuggestion } from '../src/lib/addressAutocomplete';
@@ -157,6 +158,13 @@ export default function CreateEventScreen() {
   // Tickets
   const [isPaid, setIsPaid] = useState(false);
   const [ticketPrice, setTicketPrice] = useState('');
+  const [capacity, setCapacity] = useState('');
+  // Defaults to the organiser's own currency rather than to USD, since that is
+  // the money they set the price in.
+  const [currency, setCurrency] = useState<Currency>(
+    stateCode(user.location?.split(',')[1]) && CA_PROVINCES.some(r => r.code === stateCode(user.location?.split(',')[1]))
+      ? 'CAD' : 'USD'
+  );
   const [showPreview, setShowPreview] = useState(false);
 
   const [errors, setErrors] = useState<Record<string,string>>({});
@@ -250,6 +258,8 @@ export default function CreateEventScreen() {
     const location = displayLocation;
     addEvent({
       status: draft?'draft':'upcoming',
+      capacity: Math.max(0, parseInt(capacity, 10) || 0),
+      currency,
       title:title.trim(),
       description:summary.trim(),
       summary:summary.trim(),
@@ -262,7 +272,7 @@ export default function CreateEventScreen() {
       state:stateName.trim(),
       zip:zip.trim(),
       type:eventType,
-      price:isPaid?'$'+price.toFixed(2):'Free',
+      price:isPaid?formatPrice(price, currency):'Free',
       isPaid,
       ticketPrice:price,
       bannerImage:bannerImage||undefined,
@@ -669,10 +679,27 @@ export default function CreateEventScreen() {
 
               {isPaid&&(
                 <>
-                  <LField label="Ticket Price (USD) *" error={errors.ticketPrice}>
+                  <LField label={`Ticket Price (${currency}) *`} error={errors.ticketPrice}>
                     <View style={{flexDirection:'row',alignItems:'center',gap:8}}>
-                      <Text style={s.dollar}>$</Text>
+                      <Text style={s.dollar}>{currency === 'CAD' ? 'CA$' : '$'}</Text>
                       <TextInput style={[s.input,{flex:1},!!errors.ticketPrice&&s.inputErr]} placeholder="0.00" placeholderTextColor={c.placeholder} value={ticketPrice} onChangeText={v=>{setTicketPrice(v);setErrors(e=>({...e,ticketPrice:''}));}} keyboardType="decimal-pad"/>
+                    </View>
+                  </LField>
+                  <LField label="Capacity" hint="Seats available. Leave blank for no limit.">
+                    <TextInput style={s.input} placeholder="No limit" placeholderTextColor={c.placeholder} value={capacity} onChangeText={v=>setCapacity(v.replace(/\D/g,''))} keyboardType="number-pad"/>
+                  </LField>
+                  <LField label="Currency">
+                    <View style={{flexDirection:'row',gap:8}}>
+                      {(['USD','CAD'] as Currency[]).map(cur => (
+                        <TouchableOpacity
+                          key={cur}
+                          style={[s.currencyBtn, currency===cur && s.currencyBtnOn]}
+                          activeOpacity={0.7}
+                          onPress={() => setCurrency(cur)}
+                        >
+                          <Text style={[s.currencyTxt, currency===cur && s.currencyTxtOn]}>{cur}</Text>
+                        </TouchableOpacity>
+                      ))}
                     </View>
                   </LField>
                   {price>0&&(
@@ -944,6 +971,10 @@ const makeStyles = (c: ThemeColors) => StyleSheet.create({
   ticketBtnPaid:{borderColor:c.primary,backgroundColor:c.primary},
   ticketBtnTxt:{fontSize:14,fontWeight:'700',color:c.textMuted},
   ticketBtnSub:{fontSize:11,color:c.textMuted},
+  currencyBtn:{flex:1,alignItems:'center',paddingVertical:11,borderRadius:12,borderWidth:1,borderColor:c.border,backgroundColor:c.card},
+  currencyBtnOn:{backgroundColor:c.navy,borderColor:c.navy},
+  currencyTxt:{fontSize:14,fontWeight:'700',color:c.textSecondary},
+  currencyTxtOn:{color:c.white},
   dollar:{fontSize:20,fontWeight:'700',color:c.text},
   feeCard:{backgroundColor:c.cardAlt,borderRadius:14,padding:16,marginBottom:16},
   feeCardTitle:{fontSize:11,fontWeight:'700',color:c.text,textTransform:'uppercase',letterSpacing:0.5,marginBottom:12},
