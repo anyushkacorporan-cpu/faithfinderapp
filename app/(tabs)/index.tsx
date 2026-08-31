@@ -309,7 +309,7 @@ export default function ChurchesScreen() {
           <Ionicons name="location-outline" size={19} color={c.gold} />
           <Text style={s.locationTxt} numberOfLines={1}>{locationLabel}</Text>
           {loadingNearby && <ActivityIndicator size="small" color={c.gold} style={{ marginLeft: 8 }} />}
-          <HeaderIcons compact />
+          <HeaderIcons />
         </View>
         <View style={s.searchRow}>
           <View style={s.searchBar}>

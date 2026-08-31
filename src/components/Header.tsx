@@ -13,12 +13,17 @@ import { useTranslation } from '../lib/i18n';
  * both; place it wherever a screen needs them:
  *   - on its own slim row via <Header /> below (Community, Profile)
  *   - inline in a row the screen already has (the location line on Churches and
- *     Events), which costs no extra height. Pass `compact` there.
+ *     Events), which costs no extra height.
  *   - floating over a cover photo (Profile). Pass `overlay` there: the buttons
- *     become dark translucent circles with white glyphs so they stay readable
- *     over a light or a dark photo.
+ *     become frosted circles with white glyphs so they stay readable over a
+ *     light or a dark photo.
+ *
+ * There is deliberately no size variant. Churches and Events used to pass a
+ * `compact` flag that made these 32pt with a 19pt glyph while every other
+ * screen drew them at 38/22, so the same two controls changed size as you
+ * moved between tabs. One size, defined once.
  */
-export function HeaderIcons({ compact = false, overlay = false }: { compact?: boolean; overlay?: boolean } = {}) {
+export function HeaderIcons({ overlay = false }: { overlay?: boolean } = {}) {
   const { t } = useTranslation();
   const c = useThemeColors();
   const s = makeStyles(c);
@@ -27,16 +32,16 @@ export function HeaderIcons({ compact = false, overlay = false }: { compact?: bo
   return (
     <>
       <View style={s.icons}>
-        <TouchableOpacity style={[s.iconBtn, compact && s.iconBtnCompact, overlay && s.iconBtnOverlay]} activeOpacity={0.7} onPress={() => router.push('/notifications')}>
+        <TouchableOpacity style={[s.iconBtn, overlay && s.iconBtnOverlay]} activeOpacity={0.7} onPress={() => router.push('/notifications')}>
           {overlay && <BlurView intensity={26} tint="dark" style={[StyleSheet.absoluteFill, s.overlayBlur]} />}
-          <Ionicons name="notifications-outline" size={compact ? 19 : 22} color={overlay ? '#fff' : c.text} />
+          <Ionicons name="notifications-outline" size={22} color={overlay ? '#fff' : c.text} />
           {unread > 0 && (
             <View style={s.badge}><Text style={s.badgeTxt}>{unread > 9 ? '9+' : unread}</Text></View>
           )}
         </TouchableOpacity>
-        <TouchableOpacity style={[s.iconBtn, compact && s.iconBtnCompact, overlay && s.iconBtnOverlay]} activeOpacity={0.7} onPress={() => router.push('/settings')}>
+        <TouchableOpacity style={[s.iconBtn, overlay && s.iconBtnOverlay]} activeOpacity={0.7} onPress={() => router.push('/settings')}>
           {overlay && <BlurView intensity={26} tint="dark" style={[StyleSheet.absoluteFill, s.overlayBlur]} />}
-          <Ionicons name="settings-outline" size={compact ? 19 : 22} color={overlay ? '#fff' : c.text} />
+          <Ionicons name="settings-outline" size={22} color={overlay ? '#fff' : c.text} />
         </TouchableOpacity>
       </View>
 
@@ -72,7 +77,6 @@ const makeStyles = (c: ThemeColors) => StyleSheet.create({
   headerLeft:{flex:1,minWidth:0},
   icons:{flexDirection:'row',gap:6},
   iconBtn:{width:38,height:38,borderRadius:12,backgroundColor:c.cardAlt,alignItems:'center',justifyContent:'center',position:'relative'},
-  iconBtnCompact:{width:32,height:32,borderRadius:10},
   iconBtnOverlay:{backgroundColor:'rgba(255,255,255,0.20)',borderRadius:19,borderWidth:StyleSheet.hairlineWidth,borderColor:'rgba(255,255,255,0.35)'},
   overlayBlur:{borderRadius:19,overflow:'hidden'},
   badge:{position:'absolute',top:-5,right:-5,minWidth:20,height:20,borderRadius:10,backgroundColor:c.red,alignItems:'center',justifyContent:'center',paddingHorizontal:5,borderWidth:2,borderColor:c.card},

@@ -180,7 +180,7 @@ export default function EventsScreen() {
       <View style={s.locationRow}>
         <Ionicons name="location-outline" size={19} color={c.gold} />
         <Text style={s.locationTxt} numberOfLines={1}>{locationLabel}</Text>
-        <HeaderIcons compact />
+        <HeaderIcons />
       </View>
 
       {/* Search + Filter */}
