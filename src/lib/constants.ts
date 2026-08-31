@@ -20,6 +20,46 @@ export const COLORS = {
   red: '#e74c6f',
 };
 
+// ── Card gradients ──────────────────────────────────────────────────────────
+
+/**
+ * The stand-in shown on a church or event card that has no photo.
+ *
+ * These were assigned by hand down the seed list and hard-coded for anything
+ * fetched from Google — which is every church a real user sees, so a nearby
+ * search returned a column of identical purple tiles. People pick a row out of
+ * a list by its shape and colour before they read it; when every tile matches,
+ * the list has to be read line by line, and a uniform block of placeholder
+ * colour is also what a failed image grid looks like.
+ */
+export const CARD_GRADIENTS: [string, string][] = [
+  ['#667eea', '#764ba2'],
+  ['#4facfe', '#00f2fe'],
+  ['#fa709a', '#fee140'],
+  ['#f5576c', '#f093fb'],
+  ['#a18cd1', '#fbc2eb'],
+  ['#43e97b', '#38f9d7'],
+  ['#38f9d7', '#43e97b'],
+  ['#f093fb', '#f5576c'],
+];
+
+/**
+ * A stable gradient for a name.
+ *
+ * Derived rather than random so a church keeps the same colour between
+ * launches — a tile that changes hue on every load is worse than a repeated
+ * one. Eight options still collide in a long list; this turns "all identical"
+ * into "occasionally repeated", which is the cheap half of the fix. The real
+ * answer is the Place photo, which placesCache already holds.
+ */
+export function gradientFor(name: string): [string, string] {
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) {
+    hash = (hash * 31 + name.charCodeAt(i)) | 0;
+  }
+  return CARD_GRADIENTS[Math.abs(hash) % CARD_GRADIENTS.length];
+}
+
 // ── Typography ──────────────────────────────────────────────────────────────
 export const TYPOGRAPHY = {
   // Display

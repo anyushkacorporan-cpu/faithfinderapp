@@ -12,6 +12,7 @@ import { useThemeColors, ThemeColors } from '../../src/lib/theme';
 import { TAB_BAR_CLEARANCE } from '../../src/lib/tabBar';
 import { useSavedChurches, toggleSavedChurch } from '../../src/lib/store';
 import { DENOMINATIONS, US_STATES, CA_PROVINCES, COUNTRY_NAME, regionLabel, Region } from '../../src/lib/filters';
+import { gradientFor } from '../../src/lib/constants';
 import { useSettings } from '../../src/lib/settingsStore';
 import { useTranslation } from '../../src/lib/i18n';
 
@@ -46,7 +47,7 @@ async function searchByQuery(query: string) {
     return (data.results || []).slice(0, 20).map((p: any, i: number) => ({
       id: `s${i}_${p.place_id}`, name: p.name, address: p.formatted_address || '',
       phone: '', type: 'Church', rating: p.rating || 0, count: p.user_ratings_total || 0,
-      hours: '', website: '', placeId: p.place_id, gradient: ['#667eea','#764ba2'] as [string,string], state: '',
+      hours: '', website: '', placeId: p.place_id, gradient: gradientFor(p.name || ''), state: '',
     }));
   } catch { return []; }
 }
@@ -70,7 +71,7 @@ async function searchNearby(lat: number, lng: number): Promise<any[] | null> {
     return (data.results || []).slice(0, 20).map((p: any, i: number) => ({
       id: `n${i}_${p.place_id}`, name: p.name, address: p.vicinity || '',
       phone: '', type: 'Church', rating: p.rating || 0, count: p.user_ratings_total || 0,
-      hours: '', website: '', placeId: p.place_id, gradient: ['#43e97b','#38f9d7'] as [string,string], state: '',
+      hours: '', website: '', placeId: p.place_id, gradient: gradientFor(p.name || ''), state: '',
     }));
   } catch { return null; }
 }
@@ -87,7 +88,7 @@ async function searchByRegion(region: Region) {
     return (data.results || []).slice(0, 20).map((p: any, i: number) => ({
       id: `st${i}_${p.place_id}`, name: p.name, address: p.formatted_address || '',
       phone: '', type: 'Church', rating: p.rating || 0, count: p.user_ratings_total || 0,
-      hours: '', website: '', placeId: p.place_id, gradient: ['#667eea','#764ba2'] as [string,string], state: region.code,
+      hours: '', website: '', placeId: p.place_id, gradient: gradientFor(p.name || ''), state: region.code,
     }));
   } catch { return []; }
 }
