@@ -31,6 +31,8 @@ export type ChurchRow = {
   state: string;
   city?: string;
   photo?: string;
+  /** Who to credit for `photo`. Null when it is the church's own upload. */
+  photoCredit?: string;
   isClaimed?: boolean;
   distanceKm?: number;
 };
@@ -58,6 +60,7 @@ function toChurch(r: any): ChurchRow {
     state: r.state || '',
     city: r.city || '',
     photo: r.photo_url || undefined,
+    photoCredit: r.photo_credit || undefined,
     isClaimed: !!r.is_claimed,
     distanceKm: typeof r.distance_m === 'number' ? r.distance_m / 1000 : undefined,
   };
@@ -105,7 +108,7 @@ export async function churchesInRegion(
   try {
     const { data, error } = await db
       .from('churches_public')
-      .select('id,name,address,city,state,denomination,phone,website,photo_url,is_claimed')
+      .select('id,name,address,city,state,denomination,phone,website,photo_url,photo_credit,is_claimed')
       .eq('country', country)
       .eq('state', stateCode)
       .limit(limit);
@@ -132,7 +135,7 @@ export async function searchChurches(query: string, limit = 30): Promise<ChurchR
   try {
     const { data, error } = await db
       .from('churches_public')
-      .select('id,name,address,city,state,denomination,phone,website,photo_url,is_claimed')
+      .select('id,name,address,city,state,denomination,phone,website,photo_url,photo_credit,is_claimed')
       .ilike('name', `%${q}%`)
       .limit(limit);
     if (error) return null;
