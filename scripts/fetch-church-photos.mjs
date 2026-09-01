@@ -12,13 +12,15 @@
  * it — the view prefers theirs over ours.
  *
  *   node scripts/fetch-church-photos.mjs churches-nyc.json
+ *   node scripts/fetch-church-photos.mjs data/churches-US-*.json
  *
  * Needs DATABASE_URL in .env.local. Re-running is safe.
  */
 import { readFileSync } from 'node:fs';
 import pg from 'pg';
 
-const file = process.argv[2] || 'churches-nyc.json';
+const files = process.argv.slice(2).filter(a => !a.startsWith('--'));
+if (!files.length) files.push('churches-nyc.json');
 
 let env = {};
 try {
@@ -34,13 +36,20 @@ if (!DB) {
   process.exit(1);
 }
 
-let churches;
-try {
-  churches = JSON.parse(readFileSync(file, 'utf8'));
-} catch (err) {
-  console.error(`\n  Cannot read ${file} — ${err.code === 'ENOENT' ? 'no such file' : err.message}\n`);
+// Several files at once, so a national run is one command rather than fifty.
+const churches = [];
+for (const f of files) {
+  try {
+    churches.push(...JSON.parse(readFileSync(f, 'utf8')));
+  } catch (err) {
+    console.error(`  Skipping ${f} — ${err.code === 'ENOENT' ? 'no such file' : err.message}`);
+  }
+}
+if (!churches.length) {
+  console.error('\n  Nothing to read.\n');
   process.exit(1);
 }
+console.log(`\n  ${churches.length.toLocaleString()} churches across ${files.length} file(s)`);
 
 const UA = { 'User-Agent': 'FaithFinder/1.0 (church directory; photo lookup)' };
 
