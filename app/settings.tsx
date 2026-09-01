@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useThemeColors, ThemeColors } from '../src/lib/theme';
 import { signOut } from '../src/lib/userStore';
+import { signOut as signOutServer } from '../src/lib/auth';
 import { useTranslation } from '../src/lib/i18n';
 
 /**
@@ -64,6 +65,10 @@ export default function SettingsScreen() {
               style={s.row}
               onPress={() => {
                 if (item.route) { router.push(item.route as any); return; }
+                // Both halves: the device's idea of who is signed in, and the
+                // session on the server. Without the second, the next launch
+                // restores the session and signing out did nothing.
+                signOutServer();
                 signOut();
                 router.replace('/login');
               }}

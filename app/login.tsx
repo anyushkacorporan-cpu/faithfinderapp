@@ -6,6 +6,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { COLORS } from '../src/lib/constants';
 import { useTranslation } from '../src/lib/i18n';
 import { setUser } from '../src/lib/userStore';
+import { signIn, hasDatabase } from '../src/lib/auth';
+import { syncProfileAfterSignIn } from '../src/lib/profileSync';
+import { getAuthUser } from '../src/lib/auth';
 import Logo from '../src/components/Logo';
 import { KeyboardScreen } from '../src/components/KeyboardScreen';
 
@@ -15,12 +18,32 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const [showPw, setShowPw] = useState(false);
   const [error, setError] = useState('');
+  const [busy, setBusy] = useState(false);
 
-  function handleLogin() {
+  async function handleLogin() {
     setError('');
     if (!email.includes('@')) { setError('Please enter a valid email address.'); return; }
     if (password.length < 6) { setError('Please enter your password.'); return; }
-    setUser({ email });
+
+    // Without a server there is nothing to check a password against. Rather
+    // than pretend, keep the old device-local behaviour so a build with no
+    // credentials still runs.
+    if (!hasDatabase()) {
+      setUser({ email });
+      router.replace('/(tabs)');
+      return;
+    }
+
+    setBusy(true);
+    const err = await signIn(email, password);
+    if (err) { setBusy(false); setError(err); return; }
+
+    const u = getAuthUser();
+    if (u) {
+      setUser({ id: u.id, email: u.email });
+      await syncProfileAfterSignIn(u.id);
+    }
+    setBusy(false);
     router.replace('/(tabs)');
   }
 
@@ -61,9 +84,14 @@ export default function LoginScreen() {
             <TouchableOpacity style={s.forgotWrap} onPress={() => router.push('/forgot')}>
               <Text style={s.forgotTxt}>{t('forgotPassword')}</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={s.signInBtn} onPress={handleLogin} activeOpacity={0.88}>
-              <Text style={s.signInTxt}>{t('signIn')}</Text>
-              <Ionicons name="arrow-forward" size={18} color={COLORS.white} />
+            <TouchableOpacity
+              style={[s.signInBtn, busy && {opacity:0.6}]}
+              onPress={handleLogin}
+              disabled={busy}
+              activeOpacity={0.88}
+            >
+              <Text style={s.signInTxt}>{busy ? 'Signing in…' : t('signIn')}</Text>
+              {!busy && <Ionicons name="arrow-forward" size={18} color={COLORS.white} />}
             </TouchableOpacity>
             <View style={s.dividerRow}>
               <View style={s.dividerLine} />

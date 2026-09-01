@@ -10,6 +10,7 @@ import { useToast } from '../src/components/Toast';
 import { autocompleteCity } from '../src/lib/googlePlaces';
 import { useTranslation } from '../src/lib/i18n';
 import { publishProfile } from '../src/lib/profilesStore';
+import { pushProfile } from '../src/lib/profileSync';
 
 import { KeyboardScreen, KEYBOARD_SCROLL_PROPS } from '../src/components/KeyboardScreen';
 export default function EditProfileScreen() {
@@ -97,8 +98,13 @@ export default function EditProfileScreen() {
     } else {
       setUser({ firstName, lastName, bio, location, phone, profilePhoto, coverPhoto, lifeVerse, lifeVerseRef });
     }
-    // Push the edit into the directory immediately, so it reaches people who
-    // look you up before you next post.
+    // Up to the server, so the edit survives a reinstall and reaches other
+    // devices. Fire-and-forget: a failed sync must not stop someone editing
+    // their own profile, and the next save sends the whole row again.
+    pushProfile();
+
+    // And into the local directory immediately, so it reaches people who look
+    // you up before you next post.
     const u = getUser();
     const name = isChurch ? (churchName || 'Church') : `${firstName || ''} ${lastName || ''}`.trim();
     if (u.id && name) {

@@ -1,4 +1,5 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 /**
  * The app's connection to its own database.
@@ -34,10 +35,13 @@ export function supabase(): SupabaseClient | null {
   if (!client) {
     client = createClient(url, anonKey, {
       auth: {
-        // No sessions yet — the directory is public and there is no sign-in.
-        // Turning these off avoids a token refresh timer running for nothing.
-        persistSession: false,
-        autoRefreshToken: false,
+        // The session lives in AsyncStorage so signing in survives closing the
+        // app — the whole point of accounts over a device-local identity.
+        storage: AsyncStorage,
+        persistSession: true,
+        autoRefreshToken: true,
+        // There is no browser here to read a token out of a redirect URL.
+        detectSessionInUrl: false,
       },
     });
   }

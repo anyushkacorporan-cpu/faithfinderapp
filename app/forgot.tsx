@@ -4,14 +4,22 @@ import { router } from 'expo-router';
 import { COLORS } from '../src/lib/constants';
 import { useTranslation } from '../src/lib/i18n';
 import { useToast } from '../src/components/Toast';
+import { sendPasswordReset } from '../src/lib/auth';
 
 import { KeyboardScreen, KEYBOARD_SCROLL_PROPS } from '../src/components/KeyboardScreen';
 export default function ForgotScreen() {
   const { t, tx } = useTranslation();
   const [email, setEmail] = useState('');
   const { showToast } = useToast();
-  function handleReset() {
+  async function handleReset() {
     if (!email.includes('@')) { showToast(tx('Invalid Email'), tx('Please enter a valid email address.'), 'error'); return; }
+
+    const err = await sendPasswordReset(email);
+    // A failure that is not the person's fault still gets reported, but the
+    // wording never confirms whether an account exists for that address —
+    // that would turn this screen into a way to enumerate users.
+    if (err) { showToast(tx('Something went wrong'), err, 'error'); return; }
+
     showToast(tx('Email Sent!'), tx('Check your inbox for your password reset link.'), 'success');
     router.back();
   }

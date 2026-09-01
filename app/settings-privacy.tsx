@@ -75,7 +75,13 @@ export default function PrivacySettingsScreen() {
               buttons: [
                 { text: t('cancel'), style: 'cancel' },
                 { text: tx('Delete Account'), style: 'destructive', onPress: async () => {
-                  await deleteAccountAndData();
+                  const err = await deleteAccountAndData();
+                  if (err) {
+                    // Nothing has been deleted. Say so plainly rather than
+                    // redirecting to login and implying it worked.
+                    Alert.alert(tx('Could not delete account'), err);
+                    return;
+                  }
                   router.replace('/login');
                 } },
               ],

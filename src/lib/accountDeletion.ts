@@ -12,6 +12,7 @@ import { resetStore as resetPlacesCache } from './placesCache';
 import { resetStore as resetProfiles } from './profilesStore';
 import { resetStore as resetEventActions } from './eventActionsStore';
 import { resetSettings } from './settingsStore';
+import { deleteAccount as deleteServerAccount } from './auth';
 
 /**
  * Delete this account and everything belonging to it.
@@ -33,11 +34,18 @@ import { resetSettings } from './settingsStore';
  * Stores that ship with seed content return to that seed, which is what a fresh
  * install looks like.
  *
- * When the backend lands this stays the client half: it still has to clear the
- * device, and it gains a call to the server-side delete. Apple requires the
- * account to be gone from the service too, not just from the phone.
+ * The backend has landed, so this now does both halves. The server delete runs
+ * first: if it fails the device is left alone and the caller is told, because
+ * wiping the phone while the account still exists on the server is the worst
+ * of both — the person believes they are gone and they are not. Apple requires
+ * the account to be gone from the service, not only from the phone.
  */
-export async function deleteAccountAndData(): Promise<void> {
+export async function deleteAccountAndData(): Promise<string | null> {
+  // Server first. A device wiped while the account survives is worse than a
+  // device left intact — it tells the person they are deleted when they are not.
+  const err = await deleteServerAccount();
+  if (err) return err;
+
   resetPosts();
   resetEvents();
   resetTickets();
@@ -65,4 +73,6 @@ export async function deleteAccountAndData(): Promise<void> {
     // Storage being unreadable must not leave the user stuck on this screen;
     // the in-memory reset above has already taken effect.
   }
+
+  return null;
 }

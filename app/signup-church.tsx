@@ -6,6 +6,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { COLORS } from '../src/lib/constants';
 import { useTranslation } from '../src/lib/i18n';
 import { setUser } from '../src/lib/userStore';
+import { signUp, getAuthUser, hasDatabase } from '../src/lib/auth';
+import { syncProfileAfterSignIn } from '../src/lib/profileSync';
 import { KeyboardScreen } from '../src/components/KeyboardScreen';
 
 const DENOMINATIONS = ['Non-Denominational','Catholic','Baptist','Methodist','Lutheran','Presbyterian','Episcopal','Pentecostal','Assemblies of God','Evangelical','Reformed','AME','Other'];
@@ -49,9 +51,14 @@ export default function SignupChurchScreen() {
     else if (step === 2 && validateStep2()) setStep(3);
   }
 
-  function handleCreate() {
-    setUser({
-      accountType: 'church',
+  const [creating, setCreating] = useState(false);
+  const [authError, setAuthError] = useState('');
+
+  async function handleCreate() {
+    setAuthError('');
+
+    const local = {
+      accountType: 'church' as const,
       churchName: churchName.trim(),
       email: email.trim(),
       address: address.trim(),
@@ -59,7 +66,26 @@ export default function SignupChurchScreen() {
       serviceTimes: serviceTimes.trim(),
       website: website.trim(),
       createdAt: new Date().toISOString(),
+    };
+
+    if (!hasDatabase()) {
+      setUser(local);
+      router.replace('/(tabs)');
+      return;
+    }
+
+    setCreating(true);
+    const err = await signUp(email, password, {
+      accountType: 'church',
+      churchName: churchName.trim(),
     });
+    if (err) { setCreating(false); setAuthError(err); return; }
+
+    const u = getAuthUser();
+    setUser({ ...local, id: u?.id });
+    if (u) await syncProfileAfterSignIn(u.id);
+
+    setCreating(false);
     router.replace('/(tabs)');
   }
 
@@ -207,10 +233,19 @@ export default function SignupChurchScreen() {
             </View>
           )}
 
+          {!!authError && <Text style={[s.errTxt, {textAlign:'center', marginBottom:10}]}>{authError}</Text>}
+
           {/* CTA */}
-          <TouchableOpacity style={s.primaryBtn} onPress={step < 3 ? handleNext : handleCreate} activeOpacity={0.88}>
-            <Text style={s.primaryBtnTxt}>{step < 3 ? 'Continue' : 'Create Church Account'}</Text>
-            <Ionicons name={step < 3 ? 'arrow-forward' : 'checkmark'} size={20} color={COLORS.white} />
+          <TouchableOpacity
+            style={[s.primaryBtn, creating && {opacity:0.6}]}
+            onPress={step < 3 ? handleNext : handleCreate}
+            disabled={creating}
+            activeOpacity={0.88}
+          >
+            <Text style={s.primaryBtnTxt}>
+              {creating ? 'Creating account…' : step < 3 ? 'Continue' : 'Create Church Account'}
+            </Text>
+            {!creating && <Ionicons name={step < 3 ? 'arrow-forward' : 'checkmark'} size={20} color={COLORS.white} />}
           </TouchableOpacity>
 
           {step === 1 && (
