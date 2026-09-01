@@ -44,3 +44,6 @@ app-example
 
 # editor backup files
 *~
+
+# Supabase service key — never commit
+.env.local
