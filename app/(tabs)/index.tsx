@@ -282,11 +282,20 @@ export default function ChurchesScreen() {
     return (
       <TouchableOpacity style={s.card} onPress={() => router.push({ pathname: '/church-detail', params })} activeOpacity={0.92}>
         <View style={s.banner}>
-          {photoRefs[church.id] ? (
+          {church.photo ? (
+            // A church that claimed its listing and uploaded a photo.
+            <Image source={{ uri: church.photo }} style={s.bannerImg} resizeMode="cover" />
+          ) : photoRefs[church.id] ? (
             <Image source={{ uri: photoUrl(photoRefs[church.id]) }} style={s.bannerImg} resizeMode="cover" />
           ) : (
             <LinearGradient colors={church.gradient || ['#667eea','#764ba2']} style={StyleSheet.absoluteFill} start={{x:0,y:0}} end={{x:1,y:1}}>
-              <View style={s.loadingWrap}><ActivityIndicator color="rgba(255,255,255,0.6)" size="small" /></View>
+              {/* Spin only while a photo could still arrive. A church from our
+                  own database carries no Places id, so nothing is ever coming
+                  and the spinner would turn forever — which reads as a card
+                  that failed to load rather than one that has no picture. */}
+              {!!church.placeId && (
+                <View style={s.loadingWrap}><ActivityIndicator color="rgba(255,255,255,0.6)" size="small" /></View>
+              )}
             </LinearGradient>
           )}
           <View style={s.nearbyBadge}>
