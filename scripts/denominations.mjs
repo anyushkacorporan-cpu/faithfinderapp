@@ -12,9 +12,18 @@
  * Utah spellings collapse to `latter_day_saints` and land on one name.
  */
 
-/** "Latter-Day_Saints" → "latter_day_saints" */
+/**
+ * "Latter-Day_Saints" → "latter_day_saints"
+ *
+ * The semicolon split has to happen before punctuation is stripped. OSM uses
+ * `;` to list several values — "Presbyterian;PCA" — and stripping first glued
+ * them into "presbyterianpca", a denomination that does not exist. Taking the
+ * first value is right for a single-denomination field: a church tagged
+ * "Southern Baptist;Baptist" is a Southern Baptist church.
+ */
 export function key(raw) {
   return String(raw || '')
+    .split(';')[0]
     .toLowerCase()
     .trim()
     .replace(/[\s\-_]+/g, '_')
@@ -81,10 +90,13 @@ const CANON = {
   churches_of_christ: 'Church of Christ',
   disciples_of_christ: 'Disciples of Christ',
   christian_church: 'Christian Church',
+  community_of_christ: 'Community of Christ',
 
   // Pentecostal / charismatic
   pentecostal: 'Pentecostal',
+  neo_pentecostal: 'Neo-Pentecostal',
   assemblies_of_god: 'Assemblies of God',
+  assembly_of_god: 'Assemblies of God',
   church_of_god: 'Church of God',
   church_of_god_in_christ: 'Church of God in Christ',
   foursquare: 'Foursquare',
@@ -110,8 +122,11 @@ const CANON = {
   mennonite: 'Mennonite',
   quaker: 'Quaker',
   friends: 'Quaker',
+  society_of_friends: 'Quaker',
+  religious_society_of_friends: 'Quaker',
   amish: 'Amish',
   brethren: 'Brethren',
+  church_of_the_brethren: 'Brethren',
   moravian: 'Moravian',
 
   // Other
@@ -121,6 +136,7 @@ const CANON = {
   evangelical: 'Evangelical',
   protestant: 'Protestant',
   nazarene: 'Nazarene',
+  church_of_the_nazarene: 'Nazarene',
   wesleyan: 'Wesleyan',
   salvation_army: 'Salvation Army',
   christ_scientist: 'Christian Science',
