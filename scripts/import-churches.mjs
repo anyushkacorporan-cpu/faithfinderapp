@@ -19,6 +19,7 @@
  */
 import { readFileSync } from 'node:fs';
 import pg from 'pg';
+import { canonical as denomination } from './denominations.mjs';
 
 const file = process.argv[2] || 'churches-nyc.json';
 const dryRun = process.argv.includes('--dry-run');
@@ -41,47 +42,6 @@ if (!dryRun && !DB) {
   Run with --dry-run to preview the import without connecting.
 `);
   process.exit(1);
-}
-
-/**
- * OSM writes denominations lowercase and underscored; the app's list is title
- * case. `catholic` and `roman_catholic` are also the same thing under two
- * tags — 324 NYC churches were split across them — so they merge here rather
- * than showing up as two filter entries for one denomination.
- */
-const DENOM = {
-  roman_catholic: 'Catholic',
-  catholic: 'Catholic',
-  baptist: 'Baptist',
-  southern_baptist: 'Southern Baptist',
-  lutheran: 'Lutheran',
-  methodist: 'Methodist',
-  united_methodist: 'United Methodist',
-  presbyterian: 'Presbyterian',
-  episcopal: 'Episcopal',
-  anglican: 'Anglican',
-  pentecostal: 'Pentecostal',
-  evangelical: 'Evangelical',
-  orthodox: 'Orthodox',
-  greek_orthodox: 'Greek Orthodox',
-  seventh_day_adventist: 'Seventh-day Adventist',
-  adventist: 'Adventist',
-  nondenominational: 'Non-Denominational',
-  jehovahs_witness: "Jehovah's Witness",
-  mormon: 'Latter-day Saints',
-  quaker: 'Quaker',
-  mennonite: 'Mennonite',
-  nazarene: 'Nazarene',
-  reformed: 'Reformed',
-  assemblies_of_god: 'Assemblies of God',
-};
-
-function denomination(raw) {
-  if (!raw) return null;
-  const key = raw.toLowerCase().trim();
-  if (DENOM[key]) return DENOM[key];
-  // Anything unmapped still gets through, readably, rather than being dropped.
-  return key.replace(/_/g, ' ').replace(/\b\w/g, m => m.toUpperCase());
 }
 
 let raw;
