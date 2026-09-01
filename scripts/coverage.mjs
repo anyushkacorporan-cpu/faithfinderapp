@@ -40,13 +40,40 @@ const client = new pg.Client({ connectionString: DB, ssl: { rejectUnauthorized: 
 await client.connect();
 
 try {
+  // A report should not fail on the thing it is reporting about. Photos are
+  // optional here: if 02_church_photos.sql has not been run, say so and carry
+  // on rather than dying on a missing column.
+  const { rows: hasPhotos } = await client.query(`
+    select 1 from information_schema.columns
+    where table_name = 'churches' and column_name = 'photo_url'
+  `);
+  const photos = hasPhotos.length;
+
   const { rows } = await client.query(`
     select state, count(*)::int as n,
-           count(photo_url)::int as photos,
+           ${photos ? 'count(photo_url)::int' : '0'} as photos,
            count(address)::int as addressed
     from churches where country = 'US'
     group by state order by state
   `);
+
+  if (!photos) {
+    console.log('\n  (no photo columns yet — run scripts/run-sql.mjs supabase/02_church_photos.sql)');
+  }
+
+  // The question behind a state search returning nothing: is `state` stored
+  // as one value per state, or several? OSM's addr:state is free text, so
+  // "GA" and "Georgia" can both be in there, and an exact match sees one.
+  const odd = rows.filter(r => !/^[A-Z]{2}$/.test(r.state || ''));
+  if (odd.length) {
+    console.log(`\n  ${odd.length} state value(s) are not a two-letter code:`);
+    for (const r of odd.slice(0, 20)) {
+      console.log(`    ${JSON.stringify(r.state)}  (${r.n} churches)`);
+    }
+    console.log('  These are invisible to a state search until normalised.\n');
+  } else {
+    console.log('\n  Every state value is a clean two-letter code.\n');
+  }
 
   const byState = Object.fromEntries(rows.map(r => [r.state, r]));
   const missing = Object.keys(POP).filter(s => !byState[s]);
