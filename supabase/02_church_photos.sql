@@ -13,7 +13,16 @@
 alter table churches add column if not exists photo_url    text;
 alter table churches add column if not exists photo_credit text;
 
-create or replace view churches_public as
+-- `create or replace view` can only append columns to the end of a view.
+-- photo_credit goes in the middle, which shifts is_claimed, lat, lng and
+-- location along one place — and Postgres reads that as renaming columns and
+-- refuses ("cannot change name of view column"). The view has to be dropped
+-- and rebuilt. nearby_churches selects from it, so that goes first; both are
+-- recreated below.
+drop function if exists nearby_churches(double precision, double precision, integer, integer, text);
+drop view if exists churches_public;
+
+create view churches_public as
 select
   c.id,
   c.source_id,
@@ -39,10 +48,7 @@ select
 from churches c
 left join church_profiles p on p.church_id = c.id;
 
--- nearby_churches selects from the view, so it has to be redeclared to return
--- the new column too.
-drop function if exists nearby_churches(double precision, double precision, integer, integer, text);
-
+-- Recreated against the rebuilt view, returning the credit alongside the photo.
 create function nearby_churches(
   in_lat    double precision,
   in_lng    double precision,
