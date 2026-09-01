@@ -146,3 +146,11 @@ export async function searchChurches(query: string, limit = 30): Promise<ChurchR
 }
 
 export { hasDatabase };
+
+/** "0.4 mi" / "12 mi" — miles, since this ships to the US and Canada. */
+export function formatDistance(km: number): string {
+  const miles = km * 0.621371;
+  if (miles < 0.1) return 'here';
+  if (miles < 10) return `${miles.toFixed(1)} mi`;
+  return `${Math.round(miles)} mi`;
+}

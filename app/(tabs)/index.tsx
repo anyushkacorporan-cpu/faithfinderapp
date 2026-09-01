@@ -13,7 +13,7 @@ import { TAB_BAR_CLEARANCE } from '../../src/lib/tabBar';
 import { useSavedChurches, toggleSavedChurch } from '../../src/lib/store';
 import { DENOMINATIONS, US_STATES, CA_PROVINCES, COUNTRY_NAME, regionLabel, Region } from '../../src/lib/filters';
 import { gradientFor } from '../../src/lib/constants';
-import { nearbyChurches as dbNearby, churchesInRegion, hasDatabase } from '../../src/lib/churchesApi';
+import { nearbyChurches as dbNearby, churchesInRegion, hasDatabase, formatDistance } from '../../src/lib/churchesApi';
 import { useSettings } from '../../src/lib/settingsStore';
 import { useTranslation } from '../../src/lib/i18n';
 
@@ -301,9 +301,22 @@ export default function ChurchesScreen() {
           <View style={s.nearbyBadge}>
             <Text style={s.nearbyTxt}>{church.state || t('nearbyBadge')}</Text>
           </View>
-          {church.rating > 0 && (
+          {church.rating > 0 ? (
             <View style={s.ratingBadge}>
               <Text style={s.ratingTxt}>★ {church.rating} ({church.count})</Text>
+            </View>
+          ) : !!church.type && church.type !== 'Church' ? (
+            <View style={s.denomBadge}>
+              <Text style={s.denomBadgeTxt}>{church.type}</Text>
+            </View>
+          ) : null}
+
+          {/* Commons licences require attribution wherever the image appears,
+              so the credit travels with the photo rather than living in an
+              about screen nobody opens. Absent on a church's own upload. */}
+          {!!church.photo && !!church.photoCredit && (
+            <View style={s.creditBadge}>
+              <Text style={s.creditTxt}>{church.photoCredit}</Text>
             </View>
           )}
           <TouchableOpacity
@@ -323,6 +336,9 @@ export default function ChurchesScreen() {
           <View style={s.addrRow}>
             <Ionicons name="location-outline" size={13} color={c.textMuted} />
             <Text style={s.addrTxt} numberOfLines={1}>{church.address}</Text>
+            {typeof church.distanceKm === 'number' && (
+              <Text style={s.distTxt}>{formatDistance(church.distanceKm)}</Text>
+            )}
           </View>
           <View style={s.cardFooter}>
             <Text style={s.websiteTxt} numberOfLines={1}>{church.website || ''}</Text>
@@ -558,6 +574,11 @@ const makeStyles = (c: ThemeColors) => StyleSheet.create({
   nearbyTxt:{color:'#fff',fontSize:11,fontWeight:'700',letterSpacing:0.5},
   ratingBadge:{position:'absolute',bottom:10,left:12,backgroundColor:'rgba(0,0,0,0.55)',borderRadius:8,paddingHorizontal:10,paddingVertical:5},
   ratingTxt:{color:'#fff',fontSize:13,fontWeight:'700'},
+  denomBadge:{position:'absolute',bottom:10,left:12,backgroundColor:'rgba(0,0,0,0.55)',borderRadius:8,paddingHorizontal:10,paddingVertical:5},
+  denomBadgeTxt:{color:'#fff',fontSize:12,fontWeight:'700',letterSpacing:0.2},
+  creditBadge:{position:'absolute',bottom:10,right:12,backgroundColor:'rgba(0,0,0,0.45)',borderRadius:6,paddingHorizontal:7,paddingVertical:3},
+  creditTxt:{color:'rgba(255,255,255,0.85)',fontSize:9,fontWeight:'600'},
+  distTxt:{fontSize:12,fontWeight:'700',color:c.gold},
   savedIndicator:{position:'absolute',top:12,left:12,width:30,height:30,borderRadius:15,backgroundColor:'rgba(0,0,0,0.3)',alignItems:'center',justifyContent:'center'},
   cardBody:{padding:16},
   churchName:{fontSize:18,fontWeight:'700',color:c.text,marginBottom:8},
