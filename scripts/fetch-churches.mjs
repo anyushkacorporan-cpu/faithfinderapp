@@ -46,18 +46,61 @@ out center tags;`;
 
 console.log(`Fetching churches for ${arg} …`);
 
-const res = await fetch('https://overpass-api.de/api/interpreter', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-  body: 'data=' + encodeURIComponent(query),
-});
+// Overpass runs on donated hardware and rejects clients that do not identify
+// themselves — that is the 406, not rate limiting. A descriptive User-Agent is
+// the fair-use expectation, not a workaround.
+const HEADERS = {
+  'Content-Type': 'application/x-www-form-urlencoded',
+  'User-Agent': 'FaithFinder/1.0 (church directory; one-time data survey)',
+  Accept: 'application/json',
+};
 
-if (!res.ok) {
-  console.error(`Overpass returned ${res.status}. It rate-limits free use — wait a minute and retry.`);
-  process.exit(1);
+// Several public mirrors run the same API. If one is busy or unhappy, try the
+// next rather than making you re-run the command.
+const MIRRORS = [
+  'https://overpass-api.de/api/interpreter',
+  'https://overpass.kumi.systems/api/interpreter',
+  'https://overpass.private.coffee/api/interpreter',
+];
+
+let data = null;
+for (const url of MIRRORS) {
+  const host = new URL(url).host;
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: HEADERS,
+      body: 'data=' + encodeURIComponent(query),
+    });
+
+    if (res.ok) {
+      data = await res.json();
+      console.log(`  (via ${host})`);
+      break;
+    }
+
+    // Print what the server actually said. A guess at the cause is how the
+    // last version sent you chasing a rate limit that was not there.
+    const body = (await res.text()).slice(0, 300).replace(/\s+/g, ' ').trim();
+    const why = res.status === 429 || res.status === 504
+      ? 'busy — this one really is rate limiting'
+      : res.status === 400
+      ? 'rejected the query'
+      : res.status === 406
+      ? 'refused the request'
+      : '';
+    console.log(`  ${host}: ${res.status} ${why}`);
+    if (body) console.log(`    ${body}`);
+  } catch (err) {
+    console.log(`  ${host}: ${err.message}`);
+  }
 }
 
-const data = await res.json();
+if (!data) {
+  console.error('\n  Every mirror failed. Wait a few minutes and retry — these are');
+  console.error('  volunteer-run servers and they do go down.\n');
+  process.exit(1);
+}
 
 const churches = (data.elements || []).map((el) => {
   const t = el.tags || {};
