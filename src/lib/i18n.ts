@@ -541,7 +541,7 @@ const translations: Record<string, Record<Lang, string>> = {
   dx108: { English: 'Add your thoughts about this event...', Español: 'Añade tus pensamientos sobre este evento...' },
   dx109: { English: 'Write a comment...', Español: 'Escribe un comentario...' },
   dx110: { English: 'Search by name, city, state, venue...', Español: 'Busca por nombre, ciudad, estado o lugar...' },
-  dx111: { English: 'Search city, state or province, denomination...', Español: 'Busca ciudad, estado o provincia, o denominación...' },
+  dx111: { English: 'Search church, city, ZIP, state, denomination...', Español: 'Busca iglesia, ciudad, código postal, estado o denominación...' },
   dx112: { English: 'Search by church name or city...', Español: 'Busca por nombre de iglesia o ciudad...' },
   dx113: { English: 'Filter by city...', Español: 'Filtrar por ciudad...' },
   dx114: { English: 'Any additional information to help verify your claim...', Español: 'Información adicional para ayudar a verificar tu solicitud...' },

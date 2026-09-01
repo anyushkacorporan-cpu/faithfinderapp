@@ -164,7 +164,10 @@ export default function ChurchesScreen() {
         // exists only because the Google path is billed per call.
         let nearby: any[] | null = null;
         if (hasDatabase()) {
-          nearby = await dbNearby(latitude, longitude, { radiusKm: 50 });
+          nearby = await dbNearby(latitude, longitude, {
+            radiusKm: 50,
+            denomination: activeDenom !== 'All' ? activeDenom : undefined,
+          });
         }
 
         // Google stays as the fallback while the directory is still filling
@@ -201,7 +204,7 @@ export default function ChurchesScreen() {
       setLoadingNearby(false);
     }
     getLocation();
-  }, [appSettings.location.nearbyChurches, appSettings.location.locationEnabled]);
+  }, [appSettings.location.nearbyChurches, appSettings.location.locationEnabled, activeDenom]);
 
   useEffect(() => {
     if (timer.current) clearTimeout(timer.current);
@@ -211,7 +214,9 @@ export default function ChurchesScreen() {
       // Our own directory first; Google only if it has nothing, which for a US
       // or Canadian query it now almost never will.
       let results: any[] | null = null;
-      if (hasDatabase()) results = await searchChurches(search);
+      if (hasDatabase()) results = await searchChurches(search, {
+        denomination: activeDenom !== 'All' ? activeDenom : undefined,
+      });
       if (!results || results.length === 0) results = await searchByQuery(search);
       results = results ?? [];
       setSearchResults(results);
@@ -223,15 +228,22 @@ export default function ChurchesScreen() {
       setPhotoRefs(p => ({ ...p, ...refs }));
       setSearching(false);
     }, 800);
-  }, [search]);
+  }, [search, activeDenom]);
 
   async function applyFilters() {
     setFilterVisible(false);
+    if (!activeRegion && activeDenom !== 'All') {
+      // Denomination with no region: narrow whatever the screen is showing.
+      // The nearby effect re-runs on activeDenom, so this needs no query.
+      return;
+    }
     if (activeRegion) {
       setSearching(true);
       let results: any[] | null = null;
       if (hasDatabase()) {
-        results = await churchesInRegion(activeRegion.code, activeRegion.country);
+        results = await churchesInRegion(activeRegion.code, activeRegion.country, {
+          denomination: activeDenom !== 'All' ? activeDenom : undefined,
+        });
       }
       // searchByRegion returns [] rather than null, so this is always an array
       // by here — but the compiler cannot see that through the branch above.
@@ -374,7 +386,7 @@ export default function ChurchesScreen() {
             <Ionicons name="search-outline" size={18} color={c.gold} />
             <TextInput
               style={s.searchInput}
-              placeholder={tx('Search city, state or province, denomination...')}
+              placeholder={tx('Search church, city, ZIP, state, denomination...')}
               placeholderTextColor={c.placeholder}
               value={search}
               onChangeText={setSearch}

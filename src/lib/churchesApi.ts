@@ -97,22 +97,23 @@ export async function nearbyChurches(
   }
 }
 
-/** Every church in a state or province, for the region filter. */
+const COLS = 'id,name,address,city,state,zip,denomination,phone,website,photo_url,photo_credit,is_claimed';
+
+/** Every church in a state or province, optionally of one denomination. */
 export async function churchesInRegion(
   stateCode: string,
   country: 'US' | 'CA' = 'US',
-  limit = 60,
+  opts: { denomination?: string; limit?: number } = {},
 ): Promise<ChurchRow[] | null> {
   const db = supabase();
   if (!db) return null;
 
   try {
-    const { data, error } = await db
-      .from('churches_public')
-      .select('id,name,address,city,state,denomination,phone,website,photo_url,photo_credit,is_claimed')
+    let q = db.from('churches_public').select(COLS)
       .eq('country', country)
-      .eq('state', stateCode)
-      .limit(limit);
+      .eq('state', stateCode);
+    if (opts.denomination) q = q.eq('denomination', opts.denomination);
+    const { data, error } = await q.limit(opts.limit ?? 60);
     if (error) return null;
     return (data || []).map(toChurch);
   } catch {
@@ -132,23 +133,44 @@ export async function churchesInRegion(
  * holds 3,328 New Jersey churches. Recognising it as a region and listing that
  * region is the answer someone typing it actually wants.
  */
-export async function searchChurches(query: string, limit = 30): Promise<ChurchRow[] | null> {
+export async function searchChurches(
+  query: string,
+  opts: { denomination?: string; limit?: number } = {},
+): Promise<ChurchRow[] | null> {
   const q = query.trim();
   if (q.length < 2) return [];
   const db = supabase();
   if (!db) return null;
+  const limit = opts.limit ?? 40;
 
-  // "New Jersey", "NJ", "Ontario" — a place, not a church.
+  // A ZIP code is unambiguous, so it is checked first and matched exactly —
+  // "10470" as a name or city search would return nothing at all.
+  if (/^\d{5}$/.test(q)) {
+    try {
+      let z = db.from('churches_public').select(COLS).eq('zip', q);
+      if (opts.denomination) z = z.eq('denomination', opts.denomination);
+      const { data, error } = await z.limit(limit);
+      if (error) return null;
+      return (data || []).map(toChurch);
+    } catch { return null; }
+  }
+
+  // "New Jersey", "NJ", "Ontario" — a place, not a church. Matches no church's
+  // *name*, so without this the state with 3,328 churches returns nothing.
   const region = findRegion(q);
-  if (region) return churchesInRegion(region.code, region.country, limit);
+  if (region) {
+    return churchesInRegion(region.code, region.country, { denomination: opts.denomination, limit });
+  }
 
   try {
-    // Name or city, since "Brooklyn" is as likely a query as "Grace Community".
-    const { data, error } = await db
-      .from('churches_public')
-      .select('id,name,address,city,state,denomination,phone,website,photo_url,photo_credit,is_claimed')
-      .or(`name.ilike.%${q}%,city.ilike.%${q}%`)
-      .limit(limit);
+    // Name, city, address and denomination together, because the box is one
+    // box and people type all four into it. Commas break PostgREST's `or`
+    // syntax, so they come out of the pattern rather than out of the query.
+    const safe = q.replace(/[,()]/g, ' ').trim();
+    let f = db.from('churches_public').select(COLS)
+      .or(`name.ilike.%${safe}%,city.ilike.%${safe}%,address.ilike.%${safe}%,denomination.ilike.%${safe}%`);
+    if (opts.denomination) f = f.eq('denomination', opts.denomination);
+    const { data, error } = await f.limit(limit);
     if (error) return null;
     return (data || []).map(toChurch);
   } catch {
