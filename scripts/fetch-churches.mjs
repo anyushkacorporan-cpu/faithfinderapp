@@ -22,7 +22,7 @@ import { writeFileSync } from 'node:fs';
 
 const AREAS = {
   manhattan: [40.700, -74.020, 40.880, -73.907],
-  nyc:       [40.477, -74.259, 40.917, -73.700],
+  nyc:       [40.477, -74.047, 40.917, -73.700],
   brooklyn:  [40.570, -74.042, 40.739, -73.833],
 };
 
@@ -154,6 +154,30 @@ if (withPhoto.length) {
     const src = c.image ? 'image' : c.commons ? 'commons' : 'wikidata';
     console.log(`    ${c.name}  [${src}]`);
   }
+}
+
+// Resolve what those wikidata entries actually hold. An entry is not a
+// picture — plenty are bare stubs — so counting them overstates the coverage.
+const qids = churches.map(c => c.wikidata).filter(Boolean);
+if (qids.length) {
+  process.stdout.write('    checking wikidata for real images … ');
+  let withImage = 0;
+  for (let i = 0; i < qids.length; i += 50) {
+    const batch = qids.slice(i, i + 50);
+    try {
+      const r = await fetch(
+        'https://www.wikidata.org/w/api.php?action=wbgetentities&format=json&props=claims&ids=' + batch.join('|'),
+        { headers: HEADERS },
+      );
+      const j = await r.json();
+      for (const ent of Object.values(j.entities || {})) {
+        if (ent?.claims?.P18) withImage++;
+      }
+    } catch { /* a failed batch just undercounts; not worth stopping for */ }
+  }
+  const realPct = `${Math.round((withImage / churches.length) * 100)}%`.padStart(4);
+  console.log('done');
+  console.log(`    …of which really have one ${realPct}  (${withImage})`);
 }
 
 const denoms = {};
