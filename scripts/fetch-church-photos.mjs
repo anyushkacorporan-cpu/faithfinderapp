@@ -68,6 +68,25 @@ if (!targets.length) {
   process.exit(0);
 }
 
+const client = new pg.Client({ connectionString: DB, ssl: { rejectUnauthorized: false } });
+await client.connect();
+
+const { rows: cols } = await client.query(`
+  select 1 from information_schema.columns
+  where table_name = 'churches' and column_name = 'photo_url'
+`);
+if (!cols.length) {
+  console.error(`
+  The churches table has no photo_url column yet. Add it first:
+
+    node scripts/run-sql.mjs supabase/02_church_photos.sql
+
+  Then run this again.
+`);
+  await client.end().catch(() => {});
+  process.exit(1);
+}
+
 process.stdout.write('  Asking wikidata for images … ');
 
 /** qid → { file, credit } */
@@ -103,8 +122,6 @@ const updates = targets
 
 console.log(`  ${updates.length} churches will get a photo\n`);
 
-const client = new pg.Client({ connectionString: DB, ssl: { rejectUnauthorized: false } });
-await client.connect();
 
 let done = 0;
 try {
