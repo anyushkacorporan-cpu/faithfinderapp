@@ -75,11 +75,20 @@ export default function SignupChurchScreen() {
     }
 
     setCreating(true);
-    const err = await signUp(email, password, {
+    const { error: err, needsConfirmation } = await signUp(email, password, {
       accountType: 'church',
       churchName: churchName.trim(),
     });
     if (err) { setCreating(false); setAuthError(err); return; }
+
+    // The account exists but has no session: this project requires a
+    // confirmation email. Navigating to the app now would look like success
+    // and then fail at every write, so say what happened and stop here.
+    if (needsConfirmation) {
+      setCreating(false);
+      setAuthError('Account created. Check your email for a confirmation link, then sign in.');
+      return;
+    }
 
     const u = getAuthUser();
     setUser({ ...local, id: u?.id });

@@ -81,7 +81,14 @@ export type AuthError = string | null;
  */
 function readable(message: string): string {
   const m = message.toLowerCase();
-  if (m.includes('invalid login')) return 'That email and password do not match.';
+  // Supabase returns this for a wrong password *and* for an unconfirmed
+  // account, so the message has to cover both rather than assert the first.
+  if (m.includes('invalid login')) {
+    return 'That email and password do not match — or the account has not been confirmed yet. Check your inbox for a confirmation link.';
+  }
+  if (m.includes('not confirmed') || m.includes('email not confirmed')) {
+    return 'Check your inbox for a confirmation link, then sign in.';
+  }
   if (m.includes('already registered')) return 'An account already exists for that email.';
   if (m.includes('password') && m.includes('6')) return 'Password must be at least 6 characters.';
   if (m.includes('email') && m.includes('valid')) return 'Please enter a valid email address.';
@@ -90,15 +97,27 @@ function readable(message: string): string {
   return message;
 }
 
+export type SignUpResult = {
+  error: AuthError;
+  /**
+   * True when the account was created but no session came back, which means
+   * the project requires a confirmation email. The account exists and cannot
+   * be used yet — and `signInWithPassword` reports that as "invalid login
+   * credentials", identical to a wrong password. Callers must say which it is
+   * rather than leaving someone retyping a password that was always right.
+   */
+  needsConfirmation: boolean;
+};
+
 export async function signUp(
   email: string,
   password: string,
   meta: { accountType?: 'personal' | 'church'; firstName?: string; lastName?: string; churchName?: string } = {},
-): Promise<AuthError> {
+): Promise<SignUpResult> {
   const db = supabase();
-  if (!db) return 'The app is not connected to its server yet.';
+  if (!db) return { error: 'The app is not connected to its server yet.', needsConfirmation: false };
 
-  const { error } = await db.auth.signUp({
+  const { data, error } = await db.auth.signUp({
     email: email.trim(),
     password,
     options: {
@@ -113,7 +132,11 @@ export async function signUp(
       },
     },
   });
-  return error ? readable(error.message) : null;
+
+  if (error) return { error: readable(error.message), needsConfirmation: false };
+
+  // A user with no session is an account awaiting confirmation.
+  return { error: null, needsConfirmation: !!data.user && !data.session };
 }
 
 export async function signIn(email: string, password: string): Promise<AuthError> {
