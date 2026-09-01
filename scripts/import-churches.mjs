@@ -13,14 +13,12 @@
  *   node scripts/import-churches.mjs churches-nyc.json
  *   node scripts/import-churches.mjs churches-nyc.json --dry-run
  *
- * Needs, in .env.local:
- *   SUPABASE_URL=https://xxxx.supabase.co
- *   SUPABASE_SERVICE_KEY=...      ← service_role key, NOT the anon key
- *
- * The service key bypasses row-level security, which is exactly why it belongs
- * in a script you run and never in the app.
+ * Needs DATABASE_URL in .env.local — the same one scripts/run-sql.mjs uses.
+ * It connects straight to Postgres rather than going through the REST API,
+ * which means one credential for both scripts instead of two.
  */
 import { readFileSync } from 'node:fs';
+import pg from 'pg';
 
 const file = process.argv[2] || 'churches-nyc.json';
 const dryRun = process.argv.includes('--dry-run');
@@ -34,20 +32,13 @@ try {
   }
 } catch { /* fall through to process.env */ }
 
-const URL_ = env.SUPABASE_URL || process.env.SUPABASE_URL;
-const KEY = env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_KEY;
+const DB = env.DATABASE_URL || process.env.DATABASE_URL;
 
-if (!dryRun && (!URL_ || !KEY)) {
+if (!dryRun && !DB) {
   console.error(`
-  Missing credentials. Create .env.local in the project root:
+  No DATABASE_URL in .env.local — the same one run-sql.mjs uses.
 
-    SUPABASE_URL=https://YOURPROJECT.supabase.co
-    SUPABASE_SERVICE_KEY=eyJ...
-
-  Both are in your Supabase dashboard under Settings → API.
-  Use the service_role key, not anon. Never commit this file.
-
-  Run with --dry-run to see what would be imported without credentials.
+  Run with --dry-run to preview the import without connecting.
 `);
   process.exit(1);
 }
@@ -143,32 +134,54 @@ if (dryRun) {
   process.exit(0);
 }
 
-// Batched so one oversized request cannot fail the whole import, and so a
-// failure tells you how far it got.
-const BATCH = 500;
+// Batched so a single oversized statement cannot fail the whole import, and
+// so a failure tells you how far it got. ON CONFLICT makes a re-run an update
+// rather than a duplicate — the property the whole design rests on.
+const client = new pg.Client({ connectionString: DB, ssl: { rejectUnauthorized: false } });
+await client.connect();
+
+const BATCH = 250;
 let done = 0;
-for (let i = 0; i < unique.length; i += BATCH) {
-  const batch = unique.slice(i, i + BATCH);
-  const res = await fetch(`${URL_}/rest/v1/churches?on_conflict=source_id`, {
-    method: 'POST',
-    headers: {
-      apikey: KEY,
-      Authorization: `Bearer ${KEY}`,
-      'Content-Type': 'application/json',
-      Prefer: 'resolution=merge-duplicates,return=minimal',
-    },
-    body: JSON.stringify(batch),
-  });
+try {
+  for (let i = 0; i < unique.length; i += BATCH) {
+    const batch = unique.slice(i, i + BATCH);
 
-  if (!res.ok) {
-    console.error(`\n  Batch at ${i} failed: ${res.status}`);
-    console.error(`  ${(await res.text()).slice(0, 400)}`);
-    console.error(`\n  ${done} rows imported before this. Re-running is safe — it upserts.\n`);
-    process.exit(1);
+    const cols = ['source_id','source','name','address','city','state','zip','country','denomination','phone','website','lat','lng'];
+    const values = [];
+    const tuples = batch.map((r, n) => {
+      const base = n * cols.length;
+      values.push(...cols.map(c => r[c]));
+      return `(${cols.map((_, k) => `$${base + k + 1}`).join(',')})`;
+    });
+
+    await client.query(
+      `insert into churches (${cols.join(',')}) values ${tuples.join(',')}
+       on conflict (source_id) do update set
+         name = excluded.name,
+         address = excluded.address,
+         city = excluded.city,
+         state = excluded.state,
+         zip = excluded.zip,
+         denomination = excluded.denomination,
+         phone = excluded.phone,
+         website = excluded.website,
+         lat = excluded.lat,
+         lng = excluded.lng,
+         imported_at = now()`,
+      values,
+    );
+
+    done += batch.length;
+    process.stdout.write(`\r  imported ${done}/${unique.length}`);
   }
-  done += batch.length;
-  process.stdout.write(`\r  imported ${done}/${unique.length}`);
-}
 
-console.log(`\n\n  Done. ${done} churches in the directory.`);
-console.log('  Claimed listings were not touched.\n');
+  const { rows } = await client.query('select count(*)::int as n from churches');
+  console.log(`\n\n  Done. ${rows[0].n} churches in the directory.`);
+  console.log('  Claimed listings were not touched.\n');
+} catch (err) {
+  console.error(`\n\n  Failed after ${done} rows: ${err.message}`);
+  console.error('  Re-running is safe — it upserts.\n');
+  process.exit(1);
+} finally {
+  await client.end().catch(() => {});
+}
