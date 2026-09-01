@@ -7,6 +7,11 @@
  * committing to anything — if the coverage is poor for New York it will be poor
  * everywhere, and we should look at Overture or Foursquare instead.
  *
+ * It also counts how many churches carry a free photo link — an `image` tag,
+ * a Wikimedia Commons category, or a Wikidata entry that usually has one. That
+ * is the number that decides how many churches show a real picture on day one
+ * without anybody uploading anything or Google being paid.
+ *
  *   node scripts/fetch-churches.mjs                  # Manhattan
  *   node scripts/fetch-churches.mjs nyc              # all five boroughs
  *   node scripts/fetch-churches.mjs 40.7,-74.0,40.8,-73.9
@@ -74,6 +79,12 @@ const churches = (data.elements || []).map((el) => {
     website: t.website || t['contact:website'] || '',
     lat: el.lat ?? el.center?.lat,
     lng: el.lon ?? el.center?.lon,
+    // Free photo routes, best first. `image` is a direct URL; the other two
+    // are lookups into Commons and Wikidata, which are free to resolve and
+    // free to use with attribution.
+    image: t.image || '',
+    commons: t['wikimedia_commons'] || '',
+    wikidata: t.wikidata || '',
   };
 }).filter(c => c.name && c.lat && c.lng);
 
@@ -84,6 +95,22 @@ console.log(`\n  ${churches.length} named churches found\n`);
 console.log('  Field completeness:');
 for (const f of ['address', 'denomination', 'phone', 'website', 'zip']) {
   console.log(`    ${f.padEnd(13)} ${pct(has(f))}  (${has(f)})`);
+}
+
+const withPhoto = churches.filter(c => c.image || c.commons || c.wikidata);
+console.log('\n  Free photo coverage:');
+console.log(`    direct image url   ${pct(has('image'))}  (${has('image')})`);
+console.log(`    wikimedia commons  ${pct(has('commons'))}  (${has('commons')})`);
+console.log(`    wikidata entry     ${pct(has('wikidata'))}  (${has('wikidata')})`);
+console.log(`    ANY of the above   ${pct(withPhoto.length)}  (${withPhoto.length})`);
+console.log('    (the rest need a church upload, a user photo, or the gradient)');
+
+if (withPhoto.length) {
+  console.log('\n  Churches that already have a free photo:');
+  for (const c of withPhoto.slice(0, 8)) {
+    const src = c.image ? 'image' : c.commons ? 'commons' : 'wikidata';
+    console.log(`    ${c.name}  [${src}]`);
+  }
 }
 
 const denoms = {};
