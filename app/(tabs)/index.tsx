@@ -13,6 +13,7 @@ import { TAB_BAR_CLEARANCE } from '../../src/lib/tabBar';
 import { useSavedChurches, toggleSavedChurch } from '../../src/lib/store';
 import { DENOMINATIONS, US_STATES, CA_PROVINCES, COUNTRY_NAME, regionLabel, Region } from '../../src/lib/filters';
 import { gradientFor } from '../../src/lib/constants';
+import { nearbyChurches as dbNearby, churchesInRegion, hasDatabase } from '../../src/lib/churchesApi';
 import { useSettings } from '../../src/lib/settingsStore';
 import { useTranslation } from '../../src/lib/i18n';
 
@@ -20,6 +21,11 @@ import { KeyboardScreen, KEYBOARD_SCROLL_PROPS } from '../../src/components/Keyb
 const KEY = 'AIzaSyAHZO8wyxyCmx0k8u059QSX7QpsEvZ82sU';
 
 async function getPhotoRef(placeId: string): Promise<string> {
+  // Churches from our own database carry no Places id. Without this the
+  // request still goes out as `place_id=`, which Google bills for and answers
+  // with nothing — ten wasted calls per search, precisely on the path meant to
+  // stop paying Google.
+  if (!placeId) return '';
   // A place's photo does not change between app launches. Asking Google again
   // costs the same as asking the first time, so ask once.
   const cached = getCachedPhotoRef(placeId);
@@ -153,11 +159,24 @@ export default function ChurchesScreen() {
         }
         // Which churches sit within 50km of a street corner does not change
         // between sessions. Reuse the answer rather than buying it again.
-        const key = nearbyKey(latitude, longitude);
-        let nearby = getCachedNearby(key) ?? null;
-        if (!nearby) {
-          nearby = await searchNearby(latitude, longitude);
-          if (nearby && nearby.length) setCachedNearby(key, nearby);
+        // Our own database first. It is one request against a spatial index,
+        // costs nothing per search, and needs no cache — the cache below
+        // exists only because the Google path is billed per call.
+        let nearby: any[] | null = null;
+        if (hasDatabase()) {
+          nearby = await dbNearby(latitude, longitude, { radiusKm: 50 });
+        }
+
+        // Google stays as the fallback while the directory is still filling
+        // out: no credentials configured, the request failed, or this corner
+        // of the map has no imported churches yet.
+        if (!nearby || nearby.length === 0) {
+          const key = nearbyKey(latitude, longitude);
+          const cached = getCachedNearby(key) ?? null;
+          const fromGoogle = cached ?? await searchNearby(latitude, longitude);
+          if (!cached && fromGoogle && fromGoogle.length) setCachedNearby(key, fromGoogle);
+          if (fromGoogle && fromGoogle.length) nearby = fromGoogle;
+          else if (nearby === null) nearby = fromGoogle;
         }
         if (nearby === null) {
           // Lookup failed. Fall back to the full list rather than an empty
@@ -205,10 +224,19 @@ export default function ChurchesScreen() {
     setFilterVisible(false);
     if (activeRegion) {
       setSearching(true);
-      const results = await searchByRegion(activeRegion);
-      setSearchResults(results);
+      let results: any[] | null = null;
+      if (hasDatabase()) {
+        results = await churchesInRegion(activeRegion.code, activeRegion.country);
+      }
+      // searchByRegion returns [] rather than null, so this is always an array
+      // by here — but the compiler cannot see that through the branch above.
+      if (!results || results.length === 0) results = await searchByRegion(activeRegion);
+      const list = results ?? [];
+      setSearchResults(list);
       const refs: Record<string,string> = {};
-      for (const c of results.slice(0,8)) {
+      // Photo lookups only apply to Google results; database rows carry an
+      // empty placeId and getPhotoRef declines them rather than calling out.
+      for (const c of list.slice(0,8)) {
         const ref = await getPhotoRef(c.placeId);
         if (ref) refs[c.id] = ref;
       }
