@@ -13,7 +13,7 @@ import { TAB_BAR_CLEARANCE } from '../../src/lib/tabBar';
 import { useSavedChurches, toggleSavedChurch } from '../../src/lib/store';
 import { DENOMINATIONS, US_STATES, CA_PROVINCES, COUNTRY_NAME, regionLabel, Region } from '../../src/lib/filters';
 import { gradientFor } from '../../src/lib/constants';
-import { nearbyChurches as dbNearby, churchesInRegion, hasDatabase, formatDistance } from '../../src/lib/churchesApi';
+import { nearbyChurches as dbNearby, churchesInRegion, searchChurches, hasDatabase, formatDistance } from '../../src/lib/churchesApi';
 import { useSettings } from '../../src/lib/settingsStore';
 import { useTranslation } from '../../src/lib/i18n';
 
@@ -208,7 +208,12 @@ export default function ChurchesScreen() {
     if (!search.trim()) { setSearchResults(null); return; }
     timer.current = setTimeout(async () => {
       setSearching(true);
-      const results = await searchByQuery(search);
+      // Our own directory first; Google only if it has nothing, which for a US
+      // or Canadian query it now almost never will.
+      let results: any[] | null = null;
+      if (hasDatabase()) results = await searchChurches(search);
+      if (!results || results.length === 0) results = await searchByQuery(search);
+      results = results ?? [];
       setSearchResults(results);
       const refs: Record<string,string> = {};
       for (const c of results.slice(0,8)) {

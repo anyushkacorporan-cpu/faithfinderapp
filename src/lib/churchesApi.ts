@@ -1,5 +1,6 @@
 import { supabase, hasDatabase } from './supabase';
 import { gradientFor } from './constants';
+import { findRegion } from './filters';
 
 /**
  * Church lookups against our own database.
@@ -120,11 +121,16 @@ export async function churchesInRegion(
 }
 
 /**
- * Name search.
+ * Free-text search.
  *
- * `ilike` rather than the trigram index for now: at this size it is instant,
- * and it avoids committing to a ranking function before we know how people
- * actually search.
+ * People type three different kinds of thing into one box — a church's name, a
+ * city, or a state — so this checks what kind of query it is before deciding
+ * where to look.
+ *
+ * A place name is handled first and separately. "New Jersey" matches no
+ * church's *name*, so searching names for it returns nothing while the database
+ * holds 3,328 New Jersey churches. Recognising it as a region and listing that
+ * region is the answer someone typing it actually wants.
  */
 export async function searchChurches(query: string, limit = 30): Promise<ChurchRow[] | null> {
   const q = query.trim();
@@ -132,11 +138,16 @@ export async function searchChurches(query: string, limit = 30): Promise<ChurchR
   const db = supabase();
   if (!db) return null;
 
+  // "New Jersey", "NJ", "Ontario" — a place, not a church.
+  const region = findRegion(q);
+  if (region) return churchesInRegion(region.code, region.country, limit);
+
   try {
+    // Name or city, since "Brooklyn" is as likely a query as "Grace Community".
     const { data, error } = await db
       .from('churches_public')
       .select('id,name,address,city,state,denomination,phone,website,photo_url,photo_credit,is_claimed')
-      .ilike('name', `%${q}%`)
+      .or(`name.ilike.%${q}%,city.ilike.%${q}%`)
       .limit(limit);
     if (error) return null;
     return (data || []).map(toChurch);
