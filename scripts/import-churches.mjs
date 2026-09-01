@@ -20,6 +20,7 @@
 import { readFileSync } from 'node:fs';
 import pg from 'pg';
 import { canonical as denomination } from './denominations.mjs';
+import { normalizeState } from './states.mjs';
 
 const file = process.argv[2] || 'churches-nyc.json';
 const dryRun = process.argv.includes('--dry-run');
@@ -61,7 +62,9 @@ const rows = raw
     name: c.name.trim(),
     address: c.address || null,
     city: c.city || null,
-    state: c.state || null,
+    // OSM's addr:state is free text — 'GA', 'Georgia', 'Ga', even 'W. Va.'.
+    // Normalising here is what keeps a state search able to find them all.
+    state: normalizeState(c.state) || null,
     zip: c.zip || null,
     country: 'US',
     denomination: denomination(c.denomination),
