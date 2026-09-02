@@ -11,7 +11,7 @@ to a handful of messages an hour and frequently does not deliver at all — that
 is what stranded every account created on 2 September. Dropping the trigger
 before mail works means nobody can sign in, including you.
 
-The order below is the order. Do not skip to step 4.
+The order below is the order. Pick an option, then do the three steps.
 
 ---
 
@@ -47,7 +47,7 @@ The App Password goes into the Supabase form and nowhere else — never into a
 file in this repo, and never into a chat message. Revoke it from the same
 Google page if it is ever exposed.
 
-Then prove it works (step 3), and continue to step 4.
+Then prove it works, and continue.
 
 Move to Option B before launch: mail from a personal Gmail address looks like
 a phishing attempt to anyone who does not know you, and 500/day is a ceiling
@@ -57,7 +57,7 @@ you would rather not discover on a good week.
 
 ## Option B — your own domain (before launch)
 
-### 1. A domain
+### B1. A domain
 
 Confirmation email has to come *from* somewhere. Resend's free sender
 (`onboarding@resend.dev`) only delivers to the address on your own Resend
@@ -66,7 +66,7 @@ user — the worst kind of failure, because it looks like it works.
 
 Buy the domain you intend to launch under. Any registrar. ~$12/year.
 
-### 2. Resend
+### B2. Resend
 
 1. Sign up at resend.com — free tier is 3,000 emails/month, 100/day.
 2. **Domains → Add Domain** → enter your domain.
@@ -77,7 +77,7 @@ Buy the domain you intend to launch under. Any registrar. ~$12/year.
 5. **API Keys → Create API Key**, sending permission. Copy it — it is shown
    once.
 
-### 3. Supabase SMTP
+### B3. Supabase SMTP
 
 Dashboard → **Project Settings → Authentication → SMTP Settings** →
 **Enable Custom SMTP**:
@@ -95,7 +95,7 @@ Save.
 
 ---
 
-## 3. Prove mail actually sends
+## Step 1 — prove mail actually sends
 
 Whichever option you took. Supabase → Authentication → **Users** → **Add
 user** → tick "Send invite email", addressed to an inbox you can read that is
@@ -107,9 +107,9 @@ If the invite arrives, mail works. If it does not, stop here and fix it.
 Everything below depends on this and nothing else will tell you it is broken:
 a sign-up with no working mail looks identical to a wrong password.
 
-## 4. Drop the trigger
+## Step 2 — drop the trigger
 
-Only once step 3 is proven:
+Only once step 1 is proven:
 
 ```sql
 drop trigger if exists dev_auto_confirm on auth.users;
@@ -119,7 +119,7 @@ drop function if exists dev_auto_confirm_email();
 Confirmation is already required at the project level — the trigger was
 overriding it — so nothing else needs enabling.
 
-## 5. Verify
+## Step 3 — verify
 
 ```
 node scripts/check-auth.mjs
