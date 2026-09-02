@@ -6,7 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { COLORS } from '../src/lib/constants';
 import { useTranslation } from '../src/lib/i18n';
 import { setUser } from '../src/lib/userStore';
-import { signUp, getAuthUser, hasDatabase, databaseProblem } from '../src/lib/auth';
+import { signUp, getAuthUser, hasDatabase, databaseProblem, describeConnection, lastAuthRaw } from '../src/lib/auth';
 import { syncProfileAfterSignIn } from '../src/lib/profileSync';
 import { KeyboardScreen } from '../src/components/KeyboardScreen';
 
@@ -236,6 +236,14 @@ export default function SignupPersonalScreen() {
               toast that has gone by the time you look up. */}
           {!!authError && <Text style={[s.errTxt, {textAlign:'center', marginBottom:10}]}>{authError}</Text>}
 
+          {/* TEMPORARY — remove once sign-up is working. Shows what this
+              build is connected to and the server's own words for the last
+              failure, because every other source of evidence has agreed the
+              app should work while it does not. */}
+          <View style={{marginTop:16, padding:10, backgroundColor:'#f4f4f5', borderRadius:10}}>
+            <Text style={{fontSize:11, color:'#666'}}>server: {describeConnection()}</Text>
+            {!!lastAuthRaw() && <Text style={{fontSize:11, color:'#666', marginTop:4}}>last error: {lastAuthRaw()}</Text>}
+          </View>
           {/* CTA */}
           <TouchableOpacity
             style={[s.primaryBtn, creating && {opacity:0.6}]}

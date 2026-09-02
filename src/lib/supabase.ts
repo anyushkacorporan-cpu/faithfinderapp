@@ -67,6 +67,21 @@ export function databaseProblem(): string | null {
 const problem = credentialProblem();
 if (problem) console.warn(`[supabase] ${problem}`);
 
+/**
+ * What this build is actually pointed at, short enough to put on screen.
+ *
+ * Temporary, for diagnosing a sign-up that fails on a phone while the same
+ * credentials work from Node. Everything else we can inspect says it should
+ * work, so the remaining unknown is what the app itself is holding.
+ */
+export function describeConnection(): string {
+  const p = credentialProblem();
+  if (p) return `BROKEN — ${p}`;
+  if (!url && !anonKey) return 'NOT CONFIGURED — env vars are empty in this bundle';
+  const project = url.replace(/^https:\/\//, '').split('.')[0];
+  return `${project} · key ${anonKey.slice(0, 8)}…${anonKey.slice(-4)}`;
+}
+
 let client: SupabaseClient | null = null;
 
 export function supabase(): SupabaseClient | null {

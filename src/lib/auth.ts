@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { supabase, hasDatabase, databaseProblem } from './supabase';
+import { supabase, hasDatabase, databaseProblem, describeConnection } from './supabase';
 
 /**
  * Accounts.
@@ -72,6 +72,16 @@ export function useAuth(): { user: AuthUser | null; ready: boolean } {
   return { user: current, ready };
 }
 
+/**
+ * The last raw message from the server, kept for diagnosis.
+ *
+ * readable() below turns server messages into ones people can act on, which
+ * is right for the screen and wrong when the message is the only evidence of
+ * what went wrong. Both are worth having.
+ */
+let lastRaw = '';
+export function lastAuthRaw(): string { return lastRaw; }
+
 /** Human-readable failure, or null on success. */
 export type AuthError = string | null;
 
@@ -80,6 +90,7 @@ export type AuthError = string | null;
  * actually hit, said plainly.
  */
 function readable(message: string): string {
+  lastRaw = message;
   const m = message.toLowerCase();
   // Supabase returns this for a wrong password *and* for an unconfirmed
   // account, so the message has to cover both rather than assert the first.
@@ -174,4 +185,4 @@ export async function deleteAccount(): Promise<AuthError> {
   return null;
 }
 
-export { hasDatabase, databaseProblem };
+export { hasDatabase, databaseProblem, describeConnection };
