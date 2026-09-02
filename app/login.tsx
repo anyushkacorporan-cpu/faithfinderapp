@@ -6,7 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { COLORS } from '../src/lib/constants';
 import { useTranslation } from '../src/lib/i18n';
 import { setUser } from '../src/lib/userStore';
-import { signIn, hasDatabase } from '../src/lib/auth';
+import { signIn, hasDatabase, databaseProblem } from '../src/lib/auth';
 import { syncProfileAfterSignIn } from '../src/lib/profileSync';
 import { getAuthUser } from '../src/lib/auth';
 import Logo from '../src/components/Logo';
@@ -24,6 +24,12 @@ export default function LoginScreen() {
     setError('');
     if (!email.includes('@')) { setError('Please enter a valid email address.'); return; }
     if (password.length < 6) { setError('Please enter your password.'); return; }
+
+    // Credentials that are present but malformed are a setup mistake, not an
+    // offline build. Signing someone in locally here would hand them an
+    // account that does not exist on the server.
+    const configProblem = databaseProblem();
+    if (configProblem) { setError(configProblem); return; }
 
     // Without a server there is nothing to check a password against. Rather
     // than pretend, keep the old device-local behaviour so a build with no

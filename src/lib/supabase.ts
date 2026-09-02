@@ -17,7 +17,36 @@ const url = process.env.EXPO_PUBLIC_SUPABASE_URL || '';
 const anonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || '';
 
 /**
- * Whether the app has been given a database to talk to.
+ * Whether the credentials we were handed are actually credentials.
+ *
+ * This exists because of a real failure: a shell command was accidentally
+ * appended into .env.local as the value of the anon key. It was a non-empty
+ * string, so a plain `!!anonKey` check passed, the client was built, and every
+ * call to the database — auth and churches alike — failed at the server. The
+ * app reported "email and password do not match" for a sign-up that had never
+ * reached Supabase, and church search quietly fell back to Google for days.
+ *
+ * A non-empty string is not a credential. Checking the shape turns a silent
+ * wrong answer into a loud, findable one.
+ */
+function credentialProblem(): string | null {
+  if (!url && !anonKey) return null;              // simply not configured yet
+  if (!url) return 'EXPO_PUBLIC_SUPABASE_URL is missing.';
+  if (!anonKey) return 'EXPO_PUBLIC_SUPABASE_ANON_KEY is missing.';
+  if (!/^https:\/\/[a-z0-9-]+\.supabase\.(co|in)\/?$/i.test(url.trim())) {
+    return `EXPO_PUBLIC_SUPABASE_URL does not look like a Supabase URL: "${url}"`;
+  }
+  // Keys are opaque, but every form of them — the legacy eyJ… JWT and the
+  // newer sb_publishable_… — is one long run of non-whitespace. Whitespace
+  // means something other than a key ended up in the variable.
+  if (/\s/.test(anonKey) || anonKey.length < 20) {
+    return 'EXPO_PUBLIC_SUPABASE_ANON_KEY does not look like a key. Check .env.local for a stray line break or a pasted command.';
+  }
+  return null;
+}
+
+/**
+ * Whether the app has been given a working database to talk to.
  *
  * Deliberately a question the rest of the app can ask, rather than a crash on
  * startup. With no credentials the church screens fall back to Google exactly
@@ -25,8 +54,18 @@ const anonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || '';
  * lets this ship before every environment has been set up.
  */
 export function hasDatabase(): boolean {
-  return !!url && !!anonKey;
+  return !!url && !!anonKey && !credentialProblem();
 }
+
+/** The reason the database is unavailable, for screens that should say so. */
+export function databaseProblem(): string | null {
+  return credentialProblem();
+}
+
+// Say it once, loudly, at startup. Malformed credentials are a setup mistake,
+// and the cost of not noticing is every symptom being blamed on something else.
+const problem = credentialProblem();
+if (problem) console.warn(`[supabase] ${problem}`);
 
 let client: SupabaseClient | null = null;
 

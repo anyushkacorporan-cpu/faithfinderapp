@@ -6,7 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { COLORS } from '../src/lib/constants';
 import { useTranslation } from '../src/lib/i18n';
 import { setUser } from '../src/lib/userStore';
-import { signUp, getAuthUser, hasDatabase } from '../src/lib/auth';
+import { signUp, getAuthUser, hasDatabase, databaseProblem } from '../src/lib/auth';
 import { syncProfileAfterSignIn } from '../src/lib/profileSync';
 import { KeyboardScreen } from '../src/components/KeyboardScreen';
 
@@ -65,6 +65,12 @@ export default function SignupPersonalScreen() {
       denomination,
       createdAt: new Date().toISOString(),
     };
+
+    // Credentials that are present but malformed are a setup mistake, not an
+    // offline build. Signing someone in locally here would hand them an
+    // account that does not exist on the server.
+    const configProblem = databaseProblem();
+    if (configProblem) { setAuthError(configProblem); return; }
 
     if (!hasDatabase()) {
       setUser(local);

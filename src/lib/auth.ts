@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { supabase, hasDatabase } from './supabase';
+import { supabase, hasDatabase, databaseProblem } from './supabase';
 
 /**
  * Accounts.
@@ -174,4 +174,4 @@ export async function deleteAccount(): Promise<AuthError> {
   return null;
 }
 
-export { hasDatabase };
+export { hasDatabase, databaseProblem };
