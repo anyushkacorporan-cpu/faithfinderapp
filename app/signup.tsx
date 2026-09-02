@@ -6,6 +6,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { COLORS } from '../src/lib/constants';
 import { useTranslation } from '../src/lib/i18n';
 import { setUser } from '../src/lib/userStore';
+import { signUp, getAuthUser, hasDatabase, databaseProblem } from '../src/lib/auth';
+import { syncProfileAfterSignIn } from '../src/lib/profileSync';
 import Logo from '../src/components/Logo';
 import { KeyboardScreen } from '../src/components/KeyboardScreen';
 
@@ -21,8 +23,18 @@ export default function SignupScreen() {
   const [showPw, setShowPw] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [error, setError] = useState('');
+  const [creating, setCreating] = useState(false);
 
-  function handleCreate() {
+  /**
+   * Create the account.
+   *
+   * This screen used to call setUser() and navigate — writing a name onto the
+   * device and calling it an account. Nothing reached the server, so signing
+   * in later failed against a user that had never existed, with no error to
+   * explain it. The two other sign-up screens had been wired to Supabase;
+   * this is the one the sign-in screen actually opens, and it was missed.
+   */
+  async function handleCreate() {
     setError('');
     if (accountType === 'personal') {
       if (!firstName || !lastName) { setError('Please enter your first and last name.'); return; }
@@ -32,7 +44,42 @@ export default function SignupScreen() {
     if (!email.includes('@')) { setError('Please enter a valid email address.'); return; }
     if (password.length < 8) { setError('Password must be at least 8 characters.'); return; }
     if (password !== confirm) { setError('Passwords do not match.'); return; }
-    setUser({ accountType, firstName, lastName, churchName, email });
+
+    const local = { accountType, firstName, lastName, churchName, email };
+
+    // Credentials present but malformed is a setup mistake, not an offline
+    // build. Carrying on here would hand back the very bug this replaces.
+    const configProblem = databaseProblem();
+    if (configProblem) { setError(configProblem); return; }
+
+    if (!hasDatabase()) {
+      setUser(local);
+      router.replace(accountType === 'church' ? '/church-setup' : '/(tabs)');
+      return;
+    }
+
+    setCreating(true);
+    const { error: err, needsConfirmation } = await signUp(email, password, {
+      accountType,
+      firstName,
+      lastName,
+      churchName,
+    });
+    if (err) { setCreating(false); setError(err); return; }
+
+    // An account with no session cannot be used yet. Navigating now would look
+    // like success and fail at every write.
+    if (needsConfirmation) {
+      setCreating(false);
+      setError('Account created. Check your email for a confirmation link, then sign in.');
+      return;
+    }
+
+    const u = getAuthUser();
+    setUser({ ...local, id: u?.id });
+    if (u) await syncProfileAfterSignIn(u.id);
+    setCreating(false);
+
     if (accountType === 'church') {
       router.push('/church-setup');
     } else {
@@ -113,9 +160,11 @@ export default function SignupScreen() {
                 </TouchableOpacity>
               </View>
             </View>
-            <TouchableOpacity style={s.primaryBtn} onPress={handleCreate} activeOpacity={0.88}>
-              <Text style={s.primaryBtnTxt}>{accountType === 'church' ? 'Continue to Claim Church' : 'Create Account'}</Text>
-              {accountType === 'church' && <Ionicons name="arrow-forward" size={18} color={COLORS.white} />}
+            <TouchableOpacity style={[s.primaryBtn, creating && {opacity:0.6}]} onPress={handleCreate} disabled={creating} activeOpacity={0.88}>
+              <Text style={s.primaryBtnTxt}>
+                {creating ? 'Creating account…' : accountType === 'church' ? 'Continue to Claim Church' : 'Create Account'}
+              </Text>
+              {!creating && accountType === 'church' && <Ionicons name="arrow-forward" size={18} color={COLORS.white} />}
             </TouchableOpacity>
             <Text style={s.terms}>{t('agreeCreateAccount')}<Text style={s.termsLink}>{t('privacyPolicy')}</Text> and <Text style={s.termsLink}>{t('termsOfService')}</Text></Text>
           </View>
