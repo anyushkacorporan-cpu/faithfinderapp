@@ -74,6 +74,7 @@ if (!url || !key || /\s/.test(key)) {
 // ── 2. Can we reach it with that key ───────────────────────────────────────
 head('2. Reaching the server');
 
+let autoconfirmed = false;
 const base = url.replace(/\/$/, '');
 const H = { apikey: key, 'Content-Type': 'application/json' };
 
@@ -91,8 +92,9 @@ try {
     const s = r.json || {};
     // The setting that decides whether a new account can sign in immediately.
     const autoconfirm = s.mailer_autoconfirm ?? s.autoconfirm;
+    autoconfirmed = autoconfirm === true;
     info(`email sign-up enabled : ${s.external?.email !== false}`);
-    info(`confirmation required : ${autoconfirm === true ? 'no' : 'YES — a new account cannot sign in until confirmed'}`);
+    info(`confirmation required : ${autoconfirmed ? 'no' : 'yes, by project setting'}`);
   } else if (r.status === 401) {
     bad(`the server rejected the key (401). This key is not valid for ${base}`);
     info(r.text.slice(0, 200));
@@ -127,7 +129,15 @@ if (up.status !== 200) {
 
 ok('sign-up accepted');
 const hasSession = !!up.json?.access_token;
-info(hasSession ? 'signed in immediately (no confirmation required)' : 'no session returned — this project requires email confirmation');
+if (hasSession) {
+  info('signed in immediately');
+  // The project setting can say confirmation is required while the
+  // dev_auto_confirm trigger stamps it anyway. Both readings are true, and a
+  // run that reported them without reconciling them looked like a bug.
+  if (!autoconfirmed) info('(the project setting above says otherwise — the dev_auto_confirm trigger is confirming accounts on insert)');
+} else {
+  info('no session returned — this project requires email confirmation');
+}
 
 head('4. Signing back in');
 
