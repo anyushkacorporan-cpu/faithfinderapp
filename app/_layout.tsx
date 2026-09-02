@@ -58,6 +58,7 @@ export default function RootLayout() {
         <Stack.Screen name="settings-notifications" />
         <Stack.Screen name="settings-location" />
         <Stack.Screen name="settings-privacy" />
+        <Stack.Screen name="change-password" />
         <Stack.Screen name="settings-blocked" />
         <Stack.Screen name="settings-appearance" />
         <Stack.Screen name="settings-help" />

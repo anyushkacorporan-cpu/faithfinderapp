@@ -54,6 +54,16 @@ export default function PrivacySettingsScreen() {
 
         <Text style={s.sectionLabel}>{t('security')}</Text>
         <View style={s.card}>
+          <TouchableOpacity style={[s.row, s.rowBorder]} onPress={() => router.push('/change-password' as any)}>
+            <View style={[s.iconWrap, {backgroundColor:c.isDark?'rgba(201,169,110,0.18)':'rgba(201,169,110,0.14)'}]}>
+              <Ionicons name="key-outline" size={20} color={c.gold} />
+            </View>
+            <View style={s.rowInfo}>
+              <Text style={s.rowLabel}>{tx('Change Password')}</Text>
+              <Text style={s.rowDesc}>{tx('Update the password you sign in with')}</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={16} color={c.placeholder} />
+          </TouchableOpacity>
           <TouchableOpacity style={s.row} onPress={() => Alert.alert(tx('Coming Soon'), tx('Two-factor authentication is in development and will be available in a future update.'))}>
             <View style={[s.iconWrap, {backgroundColor:c.isDark?'rgba(240,104,138,0.16)':'#fce4ec'}]}>
               <Ionicons name="shield-checkmark-outline" size={20} color={c.red} />

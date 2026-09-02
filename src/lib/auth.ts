@@ -186,6 +186,32 @@ export async function signIn(email: string, password: string): Promise<AuthError
   return result.error ? readable(result.error.message) : null;
 }
 
+/**
+ * Change the password of the signed-in account.
+ *
+ * Supabase does not ask for the current password when updating one — an
+ * existing session is enough. That means a borrowed unlocked phone would be
+ * enough to take an account over, so the current password is checked here
+ * first. Signing in with it both proves it and refreshes the session.
+ */
+export async function changePassword(currentPassword: string, next: string): Promise<AuthError> {
+  const db = supabase();
+  if (!db) return 'The app is not connected to its server yet.';
+  const email = current?.email;
+  if (!email) return 'You are not signed in.';
+  if (next.length < 8) return 'New password must be at least 8 characters.';
+  if (next === currentPassword) return 'That is already your password.';
+
+  const check = await withTimeout(
+    db.auth.signInWithPassword({ email, password: currentPassword }), 20000, 'Verification');
+  if (timedOut(check)) { lastRaw = check.__timedOut; return check.__timedOut; }
+  if (check.error) return 'Your current password is not correct.';
+
+  const upd = await withTimeout(db.auth.updateUser({ password: next }), 20000, 'Password change');
+  if (timedOut(upd)) { lastRaw = upd.__timedOut; return upd.__timedOut; }
+  return upd.error ? readable(upd.error.message) : null;
+}
+
 export async function signOut(): Promise<void> {
   await supabase()?.auth.signOut();
 }
