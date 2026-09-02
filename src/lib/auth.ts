@@ -108,6 +108,27 @@ function readable(message: string): string {
   return message;
 }
 
+/**
+ * Give a request a deadline.
+ *
+ * Without one, a call that never resolves is indistinguishable from a button
+ * that does nothing: the screen sits on "Creating account…" forever, no error
+ * is ever set, and there is nothing to report. A hang is a failure and should
+ * say so.
+ */
+function withTimeout<T>(work: Promise<T>, ms: number, label: string): Promise<T | { __timedOut: string }> {
+  return Promise.race([
+    work,
+    new Promise<{ __timedOut: string }>(resolve =>
+      setTimeout(() => resolve({ __timedOut: `${label} timed out after ${ms / 1000}s — the phone could not reach the server.` }), ms),
+    ),
+  ]);
+}
+
+function timedOut(r: unknown): r is { __timedOut: string } {
+  return !!r && typeof r === 'object' && '__timedOut' in (r as object);
+}
+
 export type SignUpResult = {
   error: AuthError;
   /**
@@ -128,7 +149,7 @@ export async function signUp(
   const db = supabase();
   if (!db) return { error: 'The app is not connected to its server yet.', needsConfirmation: false };
 
-  const { data, error } = await db.auth.signUp({
+  const result = await withTimeout(db.auth.signUp({
     email: email.trim(),
     password,
     options: {
@@ -142,7 +163,13 @@ export async function signUp(
         church_name: meta.churchName || null,
       },
     },
-  });
+  }), 20000, 'Sign-up');
+
+  if (timedOut(result)) {
+    lastRaw = result.__timedOut;
+    return { error: result.__timedOut, needsConfirmation: false };
+  }
+  const { data, error } = result;
 
   if (error) return { error: readable(error.message), needsConfirmation: false };
 
@@ -153,8 +180,10 @@ export async function signUp(
 export async function signIn(email: string, password: string): Promise<AuthError> {
   const db = supabase();
   if (!db) return 'The app is not connected to its server yet.';
-  const { error } = await db.auth.signInWithPassword({ email: email.trim(), password });
-  return error ? readable(error.message) : null;
+  const result = await withTimeout(
+    db.auth.signInWithPassword({ email: email.trim(), password }), 20000, 'Sign-in');
+  if (timedOut(result)) { lastRaw = result.__timedOut; return result.__timedOut; }
+  return result.error ? readable(result.error.message) : null;
 }
 
 export async function signOut(): Promise<void> {
