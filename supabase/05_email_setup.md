@@ -15,7 +15,49 @@ The order below is the order. Do not skip to step 4.
 
 ---
 
-## 1. A domain
+## Option A — Gmail (no domain needed, start here)
+
+Gmail will act as the mail server. Confirmation emails arrive from your own
+address rather than a branded one, and Google caps a free account at roughly
+500 messages a day — fine for early users, not for scale. It is enough to turn
+confirmation on today rather than waiting on a domain.
+
+Google will not accept your account password for this. You need an **App
+Password**, which is a separate 16-character credential.
+
+1. **Turn on 2-Step Verification** — Google Account → Security. App passwords
+   do not exist as an option until this is on.
+2. Google Account → Security → **App passwords** → name it "FaithFinder" →
+   **Create**. Google shows 16 characters once. Copy them.
+3. Supabase → **Project Settings → Authentication → SMTP Settings** →
+   **Enable Custom SMTP**:
+
+   | Field         | Value                        |
+   |---------------|------------------------------|
+   | Host          | `smtp.gmail.com`             |
+   | Port          | `465`                        |
+   | Username      | your full Gmail address      |
+   | Password      | the 16-character App Password (spaces removed) |
+   | Sender email  | your Gmail address           |
+   | Sender name   | `FaithFinder`                |
+
+   Save.
+
+The App Password goes into the Supabase form and nowhere else — never into a
+file in this repo, and never into a chat message. Revoke it from the same
+Google page if it is ever exposed.
+
+Then prove it works (step 3), and continue to step 4.
+
+Move to Option B before launch: mail from a personal Gmail address looks like
+a phishing attempt to anyone who does not know you, and 500/day is a ceiling
+you would rather not discover on a good week.
+
+---
+
+## Option B — your own domain (before launch)
+
+### 1. A domain
 
 Confirmation email has to come *from* somewhere. Resend's free sender
 (`onboarding@resend.dev`) only delivers to the address on your own Resend
@@ -24,7 +66,7 @@ user — the worst kind of failure, because it looks like it works.
 
 Buy the domain you intend to launch under. Any registrar. ~$12/year.
 
-## 2. Resend
+### 2. Resend
 
 1. Sign up at resend.com — free tier is 3,000 emails/month, 100/day.
 2. **Domains → Add Domain** → enter your domain.
@@ -35,7 +77,7 @@ Buy the domain you intend to launch under. Any registrar. ~$12/year.
 5. **API Keys → Create API Key**, sending permission. Copy it — it is shown
    once.
 
-## 3. Supabase SMTP
+### 3. Supabase SMTP
 
 Dashboard → **Project Settings → Authentication → SMTP Settings** →
 **Enable Custom SMTP**:
@@ -51,10 +93,19 @@ Dashboard → **Project Settings → Authentication → SMTP Settings** →
 
 Save.
 
-**Prove it before going further.** Authentication → Users → **Add user** →
-"Send invite email" to an address you can read that is *not* your Resend
-account address. If it arrives, SMTP works. If it does not, stop and fix it —
-step 4 depends entirely on this.
+---
+
+## 3. Prove mail actually sends
+
+Whichever option you took. Supabase → Authentication → **Users** → **Add
+user** → tick "Send invite email", addressed to an inbox you can read that is
+**not** the account you configured SMTP with — sending to yourself can succeed
+where sending to anyone else fails, which is the exact trap Resend's free
+sender sets.
+
+If the invite arrives, mail works. If it does not, stop here and fix it.
+Everything below depends on this and nothing else will tell you it is broken:
+a sign-up with no working mail looks identical to a wrong password.
 
 ## 4. Drop the trigger
 
