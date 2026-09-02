@@ -145,7 +145,7 @@ export default function SignupScreen() {
             <View style={s.fieldWrap}>
               <Text style={s.label}>{t('password')}</Text>
               <View style={s.pwWrap}>
-                <TextInput style={[s.input, {paddingRight:50}]} placeholder={t('eightPlusChars')} placeholderTextColor={COLORS.placeholder} value={password} onChangeText={setPassword} secureTextEntry={!showPw} />
+                <TextInput style={[s.input, {paddingRight:50}]} placeholder={t('eightPlusChars')} placeholderTextColor={COLORS.placeholder} value={password} onChangeText={setPassword} secureTextEntry={!showPw} autoCapitalize="none" autoCorrect={false} spellCheck={false} />
                 <TouchableOpacity style={s.eyeBtn} onPress={() => setShowPw(!showPw)}>
                   <Ionicons name={showPw ? 'eye-off-outline' : 'eye-outline'} size={20} color="#bbb" />
                 </TouchableOpacity>
@@ -154,7 +154,7 @@ export default function SignupScreen() {
             <View style={s.fieldWrap}>
               <Text style={s.label}>{t('confirmPassword')}</Text>
               <View style={s.pwWrap}>
-                <TextInput style={[s.input, {paddingRight:50}]} placeholder={t('reenter')} placeholderTextColor={COLORS.placeholder} value={confirm} onChangeText={setConfirm} secureTextEntry={!showConfirm} />
+                <TextInput style={[s.input, {paddingRight:50}]} placeholder={t('reenter')} placeholderTextColor={COLORS.placeholder} value={confirm} onChangeText={setConfirm} secureTextEntry={!showConfirm} autoCapitalize="none" autoCorrect={false} spellCheck={false} />
                 <TouchableOpacity style={s.eyeBtn} onPress={() => setShowConfirm(!showConfirm)}>
                   <Ionicons name={showConfirm ? 'eye-off-outline' : 'eye-outline'} size={20} color="#bbb" />
                 </TouchableOpacity>

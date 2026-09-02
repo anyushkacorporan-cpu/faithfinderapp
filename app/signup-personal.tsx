@@ -166,7 +166,7 @@ export default function SignupPersonalScreen() {
               <View style={s.fieldWrap}>
                 <Text style={s.label}>{t('password')}</Text>
                 <View style={s.pwWrap}>
-                  <TextInput style={[s.input, {paddingRight:48}, errors.password && s.inputErr]} placeholder={tx('Min. 8 characters')} placeholderTextColor={COLORS.placeholder} value={password} onChangeText={v => { setPassword(v); setErrors(e => ({...e, password:''})); }} secureTextEntry={!showPw} />
+                  <TextInput style={[s.input, {paddingRight:48}, errors.password && s.inputErr]} placeholder={tx('Min. 8 characters')} placeholderTextColor={COLORS.placeholder} value={password} onChangeText={v => { setPassword(v); setErrors(e => ({...e, password:''})); }} secureTextEntry={!showPw} autoCapitalize="none" autoCorrect={false} spellCheck={false} />
                   <TouchableOpacity style={s.eyeBtn} onPress={() => setShowPw(!showPw)}>
                     <Ionicons name={showPw ? 'eye-off-outline' : 'eye-outline'} size={20} color="#bbb" />
                   </TouchableOpacity>
@@ -185,7 +185,7 @@ export default function SignupPersonalScreen() {
               <View style={s.fieldWrap}>
                 <Text style={s.label}>{t('confirmPassword')}</Text>
                 <View style={s.pwWrap}>
-                  <TextInput style={[s.input, {paddingRight:48}, errors.confirm && s.inputErr]} placeholder={tx('Re-enter password')} placeholderTextColor={COLORS.placeholder} value={confirm} onChangeText={v => { setConfirm(v); setErrors(e => ({...e, confirm:''})); }} secureTextEntry={!showConfirm} />
+                  <TextInput style={[s.input, {paddingRight:48}, errors.confirm && s.inputErr]} placeholder={tx('Re-enter password')} placeholderTextColor={COLORS.placeholder} value={confirm} onChangeText={v => { setConfirm(v); setErrors(e => ({...e, confirm:''})); }} secureTextEntry={!showConfirm} autoCapitalize="none" autoCorrect={false} spellCheck={false} />
                   <TouchableOpacity style={s.eyeBtn} onPress={() => setShowConfirm(!showConfirm)}>
                     <Ionicons name={showConfirm ? 'eye-off-outline' : 'eye-outline'} size={20} color="#bbb" />
                   </TouchableOpacity>

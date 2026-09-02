@@ -81,7 +81,7 @@ export default function LoginScreen() {
               <Text style={s.label}>{t('password')}</Text>
               <View style={s.inputWrap}>
                 <Ionicons name="lock-closed-outline" size={18} color="#bbb" style={s.inputIcon} />
-                <TextInput style={[s.input, s.inputWithIcon, {paddingRight:50}]} placeholder={t('enterYourPassword')} placeholderTextColor={COLORS.placeholder} value={password} onChangeText={v => { setPassword(v); setError(''); }} secureTextEntry={!showPw} />
+                <TextInput style={[s.input, s.inputWithIcon, {paddingRight:50}]} placeholder={t('enterYourPassword')} placeholderTextColor={COLORS.placeholder} value={password} onChangeText={v => { setPassword(v); setError(''); }} secureTextEntry={!showPw} autoCapitalize="none" autoCorrect={false} spellCheck={false} />
                 <TouchableOpacity style={s.eyeBtn} onPress={() => setShowPw(!showPw)}>
                   <Ionicons name={showPw ? 'eye-off-outline' : 'eye-outline'} size={20} color="#bbb" />
                 </TouchableOpacity>
