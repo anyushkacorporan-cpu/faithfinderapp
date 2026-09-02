@@ -37,8 +37,6 @@ export default function RootLayout() {
         <Stack.Screen name="index" />
         <Stack.Screen name="login" />
         <Stack.Screen name="signup" />
-        <Stack.Screen name="signup-personal" />
-        <Stack.Screen name="signup-church" />
         <Stack.Screen name="forgot" />
         <Stack.Screen name="church-setup" />
         <Stack.Screen name="claim-church" />

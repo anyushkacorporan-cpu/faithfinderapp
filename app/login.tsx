@@ -6,7 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { COLORS } from '../src/lib/constants';
 import { useTranslation } from '../src/lib/i18n';
 import { setUser } from '../src/lib/userStore';
-import { signIn, hasDatabase, databaseProblem, describeConnection, lastAuthRaw } from '../src/lib/auth';
+import { signIn, hasDatabase, databaseProblem } from '../src/lib/auth';
 import { syncProfileAfterSignIn } from '../src/lib/profileSync';
 import { getAuthUser } from '../src/lib/auth';
 import Logo from '../src/components/Logo';
@@ -111,14 +111,6 @@ export default function LoginScreen() {
               <Text style={s.termsTxt}>{t('agreeSignIn')}</Text>
               <TouchableOpacity onPress={() => router.push('/privacy')}><Text style={s.termsLink}>{t('privacyPolicy')}</Text></TouchableOpacity>
             </View>
-          </View>
-          {/* TEMPORARY — remove once sign-up is working. Shows what this
-              build is connected to and the server's own words for the last
-              failure, because every other source of evidence has agreed the
-              app should work while it does not. */}
-          <View style={{marginTop:16, padding:10, backgroundColor:'#f4f4f5', borderRadius:10}}>
-            <Text style={{fontSize:11, color:'#666'}}>server: {describeConnection()}</Text>
-            {!!lastAuthRaw() && <Text style={{fontSize:11, color:'#666', marginTop:4}}>last error: {lastAuthRaw()}</Text>}
           </View>
         </ScrollView>
       </KeyboardScreen>
