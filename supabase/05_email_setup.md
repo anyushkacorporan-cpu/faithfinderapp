@@ -11,7 +11,7 @@ to a handful of messages an hour and frequently does not deliver at all — that
 is what stranded every account created on 2 September. Dropping the trigger
 before mail works means nobody can sign in, including you.
 
-The order below is the order. Pick an option, then do the three steps.
+The order below is the order. Pick an option, then do the four steps.
 
 ---
 
@@ -107,9 +107,29 @@ If the invite arrives, mail works. If it does not, stop here and fix it.
 Everything below depends on this and nothing else will tell you it is broken:
 a sign-up with no working mail looks identical to a wrong password.
 
-## Step 2 — drop the trigger
+## Step 2 — point the links at the app
 
-Only once step 1 is proven:
+Supabase sends people to the project's **Site URL**, which starts as
+`http://localhost:3000` — a web address no phone answers. The link still
+works: Supabase verifies the token on its own server before redirecting, so
+the account is confirmed even when the browser then shows "site can't be
+reached". It just looks broken, which for most people is the same thing.
+
+Supabase → Authentication → **URL Configuration**:
+
+- **Site URL**: `faithfinder://`
+- **Redirect URLs**, add both:
+  - `faithfinder://*` — published builds
+  - `exp://192.168.1.66:8081` — Expo Go while developing (your LAN address
+    changes; add whatever `npx expo start` prints)
+
+The app reads these links and finishes the sign-in itself (`authLinking.ts`),
+so a confirmation link opens the app signed in, and a reset link opens the
+screen for choosing a new password.
+
+## Step 3 — drop the trigger
+
+Only once steps 1 and 2 are done:
 
 ```sql
 drop trigger if exists dev_auto_confirm on auth.users;
@@ -119,7 +139,7 @@ drop function if exists dev_auto_confirm_email();
 Confirmation is already required at the project level — the trigger was
 overriding it — so nothing else needs enabling.
 
-## Step 3 — verify
+## Step 4 — verify
 
 ```
 node scripts/check-auth.mjs
