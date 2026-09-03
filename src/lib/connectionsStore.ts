@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { load, save } from './persist';
+import { fetchConnections, pushConnection, removeConnectionRemote } from './connectionsApi';
 
 /**
  * Someone (or some church) the user follows. `address` and `placeId` are only
@@ -22,6 +23,13 @@ const INITIAL_CONNECTIONS: Connection[] = [
 ];
 
 let connections: Connection[] = INITIAL_CONNECTIONS;
+
+/**
+ * The seeded pair are demo content, not people. Pushing them would write two
+ * fake connections onto every account that ever opens the app, and they would
+ * then sync back down as though someone had chosen them.
+ */
+const SEEDED = new Set(INITIAL_CONNECTIONS.map(c => c.id));
 
 type Listener = () => void;
 const listeners: Listener[] = [];
@@ -107,13 +115,51 @@ export function isConnectedTo(id?: string, name?: string): boolean {
     (!!name && c.name === name)
   );
 }
-export function addConnection(c: Connection) { if (!isConnected(c.id)) { connections.push(c); persist(); notify(); } }
+export function addConnection(c: Connection) {
+  if (isConnected(c.id)) return;
+  connections.push(c);
+  persist();
+  notify();
+  // Not awaited: following is instant on screen and should work offline. The
+  // next sign-in reconciles anything that did not reach the server.
+  if (!SEEDED.has(c.id)) void pushConnection(c);
+}
 /** Remove by id, placeId or name — whichever the calling screen holds. */
 export function removeConnection(idOrName: string) {
   connections = connections.filter(c =>
     c.id !== idOrName && c.name !== idOrName && c.placeId !== idOrName
   );
   persist(); notify();
+  void removeConnectionRemote(idOrName);
+}
+
+/**
+ * Reconcile this device's connections with the account's, at sign-in.
+ *
+ * A union, like blocks — but for the opposite reason. There is no harm in
+ * keeping a follow the server has not heard of yet, and dropping one means
+ * someone silently disappears from a feed the person curated. Local-only rows
+ * are pushed up, which is how a follow made offline lands. The seeded demo
+ * pair are excluded: they are placeholder content, and writing them to the
+ * server would put two people nobody chose into every account's list.
+ */
+export async function syncConnectionsAfterSignIn(): Promise<void> {
+  const remote = await fetchConnections();
+  if (!remote) return;
+
+  const merged = [...connections];
+  for (const r of remote) {
+    if (!merged.some(c => c.id === r.id || c.name === r.name)) merged.push(r);
+  }
+
+  const remoteIds = new Set(remote.map(r => r.id));
+  for (const local of connections) {
+    if (!remoteIds.has(local.id) && !SEEDED.has(local.id)) void pushConnection(local);
+  }
+
+  connections = merged;
+  persist();
+  notify();
 }
 
 /**
