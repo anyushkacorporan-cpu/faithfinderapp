@@ -9,8 +9,22 @@ import { STRIPE_PUBLISHABLE_KEY, STRIPE_MERCHANT_ID } from '../src/lib/stripeCon
 import { ToastProvider } from '../src/components/Toast';
 import { ConfirmProvider } from '../src/components/Confirm';
 import { useThemeColors } from '../src/lib/theme';
+import { useAuthDeepLink } from '../src/lib/authLinking';
+import { useToast } from '../src/components/Toast';
 
 SplashScreen.preventAutoHideAsync();
+
+/**
+ * Listens for the links in confirmation and password-reset emails.
+ *
+ * Sits inside ToastProvider because a dead link — usually an expired one —
+ * has to be able to say so. Rendering nothing; it is here for the effect.
+ */
+function AuthLinks() {
+  const { showToast } = useToast();
+  useAuthDeepLink(message => showToast('Link problem', message, 'error'));
+  return null;
+}
 
 function ThemedStatusBar() {
   const c = useThemeColors();
@@ -25,6 +39,7 @@ export default function RootLayout() {
     <ToastProvider>
     <ConfirmProvider>
     <StripeProvider publishableKey={STRIPE_PUBLISHABLE_KEY} merchantIdentifier={STRIPE_MERCHANT_ID}>
+      <AuthLinks />
       <ThemedStatusBar />
       {/*
         Push screens in from the right and take them back out the same way.
@@ -38,6 +53,7 @@ export default function RootLayout() {
         <Stack.Screen name="login" />
         <Stack.Screen name="signup" />
         <Stack.Screen name="forgot" />
+        <Stack.Screen name="reset-password" />
         <Stack.Screen name="church-setup" />
         <Stack.Screen name="claim-church" />
         <Stack.Screen name="register-church" />

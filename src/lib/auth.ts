@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import * as Linking from 'expo-linking';
 import { supabase, hasDatabase, databaseProblem, describeConnection } from './supabase';
 
 /**
@@ -129,6 +130,20 @@ function timedOut(r: unknown): r is { __timedOut: string } {
   return !!r && typeof r === 'object' && '__timedOut' in (r as object);
 }
 
+/**
+ * Where an emailed link should send someone back to.
+ *
+ * Built from the running app rather than hard-coded, because the answer
+ * differs by build: `exp://…/--/path` under Expo Go, `faithfinder://path` in a
+ * real build. A fixed value works in exactly one of those and fails silently
+ * in the other. Each value returned here must also be listed under
+ * Authentication → URL Configuration → Redirect URLs, or Supabase ignores it
+ * and falls back to the Site URL.
+ */
+function linkBackTo(path: string): string {
+  return Linking.createURL(path);
+}
+
 export type SignUpResult = {
   error: AuthError;
   /**
@@ -153,6 +168,7 @@ export async function signUp(
     email: email.trim(),
     password,
     options: {
+      emailRedirectTo: linkBackTo('/'),
       // Read by the database trigger, which creates the profile row. Sending
       // it here means the profile is right from the first moment rather than
       // being filled in by a second call that might not happen.
@@ -212,6 +228,26 @@ export async function changePassword(currentPassword: string, next: string): Pro
   return upd.error ? readable(upd.error.message) : null;
 }
 
+/**
+ * Set a new password without knowing the old one.
+ *
+ * Only for the password-reset flow. Asking for the current password there
+ * would be absurd — not knowing it is the reason they are here. What stands
+ * in for it is the emailed link: reaching this screen requires having opened
+ * a message sent to the account's own address, which is the same proof the
+ * reset email exists to provide.
+ */
+export async function setNewPassword(next: string): Promise<AuthError> {
+  const db = supabase();
+  if (!db) return 'The app is not connected to its server yet.';
+  if (!current) return 'This reset link is no longer valid. Request a new one.';
+  if (next.length < 8) return 'New password must be at least 8 characters.';
+
+  const upd = await withTimeout(db.auth.updateUser({ password: next }), 20000, 'Password change');
+  if (timedOut(upd)) { lastRaw = upd.__timedOut; return upd.__timedOut; }
+  return upd.error ? readable(upd.error.message) : null;
+}
+
 export async function signOut(): Promise<void> {
   await supabase()?.auth.signOut();
 }
@@ -219,7 +255,9 @@ export async function signOut(): Promise<void> {
 export async function sendPasswordReset(email: string): Promise<AuthError> {
   const db = supabase();
   if (!db) return 'The app is not connected to its server yet.';
-  const { error } = await db.auth.resetPasswordForEmail(email.trim());
+  const { error } = await db.auth.resetPasswordForEmail(email.trim(), {
+    redirectTo: linkBackTo('/reset-password'),
+  });
   return error ? readable(error.message) : null;
 }
 
