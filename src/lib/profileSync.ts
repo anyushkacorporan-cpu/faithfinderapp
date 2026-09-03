@@ -108,6 +108,14 @@ export async function syncProfileAfterSignIn(userId: string): Promise<void> {
   migrated[userId] = true;
   save(MIGRATED_KEY, migrated);
   setUser(toUser(row));
+
+  // A photo picked before uploads existed is still a path on this phone.
+  // Nothing prompts an edit, so it would stay that way until the person
+  // happened to change their picture; catch it on the way in instead.
+  const after = getUser();
+  if (after.profilePhoto?.startsWith('file://') || after.coverPhoto?.startsWith('file://')) {
+    void pushProfile();
+  }
 }
 
 /**

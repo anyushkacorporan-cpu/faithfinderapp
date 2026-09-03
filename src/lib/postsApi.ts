@@ -184,7 +184,15 @@ export async function createPost(post: Post): Promise<boolean> {
   const db = supabase();
   const me = getAuthUser();
   if (!db || !me) return false;
-  const { error } = await db.from('posts').insert(postToRow(post, me.id));
+
+  // The author photo is copied from the local profile, which may still hold a
+  // path from this phone — the profile screen uploads on edit, but a post
+  // written before anyone edits their profile would carry the path anyway.
+  // Uploading here means no post can publish an avatar only its author sees.
+  const row = postToRow(post, me.id);
+  if (row.author_photo) row.author_photo = await uploadImage(row.author_photo, 'avatars');
+
+  const { error } = await db.from('posts').insert(row);
   return !error;
 }
 
