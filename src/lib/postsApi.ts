@@ -265,12 +265,16 @@ export async function deleteCommentRemote(id: string): Promise<void> {
  * Put a picked photo somewhere other phones can see it.
  *
  * A picked image is a path inside this app's own sandbox — meaningful here and
- * nowhere else, so a post with a photo showed a broken frame to everybody but
- * its author. Returns the local uri unchanged on failure: a post with a photo
- * only its author can see is worse than nothing, but losing the post entirely
- * is worse still.
+ * nowhere else, so anything referring to one shows a broken frame to everybody
+ * but the person who picked it. Avatars are the worst case: they look right to
+ * their owner, so nobody reports them.
+ *
+ * Already-uploaded urls and empty values pass straight through, so callers can
+ * hand this whatever they have. Returns the local uri unchanged on failure —
+ * a photo only its author can see is a poor outcome, losing the post or the
+ * profile edit entirely is a worse one.
  */
-export async function uploadPostImage(localUri: string): Promise<string> {
+export async function uploadImage(localUri: string, bucket = 'post-images'): Promise<string> {
   const db = supabase();
   const me = getAuthUser();
   if (!db || !me || !localUri || localUri.startsWith('http')) return localUri;
@@ -279,16 +283,18 @@ export async function uploadPostImage(localUri: string): Promise<string> {
     const bytes = await new File(localUri).bytes();
     const ext = (localUri.split('.').pop() || 'jpg').split('?')[0].toLowerCase();
     // Foldered by uploader because that is what the storage policy checks.
-    const path = `${me.id}/${Date.now()}.${ext}`;
+    const path = `${me.id}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
 
-    const { error } = await db.storage.from('post-images').upload(path, bytes, {
+    const { error } = await db.storage.from(bucket).upload(path, bytes, {
       contentType: ext === 'png' ? 'image/png' : 'image/jpeg',
       upsert: false,
     });
     if (error) return localUri;
 
-    return db.storage.from('post-images').getPublicUrl(path).data.publicUrl;
+    return db.storage.from(bucket).getPublicUrl(path).data.publicUrl;
   } catch {
     return localUri;
   }
 }
+
+export const uploadPostImage = (uri: string) => uploadImage(uri, 'post-images');

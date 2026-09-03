@@ -10,6 +10,7 @@ import { useThemeColors, ThemeColors } from '../../src/lib/theme';
 import { TAB_BAR_CLEARANCE } from '../../src/lib/tabBar';
 import { useUser, setUser, getUser } from '../../src/lib/userStore';
 import { displayName as userDisplayName } from '../../src/lib/userStore';
+import { pushProfile } from '../../src/lib/profileSync';
 import { useActivity } from '../../src/lib/activityStore';
 import { useConnections, useConnectionCount, removeConnection } from '../../src/lib/connectionsStore';
 import { usePosts, toggleLike, editPost, deletePost, isAuthoredBy, Post } from '../../src/lib/postsStore';
@@ -451,7 +452,7 @@ export default function ProfileScreen() {
             const {status} = await ImagePicker.requestMediaLibraryPermissionsAsync();
             if (status !== 'granted') return;
             const result = await ImagePicker.launchImageLibraryAsync({mediaTypes:['images'],allowsEditing:true,aspect:[16,9],quality:0.8});
-            if (!result.canceled) setUser({coverPhoto:result.assets[0].uri});
+            if (!result.canceled) { setUser({coverPhoto:result.assets[0].uri}); void pushProfile(); }
           }}>
             <Ionicons name="camera-outline" size={14} color="#fff" />
             <Text style={s.addCoverTxt}>{user.coverPhoto ? 'Change cover' : 'Add cover'}</Text>
@@ -461,7 +462,7 @@ export default function ProfileScreen() {
               const {status} = await ImagePicker.requestMediaLibraryPermissionsAsync();
               if (status !== 'granted') return;
               const result = await ImagePicker.launchImageLibraryAsync({mediaTypes:['images'],allowsEditing:true,aspect:[1,1],quality:0.8});
-              if (!result.canceled) setUser({profilePhoto:result.assets[0].uri});
+              if (!result.canceled) { setUser({profilePhoto:result.assets[0].uri}); void pushProfile(); }
             }}>
               {user.profilePhoto
                 ? <Image source={{uri:user.profilePhoto}} style={[s.avatar,{overflow:'hidden'}]} resizeMode="cover"/>

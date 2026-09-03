@@ -3,6 +3,7 @@ import { getUser, setUser, User } from './userStore';
 import { load, save } from './persist';
 import { syncBlocksAfterSignIn } from './blockStore';
 import { syncPostsFromServer } from './postsStore';
+import { uploadImage } from './postsApi';
 
 /**
  * Keeps the account's profile and the on-device user in step.
@@ -115,9 +116,25 @@ export async function syncProfileAfterSignIn(userId: string): Promise<void> {
  * Fire-and-forget on purpose: a failed sync must not block someone editing
  * their own profile, and the next edit sends the whole row again anyway.
  */
-export function pushProfile(): void {
+export async function pushProfile(): Promise<void> {
   const db = supabase();
   const u = getUser();
   if (!db || !u.id) return;
-  db.from('profiles').update(toRow(u)).eq('id', u.id).then(() => {}, () => {});
+
+  // Photos first. A picked image is a path on this phone; stored as-is it
+  // renders for its owner and as a blank for everyone else — and because it
+  // looks right to the one person who would notice, nobody reports it.
+  const [profilePhoto, coverPhoto] = await Promise.all([
+    uploadImage(u.profilePhoto || '', 'avatars'),
+    uploadImage(u.coverPhoto || '', 'avatars'),
+  ]);
+
+  if (profilePhoto !== u.profilePhoto || coverPhoto !== u.coverPhoto) {
+    // Write the shared urls back locally too, so the next post carries those
+    // rather than the path that only works here.
+    setUser({ profilePhoto, coverPhoto });
+  }
+
+  const row = toRow({ ...getUser(), profilePhoto, coverPhoto });
+  await db.from('profiles').update(row).eq('id', u.id).then(() => {}, () => {});
 }
