@@ -11,6 +11,7 @@ import { useTranslation } from '../lib/i18n';
 import { useToast } from './Toast';
 import { Post, repostPost } from '../lib/postsStore';
 import { getUser } from '../lib/userStore';
+import { displayName as userDisplayName } from '../lib/userStore';
 import { buildPostShareText } from '../lib/shareLinks';
 import { KeyboardScreen } from './KeyboardScreen';
 
@@ -80,7 +81,7 @@ export function PostShareSheet({ post, onClose }: { post: Post | null; onClose: 
   const user = getUser();
   const displayName = user.accountType === 'church'
     ? (user.churchName || 'Church')
-    : ((user.firstName || 'You') + ' ' + (user.lastName || '')).trim();
+    : userDisplayName(user);
   const initials = (user.accountType === 'church'
     ? (user.churchName?.[0] || 'C')
     : ((user.firstName?.[0] || 'Y') + (user.lastName?.[0] || ''))).toUpperCase();

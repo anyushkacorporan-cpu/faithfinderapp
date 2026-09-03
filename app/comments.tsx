@@ -17,6 +17,7 @@ import { useConfirm } from '../src/components/Confirm';
 import { useToast } from '../src/components/Toast';
 import { isBlocked, useBlocked } from '../src/lib/blockStore';
 import { getUser } from '../src/lib/userStore';
+import { displayName as userDisplayName } from '../src/lib/userStore';
 import { TranslateRow } from '../src/components/PostCard';
 import { CommentAvatar } from '../src/components/CommentAvatar';
 import { useTranslation } from '../src/lib/i18n';
@@ -61,7 +62,7 @@ export default function CommentsScreen() {
 
   const displayName = user.accountType === 'church'
     ? (user.churchName || 'Church')
-    : ((user.firstName || 'You') + ' ' + (user.lastName || '')).trim();
+    : userDisplayName(user);
   const initials = (user.accountType === 'church'
     ? (user.churchName?.[0] || 'C')
     : ((user.firstName?.[0] || 'Y') + (user.lastName?.[0] || ''))).toUpperCase();

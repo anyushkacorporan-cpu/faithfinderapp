@@ -20,6 +20,7 @@ import { PostCard } from '../../src/components/PostCard';
 import { PostShareSheet } from '../../src/components/PostShareSheet';
 import { usePosts, addPost, toggleLike, Post, editPost, deletePost, reportPost, isAuthoredBy } from '../../src/lib/postsStore';
 import { getUser } from '../../src/lib/userStore';
+import { displayName as userDisplayName, displayInitials as userDisplayInitials } from '../../src/lib/userStore';
 import { useConnections, isConnected } from '../../src/lib/connectionsStore';
 import { announceToFollowers } from '../../src/lib/notificationsStore';
 import { blockUser, isBlocked, useBlocked } from '../../src/lib/blockStore';
@@ -44,12 +45,8 @@ export default function CommunityScreen() {
 
 
   const connectedNames = connections.map(c => c.name);
-  const displayName = user.accountType === 'church'
-    ? (user.churchName || 'Church')
-    : ((user.firstName || 'You') + ' ' + (user.lastName || '')).trim();
-  const initials = (user.accountType === 'church'
-    ? (user.churchName?.[0] || 'C')
-    : ((user.firstName?.[0] || 'Y') + (user.lastName?.[0] || ''))).toUpperCase();
+  const displayName = userDisplayName(user);
+  const initials = userDisplayInitials(user);
   // When "Public Profile" is off, the user's own posts are kept out of the
   // public Discover feed (strangers can't see them) — they still show under
   // "For You" for the user and their connections.

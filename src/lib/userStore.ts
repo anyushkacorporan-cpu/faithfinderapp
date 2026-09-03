@@ -136,3 +136,39 @@ export function useUser(): User {
   }, []);
   return state;
 }
+
+/**
+ * The name to write onto anything this account publishes.
+ *
+ * Three screens each built this themselves as
+ * `(firstName || 'You') + ' ' + (lastName || '')`, which reads correctly on
+ * your own screen and is wrong the moment it leaves the device: posts were
+ * reaching the server authored by "You", and every other reader would see
+ * that. A placeholder meant for the first person is not a name.
+ *
+ * Falls back to the email's local part before giving up, because
+ * "anyushka.corporan" identifies someone and "Member" does not.
+ */
+export function displayName(u: User = getUser()): string {
+  if (u.accountType === 'church') return u.churchName || 'Church';
+
+  const full = [u.firstName, u.lastName].filter(Boolean).join(' ').trim();
+  if (full) return full;
+
+  const local = (u.email || '').split('@')[0];
+  if (local) {
+    return local
+      .split(/[._\-+]+/)
+      .filter(Boolean)
+      .map(w => w[0].toUpperCase() + w.slice(1))
+      .join(' ');
+  }
+  return 'Member';
+}
+
+/** Initials for the avatar, from the same name the post will carry. */
+export function displayInitials(u: User = getUser()): string {
+  const name = displayName(u);
+  const parts = name.split(/\s+/).filter(Boolean);
+  return ((parts[0]?.[0] || '') + (parts[1]?.[0] || '')).toUpperCase() || 'M';
+}

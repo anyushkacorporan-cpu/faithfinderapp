@@ -10,6 +10,7 @@ import { CHURCHES } from '../src/lib/constants';
 import { useThemeColors, ThemeColors } from '../src/lib/theme';
 import { buildChurchShareText, buildPostShareText } from '../src/lib/shareLinks';
 import { getUser } from '../src/lib/userStore';
+import { displayName as userDisplayName, displayInitials as userDisplayInitials } from '../src/lib/userStore';
 import { usePosts, postsForChurch } from '../src/lib/postsStore';
 import { isBlocked } from '../src/lib/blockStore';
 import { isHidden, useHidden } from '../src/lib/hiddenStore';
@@ -656,7 +657,7 @@ export default function ChurchDetailScreen() {
           </ScrollView>
           <View style={s.commentInputRow}>
             <TextInput style={s.commentInput} placeholder={tx('Write a comment...')} placeholderTextColor={c.placeholder} value={commentText} onChangeText={setCommentText}/>
-            <TouchableOpacity style={s.commentSendBtn} onPress={() => { if(commentModal && commentText.trim()){ const u = getUser(); const name = u.accountType === 'church' ? (u.churchName || 'Church') : ((u.firstName || 'You') + ' ' + (u.lastName || '')).trim(); const inits = (u.accountType === 'church' ? (u.churchName?.[0] || 'C') : ((u.firstName?.[0] || 'Y') + (u.lastName?.[0] || ''))).toUpperCase(); addComment(commentModal, commentText.trim(), name, inits, '#667eea'); setCommentText(''); setCommentModal(null);} }}>
+            <TouchableOpacity style={s.commentSendBtn} onPress={() => { if(commentModal && commentText.trim()){ const u = getUser(); const name = userDisplayName(u); const inits = userDisplayInitials(u); addComment(commentModal, commentText.trim(), name, inits, '#667eea'); setCommentText(''); setCommentModal(null);} }}>
               <Ionicons name="send" size={18} color={c.onPrimary}/>
             </TouchableOpacity>
           </View>

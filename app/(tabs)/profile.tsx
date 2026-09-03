@@ -9,6 +9,7 @@ import { HeaderIcons } from '../../src/components/Header';
 import { useThemeColors, ThemeColors } from '../../src/lib/theme';
 import { TAB_BAR_CLEARANCE } from '../../src/lib/tabBar';
 import { useUser, setUser, getUser } from '../../src/lib/userStore';
+import { displayName as userDisplayName } from '../../src/lib/userStore';
 import { useActivity } from '../../src/lib/activityStore';
 import { useConnections, useConnectionCount, removeConnection } from '../../src/lib/connectionsStore';
 import { usePosts, toggleLike, editPost, deletePost, isAuthoredBy, Post } from '../../src/lib/postsStore';
@@ -53,7 +54,7 @@ export default function ProfileScreen() {
   const allPosts = usePosts();
   const displayName = user.accountType === 'church'
     ? (user.churchName || 'Church')
-    : ((user.firstName || 'You') + ' ' + (user.lastName || '')).trim();
+    : userDisplayName(user);
   const myPosts = allPosts.filter(p => isAuthoredBy(p, user.id, displayName));
   const postGalleryPhotos = myPosts.filter(p => !!p.image).map(p => p.image as string);
   const galleryPhotos = [...new Set([...postGalleryPhotos, ...(user.photos || [])])];
