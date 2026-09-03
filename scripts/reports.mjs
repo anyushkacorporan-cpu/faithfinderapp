@@ -36,9 +36,21 @@ const client = new pg.Client({ connectionString: url, ssl: { rejectUnauthorized:
 await client.connect();
 
 if (closeId) {
+  // Only close what is actually open, and say which of the three things
+  // happened. Reporting "marked reviewed" for a no-op is a confirmation of
+  // something that did not occur — the same failure the local-only reports
+  // had, in miniature.
   const { rowCount } = await client.query(
-    `update reports set status = 'reviewed' where id = $1`, [closeId]);
-  console.log(rowCount ? `\n  Marked reviewed.\n` : `\n  No report with that id.\n`);
+    `update reports set status = 'reviewed' where id = $1 and status = 'open'`, [closeId]);
+
+  if (rowCount) {
+    console.log('\n  Marked reviewed.\n');
+  } else {
+    const { rows } = await client.query('select status from reports where id = $1', [closeId]);
+    console.log(rows.length
+      ? `\n  Already ${rows[0].status} — nothing changed.\n`
+      : '\n  No report with that id.\n');
+  }
   await client.end();
   process.exit(0);
 }
