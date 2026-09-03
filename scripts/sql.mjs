@@ -44,6 +44,10 @@ try {
   if (res.rows?.length) {
     console.table(res.rows);
     console.log(`  ${res.rows.length} row${res.rows.length === 1 ? '' : 's'}\n`);
+  } else if (res.command === 'SELECT') {
+    // "0 rows affected" for a query that affects nothing reads like a failed
+    // write. An empty result is an answer, and should say so.
+    console.log('\n  No rows.\n');
   } else {
     // A write reports what it touched. "Success" alone hides an update that
     // matched nothing, which looks identical to one that worked.
