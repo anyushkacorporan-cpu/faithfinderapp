@@ -11,6 +11,8 @@ import { ConfirmProvider } from '../src/components/Confirm';
 import { useThemeColors } from '../src/lib/theme';
 import { useAuthDeepLink } from '../src/lib/authLinking';
 import { useToast } from '../src/components/Toast';
+import { useAuth } from '../src/lib/auth';
+import { syncPostsFromServer } from '../src/lib/postsStore';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -23,6 +25,15 @@ SplashScreen.preventAutoHideAsync();
 function AuthLinks() {
   const { showToast } = useToast();
   useAuthDeepLink(message => showToast('Link problem', message, 'error'));
+
+  // Reopening the app is the common case, and it does not go through sign-in.
+  // Without this the feed only refreshed on the sign-in someone did once,
+  // weeks ago.
+  const { user, ready } = useAuth();
+  useEffect(() => {
+    if (ready && user) void syncPostsFromServer();
+  }, [ready, user?.id]);
+
   return null;
 }
 

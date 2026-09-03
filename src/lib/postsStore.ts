@@ -6,6 +6,7 @@ import { getUser } from './userStore';
 import { publishProfile } from './profilesStore';
 import { getConnections } from './connectionsStore';
 import { submitReport } from './moderationApi';
+import * as api from './postsApi';
 
 const POSTS_KEY = 'faithfinder_posts_v1';
 
@@ -339,6 +340,23 @@ export function addPost(post: {
   }
   persist();
   notify();
+
+  // Send it up. Not awaited: the post is already on screen, and someone who
+  // writes a post offline should keep it rather than watch it fail to save.
+  void (async () => {
+    // The photo has to exist somewhere shared before the post referring to it
+    // does, or the first person to read the post gets a broken frame.
+    if (newPost.image) {
+      const url = await api.uploadPostImage(newPost.image);
+      if (url !== newPost.image) {
+        posts = posts.map(p => p.id === newPost.id ? { ...p, image: url } : p);
+        newPost.image = url;
+        persist();
+        notify();
+      }
+    }
+    await api.createPost(newPost);
+  })();
 }
 
 /**
@@ -398,6 +416,7 @@ export function deletePost(postId: string) {
   posts = posts.filter(p => p.id !== postId);
   persist();
   notify();
+  void api.deletePostRemote(postId);
 }
 
 const REPORT_LABELS: Record<ReportReason, string> = {
@@ -485,6 +504,7 @@ export function toggleLike(postId: string) {
   );
   persist();
   notify();
+  void api.setPostLike(postId, !alreadyLiked);
   // Log to activity if this was a new like (not un-like)
   if (!alreadyLiked && post) {
     logActivity({ type: 'like', postId, postContent: post.content?.slice(0, 80) });
@@ -497,15 +517,17 @@ export function addComment(postId: string, text: string, author: string, initial
   // A comment is the only trace some people leave, so it has to be enough to
   // put them in the directory — otherwise their avatar stays initials forever.
   publishSelf({ name: author, color, initials, city, state });
+  const id = newId();
   posts = posts.map(p => p.id === postId ? {
     ...p,
     comments: [...p.comments, {
-      id: newId(), author, authorId: getUser().id, initials, color, text, image,
+      id, author, authorId: getUser().id, initials, color, text, image,
       time: 'now', likes: 0, liked: false, city, state, replies: []
     }]
   } : p);
   persist();
   notify();
+  void api.createComment(postId, { id, author, initials, color, text, image, city, state });
 }
 
 /** Is this comment mine? Matches on id, falling back to display name. */
@@ -521,6 +543,7 @@ export function editComment(postId: string, commentId: string, text: string) {
   });
   persist();
   notify();
+  void api.updateCommentText(commentId, text);
 }
 
 export function deleteComment(postId: string, commentId: string) {
@@ -530,6 +553,7 @@ export function deleteComment(postId: string, commentId: string) {
   });
   persist();
   notify();
+  void api.deleteCommentRemote(commentId);
 }
 
 /**
@@ -593,21 +617,24 @@ export function sortComments(comments: Comment[], by: 'recent' | 'liked'): Comme
 
 export function addReply(postId: string, commentId: string, text: string, author: string, initials: string, color: string, city?: string, state?: string) {
   publishSelf({ name: author, color, initials, city, state });
+  const replyId = newId();
   posts = posts.map(p => p.id === postId ? {
     ...p,
     comments: p.comments.map(c => c.id === commentId ? {
       ...c,
       replies: [...c.replies, {
-        id: newId(), author, initials, color, text,
+        id: replyId, author, initials, color, text,
         time: 'now', likes: 0, liked: false, city, state
       }]
     } : c)
   } : p);
   persist();
   notify();
+  void api.createComment(postId, { id: replyId, author, initials, color, text, city, state }, commentId);
 }
 
 export function toggleCommentLike(postId: string, commentId: string) {
+  const wasLiked = posts.find(p => p.id === postId)?.comments.find(c => c.id === commentId)?.liked;
   posts = posts.map(p => p.id === postId ? {
     ...p,
     comments: p.comments.map(c => c.id === commentId
@@ -616,9 +643,12 @@ export function toggleCommentLike(postId: string, commentId: string) {
   } : p);
   persist();
   notify();
+  void api.setCommentLike(commentId, !wasLiked);
 }
 
 export function toggleReplyLike(postId: string, commentId: string, replyId: string) {
+  const wasLiked = posts.find(p => p.id === postId)?.comments
+    .find(c => c.id === commentId)?.replies.find(r => r.id === replyId)?.liked;
   posts = posts.map(p => p.id === postId ? {
     ...p,
     comments: p.comments.map(c => c.id === commentId ? {
@@ -628,6 +658,35 @@ export function toggleReplyLike(postId: string, commentId: string, replyId: stri
         : r)
     } : c)
   } : p);
+  persist();
+  notify();
+  // A reply is a comment with a parent, so it likes the same way.
+  void api.setCommentLike(replyId, !wasLiked);
+}
+
+/**
+ * Bring the feed in from the server.
+ *
+ * Server posts win for anything that exists in both places — likes and
+ * comments from other people only exist there. Local posts the server does
+ * not have are kept rather than dropped: that set is the seeded demo content
+ * plus anything written while offline, and deleting someone's unsent post to
+ * make a sync tidy is not a trade worth making. Those of them that belong to
+ * this account are pushed up, which is how an offline post eventually lands.
+ */
+export async function syncPostsFromServer(): Promise<void> {
+  const remote = await api.fetchFeed();
+  if (!remote) return;
+
+  const remoteIds = new Set(remote.map(p => p.id));
+  const localOnly = posts.filter(p => !remoteIds.has(p.id));
+
+  const me = getUser().id;
+  for (const p of localOnly) {
+    if (me && p.authorId === me) void api.createPost(p);
+  }
+
+  posts = [...remote, ...localOnly].sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
   persist();
   notify();
 }

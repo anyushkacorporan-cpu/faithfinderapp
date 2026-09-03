@@ -2,6 +2,7 @@ import { supabase } from './supabase';
 import { getUser, setUser, User } from './userStore';
 import { load, save } from './persist';
 import { syncBlocksAfterSignIn } from './blockStore';
+import { syncPostsFromServer } from './postsStore';
 
 /**
  * Keeps the account's profile and the on-device user in step.
@@ -79,6 +80,9 @@ export async function syncProfileAfterSignIn(userId: string): Promise<void> {
   // returns, and a block list that syncs only on some sign-in paths is worse
   // than one that never syncs — it works until the day it matters.
   await syncBlocksAfterSignIn();
+  // The feed is the point of the app being shared at all; pull it as soon as
+  // we know who is asking, so likes come back marked as yours.
+  await syncPostsFromServer();
 
   const { data: row, error } = await db
     .from('profiles').select('*').eq('id', userId).single();
