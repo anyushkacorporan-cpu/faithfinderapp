@@ -5,6 +5,7 @@ import { newId } from './ids';
 import { getUser } from './userStore';
 import { publishProfile } from './profilesStore';
 import { getConnections } from './connectionsStore';
+import { submitReport } from './moderationApi';
 
 const POSTS_KEY = 'faithfinder_posts_v1';
 
@@ -399,21 +400,44 @@ export function deletePost(postId: string) {
   notify();
 }
 
+const REPORT_LABELS: Record<ReportReason, string> = {
+  spam: 'Spam',
+  harassment: 'Harassment or bullying',
+  inappropriate: 'Inappropriate content',
+  misleading: 'False or misleading information',
+  hate_speech: 'Hate speech',
+  other: 'Other',
+};
+
+/**
+ * File a report against a post.
+ *
+ * The local copy is what greys the post out for the reporter straight away.
+ * The server copy is the report: until this existed, filing one wrote to the
+ * reporter's own phone and told them it had been submitted, which was not
+ * true of anything.
+ *
+ * The post's text goes up with it. Posts still live on each device, so
+ * without a snapshot a report names something nobody else can read — and an
+ * author who deletes the post takes the evidence with them.
+ */
 export function reportPost(postId: string, reason: ReportReason, reportedBy: string) {
-  const labels: Record<ReportReason, string> = {
-    spam: 'Spam',
-    harassment: 'Harassment or bullying',
-    inappropriate: 'Inappropriate content',
-    misleading: 'False or misleading information',
-    hate_speech: 'Hate speech',
-    other: 'Other',
-  };
+  const post = posts.find(p => p.id === postId);
   posts = posts.map(p => p.id === postId ? {
     ...p,
-    reports: [...(p.reports || []), { id: newId(), reason: labels[reason], reportedBy, time: 'now' }],
+    reports: [...(p.reports || []), { id: newId(), reason: REPORT_LABELS[reason], reportedBy, time: 'now' }],
   } : p);
   persist();
   notify();
+
+  void submitReport({
+    targetType: 'post',
+    targetId: postId,
+    reason: REPORT_LABELS[reason],
+    targetAuthor: post?.authorName,
+    targetAuthorId: post?.authorId,
+    snapshot: post?.content,
+  });
 }
 
 export function repostPost(original: Post, reposter: {
@@ -530,23 +554,27 @@ export function togglePinComment(postId: string, commentId: string) {
 
 /** File a report against one comment, the same shape posts use. */
 export function reportComment(postId: string, commentId: string, reason: ReportReason, reportedBy: string) {
-  const labels: Record<ReportReason, string> = {
-    spam: 'Spam',
-    harassment: 'Harassment or bullying',
-    inappropriate: 'Inappropriate content',
-    misleading: 'False or misleading information',
-    hate_speech: 'Hate speech',
-    other: 'Other',
-  };
+  const target = posts.find(p => p.id === postId)?.comments.find(cm => cm.id === commentId);
   posts = posts.map(p => p.id !== postId ? p : {
     ...p,
     comments: p.comments.map(cm => cm.id !== commentId ? cm : {
       ...cm,
-      reports: [...(cm.reports || []), { id: newId(), reason: labels[reason], reportedBy, time: 'now' }],
+      reports: [...(cm.reports || []), { id: newId(), reason: REPORT_LABELS[reason], reportedBy, time: 'now' }],
     }),
   });
   persist();
   notify();
+
+  void submitReport({
+    targetType: 'comment',
+    targetId: commentId,
+    reason: REPORT_LABELS[reason],
+    targetAuthor: target?.author,
+    targetAuthorId: target?.authorId,
+    snapshot: target?.text,
+    // Which post it was under, so a report can be found in context.
+    details: `on post ${postId}`,
+  });
 }
 
 /**

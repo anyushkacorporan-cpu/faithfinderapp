@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { load, save } from './persist';
 import { removeConnection } from './connectionsStore';
+import { pushBlock, removeBlock, fetchBlocks } from './moderationApi';
 
 /**
  * People this account has blocked.
@@ -66,11 +67,46 @@ export function blockUser(user: { id?: string; name: string }) {
   if (user.id) removeConnection(user.name);
   persist();
   notify();
+  // Not awaited: the block has already taken effect on screen, and a slow or
+  // failed network call must not hold that up or undo it. The next sign-in
+  // reconciles anything that did not make it.
+  void pushBlock(user);
 }
 
 /** Unblock by id or by name — whichever the caller has to hand. */
 export function unblockUser(idOrName: string) {
   blocked = blocked.filter(b => b.id !== idOrName && b.name !== idOrName);
+  persist();
+  notify();
+  void removeBlock(idOrName);
+}
+
+/**
+ * Reconcile this device's block list with the account's, at sign-in.
+ *
+ * Unions the two rather than letting either win. A block made on an old phone
+ * must survive onto a new one, and a block made offline must not be lost when
+ * the server's older list arrives. Blocking is the one action where the safe
+ * failure is to keep too many, not too few: wrongly keeping a block is an
+ * inconvenience, wrongly dropping one puts someone back in front of a person
+ * who chose not to see them.
+ */
+export async function syncBlocksAfterSignIn(): Promise<void> {
+  const remote = await fetchBlocks();
+  if (!remote) return;
+
+  const merged = [...blocked];
+  const has = (b: BlockedUser) => merged.some(m => m.name === b.name);
+
+  for (const r of remote) if (!has(r)) merged.push(r);
+
+  // Anything only this device knew about goes up, so the next device gets it.
+  const remoteNames = new Set(remote.map(r => r.name));
+  for (const local of blocked) {
+    if (!remoteNames.has(local.name)) void pushBlock({ id: local.id, name: local.name });
+  }
+
+  blocked = merged;
   persist();
   notify();
 }

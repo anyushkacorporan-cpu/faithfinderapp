@@ -1,6 +1,7 @@
 import { supabase } from './supabase';
 import { getUser, setUser, User } from './userStore';
 import { load, save } from './persist';
+import { syncBlocksAfterSignIn } from './blockStore';
 
 /**
  * Keeps the account's profile and the on-device user in step.
@@ -73,6 +74,11 @@ function isBlank(row: any): boolean {
 export async function syncProfileAfterSignIn(userId: string): Promise<void> {
   const db = supabase();
   if (!db) return;
+
+  // First, and unconditionally. The profile work below has several early
+  // returns, and a block list that syncs only on some sign-in paths is worse
+  // than one that never syncs — it works until the day it matters.
+  await syncBlocksAfterSignIn();
 
   const { data: row, error } = await db
     .from('profiles').select('*').eq('id', userId).single();
