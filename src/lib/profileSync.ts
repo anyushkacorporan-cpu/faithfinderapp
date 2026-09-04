@@ -3,6 +3,8 @@ import { getUser, setUser, User } from './userStore';
 import { load, save } from './persist';
 import { syncBlocksAfterSignIn } from './blockStore';
 import { syncConnectionsAfterSignIn } from './connectionsStore';
+import { syncEventsFromServer } from './eventsStore';
+import { syncTicketsAfterSignIn } from './ticketStore';
 import { syncPostsFromServer } from './postsStore';
 import { uploadImage } from './postsApi';
 
@@ -83,6 +85,8 @@ export async function syncProfileAfterSignIn(userId: string): Promise<void> {
   // than one that never syncs — it works until the day it matters.
   await syncBlocksAfterSignIn();
   await syncConnectionsAfterSignIn();
+  await syncEventsFromServer();
+  await syncTicketsAfterSignIn();
   // The feed is the point of the app being shared at all; pull it as soon as
   // we know who is asking, so likes come back marked as yours.
   await syncPostsFromServer();

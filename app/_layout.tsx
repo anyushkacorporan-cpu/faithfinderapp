@@ -13,6 +13,7 @@ import { useAuthDeepLink } from '../src/lib/authLinking';
 import { useToast } from '../src/components/Toast';
 import { useAuth } from '../src/lib/auth';
 import { syncPostsFromServer } from '../src/lib/postsStore';
+import { syncEventsFromServer } from '../src/lib/eventsStore';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -31,7 +32,9 @@ function AuthLinks() {
   // weeks ago.
   const { user, ready } = useAuth();
   useEffect(() => {
-    if (ready && user) void syncPostsFromServer();
+    if (!ready || !user) return;
+    void syncPostsFromServer();
+    void syncEventsFromServer();
   }, [ready, user?.id]);
 
   return null;

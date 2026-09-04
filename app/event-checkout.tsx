@@ -9,7 +9,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useThemeColors, ThemeColors } from '../src/lib/theme';
 import { useTranslation } from '../src/lib/i18n';
 import { addAttending } from '../src/lib/eventActionsStore';
-import { addTicket } from '../src/lib/ticketStore';
+import { purchaseTicket } from '../src/lib/ticketStore';
 import { recordTicketSale } from '../src/lib/eventsStore';
 import { KeyboardScreen } from '../src/components/KeyboardScreen';
 
@@ -67,19 +67,10 @@ export default function EventCheckoutScreen() {
     setProcessing(true);
     await new Promise(r => setTimeout(r, 2000));
 
-    // Claim the seats first. Issuing the ticket and then finding the event
-    // full would leave someone holding a ticket for a seat that is gone.
-    if (!recordTicketSale(params.id || '', quantity)) {
-      setProcessing(false);
-      Alert.alert(
-        tx('Not enough seats'),
-        tx('This event sold out while you were checking out. Nothing has been charged.'),
-        [{ text: tx('OK'), onPress: () => router.back() }],
-      );
-      return;
-    }
-
-    const ticket = addTicket({
+    // Claim the seats first, on the server, where the count is authoritative.
+    // Issuing the ticket and then finding the event full would leave someone
+    // holding a ticket for a seat that is gone.
+    const { ticket, error: purchaseError } = await purchaseTicket({
       eventId: params.id || '',
       eventTitle: params.title || '',
       eventDate: params.date || '',
@@ -92,6 +83,18 @@ export default function EventCheckoutScreen() {
       platformFee,
     });
 
+    if (!ticket) {
+      setProcessing(false);
+      Alert.alert(
+        tx('Not enough seats'),
+        purchaseError || tx('This event sold out while you were checking out. Nothing has been charged.'),
+        [{ text: tx('OK'), onPress: () => router.back() }],
+      );
+      return;
+    }
+
+    // Keep the local count in step with the server's.
+    recordTicketSale(params.id || '', quantity);
     addAttending(params.id || '');
     setProcessing(false);
 

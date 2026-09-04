@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { EVENTS as SEED_EVENTS, EVENT_DETAILS as SEED_EVENT_DETAILS } from './constants';
+import * as api from './eventsApi';
+import { getUser } from './userStore';
 
 const EVENTS_KEY = 'faithfinder_events_v1';
 
@@ -196,6 +198,9 @@ export function addEvent(event: Omit<AppEvent, 'id' | 'createdAt' | 'bannerColor
   events = [newEvent, ...events];
   persist();
   notify();
+  // Not awaited: the organiser sees the event immediately, and a network
+  // failure should not throw away everything they just filled in.
+  void api.createEvent(newEvent);
   return newEvent;
 }
 
@@ -203,6 +208,8 @@ export function updateEvent(id: string, updates: Partial<AppEvent>) {
   events = events.map(e => e.id === id ? { ...e, ...updates } : e);
   persist();
   notify();
+  const updated = events.find(e => e.id === id);
+  if (updated) void api.updateEventRemote(updated);
 }
 
 /**
@@ -256,6 +263,34 @@ export function isSoldOut(event: Pick<AppEvent, 'capacity' | 'ticketsSold'>): bo
 
 export function deleteEvent(id: string) {
   events = events.filter(e => e.id !== id);
+  persist();
+  notify();
+  void api.deleteEventRemote(id);
+}
+
+/**
+ * Bring events in from the server.
+ *
+ * Server rows win where both exist — tickets_sold in particular is owned there
+ * now, and a device that has been offline holds a stale count that would
+ * happily resell a seat. Local-only events are kept and pushed, which is how
+ * an event created before this existed reaches anyone at all.
+ */
+export async function syncEventsFromServer(): Promise<void> {
+  const remote = await api.fetchEvents();
+  if (!remote) return;
+
+  const remoteIds = new Set(remote.map(e => e.id));
+  const localOnly = events.filter(e => !remoteIds.has(e.id));
+
+  // Only what this account created. The seeded demo events belong to nobody
+  // and would otherwise be uploaded once per person who opens the app.
+  const me = getUser().id;
+  for (const e of localOnly) {
+    if (me && e.id.startsWith('user_')) void api.createEvent(e);
+  }
+
+  events = [...remote, ...localOnly].sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
   persist();
   notify();
 }

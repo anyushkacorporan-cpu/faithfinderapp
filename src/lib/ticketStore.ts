@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { load, save } from './persist';
 import { newId, newShortCode } from './ids';
+import * as api from './eventsApi';
 
 export type Ticket = {
   id: string;
@@ -56,6 +57,47 @@ export function addTicket(ticket: Omit<Ticket, 'id' | 'purchasedAt' | 'ticketIds
   tickets = [newTicket, ...tickets];
   persist(); notify();
   return newTicket;
+}
+
+/**
+ * Buy, with the server deciding whether the seats were available.
+ *
+ * The old path issued the ticket and then told the event about it, checking
+ * capacity against a count the app kept itself — so two people reaching the
+ * last seat at the same moment both got one. The insert here runs the capacity
+ * check inside the same transaction as the sale, which is the only place the
+ * answer can be true, and nothing is stored locally unless it succeeded.
+ */
+export async function purchaseTicket(
+  ticket: Omit<Ticket, 'id' | 'purchasedAt' | 'ticketIds'>,
+): Promise<{ ticket: Ticket | null; error: string | null }> {
+  const ticketIds = Array.from({ length: ticket.quantity }, () => newShortCode('TKT'));
+  const newTicket: Ticket = { ...ticket, id: newId(), purchasedAt: Date.now(), ticketIds };
+
+  const error = await api.createTicket(newTicket);
+  if (error) return { ticket: null, error };
+
+  tickets = [newTicket, ...tickets];
+  persist(); notify();
+  return { ticket: newTicket, error: null };
+}
+
+/**
+ * Bring tickets in from the server at sign-in.
+ *
+ * A ticket that lives only on the phone that bought it is lost with the phone,
+ * and cannot be shown on a second device at the door.
+ */
+export async function syncTicketsAfterSignIn(): Promise<void> {
+  const remote = await api.fetchTickets();
+  if (!remote) return;
+
+  const remoteIds = new Set(remote.map(t => t.id));
+  const localOnly = tickets.filter(t => !remoteIds.has(t.id));
+
+  tickets = [...remote, ...localOnly].sort((a, b) => b.purchasedAt - a.purchasedAt);
+  persist();
+  notify();
 }
 
 export function useTickets() {
