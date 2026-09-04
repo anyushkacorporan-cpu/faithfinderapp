@@ -9,8 +9,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useThemeColors, ThemeColors } from '../src/lib/theme';
 import { useTranslation } from '../src/lib/i18n';
 import { addAttending } from '../src/lib/eventActionsStore';
-import { purchaseTicket } from '../src/lib/ticketStore';
-import { recordTicketSale } from '../src/lib/eventsStore';
+import { useStripe } from '@stripe/stripe-react-native';
+import { purchaseTicket, syncTicketsAfterSignIn } from '../src/lib/ticketStore';
+import { recordTicketSale, syncEventsFromServer } from '../src/lib/eventsStore';
+import { startPayment, confirmPayment } from '../src/lib/paymentsApi';
 import { KeyboardScreen } from '../src/components/KeyboardScreen';
 
 export default function EventCheckoutScreen() {
@@ -25,15 +27,9 @@ export default function EventCheckoutScreen() {
   const [quantity, setQuantity] = useState(1);
   const [email, setEmail] = useState('');
   const [emailError, setEmailError] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState<'apple'|'card'|'paypal'>('apple');
   const [agreed, setAgreed] = useState(false);
   const [processing, setProcessing] = useState(false);
-
-  const [cardNumber, setCardNumber] = useState('');
-  const [expiry, setExpiry] = useState('');
-  const [cvv, setCvv] = useState('');
-  const [zip, setZip] = useState('');
-  const [saveCard, setSaveCard] = useState(false);
+  const { initPaymentSheet, presentPaymentSheet } = useStripe();
 
   const priceStr = params.price || '0';
   const isFree = priceStr === 'Free' || priceStr === '0' || priceStr === '';
@@ -42,19 +38,6 @@ export default function EventCheckoutScreen() {
   const platformFee = isFree ? 0 : parseFloat((subtotal * 0.015).toFixed(2));
   const total = isFree ? 0 : parseFloat((subtotal + platformFee).toFixed(2));
 
-  function formatCardNumber(text: string) {
-    const digits = text.replace(/\D/g,'').slice(0,16);
-    return digits.replace(/(.{4})/g,'$1 ').trim();
-  }
-
-  function formatExpiry(text: string) {
-    const digits = text.replace(/\D/g,'').slice(0,4);
-    if (digits.length >= 2) return digits.slice(0,2) + '/' + digits.slice(2);
-    return digits;
-  }
-
-  const cardComplete = cardNumber.replace(/\s/g,'').length === 16 &&
-    expiry.length === 5 && cvv.length >= 3 && zip.replace(/\s/g, '').length >= 5;
 
   async function handlePay() {
     if (!email.trim() || !email.includes('@')) {
@@ -63,53 +46,110 @@ export default function EventCheckoutScreen() {
     }
     setEmailError('');
     if (!agreed) return;
-    if (!isFree && paymentMethod === 'card' && !cardComplete) return;
+
     setProcessing(true);
-    await new Promise(r => setTimeout(r, 2000));
 
-    // Claim the seats first, on the server, where the count is authoritative.
-    // Issuing the ticket and then finding the event full would leave someone
-    // holding a ticket for a seat that is gone.
-    const { ticket, error: purchaseError } = await purchaseTicket({
-      eventId: params.id || '',
-      eventTitle: params.title || '',
-      eventDate: params.date || '',
-      eventLocation: params.location || '',
-      eventType: params.type || '',
-      email: email.trim(),
-      quantity,
-      pricePerTicket: ticketPrice,
-      totalPaid: total,
-      platformFee,
-    });
-
-    if (!ticket) {
+    // Free events never touch Stripe. There is nothing to charge, and routing
+    // a zero through a payment processor only adds a way to fail.
+    if (isFree) {
+      const { ticket, error } = await purchaseTicket({
+        eventId: params.id || '',
+        eventTitle: params.title || '',
+        eventDate: params.date || '',
+        eventLocation: params.location || '',
+        eventType: params.type || '',
+        email: email.trim(),
+        quantity,
+        pricePerTicket: 0,
+        totalPaid: 0,
+        platformFee: 0,
+      });
       setProcessing(false);
-      Alert.alert(
-        tx('Not enough seats'),
-        purchaseError || tx('This event sold out while you were checking out. Nothing has been charged.'),
-        [{ text: tx('OK'), onPress: () => router.back() }],
-      );
+      if (!ticket) {
+        Alert.alert(tx('Not enough seats'),
+          error || tx('This event filled up while you were registering.'),
+          [{ text: tx('OK'), onPress: () => router.back() }]);
+        return;
+      }
+      recordTicketSale(params.id || '', quantity);
+      addAttending(params.id || '');
+      goToTicket(ticket.ticketIds);
       return;
     }
 
-    // Keep the local count in step with the server's.
-    recordTicketSale(params.id || '', quantity);
-    addAttending(params.id || '');
+    // Paid: the server holds the seats and prices the sale, then Stripe
+    // collects. The app never says what anything costs.
+    const { payment, error: startError } = await startPayment(
+      params.id || '', quantity, email.trim());
+
+    if (!payment) {
+      setProcessing(false);
+      Alert.alert(tx('Could not start checkout'),
+        startError || tx('Please try again.'),
+        [{ text: tx('OK') }]);
+      return;
+    }
+
+    const init = await initPaymentSheet({
+      merchantDisplayName: 'FaithFinder',
+      paymentIntentClientSecret: payment.clientSecret,
+      defaultBillingDetails: { email: email.trim() },
+      // Apple Pay and cards both come from Stripe's own sheet, which handles
+      // 3D Secure and never lets card numbers reach this code.
+      applePay: { merchantCountryCode: payment.currency === 'CAD' ? 'CA' : 'US' },
+      allowsDelayedPaymentMethods: false,
+    });
+
+    if (init.error) {
+      setProcessing(false);
+      Alert.alert(tx('Payment unavailable'), init.error.message, [{ text: tx('OK') }]);
+      return;
+    }
+
+    const { error: sheetError } = await presentPaymentSheet();
+
+    if (sheetError) {
+      setProcessing(false);
+      // Cancelling is not a failure worth alarming anyone about. The held
+      // seats are released by the server when the payment does not complete.
+      if (sheetError.code !== 'Canceled') {
+        Alert.alert(tx('Payment not completed'), sheetError.message, [{ text: tx('OK') }]);
+      }
+      await confirmPayment(payment.ticketId);
+      return;
+    }
+
+    // Stripe's sheet said yes; ask the server to check with Stripe before the
+    // ticket counts as real.
+    const confirmError = await confirmPayment(payment.ticketId);
     setProcessing(false);
 
+    if (confirmError) {
+      Alert.alert(tx('Payment could not be verified'), confirmError, [{ text: tx('OK') }]);
+      return;
+    }
+
+    // The ticket was created server-side, so pull it down rather than
+    // inventing a local copy that might disagree with it.
+    await syncTicketsAfterSignIn();
+    await syncEventsFromServer();
+    addAttending(params.id || '');
+    goToTicket(payment.ticketCodes);
+  }
+
+  function goToTicket(ticketIds: string[]) {
     router.replace({
       pathname: '/ticket-success',
       params: {
         id: params.id, title: params.title, date: params.date,
         location: params.location, price: isFree ? 'Free' : '$' + total.toFixed(2),
         type: params.type, organizer: params.organizer || '',
-        quantity: String(quantity), ticketIds: ticket.ticketIds.join(','),
+        quantity: String(quantity), ticketIds: ticketIds.join(','),
       }
     });
   }
 
-  const canPay = agreed && (isFree || paymentMethod !== 'card' || cardComplete);
+  const canPay = agreed;
 
   return (
     <SafeAreaView style={s.root} edges={['top']}>
@@ -208,85 +248,21 @@ export default function EventCheckoutScreen() {
 
           <View style={s.divider} />
 
-          {/* Payment - paid events only */}
+          {/* Payment — paid events only.
+              There is no card form here on purpose. Card numbers are collected
+              by Stripe's own sheet, which opens when Pay is tapped: it handles
+              Apple Pay, 3D Secure and bank redirects, and no card detail ever
+              passes through this app. The form that used to sit here collected
+              numbers it did nothing with. */}
           {!isFree && (
             <View style={s.section}>
               <Text style={s.payWithTitle}>{t('payWith')}</Text>
-
-              <TouchableOpacity style={[s.payOption, paymentMethod==='apple' && s.payOptionActive]} onPress={() => setPaymentMethod('apple')}>
-                <View style={s.payOptionLeft}>
-                  <View style={s.applePayLogo}>
-                    <Ionicons name="logo-apple" size={18} color="#fff"/>
-                    <Text style={s.applePayLogoTxt}> Pay</Text>
-                  </View>
-                  <Text style={s.payOptionName}>Apple Pay</Text>
-                </View>
-                <View style={[s.radio, paymentMethod==='apple' && s.radioActive]}>
-                  {paymentMethod==='apple' && <View style={s.radioDot}/>}
-                </View>
-              </TouchableOpacity>
-
-              <TouchableOpacity style={[s.payOption, paymentMethod==='card' && s.payOptionActive, {marginTop:8}]} onPress={() => setPaymentMethod('card')}>
-                <View style={s.payOptionLeft}>
-                  <View style={s.cardIcon}><Ionicons name="card-outline" size={16} color={c.textSecondary}/></View>
-                  <Text style={s.payOptionName}>Credit / Debit Card</Text>
-                </View>
-                <View style={[s.radio, paymentMethod==='card' && s.radioActive]}>
-                  {paymentMethod==='card' && <View style={s.radioDot}/>}
-                </View>
-              </TouchableOpacity>
-
-              {paymentMethod === 'card' && (
-                <View style={s.cardFields}>
-                  <View style={s.cardFieldRow}>
-                    <Text style={s.cardFieldLabel}>{t('cardNumber')}</Text>
-                    <View style={s.cardFieldWrap}>
-                      <Ionicons name="card-outline" size={16} color={c.textMuted}/>
-                      <TextInput style={s.cardInput} placeholder="1234 5678 9012 3456" placeholderTextColor={c.placeholder} keyboardType="numeric" value={cardNumber} onChangeText={t=>setCardNumber(formatCardNumber(t))} maxLength={19}/>
-                    </View>
-                  </View>
-                  <View style={s.cardFieldTwoCol}>
-                    <View style={[s.cardFieldRow,{flex:1,marginRight:8}]}>
-                      <Text style={s.cardFieldLabel}>{t('expiry')}</Text>
-                      <TextInput style={s.cardInputSingle} placeholder="MM/YY" placeholderTextColor={c.placeholder} keyboardType="numeric" value={expiry} onChangeText={t=>setExpiry(formatExpiry(t))} maxLength={5}/>
-                    </View>
-                    <View style={[s.cardFieldRow,{flex:1,marginRight:8}]}>
-                      <Text style={s.cardFieldLabel}>CVV</Text>
-                      <TextInput style={s.cardInputSingle} placeholder="123" placeholderTextColor={c.placeholder} keyboardType="numeric" secureTextEntry value={cvv} onChangeText={t=>setCvv(t.replace(/\D/g,'').slice(0,4))} maxLength={4}/>
-                    </View>
-                    <View style={[s.cardFieldRow,{flex:1}]}>
-                      <Text style={s.cardFieldLabel}>ZIP / POSTAL</Text>
-                      <TextInput style={s.cardInputSingle} placeholder="10001" placeholderTextColor={c.placeholder} autoCapitalize="characters" value={zip} onChangeText={t=>setZip(t.replace(/[^A-Za-z0-9 ]/g,'').slice(0,7))} maxLength={7}/>
-                    </View>
-                  </View>
-                  <View style={s.saveCardRow}>
-                    <TouchableOpacity style={[s.checkbox, saveCard && s.checkboxChecked]} onPress={()=>setSaveCard(v=>!v)}>
-                      {saveCard && <Ionicons name="checkmark" size={11} color={c.onPrimary}/>}
-                    </TouchableOpacity>
-                    <Text style={s.saveCardTxt}>{t('saveCard')}</Text>
-                  </View>
-                  <View style={s.testCardBox}>
-                    <Text style={s.testCardTitle}>🧪 Test Mode</Text>
-                    <Text style={s.testCardNum}>4242 4242 4242 4242</Text>
-                    <Text style={s.testCardSub}>{t('anyFutureDate')}</Text>
-                  </View>
-                </View>
-              )}
-
-              <TouchableOpacity style={[s.payOption, paymentMethod==='paypal' && s.payOptionActive, {marginTop:8}]} onPress={() => setPaymentMethod('paypal')}>
-                <View style={s.payOptionLeft}>
-                  <Text style={s.paypalTxt}><Text style={{color:'#003087'}}>Pay</Text><Text style={{color:'#009cde'}}>Pal</Text></Text>
-                </View>
-                <View style={[s.radio, paymentMethod==='paypal' && s.radioActive]}>
-                  {paymentMethod==='paypal' && <View style={s.radioDot}/>}
-                </View>
-              </TouchableOpacity>
-
-              {paymentMethod === 'paypal' && (
-                <View style={s.paypalNote}>
-                  <Text style={s.paypalNoteTxt}>{t('paypalProceed')}</Text>
-                </View>
-              )}
+              <View style={s.payNote}>
+                <Ionicons name="lock-closed-outline" size={16} color={c.textSecondary} />
+                <Text style={s.payNoteTxt}>
+                  {tx('Apple Pay and cards are handled securely by Stripe. Your card details are never stored by FaithFinder.')}
+                </Text>
+              </View>
             </View>
           )}
 
@@ -300,30 +276,22 @@ export default function EventCheckoutScreen() {
           <Text style={s.footerDate}>{params.date}</Text>
           <Text style={s.footerTotal}>{isFree ? 'Free' : `$${total.toFixed(2)}`}</Text>
         </View>
-        {isFree ? (
-          <TouchableOpacity style={[s.payNowBtn, (!canPay || processing) && s.payBtnDisabled]} onPress={handlePay} disabled={!canPay || processing}>
-            <Text style={s.payNowBtnTxt}>{processing ? 'Processing...' : 'Complete Registration'}</Text>
-          </TouchableOpacity>
-        ) : paymentMethod === 'apple' ? (
-          <TouchableOpacity style={[s.applePayBtn, (!canPay || processing) && s.payBtnDisabled]} onPress={handlePay} disabled={!canPay || processing}>
-            <Ionicons name="logo-apple" size={20} color={c.onPrimary} />
-            <Text style={s.applePayBtnTxt}>{processing ? 'Processing...' : 'Pay'}</Text>
-          </TouchableOpacity>
-        ) : paymentMethod === 'paypal' ? (
-          <View style={s.paypalBtns}>
-            <TouchableOpacity style={[s.paypalBtn, (!canPay || processing) && s.payBtnDisabled]} onPress={handlePay} disabled={!canPay || processing}>
-              <Text style={s.paypalBtnTxt}>PayPal</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={[s.payLaterBtn, (!canPay || processing) && s.payBtnDisabled]} onPress={handlePay} disabled={!canPay || processing}>
-              <Ionicons name="logo-paypal" size={14} color={c.onPrimary} />
-              <Text style={s.payLaterBtnTxt}>{t('payLater')}</Text>
-            </TouchableOpacity>
-          </View>
-        ) : (
-          <TouchableOpacity style={[s.payNowBtn, (!canPay || processing) && s.payBtnDisabled]} onPress={handlePay} disabled={!canPay || processing}>
-            <Text style={s.payNowBtnTxt}>{processing ? 'Processing...' : 'Pay Now'}</Text>
-          </TouchableOpacity>
-        )}
+        {/* One button. Which payment methods are offered is Stripe's sheet
+            to decide — it shows Apple Pay when the device and card support it,
+            which the old three-way picker could only pretend to know. */}
+        <TouchableOpacity
+          style={[s.payNowBtn, (!canPay || processing) && s.payBtnDisabled]}
+          onPress={handlePay}
+          disabled={!canPay || processing}
+        >
+          <Text style={s.payNowBtnTxt}>
+            {processing
+              ? tx('Processing…')
+              : isFree
+                ? tx('Complete Registration')
+                : `${tx('Pay')} $${total.toFixed(2)}`}
+          </Text>
+        </TouchableOpacity>
       </View>
     </SafeAreaView>
   );
@@ -401,5 +369,7 @@ const makeStyles = (c: ThemeColors) => StyleSheet.create({
   paypalBtnTxt:{color:c.onPrimary,fontSize:15,fontWeight:'700'},
   payLaterBtn:{flex:1,backgroundColor:'#009cde',borderRadius:10,paddingVertical:14,flexDirection:'row',alignItems:'center',justifyContent:'center',gap:6},
   payLaterBtnTxt:{color:c.onPrimary,fontSize:15,fontWeight:'700'},
+  payNote:{flexDirection:'row',alignItems:'flex-start',gap:10,backgroundColor:c.cardAlt,borderRadius:12,padding:14},
+  payNoteTxt:{flex:1,fontSize:13,color:c.textSecondary,lineHeight:19},
   payBtnDisabled:{opacity:0.4},
 });
