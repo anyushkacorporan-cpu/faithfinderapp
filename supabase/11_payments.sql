@@ -22,7 +22,9 @@ alter table tickets add column if not exists currency text not null default 'USD
 
 -- Existing rows predate payments entirely; they are free or test tickets and
 -- calling them 'paid' is the honest reading.
-create index if not exists tickets_pending_idx on tickets (created_at)
+-- purchased_at, not created_at: this table records when a ticket was bought,
+-- and has no separate row-creation timestamp.
+create index if not exists tickets_pending_idx on tickets (purchased_at)
   where status = 'pending';
 
 -- A held seat that was never paid for must not be held forever. Someone
