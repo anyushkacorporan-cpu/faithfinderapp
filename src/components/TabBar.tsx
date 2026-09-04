@@ -5,7 +5,27 @@ import {
 import { BlurView } from 'expo-blur';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
-import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
+/**
+ * What this tab bar actually needs, rather than whose type it is.
+ *
+ * expo-router ships its own copy of the bottom-tabs types, and it is not
+ * structurally identical to @react-navigation's — the two disagree on whether
+ * a header tint is a string or a ColorValue, deep inside options nobody here
+ * reads. Naming the four things this component uses decouples it from that
+ * argument, and from the next version where the two drift again.
+ */
+type TabBarProps = {
+  state: {
+    index: number;
+    routes: { key: string; name: string; params?: object }[];
+  };
+  descriptors: Record<string, { options: { title?: string } }>;
+  navigation: {
+    emit(event: { type: 'tabPress'; target: string; canPreventDefault: true }): { defaultPrevented: boolean };
+    navigate(name: string, params?: object): void;
+  };
+  insets: { bottom: number };
+};
 import { useThemeColors, ThemeColors } from '../lib/theme';
 import { TAB_BAR_HEIGHT, tabBarBottom } from '../lib/tabBar';
 
@@ -47,7 +67,7 @@ const ICONS: Record<string, string> = {
 /** iOS renders the blur; elsewhere the tint carries the surface on its own. */
 const GLASS = Platform.OS === 'ios';
 
-export function TabBar({ state, descriptors, navigation, insets }: BottomTabBarProps) {
+export function TabBar({ state, descriptors, navigation, insets }: TabBarProps) {
   const c = useThemeColors();
   const s = makeStyles(c);
   const { width: screenWidth } = useWindowDimensions();
