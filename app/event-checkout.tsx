@@ -13,6 +13,7 @@ import { useStripe } from '@stripe/stripe-react-native';
 import { purchaseTicket, syncTicketsAfterSignIn } from '../src/lib/ticketStore';
 import { recordTicketSale, syncEventsFromServer } from '../src/lib/eventsStore';
 import { startPayment, confirmPayment } from '../src/lib/paymentsApi';
+import { hasStripe } from '../src/lib/stripeConfig';
 import { KeyboardScreen } from '../src/components/KeyboardScreen';
 
 export default function EventCheckoutScreen() {
@@ -74,6 +75,16 @@ export default function EventCheckoutScreen() {
       recordTicketSale(params.id || '', quantity);
       addAttending(params.id || '');
       goToTicket(ticket.ticketIds);
+      return;
+    }
+
+    // A build with no Stripe key cannot take money, and should say so rather
+    // than opening a sheet that fails for reasons nobody can act on.
+    if (!hasStripe()) {
+      setProcessing(false);
+      Alert.alert(tx('Payments are not set up yet'),
+        tx('This build has no payment key configured. See PAYMENTS.md.'),
+        [{ text: tx('OK') }]);
       return;
     }
 
