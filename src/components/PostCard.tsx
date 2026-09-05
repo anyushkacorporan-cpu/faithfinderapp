@@ -84,6 +84,60 @@ function PostImage({ uri, style, bleed = CARD_PADDING }: { uri: string; style?: 
   );
 }
 
+/** How many lines of a caption show before it is folded away. */
+const CAPTION_LINES = 3;
+
+/**
+ * A post's caption, folded when it runs long.
+ *
+ * The line count has to be measured rather than guessed: the same character
+ * count is two lines of one word and five of another, and a caption folded at
+ * exactly its own length would show a "more" that reveals nothing.
+ *
+ * So an invisible copy is laid out once to count the lines, and thrown away as
+ * soon as it has answered. Rendering the visible copy unclamped for a frame
+ * would answer the same question and flash the whole caption on every post in
+ * the feed while doing it.
+ */
+function Caption({ text, style }: { text: string; style: any }) {
+  const c = useThemeColors();
+  const { tx } = useTranslation();
+  const [expanded, setExpanded] = useState(false);
+  const [overflows, setOverflows] = useState<boolean | null>(null);
+
+  return (
+    <View style={{ marginBottom: 12 }}>
+      {overflows === null && (
+        <View pointerEvents="none" style={{ position: 'absolute', left: 0, right: 0, opacity: 0 }}>
+          <Text
+            style={[style, { marginBottom: 0 }]}
+            onTextLayout={e => setOverflows(e.nativeEvent.lines.length > CAPTION_LINES)}
+          >
+            {text}
+          </Text>
+        </View>
+      )}
+
+      <Text
+        style={[style, { marginBottom: 0 }]}
+        numberOfLines={expanded ? undefined : CAPTION_LINES}
+      >
+        {text}
+      </Text>
+
+      {/* Only when there is something hidden. A "more" on a caption that
+          already fits is a promise the tap cannot keep. */}
+      {overflows === true && (
+        <TouchableOpacity onPress={() => setExpanded(v => !v)} hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}>
+          <Text style={{ fontSize: 14, fontWeight: '700', color: c.gold, marginTop: 2 }}>
+            {expanded ? tx('less') : tx('more')}
+          </Text>
+        </TouchableOpacity>
+      )}
+    </View>
+  );
+}
+
 const APP_LANG_CODES: Record<string,string> = { 'English':'en', 'Español':'es', 'Français':'fr', 'Português':'pt' };
 
 export function TranslateRow({text}:{text:string}) {
@@ -206,8 +260,8 @@ export function PostCard({post,showLocation,onLike,onComment,onShare,onOpenProfi
         )}
       </View>
 
-      {!!post.repostComment&&<Text style={p.content}>{post.repostComment}</Text>}
-      {!post.repostOf&&!!post.content&&<Text style={p.content}>{post.content}</Text>}
+      {!!post.repostComment&&<Caption text={post.repostComment} style={p.content}/>}
+      {!post.repostOf&&!!post.content&&<Caption text={post.content} style={p.content}/>}
       {!post.repostOf&&!!post.content&&<TranslateRow text={post.content}/>}
       {!post.repostOf&&!!post.image&&<PostImage uri={post.image} />}
 
