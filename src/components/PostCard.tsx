@@ -13,8 +13,29 @@ import { useToast } from './Toast';
 
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
+const SCREEN_HEIGHT = Dimensions.get('window').height;
 
-function PostImage({ uri, style }: { uri: string; style?: any }) {
+// Kept next to the card style they mirror. The width an image occupies is
+// derived from these, and the previous calculation had drifted out of step
+// with them — see below.
+const CARD_MARGIN = 14;   // p.card marginHorizontal
+const CARD_PADDING = 18;  // p.card paddingHorizontal
+const REPOST_PADDING = 14; // p.repostCard padding
+
+/**
+ * A photo on a post.
+ *
+ * `bleed` is how far the image reaches back out through its container's
+ * padding. At the top level it cancels the card's padding entirely, so the
+ * photo runs the full width of the card the way a feed photo should; a quoted
+ * repost passes 0 and stays inset, because a picture inside a quote should
+ * read as part of the quote rather than as the post's own.
+ *
+ * The height comes from the image's real proportions, clamped. Nothing is
+ * stretched: a portrait photo taller than the clamp is cropped by `cover`
+ * rather than squashed to fit.
+ */
+function PostImage({ uri, style, bleed = CARD_PADDING }: { uri: string; style?: any; bleed?: number }) {
   const c = useThemeColors();
   const [aspectRatio, setAspectRatio] = useState(1);
   useEffect(() => {
@@ -24,16 +45,40 @@ function PostImage({ uri, style }: { uri: string; style?: any }) {
       () => {}
     );
   }, [uri]);
-  const containerWidth = SCREEN_WIDTH - 36 - 18 * 2 + 18 * 2; // matches card horizontal margins/padding
-  const maxHeight = 420;
-  const minHeight = 160;
-  let height = containerWidth / aspectRatio;
+
+  // The width this image will actually be laid out at.
+  //
+  // The old expression was `SCREEN_WIDTH - 36 - 18*2 + 18*2`, whose two halves
+  // cancel to `SCREEN_WIDTH - 36`. The real content box is
+  // `SCREEN_WIDTH - 14*2 - 18*2`, so every height was computed from a width
+  // 28pt too generous and came out proportionally too tall — which `cover`
+  // then hid by cropping. Same numbers as the styles, once.
+  const inset = bleed > 0 ? 0 : REPOST_PADDING;
+  const width = SCREEN_WIDTH - CARD_MARGIN * 2 - (CARD_PADDING - bleed) * 2 - inset * 2;
+
+  // A feed photo should hold the screen, not sit in it. Proportional to the
+  // device rather than a fixed 420, so it means the same thing on a small
+  // phone as on a large one.
+  const maxHeight = Math.round(SCREEN_HEIGHT * 0.62);
+  const minHeight = 200;
+  let height = width / aspectRatio;
   if (height > maxHeight) height = maxHeight;
   if (height < minHeight) height = minHeight;
+
   return (
     <Image
       source={{ uri }}
-      style={[{ width: '100%', height, borderRadius: 16, backgroundColor: c.cardAlt, marginBottom: 14 }, style]}
+      style={[{
+        width,
+        height,
+        // Pull back out through the padding so the photo meets the card's edge.
+        marginHorizontal: -bleed,
+        // Square corners when it reaches the card edge, rounded when inset —
+        // a rounded corner against a straight edge reads as a mistake.
+        borderRadius: bleed > 0 ? 0 : 16,
+        backgroundColor: c.cardAlt,
+        marginBottom: 14,
+      }, style]}
       resizeMode="cover"
     />
   );
@@ -204,7 +249,7 @@ export function PostCard({post,showLocation,onLike,onComment,onShare,onOpenProfi
             </View>
           </View>
           {!!post.repostOf.content&&<Text style={{fontSize:14,color:c.text,lineHeight:21}}>{post.repostOf.content}</Text>}
-          {!!post.repostOf.image&&<PostImage uri={post.repostOf.image} style={{marginTop:8,marginBottom:0}} />}
+          {!!post.repostOf.image&&<PostImage uri={post.repostOf.image} bleed={0} style={{marginTop:8,marginBottom:0}} />}
           {!!post.repostOf.eventShareData && (
             <TouchableOpacity
               style={{backgroundColor:c.card,marginTop:8,borderRadius:16,overflow:'hidden',borderWidth:1,borderColor:c.border}}
@@ -384,8 +429,7 @@ const makeStyles = (c: ThemeColors) => StyleSheet.create({
   time:{fontSize:12,color:c.textMuted},
   dot:{fontSize:12,color:c.textMuted},
   locationTxt:{fontSize:12,color:c.gold,fontWeight:'600'},
-  content:{fontSize:15,color:c.text,lineHeight:23,marginBottom:14},
-  image:{width:'100%',height:280,borderRadius:16,marginBottom:14,backgroundColor:c.cardAlt},
+  content:{fontSize:16,color:c.text,lineHeight:24,marginBottom:12},
   locationPill:{flexDirection:'row',alignItems:'center',gap:4,alignSelf:'flex-start',backgroundColor:'rgba(201,169,110,0.10)',borderRadius:100,paddingHorizontal:10,paddingVertical:4,marginBottom:14},
   locationPillTxt:{fontSize:12,color:c.gold,fontWeight:'600'},
   sharedCard:{borderWidth:1.5,borderColor:c.border,borderRadius:16,padding:14,marginBottom:14,backgroundColor:c.cardAlt},
