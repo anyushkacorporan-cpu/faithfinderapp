@@ -83,7 +83,14 @@ export type Post = {
   city?: string;
   state?: string;
   content: string;
+  /**
+   * The first photo, kept for posts written before a post could carry more
+   * than one. New posts write `images` instead; nothing sets this any more,
+   * and `postImages()` is what reads either.
+   */
   image?: string;
+  /** Every photo on the post, in the order they were chosen. */
+  images?: string[];
   time: string;
   createdAt?: number;
   likes: number;
@@ -301,12 +308,24 @@ function publishSelf(who: { name: string; color: string; initials: string; city?
   });
 }
 
+/**
+ * Every photo on a post, whichever shape it was stored in.
+ *
+ * Posts written before multiple photos existed have `image` and no `images`.
+ * Reading both here means no screen has to know which era a post came from,
+ * and nothing has to be migrated in place.
+ */
+export function postImages(post: Pick<Post, 'image' | 'images'>): string[] {
+  if (post.images && post.images.length) return post.images;
+  return post.image ? [post.image] : [];
+}
+
 export function addPost(post: {
   authorName: string; authorInitials: string; authorType: 'church'|'personal';
   authorColor: string; authorId?: string;
   authorPhoto?: string; content: string; time: string;
   city?: string; state?: string; feed?: 'foryou'|'discover'|'both';
-  image?: string; eventShareData?: EventShareData; churchShareData?: ChurchShareData;
+  image?: string; images?: string[]; eventShareData?: EventShareData; churchShareData?: ChurchShareData;
   churchPlaceId?: string; churchName?: string;
   linkUrl?: string; linkPreview?: Post['linkPreview']; isAnnouncement?: boolean;
   sharedPost?: { authorName: string; authorInitials: string; authorColor: string; content: string; };
@@ -319,6 +338,11 @@ export function addPost(post: {
     // never has to fall back to comparing display names.
     authorId: post.authorId || getUser().id,
     createdAt: Date.now(),
+    // The first photo is mirrored into `image` as well as `images`. Two other
+    // screens read that field directly, and a post whose picture appeared in
+    // the feed but not on its own comment thread would be a strange thing to
+    // debug later.
+    image: post.images?.[0] ?? post.image,
     likes: 0, liked: false, comments: [], feed: post.feed || 'both',
   };
   // Keep this account's public profile current so anyone who taps through from
@@ -344,13 +368,20 @@ export function addPost(post: {
   // Send it up. Not awaited: the post is already on screen, and someone who
   // writes a post offline should keep it rather than watch it fail to save.
   void (async () => {
-    // The photo has to exist somewhere shared before the post referring to it
-    // does, or the first person to read the post gets a broken frame.
-    if (newPost.image) {
-      const url = await api.uploadPostImage(newPost.image);
-      if (url !== newPost.image) {
-        posts = posts.map(p => p.id === newPost.id ? { ...p, image: url } : p);
-        newPost.image = url;
+    // Every photo has to exist somewhere shared before the post referring to
+    // them does, or the first person to read the post gets broken frames.
+    // Sequentially rather than in parallel: a post with ten photos should not
+    // open ten uploads at once on a phone connection.
+    const local = postImages(newPost);
+    if (local.length) {
+      const uploaded: string[] = [];
+      for (const uri of local) uploaded.push(await api.uploadPostImage(uri));
+      if (uploaded.some((u, i) => u !== local[i])) {
+        posts = posts.map(p => p.id === newPost.id
+          ? { ...p, images: uploaded, image: uploaded[0] }
+          : p);
+        newPost.images = uploaded;
+        newPost.image = uploaded[0];
         persist();
         notify();
       }

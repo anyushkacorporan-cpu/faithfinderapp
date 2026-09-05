@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, Image, StyleSheet, Dimensions, ImageBackground } from 'react-native';
+import { View, Text, TouchableOpacity, Image, StyleSheet, Dimensions, ImageBackground, ScrollView } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useThemeColors, ThemeColors } from '../lib/theme';
-import { Post, formatRelativeTime } from '../lib/postsStore';
+import { Post, formatRelativeTime, postImages } from '../lib/postsStore';
 import { translateText, detectLanguage } from '../lib/translate';
 import { useSettings } from '../lib/settingsStore';
 import { useTranslation } from '../lib/i18n';
@@ -59,11 +59,7 @@ function PostImage({ uri, style, bleed = CARD_PADDING }: { uri: string; style?: 
   // A feed photo should hold the screen, not sit in it. Proportional to the
   // device rather than a fixed 420, so it means the same thing on a small
   // phone as on a large one.
-  const maxHeight = Math.round(SCREEN_HEIGHT * 0.62);
-  const minHeight = 200;
-  let height = width / aspectRatio;
-  if (height > maxHeight) height = maxHeight;
-  if (height < minHeight) height = minHeight;
+  const height = clampHeight(width / aspectRatio);
 
   return (
     <Image
@@ -82,6 +78,87 @@ function PostImage({ uri, style, bleed = CARD_PADDING }: { uri: string; style?: 
       resizeMode="cover"
     />
   );
+}
+
+/**
+ * The height a photo gets, from its own proportions.
+ *
+ * The ceiling is proportional to the screen so it means the same thing on a
+ * small phone as a large one; a photo taller than that is cropped by `cover`,
+ * never squashed.
+ *
+ * The floor is deliberately low. It exists only so a freak panorama does not
+ * render as a sliver — set any higher and an ordinary landscape photo gets
+ * cropped top and bottom to reach a height it never had, which is the
+ * "awkward crop" that makes every picture look the same shape.
+ */
+function clampHeight(natural: number): number {
+  const maxHeight = Math.round(SCREEN_HEIGHT * 0.62);
+  const minHeight = 140;
+  return Math.max(minHeight, Math.min(maxHeight, natural));
+}
+
+/**
+ * Several photos on one post, swiped through.
+ *
+ * One height for the whole set, taken from the first photo. Sizing each frame
+ * to its own picture would change the card's height mid-swipe and shove
+ * everything below it up and down, which is worse than the crop it avoids —
+ * and it is what every feed that does this settles on.
+ */
+function PostPhotoGallery({ uris, bleed = CARD_PADDING, style }: { uris: string[]; bleed?: number; style?: any }) {
+  const c = useThemeColors();
+  const [aspectRatio, setAspectRatio] = useState(1);
+  const [page, setPage] = useState(0);
+
+  useEffect(() => {
+    Image.getSize(uris[0], (w, h) => { if (w > 0 && h > 0) setAspectRatio(w / h); }, () => {});
+  }, [uris[0]]);
+
+  const inset = bleed > 0 ? 0 : REPOST_PADDING;
+  const width = SCREEN_WIDTH - CARD_MARGIN * 2 - (CARD_PADDING - bleed) * 2 - inset * 2;
+  const height = clampHeight(width / aspectRatio);
+
+  return (
+    <View style={[{ marginHorizontal: -bleed, marginBottom: 14 }, style]}>
+      <ScrollView
+        horizontal
+        pagingEnabled
+        showsHorizontalScrollIndicator={false}
+        onMomentumScrollEnd={e => setPage(Math.round(e.nativeEvent.contentOffset.x / width))}
+      >
+        {uris.map((uri, i) => (
+          <Image
+            key={`${uri}-${i}`}
+            source={{ uri }}
+            style={{ width, height, backgroundColor: c.cardAlt, borderRadius: bleed > 0 ? 0 : 16 }}
+            resizeMode="cover"
+          />
+        ))}
+      </ScrollView>
+
+      {/* Which of how many. Without it a second photo is invisible — nothing
+          on screen says there is anything to swipe to. */}
+      <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 6, marginTop: 8 }}>
+        {uris.map((_, i) => (
+          <View
+            key={i}
+            style={{
+              width: 6, height: 6, borderRadius: 3,
+              backgroundColor: i === page ? c.gold : c.border,
+            }}
+          />
+        ))}
+      </View>
+    </View>
+  );
+}
+
+/** Whatever photos a post has: none, one, or a gallery. */
+function PostPhotos({ uris, bleed, style }: { uris: string[]; bleed?: number; style?: any }) {
+  if (!uris.length) return null;
+  if (uris.length === 1) return <PostImage uri={uris[0]} bleed={bleed} style={style} />;
+  return <PostPhotoGallery uris={uris} bleed={bleed} style={style} />;
 }
 
 /** How many lines of a caption show before it is folded away. */
@@ -263,7 +340,7 @@ export function PostCard({post,showLocation,onLike,onComment,onShare,onOpenProfi
       {!!post.repostComment&&<Caption text={post.repostComment} style={p.content}/>}
       {!post.repostOf&&!!post.content&&<Caption text={post.content} style={p.content}/>}
       {!post.repostOf&&!!post.content&&<TranslateRow text={post.content}/>}
-      {!post.repostOf&&!!post.image&&<PostImage uri={post.image} />}
+      {!post.repostOf&&<PostPhotos uris={postImages(post)} />}
 
       {!post.repostOf&&!!post.linkPreview&&!!post.linkUrl&&(
         <TouchableOpacity
@@ -303,7 +380,7 @@ export function PostCard({post,showLocation,onLike,onComment,onShare,onOpenProfi
             </View>
           </View>
           {!!post.repostOf.content&&<Text style={{fontSize:14,color:c.text,lineHeight:21}}>{post.repostOf.content}</Text>}
-          {!!post.repostOf.image&&<PostImage uri={post.repostOf.image} bleed={0} style={{marginTop:8,marginBottom:0}} />}
+          {!!post.repostOf.image&&<PostPhotos uris={postImages(post.repostOf)} bleed={0} style={{marginTop:8,marginBottom:0}} />}
           {!!post.repostOf.eventShareData && (
             <TouchableOpacity
               style={{backgroundColor:c.card,marginTop:8,borderRadius:16,overflow:'hidden',borderWidth:1,borderColor:c.border}}

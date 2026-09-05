@@ -90,7 +90,10 @@ export default function CommunityScreen() {
     await new Promise(r => setTimeout(r, 800));
     setRefreshing(false);
   }
-  const [newPostImage, setNewPostImage] = useState<string | null>(null);
+  const [newPostImages, setNewPostImages] = useState<string[]>([]);
+  // Ten is what the picker is told and what the strip shows. High enough that
+  // nobody hits it sharing an event, low enough that a post is still a post.
+  const MAX_POST_PHOTOS = 10;
   const [detectedUrl, setDetectedUrl] = useState<string | null>(null);
   const [linkPreviewData, setLinkPreviewData] = useState<LinkPreviewData | null>(null);
   const [loadingPreview, setLoadingPreview] = useState(false);
@@ -114,7 +117,7 @@ export default function CommunityScreen() {
     const announcing = user.accountType === 'church' && isAnnouncement;
 
     addPost({
-      image: newPostImage || undefined,
+      images: newPostImages.length ? newPostImages : undefined,
       linkUrl: detectedUrl || undefined,
       linkPreview: linkPreviewData || undefined,
       authorName: displayName, authorInitials: initials,
@@ -136,7 +139,7 @@ export default function CommunityScreen() {
         postId: '',
       });
     }
-    setNewPostText(''); setNewPostImage(null); setDetectedUrl(null); setLinkPreviewData(null);
+    setNewPostText(''); setNewPostImages([]); setDetectedUrl(null); setLinkPreviewData(null);
     setShowCreate(false); setVisibility('public'); setShowLocation(true); setIsAnnouncement(false);
     setIsPosting(false);
   }
@@ -283,7 +286,7 @@ export default function CommunityScreen() {
       <Modal visible={showCreate} animationType="slide" presentationStyle="pageSheet">
         <SafeAreaView style={{ flex:1, backgroundColor: c.bg }} edges={['top']}>
           <View style={s.modalHdr}>
-            <TouchableOpacity onPress={() => { setShowCreate(false); setNewPostText(''); setNewPostImage(null); setDetectedUrl(null); setLinkPreviewData(null); setDetectedUrl(null); setLinkPreviewData(null); }}>
+            <TouchableOpacity onPress={() => { setShowCreate(false); setNewPostText(''); setNewPostImages([]); setDetectedUrl(null); setLinkPreviewData(null); setDetectedUrl(null); setLinkPreviewData(null); }}>
               <Text style={s.cancelTxt}>{t('cancel')}</Text>
             </TouchableOpacity>
             <Text style={s.modalTitle}>{t('newPost')}</Text>
@@ -357,16 +360,35 @@ export default function CommunityScreen() {
                 autoFocus
               />
 
-              {newPostImage && (
+              {/* One photo fills the width, as before. Several become a strip
+                  you scroll — each with its own remove button, so a wrong one
+                  can be taken out without starting the selection again. */}
+              {newPostImages.length === 1 && (
                 <View style={{marginHorizontal:16,marginBottom:12,position:'relative'}}>
-                  <Image source={{uri:newPostImage}} style={{width:'100%',height:280,borderRadius:14,backgroundColor:c.cardAlt}} resizeMode="contain"/>
+                  <Image source={{uri:newPostImages[0]}} style={{width:'100%',height:280,borderRadius:14,backgroundColor:c.cardAlt}} resizeMode="contain"/>
                   <TouchableOpacity
                     style={{position:'absolute',top:8,right:8,width:28,height:28,borderRadius:14,backgroundColor:'rgba(0,0,0,0.55)',alignItems:'center',justifyContent:'center'}}
-                    onPress={() => setNewPostImage(null)}
+                    onPress={() => setNewPostImages([])}
                   >
                     <Ionicons name="close" size={16} color="#fff"/>
                   </TouchableOpacity>
                 </View>
+              )}
+
+              {newPostImages.length > 1 && (
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{marginBottom:12}} contentContainerStyle={{paddingHorizontal:16,gap:8}}>
+                  {newPostImages.map((uri, i) => (
+                    <View key={`${uri}-${i}`} style={{position:'relative'}}>
+                      <Image source={{uri}} style={{width:110,height:110,borderRadius:12,backgroundColor:c.cardAlt}} resizeMode="cover"/>
+                      <TouchableOpacity
+                        style={{position:'absolute',top:5,right:5,width:24,height:24,borderRadius:12,backgroundColor:'rgba(0,0,0,0.55)',alignItems:'center',justifyContent:'center'}}
+                        onPress={() => setNewPostImages(prev => prev.filter((_, j) => j !== i))}
+                      >
+                        <Ionicons name="close" size={14} color="#fff"/>
+                      </TouchableOpacity>
+                    </View>
+                  ))}
+                </ScrollView>
               )}
 
               <TouchableOpacity
@@ -374,12 +396,27 @@ export default function CommunityScreen() {
                 onPress={async () => {
                   const {status} = await ImagePicker.requestMediaLibraryPermissionsAsync();
                   if (status !== 'granted') return;
-                  const result = await ImagePicker.launchImageLibraryAsync({mediaTypes:['images'],allowsEditing:true,quality:0.8});
-                  if (!result.canceled) setNewPostImage(result.assets[0].uri);
+                  const remaining = MAX_POST_PHOTOS - newPostImages.length;
+                  if (remaining <= 0) return;
+                  // allowsEditing is mutually exclusive with multiple
+                  // selection, and is ignored on iOS when both are set — so
+                  // the crop step goes, rather than pretending to be there.
+                  const result = await ImagePicker.launchImageLibraryAsync({
+                    mediaTypes:['images'],
+                    allowsMultipleSelection:true,
+                    selectionLimit: remaining,
+                    quality:0.8,
+                  });
+                  if (result.canceled) return;
+                  // Added to what is already there, so a second trip to the
+                  // library extends the post rather than replacing it.
+                  setNewPostImages(prev => [...prev, ...result.assets.map(a => a.uri)].slice(0, MAX_POST_PHOTOS));
                 }}
               >
                 <Ionicons name="image-outline" size={18} color={c.gold}/>
-                <Text style={{fontSize:13,fontWeight:'600',color:c.gold}}>{newPostImage ? 'Change photo' : 'Add photo'}</Text>
+                <Text style={{fontSize:13,fontWeight:'600',color:c.gold}}>
+                  {newPostImages.length ? `${tx('Add more')} (${newPostImages.length}/${MAX_POST_PHOTOS})` : tx('Add photos')}
+                </Text>
               </TouchableOpacity>
 
               {loadingPreview && (
