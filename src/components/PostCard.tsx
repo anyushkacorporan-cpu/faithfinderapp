@@ -579,7 +579,11 @@ const makeStyles = (c: ThemeColors) => StyleSheet.create({
   // crossing its own border, so the rounded, floating card gives way to the
   // full-width one every feed with full-bleed photos ends up using. The
   // padding stays: text is still inset, only the photo is not.
-  card:{backgroundColor:c.card,marginBottom:10,paddingVertical:18,paddingHorizontal:CARD_INSET,borderTopWidth:1,borderBottomWidth:1,borderColor:c.border},
+  //
+  // One rule, underneath. A border on both edges drew twice between adjacent
+  // cards and once more against whatever sits above the first one — a band of
+  // empty white with a line at each end.
+  card:{backgroundColor:c.card,marginBottom:10,paddingVertical:18,paddingHorizontal:CARD_INSET,borderBottomWidth:1,borderColor:c.border},
   authorRow:{flexDirection:'row',alignItems:'center',gap:12,marginBottom:14},
   avatar:{width:44,height:44,borderRadius:22,alignItems:'center',justifyContent:'center'},
   avatarTxt:{color:c.white,fontWeight:'700',fontSize:15},
