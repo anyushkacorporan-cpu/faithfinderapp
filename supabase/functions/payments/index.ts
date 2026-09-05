@@ -84,6 +84,12 @@ Deno.serve(async (req) => {
       return json({ error: 'Choose between 1 and 20 tickets.' }, 400);
     }
 
+    // Sweep abandoned holds before reading the count. Someone who opened
+    // checkout and walked away should not keep a seat off sale, and this is
+    // the only moment the answer matters — there is no scheduler here, so the
+    // next person trying to buy is what triggers the cleanup.
+    await admin.rpc('release_stale_holds');
+
     const { data: event, error: eventErr } = await admin
       .from('events')
       .select('id, title, date, location, type, ticket_price, platform_fee, currency, is_paid')

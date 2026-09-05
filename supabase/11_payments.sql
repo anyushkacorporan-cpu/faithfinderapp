@@ -51,6 +51,11 @@ begin
 end;
 $$;
 
+-- Called by the payments function before it reads a seat count, rather than on
+-- a schedule: the count only has to be right at the moment someone is buying,
+-- and a sweep nobody triggers is a function that never runs.
+revoke all on function release_stale_holds() from public, anon, authenticated;
+
 -- ── Giving a seat back ─────────────────────────────────────────────────────
 -- Deleting a held ticket does not undo the count: the capacity trigger runs on
 -- insert, so nothing decrements on the way out. This is how an abandoned or
