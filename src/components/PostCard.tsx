@@ -15,27 +15,35 @@ import { useToast } from './Toast';
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const SCREEN_HEIGHT = Dimensions.get('window').height;
 
-// Kept next to the card style they mirror. The width an image occupies is
-// derived from these, and the previous calculation had drifted out of step
-// with them — see below.
-const CARD_MARGIN = 14;   // p.card marginHorizontal
-const CARD_PADDING = 18;  // p.card paddingHorizontal
+// The card runs the full width of the screen and insets its contents. These
+// mirror the styles below and are what the photo widths are derived from; the
+// calculation and the styles reading the same constants is what stops them
+// drifting apart, which they had.
+const CARD_INSET = 32;     // p.card paddingHorizontal
 const REPOST_PADDING = 14; // p.repostCard padding
+
+/**
+ * How far a photo reaches back out through the card's padding.
+ *
+ * Cancelling all of it puts the photo against the glass. The author row and
+ * caption keep the inset — only the picture goes full bleed.
+ */
+const FULL_BLEED = CARD_INSET;
 
 /**
  * A photo on a post.
  *
- * `bleed` is how far the image reaches back out through its container's
- * padding. At the top level it cancels the card's padding entirely, so the
- * photo runs the full width of the card the way a feed photo should; a quoted
- * repost passes 0 and stays inset, because a picture inside a quote should
- * read as part of the quote rather than as the post's own.
+ * `bleed` is how far the image reaches back out through its container. At the
+ * top level it cancels the card's margin and padding both, so the photo spans
+ * the whole device width; a quoted repost passes 0 and stays inset, because a
+ * picture inside a quote should read as part of the quote rather than as the
+ * post's own.
  *
  * The height comes from the image's real proportions, clamped. Nothing is
  * stretched: a portrait photo taller than the clamp is cropped by `cover`
  * rather than squashed to fit.
  */
-function PostImage({ uri, style, bleed = CARD_PADDING }: { uri: string; style?: any; bleed?: number }) {
+function PostImage({ uri, style, bleed = FULL_BLEED }: { uri: string; style?: any; bleed?: number }) {
   const c = useThemeColors();
   const [aspectRatio, setAspectRatio] = useState(1);
   useEffect(() => {
@@ -53,8 +61,7 @@ function PostImage({ uri, style, bleed = CARD_PADDING }: { uri: string; style?: 
   // `SCREEN_WIDTH - 14*2 - 18*2`, so every height was computed from a width
   // 28pt too generous and came out proportionally too tall — which `cover`
   // then hid by cropping. Same numbers as the styles, once.
-  const inset = bleed > 0 ? 0 : REPOST_PADDING;
-  const width = SCREEN_WIDTH - CARD_MARGIN * 2 - (CARD_PADDING - bleed) * 2 - inset * 2;
+  const width = photoWidth(bleed);
 
   // A feed photo should hold the screen, not sit in it. Proportional to the
   // device rather than a fixed 420, so it means the same thing on a small
@@ -92,6 +99,17 @@ function PostImage({ uri, style, bleed = CARD_PADDING }: { uri: string; style?: 
  * cropped top and bottom to reach a height it never had, which is the
  * "awkward crop" that makes every picture look the same shape.
  */
+/**
+ * The width a photo is laid out at, for a given bleed.
+ *
+ * At FULL_BLEED this is exactly the screen width. At 0 it is the content box
+ * of a quoted repost, which adds its own padding on top of the card's.
+ */
+function photoWidth(bleed: number): number {
+  const insideRepost = bleed > 0 ? 0 : REPOST_PADDING * 2;
+  return SCREEN_WIDTH - (CARD_INSET - bleed) * 2 - insideRepost;
+}
+
 function clampHeight(natural: number): number {
   const maxHeight = Math.round(SCREEN_HEIGHT * 0.62);
   const minHeight = 140;
@@ -106,7 +124,7 @@ function clampHeight(natural: number): number {
  * everything below it up and down, which is worse than the crop it avoids —
  * and it is what every feed that does this settles on.
  */
-function PostPhotoGallery({ uris, bleed = CARD_PADDING, style }: { uris: string[]; bleed?: number; style?: any }) {
+function PostPhotoGallery({ uris, bleed = FULL_BLEED, style }: { uris: string[]; bleed?: number; style?: any }) {
   const c = useThemeColors();
   const [aspectRatio, setAspectRatio] = useState(1);
   const [page, setPage] = useState(0);
@@ -115,8 +133,7 @@ function PostPhotoGallery({ uris, bleed = CARD_PADDING, style }: { uris: string[
     Image.getSize(uris[0], (w, h) => { if (w > 0 && h > 0) setAspectRatio(w / h); }, () => {});
   }, [uris[0]]);
 
-  const inset = bleed > 0 ? 0 : REPOST_PADDING;
-  const width = SCREEN_WIDTH - CARD_MARGIN * 2 - (CARD_PADDING - bleed) * 2 - inset * 2;
+  const width = photoWidth(bleed);
   const height = clampHeight(width / aspectRatio);
 
   return (
@@ -138,17 +155,20 @@ function PostPhotoGallery({ uris, bleed = CARD_PADDING, style }: { uris: string[
       </ScrollView>
 
       {/* Which of how many. Without it a second photo is invisible — nothing
-          on screen says there is anything to swipe to. */}
-      <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 6, marginTop: 8 }}>
-        {uris.map((_, i) => (
-          <View
-            key={i}
-            style={{
-              width: 6, height: 6, borderRadius: 3,
-              backgroundColor: i === page ? c.gold : c.border,
-            }}
-          />
-        ))}
+          on screen says there is anything to swipe to. Over the picture rather
+          than under it, so it costs no height and cannot push the caption
+          around as the count changes. */}
+      <View
+        pointerEvents="none"
+        style={{
+          position: 'absolute', top: 12, right: 12,
+          backgroundColor: 'rgba(0,0,0,0.6)',
+          borderRadius: 100, paddingHorizontal: 10, paddingVertical: 4,
+        }}
+      >
+        <Text style={{ color: '#fff', fontSize: 12, fontWeight: '700' }}>
+          {page + 1}/{uris.length}
+        </Text>
       </View>
     </View>
   );
@@ -550,7 +570,12 @@ const makeStyles = (c: ThemeColors) => StyleSheet.create({
   cardAnnouncement:{borderColor:c.gold,borderWidth:1.5,backgroundColor:c.isDark?'rgba(201,169,110,0.07)':'rgba(201,169,110,0.05)'},
   announceBanner:{flexDirection:'row',alignItems:'center',gap:6,marginBottom:12},
   announceBannerTxt:{fontSize:11,fontWeight:'700',color:c.gold,letterSpacing:0.6,textTransform:'uppercase'},
-  card:{backgroundColor:c.card,marginHorizontal:14,marginBottom:14,paddingVertical:18,paddingHorizontal:18,borderRadius:22,borderWidth:1,borderColor:c.border,shadowColor:c.navy,shadowOffset:{width:0,height:4},shadowOpacity:0.15,shadowRadius:12,elevation:4},
+  // Flush to the screen, because the photo inside it is. A card inset from
+  // the edge cannot hold a picture wider than itself without the picture
+  // crossing its own border, so the rounded, floating card gives way to the
+  // full-width one every feed with full-bleed photos ends up using. The
+  // padding stays: text is still inset, only the photo is not.
+  card:{backgroundColor:c.card,marginBottom:10,paddingVertical:18,paddingHorizontal:CARD_INSET,borderTopWidth:1,borderBottomWidth:1,borderColor:c.border},
   authorRow:{flexDirection:'row',alignItems:'center',gap:12,marginBottom:14},
   avatar:{width:44,height:44,borderRadius:22,alignItems:'center',justifyContent:'center'},
   avatarTxt:{color:c.white,fontWeight:'700',fontSize:15},

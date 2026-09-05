@@ -91,9 +91,7 @@ export default function CommunityScreen() {
     setRefreshing(false);
   }
   const [newPostImages, setNewPostImages] = useState<string[]>([]);
-  // Ten is what the picker is told and what the strip shows. High enough that
-  // nobody hits it sharing an event, low enough that a post is still a post.
-  const MAX_POST_PHOTOS = 10;
+  const MAX_POST_PHOTOS = 20;
   const [detectedUrl, setDetectedUrl] = useState<string | null>(null);
   const [linkPreviewData, setLinkPreviewData] = useState<LinkPreviewData | null>(null);
   const [loadingPreview, setLoadingPreview] = useState(false);
@@ -397,7 +395,16 @@ export default function CommunityScreen() {
                   const {status} = await ImagePicker.requestMediaLibraryPermissionsAsync();
                   if (status !== 'granted') return;
                   const remaining = MAX_POST_PHOTOS - newPostImages.length;
-                  if (remaining <= 0) return;
+                  if (remaining <= 0) {
+                    // Say so. Silently doing nothing when a button is tapped
+                    // reads as the button being broken.
+                    showToast(
+                      tx('Photo limit reached'),
+                      `${tx('A post can have up to')} ${MAX_POST_PHOTOS} ${tx('photos')}.`,
+                      'error',
+                    );
+                    return;
+                  }
                   // allowsEditing is mutually exclusive with multiple
                   // selection, and is ignored on iOS when both are set — so
                   // the crop step goes, rather than pretending to be there.
@@ -410,7 +417,19 @@ export default function CommunityScreen() {
                   if (result.canceled) return;
                   // Added to what is already there, so a second trip to the
                   // library extends the post rather than replacing it.
-                  setNewPostImages(prev => [...prev, ...result.assets.map(a => a.uri)].slice(0, MAX_POST_PHOTOS));
+                  const picked = result.assets.map(a => a.uri);
+                  // selectionLimit is not enforced on every platform, so the
+                  // cap is applied here too — and anything dropped is
+                  // reported rather than vanishing between the picker and the
+                  // strip.
+                  if (picked.length > remaining) {
+                    showToast(
+                      tx('Photo limit reached'),
+                      `${tx('Only the first')} ${remaining} ${tx('were added — a post can have up to')} ${MAX_POST_PHOTOS}.`,
+                      'error',
+                    );
+                  }
+                  setNewPostImages(prev => [...prev, ...picked].slice(0, MAX_POST_PHOTOS));
                 }}
               >
                 <Ionicons name="image-outline" size={18} color={c.gold}/>
