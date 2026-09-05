@@ -1,7 +1,8 @@
 import { load, save } from './persist';
 import { guessLanguage, worthDetecting } from './languageGuess';
 
-const API_KEY = 'AIzaSyAHZO8wyxyCmx0k8u059QSX7QpsEvZ82sU';
+import { GOOGLE_API_KEY } from './googleConfig';
+const API_KEY = GOOGLE_API_KEY;
 
 export type TranslateResult = {
   translatedText: string;

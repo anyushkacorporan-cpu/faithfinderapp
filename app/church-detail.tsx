@@ -21,7 +21,8 @@ import { useSettings } from '../src/lib/settingsStore';
 import { useTranslation } from '../src/lib/i18n';
 
 import { KeyboardScreen, KEYBOARD_SCROLL_PROPS } from '../src/components/KeyboardScreen';
-const KEY = 'AIzaSyAHZO8wyxyCmx0k8u059QSX7QpsEvZ82sU';
+import { GOOGLE_API_KEY } from '../src/lib/googleConfig';
+const KEY = GOOGLE_API_KEY;
 const { width: W } = Dimensions.get('window');
 const MY_ID = 'current_user';
 

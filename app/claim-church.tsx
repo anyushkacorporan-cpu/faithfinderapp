@@ -9,7 +9,8 @@ import { useTranslation } from '../src/lib/i18n';
 import { setUser } from '../src/lib/userStore';
 
 import { KeyboardScreen, KEYBOARD_SCROLL_PROPS } from '../src/components/KeyboardScreen';
-const KEY = 'AIzaSyAHZO8wyxyCmx0k8u059QSX7QpsEvZ82sU';
+import { GOOGLE_API_KEY } from '../src/lib/googleConfig';
+const KEY = GOOGLE_API_KEY;
 
 async function searchChurchesAPI(query: string) {
   try {

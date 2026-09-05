@@ -1,4 +1,5 @@
-const API_KEY = 'AIzaSyAHZO8wyxyCmx0k8u059QSX7QpsEvZ82sU';
+import { GOOGLE_API_KEY } from './googleConfig';
+const API_KEY = GOOGLE_API_KEY;
 
 export async function fetchChurchPhoto(placeId: string): Promise<string> {
   try {

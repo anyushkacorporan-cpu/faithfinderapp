@@ -14,7 +14,8 @@ import { newId } from './ids';
  * Requests are also debounced by the caller, so a fast typist does not generate
  * a request per character even within a session.
  */
-const KEY = 'AIzaSyAHZO8wyxyCmx0k8u059QSX7QpsEvZ82sU';
+import { GOOGLE_API_KEY } from './googleConfig';
+const KEY = GOOGLE_API_KEY;
 
 export type AddressSuggestion = {
   placeId: string;
