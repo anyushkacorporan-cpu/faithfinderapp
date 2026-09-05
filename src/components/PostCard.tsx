@@ -22,14 +22,6 @@ const CARD_INSET = 32;     // p.card paddingHorizontal
 const REPOST_PADDING = 14; // p.repostCard padding
 
 /**
- * How far a photo reaches back out through the card's padding.
- *
- * Cancelling all of it puts the photo against the glass. The author row and
- * caption keep the inset — only the picture goes full bleed.
- */
-const FULL_BLEED = CARD_INSET;
-
-/**
  * A photo on a post.
  *
  * `bleed` is how far the image reaches back out through its container. At the
@@ -42,7 +34,7 @@ const FULL_BLEED = CARD_INSET;
  * stretched: a portrait photo taller than the clamp is cropped by `cover`
  * rather than squashed to fit.
  */
-function PostImage({ uri, style, bleed = FULL_BLEED }: { uri: string; style?: any; bleed?: number }) {
+function PostImage({ uri, style, inset = CARD_INSET, bleed = inset }: { uri: string; style?: any; inset?: number; bleed?: number }) {
   const c = useThemeColors();
   const [aspectRatio, setAspectRatio] = useState(1);
   useEffect(() => {
@@ -60,7 +52,7 @@ function PostImage({ uri, style, bleed = FULL_BLEED }: { uri: string; style?: an
   // `SCREEN_WIDTH - 14*2 - 18*2`, so every height was computed from a width
   // 28pt too generous and came out proportionally too tall — which `cover`
   // then hid by cropping. Same numbers as the styles, once.
-  const width = photoWidth(bleed);
+  const width = photoWidth(inset, bleed, bleed === 0);
 
   // A feed photo should hold the screen, not sit in it. Proportional to the
   // device rather than a fixed 420, so it means the same thing on a small
@@ -87,14 +79,17 @@ function PostImage({ uri, style, bleed = FULL_BLEED }: { uri: string; style?: an
 }
 
 /**
- * The width a photo is laid out at, for a given bleed.
+ * The width a photo is laid out at.
  *
- * At FULL_BLEED this is exactly the screen width. At 0 it is the content box
- * of a quoted repost, which adds its own padding on top of the card's.
+ * `inset` is however far its container holds it off the screen edge, and
+ * `bleed` how much of that it reaches back out through. Taking the inset as an
+ * argument rather than assuming the feed card is what lets the comment thread
+ * — which insets by 16, not 32 — show the same photos at the same size.
+ *
+ * When they are equal the photo spans the screen exactly.
  */
-function photoWidth(bleed: number): number {
-  const insideRepost = bleed > 0 ? 0 : REPOST_PADDING * 2;
-  return SCREEN_WIDTH - (CARD_INSET - bleed) * 2 - insideRepost;
+function photoWidth(inset: number, bleed: number, insideRepost = false): number {
+  return SCREEN_WIDTH - (inset - bleed) * 2 - (insideRepost ? REPOST_PADDING * 2 : 0);
 }
 
 /**
@@ -128,7 +123,7 @@ function clampHeight(natural: number, width: number): number {
  * everything below it up and down, which is worse than the crop it avoids —
  * and it is what every feed that does this settles on.
  */
-function PostPhotoGallery({ uris, bleed = FULL_BLEED, style }: { uris: string[]; bleed?: number; style?: any }) {
+function PostPhotoGallery({ uris, inset = CARD_INSET, bleed = inset, style }: { uris: string[]; inset?: number; bleed?: number; style?: any }) {
   const c = useThemeColors();
   const [aspectRatio, setAspectRatio] = useState(1);
   const [page, setPage] = useState(0);
@@ -137,7 +132,7 @@ function PostPhotoGallery({ uris, bleed = FULL_BLEED, style }: { uris: string[];
     Image.getSize(uris[0], (w, h) => { if (w > 0 && h > 0) setAspectRatio(w / h); }, () => {});
   }, [uris[0]]);
 
-  const width = photoWidth(bleed);
+  const width = photoWidth(inset, bleed, bleed === 0);
   const height = clampHeight(width / aspectRatio, width);
 
   return (
@@ -178,11 +173,17 @@ function PostPhotoGallery({ uris, bleed = FULL_BLEED, style }: { uris: string[];
   );
 }
 
-/** Whatever photos a post has: none, one, or a gallery. */
-function PostPhotos({ uris, bleed, style }: { uris: string[]; bleed?: number; style?: any }) {
+/**
+ * Whatever photos a post has: none, one, or a gallery.
+ *
+ * Exported because the comment thread shows the same post and should show the
+ * same photos — before this it rendered `post.image` alone, so opening the
+ * comments on a post with four pictures showed one.
+ */
+export function PostPhotos({ uris, inset, bleed, style }: { uris: string[]; inset?: number; bleed?: number; style?: any }) {
   if (!uris.length) return null;
-  if (uris.length === 1) return <PostImage uri={uris[0]} bleed={bleed} style={style} />;
-  return <PostPhotoGallery uris={uris} bleed={bleed} style={style} />;
+  if (uris.length === 1) return <PostImage uri={uris[0]} inset={inset} bleed={bleed} style={style} />;
+  return <PostPhotoGallery uris={uris} inset={inset} bleed={bleed} style={style} />;
 }
 
 /** How many lines of a caption show before it is folded away. */

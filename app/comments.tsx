@@ -10,15 +10,14 @@ import { useThemeColors, ThemeColors } from '../src/lib/theme';
 import {
   usePosts, addComment, addReply, editComment, deleteComment,
   togglePinComment, reportComment, sortComments, isCommentMine, isAuthoredBy,
-  toggleCommentLike, toggleReplyLike, Post, Comment, ReportReason
-} from '../src/lib/postsStore';
+  toggleCommentLike, toggleReplyLike, Post, Comment, ReportReason, postImages} from '../src/lib/postsStore';
 import * as ImagePicker from 'expo-image-picker';
 import { useConfirm } from '../src/components/Confirm';
 import { useToast } from '../src/components/Toast';
 import { isBlocked, useBlocked } from '../src/lib/blockStore';
 import { getUser } from '../src/lib/userStore';
 import { displayName as userDisplayName } from '../src/lib/userStore';
-import { TranslateRow } from '../src/components/PostCard';
+import { TranslateRow, PostPhotos } from '../src/components/PostCard';
 import { CommentAvatar } from '../src/components/CommentAvatar';
 import { useTranslation } from '../src/lib/i18n';
 
@@ -144,9 +143,12 @@ export default function CommentsScreen() {
               </View>
             </View>
             {!!post.content && <Text style={s.postContent}>{post.content}</Text>}
-            {!!post.image && (
-              <Image source={{uri:post.image}} style={{width:'100%',height:280,borderRadius:14,marginTop:8,marginBottom:10,backgroundColor:c.cardAlt}} resizeMode="contain"/>
-            )}
+            {/* The same component the feed uses, so a post with four photos
+                shows four here too. It used to render post.image alone, which
+                showed one and gave no sign the others existed. 16 is this
+                block's own padding — the photos reach back out through it and
+                span the screen, as they do in the feed. */}
+            <PostPhotos uris={postImages(post)} inset={16} style={{marginTop:8,marginBottom:10}} />
             <View style={s.postStats}>
               <Text style={s.postStatTxt}>{post.likes} likes · {post.comments.length} comments</Text>
             </View>
