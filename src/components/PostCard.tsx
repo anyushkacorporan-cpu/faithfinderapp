@@ -13,7 +13,6 @@ import { useToast } from './Toast';
 
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
-const SCREEN_HEIGHT = Dimensions.get('window').height;
 
 // The card runs the full width of the screen and insets its contents. These
 // mirror the styles below and are what the photo widths are derived from; the
@@ -66,7 +65,7 @@ function PostImage({ uri, style, bleed = FULL_BLEED }: { uri: string; style?: an
   // A feed photo should hold the screen, not sit in it. Proportional to the
   // device rather than a fixed 420, so it means the same thing on a small
   // phone as on a large one.
-  const height = clampHeight(width / aspectRatio);
+  const height = clampHeight(width / aspectRatio, width);
 
   return (
     <Image
@@ -88,18 +87,6 @@ function PostImage({ uri, style, bleed = FULL_BLEED }: { uri: string; style?: an
 }
 
 /**
- * The height a photo gets, from its own proportions.
- *
- * The ceiling is proportional to the screen so it means the same thing on a
- * small phone as a large one; a photo taller than that is cropped by `cover`,
- * never squashed.
- *
- * The floor is deliberately low. It exists only so a freak panorama does not
- * render as a sliver — set any higher and an ordinary landscape photo gets
- * cropped top and bottom to reach a height it never had, which is the
- * "awkward crop" that makes every picture look the same shape.
- */
-/**
  * The width a photo is laid out at, for a given bleed.
  *
  * At FULL_BLEED this is exactly the screen width. At 0 it is the content box
@@ -110,8 +97,25 @@ function photoWidth(bleed: number): number {
   return SCREEN_WIDTH - (CARD_INSET - bleed) * 2 - insideRepost;
 }
 
-function clampHeight(natural: number): number {
-  const maxHeight = Math.round(SCREEN_HEIGHT * 0.62);
+/**
+ * The height a photo gets, from its own proportions.
+ *
+ * The ceiling is 4:5 — a photo may be a quarter taller than it is wide and no
+ * more. Tied to the width rather than the screen, because that is what the
+ * limit is actually about: how tall a picture may be relative to itself. A
+ * proportion of screen height let a portrait photo run to nearly two thirds of
+ * the display, pushing everything after it out of view, which reads as the
+ * photo having taken over the feed rather than being in it.
+ *
+ * A photo taller than that is cropped by `cover`, never squashed.
+ *
+ * The floor is deliberately low. It exists only so a freak panorama does not
+ * render as a sliver — set any higher and an ordinary landscape photo gets
+ * cropped top and bottom to reach a height it never had, which is the
+ * "awkward crop" that makes every picture look the same shape.
+ */
+function clampHeight(natural: number, width: number): number {
+  const maxHeight = Math.round(width * 1.25);
   const minHeight = 140;
   return Math.max(minHeight, Math.min(maxHeight, natural));
 }
@@ -134,7 +138,7 @@ function PostPhotoGallery({ uris, bleed = FULL_BLEED, style }: { uris: string[];
   }, [uris[0]]);
 
   const width = photoWidth(bleed);
-  const height = clampHeight(width / aspectRatio);
+  const height = clampHeight(width / aspectRatio, width);
 
   return (
     <View style={[{ marginHorizontal: -bleed, marginBottom: 14 }, style]}>
