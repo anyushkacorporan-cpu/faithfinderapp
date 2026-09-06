@@ -610,7 +610,10 @@ const makeStyles = (c: ThemeColors) => StyleSheet.create({
   locationPillTxt:{fontSize:12,color:c.gold,fontWeight:'600'},
   sharedCard:{borderWidth:1.5,borderColor:c.border,borderRadius:16,padding:14,marginBottom:14,backgroundColor:c.cardAlt},
   repostCard:{borderWidth:1.5,borderColor:c.border,borderRadius:16,padding:14,marginBottom:14,backgroundColor:c.cardAlt},
-  actions:{flexDirection:'row',alignItems:'center',justifyContent:'space-between',paddingTop:14,borderTopWidth:1,borderTopColor:c.rowBorder,marginTop:4},
+  // No rule above the actions. The card already ends with one, so a second
+  // line a few points higher boxed the caption in for no reason. The spacing
+  // that was holding the row off the text is kept — only the line is gone.
+  actions:{flexDirection:'row',alignItems:'center',justifyContent:'space-between',paddingTop:14,marginTop:4},
   actionBtn:{flexDirection:'row',alignItems:'center',justifyContent:'center',gap:6,paddingVertical:6,paddingHorizontal:12,backgroundColor:c.cardAlt,borderRadius:100},
   actionTxt:{fontSize:13,color:c.textMuted,fontWeight:'500'},
 });
