@@ -140,8 +140,13 @@ export default function EditProfileScreen() {
           <Text style={s.saveBtn}>{t('save')}</Text>
         </TouchableOpacity>
       </View>
-      <KeyboardScreen>
-        <ScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+      {/* dismissOnTap off: this screen's content is a scroll view, so the
+          wrapper catches no tap the scroll view has not already taken — but it
+          claims the responder on touch-down and swallows horizontal drags,
+          which stops the row of chips below from being swiped. The scroll view
+          now dismisses on drag instead. */}
+      <KeyboardScreen dismissOnTap={false}>
+        <ScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false} {...KEYBOARD_SCROLL_PROPS}>
 
           {/* Photos */}
           {isChurch ? (

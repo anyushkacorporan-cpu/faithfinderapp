@@ -342,8 +342,13 @@ export default function CreateEventScreen() {
         <View style={[s.progressFill,{width:`${(step+1)/STEPS.length*100}%`}]}/>
       </View>
 
-      <KeyboardScreen>
-        <ScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+      {/* dismissOnTap off: this screen's content is a scroll view, so the
+          wrapper catches no tap the scroll view has not already taken — but it
+          claims the responder on touch-down and swallows horizontal drags,
+          which stops the row of chips below from being swiped. The scroll view
+          now dismisses on drag instead. */}
+      <KeyboardScreen dismissOnTap={false}>
+        <ScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false} {...KEYBOARD_SCROLL_PROPS}>
 
           {/* ── STEP 0: Basics ── */}
           {step===0&&(

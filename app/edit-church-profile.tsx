@@ -140,7 +140,12 @@ export default function EditChurchProfileScreen() {
 
   return (
     <SafeAreaView style={s.root} edges={['top']}>
-      <KeyboardScreen>
+      {/* dismissOnTap off: this screen's content is a scroll view, so the
+          wrapper catches no tap the scroll view has not already taken — but it
+          claims the responder on touch-down and swallows horizontal drags,
+          which stops the row of chips below from being swiped. The scroll view
+          now dismisses on drag instead. */}
+      <KeyboardScreen dismissOnTap={false}>
         <View style={s.hdr}>
           <TouchableOpacity style={s.backBtn} onPress={() => router.back()}>
             <Ionicons name="arrow-back" size={20} color={c.text} />
@@ -150,7 +155,7 @@ export default function EditChurchProfileScreen() {
             <Text style={s.saveBtn}>{t('save')}</Text>
           </TouchableOpacity>
         </View>
-        <ScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+        <ScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false} {...KEYBOARD_SCROLL_PROPS}>
 
           <Text style={s.sectionTitle}>{t('photos')}</Text>
 

@@ -298,8 +298,13 @@ export default function CommunityScreen() {
               <Text style={s.postBtnTxt}>{t('post')}</Text>
             </TouchableOpacity>
           </View>
-          <KeyboardScreen>
-            <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{paddingBottom:40}}>
+          {/* dismissOnTap off: this screen's content is a scroll view, so the
+          wrapper catches no tap the scroll view has not already taken — but it
+          claims the responder on touch-down and swallows horizontal drags,
+          which stops the row of chips below from being swiped. The scroll view
+          now dismisses on drag instead. */}
+          <KeyboardScreen dismissOnTap={false}>
+            <ScrollView {...KEYBOARD_SCROLL_PROPS} contentContainerStyle={{paddingBottom:40}}>
               <View style={s.composeAuthor}>
                 <View style={[s.composeAvatar,{backgroundColor:'#667eea'}]}>
                   <Text style={s.composeAvatarTxt}>{initials}</Text>
