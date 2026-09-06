@@ -18,7 +18,12 @@ const SCREEN_WIDTH = Dimensions.get('window').width;
 // mirror the styles below and are what the photo widths are derived from; the
 // calculation and the styles reading the same constants is what stops them
 // drifting apart, which they had.
-const CARD_INSET = 32;     // p.card paddingHorizontal
+// 16, not the 32 this became when the card went full-width: that number was
+// the old 14 of margin plus 18 of padding added together, which was right
+// arithmetically and left the avatar floating well inside the edge. Everything
+// the card insets — author row, caption, actions — moves together, which is
+// the point of there being one number.
+const CARD_INSET = 16;     // p.card paddingHorizontal
 const REPOST_PADDING = 14; // p.repostCard padding
 
 /**
