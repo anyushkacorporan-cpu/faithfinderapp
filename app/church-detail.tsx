@@ -4,6 +4,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { PostPhotos } from '../src/components/PostCard';
 import Header from '../src/components/Header';
 import { CommentAvatar } from '../src/components/CommentAvatar';
 import { CHURCHES } from '../src/lib/constants';
@@ -11,7 +12,7 @@ import { useThemeColors, ThemeColors } from '../src/lib/theme';
 import { buildChurchShareText, buildPostShareText } from '../src/lib/shareLinks';
 import { getUser } from '../src/lib/userStore';
 import { displayName as userDisplayName, displayInitials as userDisplayInitials } from '../src/lib/userStore';
-import { usePosts, postsForChurch } from '../src/lib/postsStore';
+import { usePosts, postsForChurch, postImages} from '../src/lib/postsStore';
 import { isBlocked } from '../src/lib/blockStore';
 import { isHidden, useHidden } from '../src/lib/hiddenStore';
 import { useSavedChurches } from '../src/lib/store';
@@ -445,7 +446,11 @@ export default function ChurchDetailScreen() {
                       </View>
                     </View>
                     <Text style={s.postContent}>{post.content}</Text>
-                    {!!post.image && <Image source={{uri:post.image}} style={s.postImage} resizeMode="cover"/>}
+                    {/* Every photo, not just the first. Inset rather than
+                        full bleed: this one sits in a small rounded card, and
+                        a picture wider than its own card crosses its border.
+                        16 of section padding plus 14 of card padding. */}
+                    <PostPhotos uris={postImages(post)} inset={30} bleed={0} style={{marginBottom:10}} />
                     {(post.likes>0||post.comments.length>0) && (
                       <View style={s.postStats}>
                         {post.likes>0&&<Text style={s.statTxt}>{post.likes} like{post.likes!==1?'s':''}</Text>}
@@ -791,7 +796,6 @@ const makeStyles = (c: ThemeColors) => StyleSheet.create({
   postAuthor:{fontSize:15,fontWeight:'700',color:c.text},
   postTime:{fontSize:12,color:c.textMuted,marginTop:2},
   postContent:{fontSize:14,color:c.text,lineHeight:21,marginBottom:10},
-  postImage:{width:'100%',height:200,borderRadius:12,marginBottom:10},
   postStats:{flexDirection:'row',gap:12,marginBottom:8},
   statTxt:{fontSize:12,color:c.textMuted},
   postActions:{flexDirection:'row',borderTopWidth:1,borderTopColor:c.border,paddingTop:10},

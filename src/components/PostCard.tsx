@@ -52,7 +52,7 @@ function PostImage({ uri, style, inset = CARD_INSET, bleed = inset }: { uri: str
   // `SCREEN_WIDTH - 14*2 - 18*2`, so every height was computed from a width
   // 28pt too generous and came out proportionally too tall — which `cover`
   // then hid by cropping. Same numbers as the styles, once.
-  const width = photoWidth(inset, bleed, bleed === 0);
+  const width = photoWidth(inset, bleed);
 
   // A feed photo should hold the screen, not sit in it. Proportional to the
   // device rather than a fixed 420, so it means the same thing on a small
@@ -82,14 +82,16 @@ function PostImage({ uri, style, inset = CARD_INSET, bleed = inset }: { uri: str
  * The width a photo is laid out at.
  *
  * `inset` is however far its container holds it off the screen edge, and
- * `bleed` how much of that it reaches back out through. Taking the inset as an
- * argument rather than assuming the feed card is what lets the comment thread
- * — which insets by 16, not 32 — show the same photos at the same size.
+ * `bleed` how much of that it reaches back out through. When they are equal
+ * the photo spans the screen exactly.
  *
- * When they are equal the photo spans the screen exactly.
+ * Both are the caller's to state. An earlier version inferred "inside a quoted
+ * repost" from `bleed === 0`, which held only until something else wanted an
+ * inset photo — a church's page, as it turned out — and then quietly
+ * subtracted a repost's padding from a card that had none.
  */
-function photoWidth(inset: number, bleed: number, insideRepost = false): number {
-  return SCREEN_WIDTH - (inset - bleed) * 2 - (insideRepost ? REPOST_PADDING * 2 : 0);
+function photoWidth(inset: number, bleed: number): number {
+  return SCREEN_WIDTH - (inset - bleed) * 2;
 }
 
 /**
@@ -132,7 +134,7 @@ function PostPhotoGallery({ uris, inset = CARD_INSET, bleed = inset, style }: { 
     Image.getSize(uris[0], (w, h) => { if (w > 0 && h > 0) setAspectRatio(w / h); }, () => {});
   }, [uris[0]]);
 
-  const width = photoWidth(inset, bleed, bleed === 0);
+  const width = photoWidth(inset, bleed);
   const height = clampHeight(width / aspectRatio, width);
 
   return (
@@ -405,7 +407,7 @@ export function PostCard({post,showLocation,onLike,onComment,onShare,onOpenProfi
             </View>
           </View>
           {!!post.repostOf.content&&<Text style={{fontSize:14,color:c.text,lineHeight:21}}>{post.repostOf.content}</Text>}
-          {!!post.repostOf.image&&<PostPhotos uris={postImages(post.repostOf)} bleed={0} style={{marginTop:8,marginBottom:0}} />}
+          {!!post.repostOf.image&&<PostPhotos uris={postImages(post.repostOf)} inset={CARD_INSET + REPOST_PADDING} bleed={0} style={{marginTop:8,marginBottom:0}} />}
           {!!post.repostOf.eventShareData && (
             <TouchableOpacity
               style={{backgroundColor:c.card,marginTop:8,borderRadius:16,overflow:'hidden',borderWidth:1,borderColor:c.border}}
