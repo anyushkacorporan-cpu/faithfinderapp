@@ -102,7 +102,13 @@ export default function CommunityScreen() {
 
   async function handleCreatePost() {
     if (isPosting) return;
-    if (!newPostText.trim()) return;
+    // A post needs *something* — but photos are something. Requiring text
+    // meant attaching pictures, tapping Post, and watching nothing happen,
+    // with no error to explain it.
+    if (!newPostText.trim() && newPostImages.length === 0) {
+      showToast(tx('Nothing to post'), tx('Write something or add a photo.'), 'error');
+      return;
+    }
     setIsPosting(true);
 
     let city: string | undefined;
