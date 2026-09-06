@@ -148,7 +148,20 @@ function PostPhotoGallery({ uris, inset = CARD_INSET, bleed = inset, style }: { 
         horizontal
         pagingEnabled
         showsHorizontalScrollIndicator={false}
-        onMomentumScrollEnd={e => setPage(Math.round(e.nativeEvent.contentOffset.x / width))}
+        // One page wide, stated rather than inherited. A horizontal ScrollView
+        // that is not given a width takes its content's width instead, so
+        // contentSize equals the frame and it stops scrolling at all — the
+        // photos are still there, off the side of the screen, unreachable.
+        style={{ width, height }}
+        // Follow the drag rather than waiting for momentum to end. A slow swipe
+        // released without a flick fires no momentum event, which left the
+        // badge reading 1/4 over the second photo.
+        scrollEventThrottle={16}
+        onScroll={e => {
+          const next = Math.max(0, Math.min(uris.length - 1,
+            Math.round(e.nativeEvent.contentOffset.x / width)));
+          setPage(prev => (prev === next ? prev : next));
+        }}
       >
         {uris.map((uri, i) => (
           <Image

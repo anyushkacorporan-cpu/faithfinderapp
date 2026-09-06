@@ -119,7 +119,14 @@ export default function CommentsScreen() {
         <View style={{ flex: 1 }} />
       </View>
 
-      <KeyboardScreen offset={-insets.bottom}>
+      {/* dismissOnTap off: the content here is a scroll view and a composer,
+          so the tap-to-dismiss wrapper catches nothing that the scroll view
+          has not already taken — but it does claim the touch responder on
+          every touch-down, and a horizontal drag never hits the cancel that a
+          vertical one does. That left the post's photo carousel unswipeable
+          on this screen while the same component swiped in the feed, which
+          has no such wrapper. Dragging still dismisses via keyboardDismissMode. */}
+      <KeyboardScreen offset={-insets.bottom} dismissOnTap={false}>
         <ScrollView
           ref={scrollRef}
           {...KEYBOARD_SCROLL_PROPS}
