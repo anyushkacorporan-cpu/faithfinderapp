@@ -595,7 +595,15 @@ const makeStyles = (c: ThemeColors) => StyleSheet.create({
   // One rule, underneath. A border on both edges drew twice between adjacent
   // cards and once more against whatever sits above the first one — a band of
   // empty white with a line at each end.
-  card:{backgroundColor:c.card,marginBottom:10,paddingVertical:18,paddingHorizontal:CARD_INSET,borderBottomWidth:1,borderColor:c.border},
+  // The gap between posts is drawn, not left: the background and the card are
+  // both white in the light theme, so nothing shows through a margin. An 8pt
+  // band reads as a section break where a hairline read as an accident, and
+  // replaces the margin rather than adding to it.
+  //
+  // The top padding is tighter than the bottom on purpose — the author row
+  // belongs to the divider above it, and 18 left it floating in the middle of
+  // its own gap.
+  card:{backgroundColor:c.card,paddingTop:12,paddingBottom:18,paddingHorizontal:CARD_INSET,borderBottomWidth:8,borderBottomColor:c.border},
   authorRow:{flexDirection:'row',alignItems:'center',gap:12,marginBottom:14},
   avatar:{width:44,height:44,borderRadius:22,alignItems:'center',justifyContent:'center'},
   avatarTxt:{color:c.white,fontWeight:'700',fontSize:15},
