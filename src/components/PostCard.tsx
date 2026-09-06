@@ -4,7 +4,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useThemeColors, ThemeColors } from '../lib/theme';
-import { Post, formatRelativeTime, postImages } from '../lib/postsStore';
+import { Post, formatRelativeTime, postImages, isEmptyPost } from '../lib/postsStore';
 import { translateText, detectLanguage } from '../lib/translate';
 import { useSettings } from '../lib/settingsStore';
 import { useTranslation } from '../lib/i18n';
@@ -313,6 +313,10 @@ export function PostCard({post,showLocation,onLike,onComment,onShare,onOpenProfi
     addConnection(connectionFromAuthor(post));
     showToast(tx('Connected'), tx('You will now see posts from') + ' ' + post.authorName, 'success');
   }
+  // Nothing to show is not a card. One that slipped through renders as a row
+  // of buttons attached to no content, with no way to remove it.
+  if (isEmptyPost(post)) return null;
+
   return (
     <View style={[p.card, post.isAnnouncement && p.cardAnnouncement]}>
       {post.isAnnouncement && (

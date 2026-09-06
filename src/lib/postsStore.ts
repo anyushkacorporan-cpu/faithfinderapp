@@ -261,7 +261,10 @@ async function hydrate() {
     if (raw) {
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed) && parsed.length > 0) {
-        posts = parsed;
+        // Drop anything empty on the way in, so a stub written by an older
+        // build disappears on the next launch rather than needing a delete
+        // the app cannot offer.
+        posts = parsed.filter((p: Post) => !isEmptyPost(p));
         notify();
       }
     }
@@ -315,6 +318,29 @@ function publishSelf(who: { name: string; color: string; initials: string; city?
  * Reading both here means no screen has to know which era a post came from,
  * and nothing has to be migrated in place.
  */
+/**
+ * A post with nothing in it.
+ *
+ * No text, no photo, nothing shared, nothing quoted — it renders as a bare
+ * row of like and comment buttons attached to no content, and because the
+ * menu that would delete it hangs off an author row nobody can see, there is
+ * no way to get rid of it from the app either.
+ *
+ * These came from an interrupted compose. They should not be created any
+ * more, but the ones already written to a device have to be swept up: a sync
+ * that keeps local-only posts, as this one deliberately does, would otherwise
+ * carry them forever.
+ */
+export function isEmptyPost(p: Post): boolean {
+  return !p.content?.trim()
+    && postImages(p).length === 0
+    && !p.repostOf
+    && !p.repostComment?.trim()
+    && !p.eventShareData
+    && !p.churchShareData
+    && !p.linkPreview;
+}
+
 export function postImages(post: Pick<Post, 'image' | 'images'>): string[] {
   if (post.images && post.images.length) return post.images;
   return post.image ? [post.image] : [];
@@ -710,7 +736,7 @@ export async function syncPostsFromServer(): Promise<void> {
   if (!remote) return;
 
   const remoteIds = new Set(remote.map(p => p.id));
-  const localOnly = posts.filter(p => !remoteIds.has(p.id));
+  const localOnly = posts.filter(p => !remoteIds.has(p.id) && !isEmptyPost(p));
 
   const me = getUser().id;
   for (const p of localOnly) {
