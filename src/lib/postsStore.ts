@@ -732,7 +732,7 @@ export function toggleReplyLike(postId: string, commentId: string, replyId: stri
  * this account are pushed up, which is how an offline post eventually lands.
  */
 export async function syncPostsFromServer(): Promise<void> {
-  const remote = await api.fetchFeed();
+  const remote = await api.fetchFeed(FEED_PAGE);
   if (!remote) return;
 
   const remoteIds = new Set(remote.map(p => p.id));
@@ -744,8 +744,99 @@ export async function syncPostsFromServer(): Promise<void> {
   }
 
   posts = [...remote, ...localOnly].sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+
+  // A refresh re-reads the top of the feed, not the whole of it. Someone who
+  // had scrolled four pages down keeps those posts, so the cursor must keep
+  // their depth too — reset it to the first page's oldest and the next scroll
+  // would re-fetch every page they had already been given.
+  const top = oldestOf(remote);
+  if (serverOldest == null || (top != null && top < serverOldest)) serverOldest = top;
+  if (serverOldest == null || serverOldest === top) feedExhausted = remote.length < FEED_PAGE;
   persist();
   notify();
+}
+
+/**
+ * How many posts a page of the feed holds.
+ *
+ * Before this the feed asked for a hundred and stopped there. Nobody noticed,
+ * because nobody has a hundred posts yet — but the hundred-and-first would
+ * have been unreachable rather than merely off-screen, with no scroll, pull or
+ * restart that could ever reach it.
+ */
+const FEED_PAGE = 100;
+
+/**
+ * The oldest post the server has given us, as the cursor for asking for more.
+ *
+ * Tracked apart from the feed itself because the feed also holds posts the
+ * server has never seen — seeded content and anything written offline. Taking
+ * the oldest of *those* as the cursor would ask the server for posts older
+ * than a seeded post dated last year and silently skip everything in between.
+ */
+let serverOldest: number | null = null;
+let feedExhausted = false;
+let loadingMore = false;
+
+function oldestOf(list: Post[]): number | null {
+  let min: number | null = null;
+  for (const p of list) {
+    const t = p.createdAt || 0;
+    if (t && (min == null || t < min)) min = t;
+  }
+  return min;
+}
+
+/**
+ * The next page down, appended.
+ *
+ * Guarded on both sides: `loadingMore` because a scroll fires this many times
+ * per second near the bottom, `feedExhausted` because once the server returns
+ * a short page there is nothing further down and asking again forever is just
+ * a request loop.
+ */
+export async function loadMorePosts(): Promise<void> {
+  if (loadingMore || feedExhausted || serverOldest == null) return;
+
+  loadingMore = true;
+  notify();
+
+  const older = await api.fetchFeed(FEED_PAGE, serverOldest);
+
+  loadingMore = false;
+  if (!older) { notify(); return; }
+
+  // A short page means the bottom. An empty one means it too, and would
+  // otherwise leave the cursor untouched and this callable forever.
+  if (older.length < FEED_PAGE) feedExhausted = true;
+
+  if (older.length) {
+    const have = new Set(posts.map(p => p.id));
+    const fresh = older.filter(p => !have.has(p.id) && !isEmptyPost(p));
+    if (fresh.length) {
+      posts = [...posts, ...fresh].sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+      persist();
+    }
+    const next = oldestOf(older);
+    if (next != null) serverOldest = next;
+  }
+
+  notify();
+}
+
+/** Whether a page is in flight, and whether there is anything left to ask for. */
+export function useFeedPaging() {
+  const [state, setState] = useState({ loadingMore, exhausted: feedExhausted });
+  useEffect(() => {
+    const fn = () => setState(prev =>
+      prev.loadingMore === loadingMore && prev.exhausted === feedExhausted
+        ? prev
+        : { loadingMore, exhausted: feedExhausted });
+    fn();
+    listeners.push(fn);
+    return () => { const i = listeners.indexOf(fn); if (i > -1) listeners.splice(i, 1); };
+  }, []);
+  return state;
 }
 
 export function usePosts(feed?: 'foryou' | 'discover') {

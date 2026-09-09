@@ -18,7 +18,8 @@ import { useSettings } from '../../src/lib/settingsStore';
 import { useTranslation } from '../../src/lib/i18n';
 import { PostCard } from '../../src/components/PostCard';
 import { PostShareSheet } from '../../src/components/PostShareSheet';
-import { usePosts, addPost, toggleLike, Post, editPost, deletePost, reportPost, isAuthoredBy } from '../../src/lib/postsStore';
+import { usePosts, addPost, toggleLike, Post, editPost, deletePost, reportPost, isAuthoredBy,
+  loadMorePosts, useFeedPaging, syncPostsFromServer } from '../../src/lib/postsStore';
 import { getUser } from '../../src/lib/userStore';
 import { displayName as userDisplayName, displayInitials as userDisplayInitials } from '../../src/lib/userStore';
 import { useConnections, isConnected } from '../../src/lib/connectionsStore';
@@ -56,6 +57,7 @@ export default function CommunityScreen() {
   // Re-render when either list changes so an unhide or unblock shows at once.
   useHidden();
   const visible = allPosts.filter(p => !isBlocked(p.authorId, p.authorName) && !isHidden(p.id));
+  const { loadingMore } = useFeedPaging();
 
   const posts = activeTab === 'foryou'
     ? visible.filter(p =>
@@ -85,10 +87,12 @@ export default function CommunityScreen() {
   const [isPosting, setIsPosting] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
+  // Pull-to-refresh used to wait 800ms and fetch nothing: the spinner turned,
+  // the feed did not change, and a post someone else had just written stayed
+  // invisible until the app was restarted.
   async function handleRefresh() {
     setRefreshing(true);
-    await new Promise(r => setTimeout(r, 800));
-    setRefreshing(false);
+    try { await syncPostsFromServer(); } finally { setRefreshing(false); }
   }
   const [newPostImages, setNewPostImages] = useState<string[]>([]);
   const MAX_POST_PHOTOS = 20;
@@ -262,7 +266,18 @@ export default function CommunityScreen() {
       )}
 
       <ScrollView
-            {...KEYBOARD_SCROLL_PROPS} style={s.scroll} showsVerticalScrollIndicator={false} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={c.gold} colors={[c.gold]} />}>
+            {...KEYBOARD_SCROLL_PROPS} style={s.scroll} showsVerticalScrollIndicator={false}
+            // Within a screen of the bottom, fetch the next page. A tab's
+            // filter can leave few posts showing out of a full page held, so
+            // this may fire again immediately and page on down — which is the
+            // point: the store's own guards stop it at the end.
+            scrollEventThrottle={200}
+            onScroll={e => {
+              const { contentOffset, contentSize, layoutMeasurement } = e.nativeEvent;
+              const fromBottom = contentSize.height - contentOffset.y - layoutMeasurement.height;
+              if (fromBottom < layoutMeasurement.height) void loadMorePosts();
+            }}
+            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={c.gold} colors={[c.gold]} />}>
         {posts.length === 0 && activeTab === 'foryou' && (
           <View style={s.emptyFeed}>
             <Ionicons name="people-outline" size={48} color={c.placeholder} />
@@ -283,6 +298,13 @@ export default function CommunityScreen() {
             onMenu={() => setMenuPost(post)}
           />
         ))}
+        {/* Only while a page is actually in flight. A permanent "no more posts"
+            line at the bottom of a feed of four posts reads as an error. */}
+        {loadingMore && (
+          <View style={{ paddingVertical: 20, alignItems: 'center' }}>
+            <ActivityIndicator size="small" color={c.gold} />
+          </View>
+        )}
         <View style={{ height: TAB_BAR_CLEARANCE }} />
       </ScrollView>
 

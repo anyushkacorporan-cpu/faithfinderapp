@@ -120,13 +120,19 @@ function rowToPost(r: PostRow, comments: Comment[], likedPosts: Set<string>): Po
  * shared. Assembling them here keeps the payload proportional to what is
  * actually shown.
  */
-export async function fetchFeed(limit = 100): Promise<Post[] | null> {
+export async function fetchFeed(limit = 100, before?: number): Promise<Post[] | null> {
   const db = supabase();
   if (!db) return null;
   const me = getAuthUser();
 
-  const { data: postRows, error } = await db
-    .from('posts').select('*').order('created_at', { ascending: false }).limit(limit);
+  // `before` is a keyset cursor, not an offset. Offsets slide under you: a post
+  // written while someone reads page one pushes everything down, so page two
+  // repeats a row and skips none — or skips one, if a post is deleted. Asking
+  // for what is older than the oldest post already held is stable whatever
+  // happens at the top of the feed meanwhile.
+  let q = db.from('posts').select('*').order('created_at', { ascending: false }).limit(limit);
+  if (before != null) q = q.lt('created_at', new Date(before).toISOString());
+  const { data: postRows, error } = await q;
   if (error || !postRows) return null;
   if (!postRows.length) return [];
 
