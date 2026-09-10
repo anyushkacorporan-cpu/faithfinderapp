@@ -1,10 +1,13 @@
+import { useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
+import { formatRelativeTime } from '../src/lib/postsStore';
 import { Swipeable, GestureHandlerRootView } from 'react-native-gesture-handler';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useThemeColors, ThemeColors } from '../src/lib/theme';
-import { useNotifications, useUnreadCount, markRead, markAllRead, clearAllNotifications, clearNotification } from '../src/lib/notificationsStore';
+import { useNotifications, useUnreadCount, markRead, markAllRead, clearAllNotifications, clearNotification,
+  syncNotificationsFromServer } from '../src/lib/notificationsStore';
 import { useTranslation } from '../src/lib/i18n';
 
 const TYPE_KEYS: Record<string, string> = {
@@ -18,6 +21,10 @@ export default function NotificationsScreen() {
   const { t } = useTranslation();
   const notifications = useNotifications();
   const unread = useUnreadCount();
+
+  // The list is synced at app open, which can be hours before anyone taps the
+  // bell. Pull again on the way in so it is current when it is actually read.
+  useEffect(() => { void syncNotificationsFromServer(); }, []);
 
   function handleNotifTap(notif: any) {
     markRead(notif.id);
@@ -92,7 +99,7 @@ export default function NotificationsScreen() {
                     <View style={[s.typePill, { backgroundColor: n.color + '18' }]}>
                       <Text style={[s.typePillTxt, { color: n.color }]}>{t(TYPE_KEYS[n.type] as any)}</Text>
                     </View>
-                    <Text style={s.notifTime}>{n.time}</Text>
+                    <Text style={s.notifTime}>{formatRelativeTime(n.createdAt, n.time)}</Text>
                   </View>
                 </View>
                 <Ionicons name="chevron-forward" size={16} color={c.placeholder} />

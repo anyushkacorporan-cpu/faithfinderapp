@@ -6,6 +6,7 @@ import { syncConnectionsAfterSignIn } from './connectionsStore';
 import { syncEventsFromServer } from './eventsStore';
 import { syncTicketsAfterSignIn } from './ticketStore';
 import { syncPostsFromServer } from './postsStore';
+import { syncNotificationsFromServer } from './notificationsStore';
 import { uploadImage } from './postsApi';
 
 /**
@@ -90,6 +91,7 @@ export async function syncProfileAfterSignIn(userId: string): Promise<void> {
   // The feed is the point of the app being shared at all; pull it as soon as
   // we know who is asking, so likes come back marked as yours.
   await syncPostsFromServer();
+  await syncNotificationsFromServer();
 
   const { data: row, error } = await db
     .from('profiles').select('*').eq('id', userId).single();

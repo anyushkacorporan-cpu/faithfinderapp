@@ -23,7 +23,6 @@ import { usePosts, addPost, toggleLike, Post, editPost, deletePost, reportPost, 
 import { getUser } from '../../src/lib/userStore';
 import { displayName as userDisplayName, displayInitials as userDisplayInitials } from '../../src/lib/userStore';
 import { useConnections, isConnected } from '../../src/lib/connectionsStore';
-import { announceToFollowers } from '../../src/lib/notificationsStore';
 import { blockUser, isBlocked, useBlocked } from '../../src/lib/blockStore';
 import { hidePost, isHidden, useHidden } from '../../src/lib/hiddenStore';
 import { searchPeople, PersonResult } from '../../src/lib/profilesStore';
@@ -139,14 +138,10 @@ export default function CommunityScreen() {
       churchPlaceId: user.accountType === 'church' ? user.placeId : undefined,
       churchName: user.accountType === 'church' ? user.churchName : undefined,
     });
-    if (announcing) {
-      announceToFollowers({
-        churchName: displayName,
-        churchId: user.id,
-        body: newPostText.trim(),
-        postId: '',
-      });
-    }
+    // The announcement notification is not made here any more. It used to be
+    // faked on this phone, which meant it reached exactly one follower — the
+    // person writing it, and only if they followed their own church. The
+    // insert now fans it out to every follower server-side.
     setNewPostText(''); setNewPostImages([]); setDetectedUrl(null); setLinkPreviewData(null);
     setShowCreate(false); setVisibility('public'); setShowLocation(true); setIsAnnouncement(false);
     setIsPosting(false);
