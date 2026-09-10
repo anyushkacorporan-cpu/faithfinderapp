@@ -153,8 +153,16 @@ if (inRes.status === 200 && inRes.json?.access_token) {
   bad(`sign-in failed (${inRes.status})`);
   info(inRes.json?.msg || inRes.json?.error_description || inRes.text.slice(0, 300));
   if (!hasSession) {
-    console.log('\n\x1b[1mCause: email confirmation is on.\x1b[0m The account exists but cannot sign in until confirmed.');
-    console.log('Supabase → Authentication → Sign In / Providers → Email → turn off "Confirm email" → Save.');
+    // This branch used to read as a failure and tell the reader to switch
+    // confirmation off. That was written while nobody could sign in at all,
+    // and it survived into a project where confirmation is the thing keeping
+    // one person from signing up as another. Being unable to sign in before
+    // confirming is the feature working.
+    console.log('\n\x1b[1mThis is the expected result.\x1b[0m Email confirmation is on: the account exists');
+    console.log('and cannot sign in until the link in its email is followed. Nothing to fix.');
+    console.log('\nTurning it off (Authentication → Sign In / Providers → Email → "Confirm email")');
+    console.log('would let anyone sign up as any address, including one that is not theirs.');
+    console.log('Only do that if mail is broken and people are locked out — see supabase/05_email_setup.md.');
   }
 }
 
