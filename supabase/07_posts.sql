@@ -227,13 +227,17 @@ create policy comment_likes_delete_own on comment_likes
 create or replace function sync_like_count()
 returns trigger language plpgsql security definer set search_path = public as $$
 declare
-  delta int := case tg_op when 'INSERT' then 1 else -1 end;
-  row_id text := case tg_op when 'INSERT' then
-    coalesce(new.post_id, new.comment_id) else coalesce(old.post_id, old.comment_id) end;
+  delta  int := case tg_op when 'INSERT' then 1 else -1 end;
+  -- Read after the branch, not before it. post_likes has no comment_id and
+  -- comment_likes has no post_id, so a coalesce over both raises whichever
+  -- table fires this — see 14_fix_like_counts.sql.
+  row_id text;
 begin
   if tg_table_name = 'post_likes' then
+    if tg_op = 'INSERT' then row_id := new.post_id; else row_id := old.post_id; end if;
     update posts set likes_count = greatest(0, likes_count + delta) where id = row_id;
   else
+    if tg_op = 'INSERT' then row_id := new.comment_id; else row_id := old.comment_id; end if;
     update comments set likes_count = greatest(0, likes_count + delta) where id = row_id;
   end if;
   return null;
