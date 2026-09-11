@@ -52,7 +52,18 @@ const VARS = [
       const base = (env.EXPO_PUBLIC_SUPABASE_URL || '').replace(/\/$/, '');
       const r = await fetch(`${base}/auth/v1/settings`, { headers: { apikey: v } });
       if (r.ok) return true;
-      return `the server answered ${r.status}. Wrong key, or wrong project.`;
+
+      // 401 is the one that means this key. Supabase answers a wrong or
+      // mismatched key with 401 and "Invalid API key"; a 403 or a 5xx is
+      // something between here and there — a proxy, a network, an outage —
+      // and says nothing about the key. Reading every non-200 as a bad key
+      // rejected a working one from behind a corporate network.
+      if (r.status === 401) {
+        return 'the server says this key is not valid for that project (401).';
+      }
+      return { state: 'unknown', msg:
+        `the server answered ${r.status}, which is not an answer about the key — `
+        + 'something between here and Supabase. Check it with scripts/check-auth.mjs.' };
     },
   },
   {
@@ -66,8 +77,21 @@ const VARS = [
         `https://maps.googleapis.com/maps/api/place/autocomplete/json?input=church&key=${v}`);
       const j = await r.json().catch(() => ({}));
       if (j.status === 'OK' || j.status === 'ZERO_RESULTS') return true;
-      // Google puts the real reason in error_message; status alone says little.
-      return `Places API says ${j.status}. ${j.error_message || 'Check the key is restricted to Places API.'}`;
+
+      // A key restricted to iOS apps — which is how this app's key is set up,
+      // and how it should be — is refused for any call that is not from the
+      // app, including this one. Google says REQUEST_DENIED with "The provided
+      // API key is invalid", word for word what it says about a key that is
+      // genuinely wrong, so this cannot tell the two apart and must not claim
+      // to. Rejecting on it turned a correct key away and sent someone back to
+      // the console to fetch it again.
+      if (j.status === 'REQUEST_DENIED') {
+        return { state: 'unknown', msg:
+          `Google says: ${j.error_message || 'REQUEST_DENIED'} — expected if the key is restricted `
+          + 'to iOS apps, which cannot be checked from here. Test it in the app: create an event and '
+          + 'type an address.' };
+      }
+      return `Places API says ${j.status}. ${j.error_message || ''}`.trim();
     },
   },
   {
@@ -160,6 +184,13 @@ async function judge(v, value, env) {
   try {
     const result = await v.check(value, env);
     if (result === true) { console.log('\x1b[32mworks\x1b[0m'); return { state: 'ok' }; }
+    // A check may report that it could not tell, rather than that the value is
+    // wrong. Treating "cannot tell" as "wrong" is what makes a setup script
+    // refuse a key that works.
+    if (result && result.state === 'unknown') {
+      console.log('\x1b[33mcannot check from here\x1b[0m');
+      return result;
+    }
     console.log('\x1b[31mno\x1b[0m');
     return { state: 'bad', msg: result };
   } catch (e) {
@@ -237,7 +268,7 @@ head('Done');
 if (unverified.length) {
   ok(`${FILE} written`);
   note(`Not confirmed with the service: ${unverified.join(', ')}.`);
-  note('Run this again when you are online to check them.');
+  note('Not a problem in itself — test them in the app, or run this again later.');
 } else {
   ok(`${FILE} written, every value confirmed with its service`);
 }
