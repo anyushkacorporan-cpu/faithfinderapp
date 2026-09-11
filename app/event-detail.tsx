@@ -19,6 +19,7 @@ import { useTranslation } from '../src/lib/i18n';
 
 
 import { KeyboardScreen, KEYBOARD_SCROLL_PROPS } from '../src/components/KeyboardScreen';
+import { useConfirm } from '../src/components/Confirm';
 export default function EventDetailScreen() {
   const c = useThemeColors();
   const s = makeStyles(c);
@@ -29,6 +30,7 @@ export default function EventDetailScreen() {
   const user = getUser();
   const appSettings = useSettings();
   const { t, tx } = useTranslation();
+  const { showConfirm } = useConfirm();
   const [saved, setSaved] = useState(() => isEventSaved(params.id || ''));
   const [showFullPhoto, setShowFullPhoto] = useState(false);
   const [attending, setAttending] = useState(() => isEventAttending(params.id || ''));
@@ -185,7 +187,23 @@ export default function EventDetailScreen() {
         endDate: new Date(Date.now() + 2 * 60 * 60 * 1000),
         timeZone: 'GMT',
       });
-      Alert.alert(tx('Added!'), tx('Event added to your calendar.'));
+      // The app's own confirmation rather than Alert.alert, which is a white
+      // system box in the middle of a screen that is not white. showConfirm is
+      // what every other confirmation here uses, and it closes before running
+      // onPress — so the Calendar app opens onto a dismissed sheet rather than
+      // over one.
+      showConfirm({
+        title: tx('Added!'),
+        message: tx('Event added to your calendar.'),
+        buttons: [{
+          text: tx('Open Calendar'),
+          // calshow:// is the Calendar app. iOS only, which this app is.
+          // Swallowed rather than surfaced: the event is already saved, and an
+          // error about opening Calendar after being told it worked reads as
+          // though the saving failed.
+          onPress: () => { Linking.openURL('calshow://').catch(() => {}); },
+        }],
+      });
     } catch { Alert.alert(tx('Could not add to calendar.')); }
   }
 
