@@ -477,6 +477,8 @@ const translations: Record<string, Record<Lang, string>> = {
   dx44: { English: 'Select users', Español: 'Selecciona usuarios' },
   dx45: { English: 'Event added to your calendar.', Español: 'Evento añadido a tu calendario.' },
   dx136: { English: 'Open Calendar', Español: 'Abrir Calendario' },
+  dx137: { English: 'Register first', Español: 'Regístrate primero' },
+  dx138: { English: 'Get a ticket for this event and it can go in your calendar.', Español: 'Consigue una entrada para este evento y podrá ir en tu calendario.' },
   dx46: { English: 'Please select at least one person.', Español: 'Selecciona al menos una persona.' },
   dx47: { English: 'Email Sent!', Español: '¡Correo Enviado!' },
   dx48: { English: 'Invalid Email', Español: 'Correo Inválido' },

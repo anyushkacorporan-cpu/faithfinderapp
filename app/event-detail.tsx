@@ -9,7 +9,7 @@ import { useThemeColors, ThemeColors } from '../src/lib/theme';
 import { buildEventShareText } from '../src/lib/shareLinks';
 import { addPost } from '../src/lib/postsStore';
 import { getUser } from '../src/lib/userStore';
-import { isEventSaved, isEventAttending, toggleSaveEvent, addAttending, removeAttending } from '../src/lib/eventActionsStore';
+import { isEventSaved, toggleSaveEvent, addAttending, removeAttending, useEventActions } from '../src/lib/eventActionsStore';
 import { getEvents, seatsLeft } from '../src/lib/eventsStore';
 import { useConnections } from '../src/lib/connectionsStore';
 import { searchPeople, getProfile, PersonResult } from '../src/lib/profilesStore';
@@ -33,7 +33,14 @@ export default function EventDetailScreen() {
   const { showConfirm } = useConfirm();
   const [saved, setSaved] = useState(() => isEventSaved(params.id || ''));
   const [showFullPhoto, setShowFullPhoto] = useState(false);
-  const [attending, setAttending] = useState(() => isEventAttending(params.id || ''));
+  // Read through the store rather than snapshotted at mount. Registering
+  // happens on the checkout screen, which is pushed over this one — this screen
+  // never unmounts, so a useState initialiser runs once and then says "not
+  // registered" forever. The button above already showed that stale answer;
+  // gating the calendar on it would have turned a cosmetic bug into a blocked
+  // action for exactly the people entitled to it.
+  const { attending: attendingEventIds } = useEventActions();
+  const attending = attendingEventIds.includes(params.id || '');
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [showShareComposer, setShowShareComposer] = useState(false);
   const [shareMessage, setShareMessage] = useState('');
@@ -166,6 +173,21 @@ export default function EventDetailScreen() {
   }
 
   async function handleAddToCalendar() {
+    // A calendar entry for an event you have no ticket to is a reminder to turn
+    // up somewhere you cannot get in. The way out is offered rather than
+    // described, since the register flow is one tap from here.
+    if (!attending) {
+      showConfirm({
+        title: tx('Register first'),
+        message: tx('Get a ticket for this event and it can go in your calendar.'),
+        buttons: [
+          { text: t('cancel'), style: 'cancel' },
+          { text: t('register'), onPress: handleGetTicket },
+        ],
+      });
+      return;
+    }
+
     try {
       // The legacy entry point, explicitly. expo-calendar 57 kept these four
       // functions working from the package root but warns on every call,
@@ -366,9 +388,14 @@ export default function EventDetailScreen() {
 
           {/* Action buttons */}
           <View style={s.actionRow}>
-            <TouchableOpacity style={s.actionBtn} onPress={handleAddToCalendar}>
-              <View style={s.actionBtnIcon}><Ionicons name="calendar" size={20} color={c.text} /></View>
-              <Text style={s.actionBtnTxt}>{t('calendar')}</Text>
+            {/* Dimmed rather than disabled: it still takes the tap, and the
+                tap is what explains why it is dimmed. A truly disabled button
+                would say nothing at all. */}
+            <TouchableOpacity style={[s.actionBtn, !attending && s.actionBtnMuted]} onPress={handleAddToCalendar}>
+              <View style={s.actionBtnIcon}>
+                <Ionicons name="calendar" size={20} color={attending ? c.text : c.textMuted} />
+              </View>
+              <Text style={[s.actionBtnTxt, !attending && { color: c.textMuted }]}>{t('calendar')}</Text>
             </TouchableOpacity>
             <TouchableOpacity style={s.actionBtn} onPress={handleInvite}>
               <View style={s.actionBtnIcon}><Ionicons name="person-add-outline" size={20} color={c.text} /></View>
@@ -787,6 +814,7 @@ const makeStyles = (c: ThemeColors) => StyleSheet.create({
   actionBtn:{flex:1,alignItems:'center',gap:6,borderWidth:1.5,borderColor:c.border,borderRadius:14,paddingVertical:14},
   actionBtnIcon:{width:40,height:40,borderRadius:12,backgroundColor:c.cardAlt,alignItems:'center',justifyContent:'center'},
   actionBtnTxt:{fontSize:12,fontWeight:'700',color:c.text},
+  actionBtnMuted:{opacity:0.55},
   ticketBtn:{backgroundColor:c.primary,borderRadius:16,paddingVertical:16,flexDirection:'row',alignItems:'center',justifyContent:'center',gap:10,shadowColor:c.navy,shadowOffset:{width:0,height:4},shadowOpacity:0.3,shadowRadius:8},
   ticketBtnActive:{backgroundColor:c.green},
   ticketBtnDisabled:{opacity:0.45},
