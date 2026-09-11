@@ -276,6 +276,32 @@ export function deleteEvent(id: string) {
  * happily resell a seat. Local-only events are kept and pushed, which is how
  * an event created before this existed reaches anyone at all.
  */
+/**
+ * Make sure the server has this event, before anything references it.
+ *
+ * Tickets point at their event by foreign key. An event that only exists on
+ * this phone cannot be pointed at, and the insert fails with a constraint
+ * error that reads, to whoever is buying, as the event having sold out.
+ *
+ * Two ways an event can be missing. One created here whose upload did not land
+ * — pushed now, which is the fix. And the seeded demo events, which are
+ * deliberately never uploaded because they belong to nobody; those cannot be
+ * pushed, since the insert policy requires the organiser to be the person
+ * asking, and saying so honestly beats a constraint error.
+ */
+export async function ensureEventOnServer(id: string): Promise<'ok' | 'local-only' | 'unknown'> {
+  const exists = await api.eventExistsRemote(id);
+  if (exists === null) return 'unknown';   // no database, or the call failed
+  if (exists) return 'ok';
+
+  const local = events.find(e => e.id === id);
+  const me = getUser().id;
+  if (!local || !me || !id.startsWith('user_')) return 'local-only';
+
+  const created = await api.createEvent(local);
+  return created ? 'ok' : 'local-only';
+}
+
 export async function syncEventsFromServer(): Promise<void> {
   const remote = await api.fetchEvents();
   if (!remote) return;

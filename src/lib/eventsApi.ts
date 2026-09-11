@@ -133,6 +133,24 @@ export async function createEvent(e: AppEvent): Promise<boolean> {
   return !writeFailed('publish an event', error);
 }
 
+/**
+ * Whether the server has this event.
+ *
+ * A ticket references its event by foreign key, so selling one for an event the
+ * server has never seen fails on the insert — which is what happens to the
+ * seeded demo events, kept off the server on purpose, and to any event whose
+ * own upload did not land.
+ *
+ * null means the question could not be asked, which is not the same as no.
+ */
+export async function eventExistsRemote(id: string): Promise<boolean | null> {
+  const db = supabase();
+  if (!db || !id) return null;
+  const { data, error } = await db.from('events').select('id').eq('id', id).maybeSingle();
+  if (error) return null;
+  return !!data;
+}
+
 export async function updateEventRemote(e: AppEvent): Promise<void> {
   const db = supabase();
   const me = getAuthUser();

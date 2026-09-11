@@ -11,7 +11,7 @@ import { useTranslation } from '../src/lib/i18n';
 import { addAttending } from '../src/lib/eventActionsStore';
 import { useStripe } from '@stripe/stripe-react-native';
 import { purchaseTicket, syncTicketsAfterSignIn } from '../src/lib/ticketStore';
-import { recordTicketSale, syncEventsFromServer } from '../src/lib/eventsStore';
+import { recordTicketSale, syncEventsFromServer, ensureEventOnServer } from '../src/lib/eventsStore';
 import { startPayment, confirmPayment } from '../src/lib/paymentsApi';
 import { hasStripe } from '../src/lib/stripeConfig';
 import { KeyboardScreen } from '../src/components/KeyboardScreen';
@@ -50,6 +50,18 @@ export default function EventCheckoutScreen() {
 
     setProcessing(true);
 
+    // A ticket references its event by foreign key, and both paths below —
+    // free and paid — fail on the insert if the server has never seen it. Ask
+    // first, so the reason given is the real one.
+    const onServer = await ensureEventOnServer(params.id || '');
+    if (onServer === 'local-only') {
+      setProcessing(false);
+      Alert.alert(tx('Could not register'),
+        tx('This is a sample event and cannot be registered for.'),
+        [{ text: tx('OK'), onPress: () => router.back() }]);
+      return;
+    }
+
     // Free events never touch Stripe. There is nothing to charge, and routing
     // a zero through a payment processor only adds a way to fail.
     if (isFree) {
@@ -67,7 +79,14 @@ export default function EventCheckoutScreen() {
       });
       setProcessing(false);
       if (!ticket) {
-        Alert.alert(tx('Not enough seats'),
+        // Only the capacity trigger says anything about seats. Everything else
+        // reaching here — a constraint, a policy, a dropped connection — was
+        // being announced as "this event filled up", which sends someone off
+        // to find another event over a problem that has nothing to do with
+        // how full this one is.
+        const soldOut = !!error && /left|full|capacity/i.test(error);
+        Alert.alert(
+          soldOut ? tx('Not enough seats') : tx('Could not register'),
           error || tx('This event filled up while you were registering.'),
           [{ text: tx('OK'), onPress: () => router.back() }]);
         return;
