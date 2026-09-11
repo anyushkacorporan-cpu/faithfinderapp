@@ -1,5 +1,5 @@
 import { File } from 'expo-file-system';
-import { supabase } from './supabase';
+import { supabase, writeFailed } from './supabase';
 import { getAuthUser } from './auth';
 import type { Post, Comment, Reply } from './postsStore';
 
@@ -201,19 +201,21 @@ export async function createPost(post: Post): Promise<boolean> {
   if (row.author_photo) row.author_photo = await uploadImage(row.author_photo, 'avatars');
 
   const { error } = await db.from('posts').insert(row);
-  return !error;
+  return !writeFailed('publish a post', error);
 }
 
 export async function updatePostContent(id: string, content: string): Promise<void> {
   const db = supabase();
   if (!db || !getAuthUser()) return;
-  await db.from('posts').update({ content, edited: true }).eq('id', id);
+  const { error } = await db.from('posts').update({ content, edited: true }).eq('id', id);
+  writeFailed('edit a post', error);
 }
 
 export async function deletePostRemote(id: string): Promise<void> {
   const db = supabase();
   if (!db || !getAuthUser()) return;
-  await db.from('posts').delete().eq('id', id);
+  const { error } = await db.from('posts').delete().eq('id', id);
+  writeFailed('delete a post', error);
 }
 
 /** Add or remove this account's like. The count is kept by a trigger. */
@@ -223,9 +225,11 @@ export async function setPostLike(postId: string, liked: boolean): Promise<void>
   if (!db || !me) return;
   if (liked) {
     // Ignore a duplicate rather than erroring: a double tap is one like.
-    await db.from('post_likes').upsert({ post_id: postId, user_id: me.id }, { onConflict: 'post_id,user_id' });
+    const { error } = await db.from('post_likes').upsert({ post_id: postId, user_id: me.id }, { onConflict: 'post_id,user_id' });
+    writeFailed('like a post', error);
   } else {
-    await db.from('post_likes').delete().eq('post_id', postId).eq('user_id', me.id);
+    const { error } = await db.from('post_likes').delete().eq('post_id', postId).eq('user_id', me.id);
+    writeFailed('unlike a post', error);
   }
 }
 
@@ -234,9 +238,11 @@ export async function setCommentLike(commentId: string, liked: boolean): Promise
   const me = getAuthUser();
   if (!db || !me) return;
   if (liked) {
-    await db.from('comment_likes').upsert({ comment_id: commentId, user_id: me.id }, { onConflict: 'comment_id,user_id' });
+    const { error } = await db.from('comment_likes').upsert({ comment_id: commentId, user_id: me.id }, { onConflict: 'comment_id,user_id' });
+    writeFailed('like a comment', error);
   } else {
-    await db.from('comment_likes').delete().eq('comment_id', commentId).eq('user_id', me.id);
+    const { error } = await db.from('comment_likes').delete().eq('comment_id', commentId).eq('user_id', me.id);
+    writeFailed('unlike a comment', error);
   }
 }
 
@@ -248,7 +254,7 @@ export async function createComment(
   const db = supabase();
   const me = getAuthUser();
   if (!db || !me) return;
-  await db.from('comments').insert({
+  const { error } = await db.from('comments').insert({
     id: c.id,
     post_id: postId,
     parent_id: parentId ?? null,
@@ -261,18 +267,21 @@ export async function createComment(
     city: c.city ?? null,
     state: c.state ?? null,
   });
+  writeFailed(parentId ? 'post a reply' : 'post a comment', error);
 }
 
 export async function updateCommentText(id: string, text: string): Promise<void> {
   const db = supabase();
   if (!db || !getAuthUser()) return;
-  await db.from('comments').update({ text, edited: true }).eq('id', id);
+  const { error } = await db.from('comments').update({ text, edited: true }).eq('id', id);
+  writeFailed('edit a comment', error);
 }
 
 export async function deleteCommentRemote(id: string): Promise<void> {
   const db = supabase();
   if (!db || !getAuthUser()) return;
-  await db.from('comments').delete().eq('id', id);
+  const { error } = await db.from('comments').delete().eq('id', id);
+  writeFailed('delete a comment', error);
 }
 
 // ── Images ─────────────────────────────────────────────────────────────────
@@ -305,10 +314,15 @@ export async function uploadImage(localUri: string, bucket = 'post-images'): Pro
       contentType: ext === 'png' ? 'image/png' : 'image/jpeg',
       upsert: false,
     });
-    if (error) return localUri;
+    // Falling back to the local path is deliberate — a post with a photo only
+    // its author can see beats no post at all — but it has to be said out
+    // loud, because on the screen it is indistinguishable from an upload that
+    // worked.
+    if (writeFailed(`upload an image to ${bucket}`, error)) return localUri;
 
     return db.storage.from(bucket).getPublicUrl(path).data.publicUrl;
-  } catch {
+  } catch (e) {
+    writeFailed(`read ${localUri} for upload`, { message: (e as Error)?.message });
     return localUri;
   }
 }

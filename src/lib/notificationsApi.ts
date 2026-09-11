@@ -1,4 +1,4 @@
-import { supabase } from './supabase';
+import { supabase, writeFailed } from './supabase';
 import { getAuthUser } from './auth';
 import type { Notification } from './notificationsStore';
 
@@ -87,25 +87,29 @@ export async function fetchNotifications(limit = 100): Promise<Notification[] | 
 export async function setRead(id: string): Promise<void> {
   const db = supabase();
   if (!db) return;
-  await db.from('notifications').update({ read: true }).eq('id', id);
+  const { error } = await db.from('notifications').update({ read: true }).eq('id', id);
+  writeFailed('mark a notification read', error);
 }
 
 export async function setAllRead(): Promise<void> {
   const db = supabase();
   const me = getAuthUser();
   if (!db || !me) return;
-  await db.from('notifications').update({ read: true }).eq('user_id', me.id).eq('read', false);
+  const { error } = await db.from('notifications').update({ read: true }).eq('user_id', me.id).eq('read', false);
+  writeFailed('mark all notifications read', error);
 }
 
 export async function removeNotification(id: string): Promise<void> {
   const db = supabase();
   if (!db) return;
-  await db.from('notifications').delete().eq('id', id);
+  const { error } = await db.from('notifications').delete().eq('id', id);
+  writeFailed('clear a notification', error);
 }
 
 export async function removeAll(): Promise<void> {
   const db = supabase();
   const me = getAuthUser();
   if (!db || !me) return;
-  await db.from('notifications').delete().eq('user_id', me.id);
+  const { error } = await db.from('notifications').delete().eq('user_id', me.id);
+  writeFailed('clear all notifications', error);
 }

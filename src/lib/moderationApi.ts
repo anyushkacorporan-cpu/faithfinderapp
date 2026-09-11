@@ -1,4 +1,4 @@
-import { supabase } from './supabase';
+import { supabase, writeFailed } from './supabase';
 import { getAuthUser } from './auth';
 
 /**
@@ -44,10 +44,11 @@ export async function pushBlock(user: { id?: string; name: string }): Promise<vo
 
   // onConflict rather than an existence check: two taps in quick succession
   // would both pass the check and one would fail on the constraint.
-  await db.from('blocked_users').upsert(
+  const { error } = await db.from('blocked_users').upsert(
     { blocker_id: me.id, blocked_id: user.id ?? null, blocked_name: user.name },
     { onConflict: 'blocker_id,blocked_name' },
   );
+  writeFailed('block someone', error);
 }
 
 /** Remove a block, by id or by name — whichever the caller has. */
@@ -58,8 +59,11 @@ export async function removeBlock(idOrName: string): Promise<void> {
 
   // Two deletes rather than an `or`, because the value could legitimately be
   // either column and matching the wrong one silently removes nothing.
-  await db.from('blocked_users').delete().eq('blocker_id', me.id).eq('blocked_name', idOrName);
-  await db.from('blocked_users').delete().eq('blocker_id', me.id).eq('blocked_id', idOrName);
+  for (const column of ['blocked_name', 'blocked_id'] as const) {
+    const { error } = await db.from('blocked_users').delete()
+      .eq('blocker_id', me.id).eq(column, idOrName);
+    writeFailed('unblock', error);
+  }
 }
 
 export type ReportInput = {
@@ -101,5 +105,5 @@ export async function submitReport(input: ReportInput): Promise<boolean> {
     { onConflict: 'reporter_id,target_type,target_id' },
   );
 
-  return !error;
+  return !writeFailed('submit a report', error);
 }

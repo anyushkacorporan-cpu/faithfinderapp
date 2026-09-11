@@ -1,4 +1,4 @@
-import { supabase } from './supabase';
+import { supabase, writeFailed } from './supabase';
 import { getAuthUser } from './auth';
 import type { Connection } from './connectionsStore';
 
@@ -40,7 +40,7 @@ export async function pushConnection(c: Connection): Promise<void> {
 
   // Upsert rather than insert: connecting from the feed and from the profile
   // screen produce the same row, and the second one must not be an error.
-  await db.from('connections').upsert({
+  const { error } = await db.from('connections').upsert({
     follower_id: me.id,
     target_id: c.id,
     target_name: c.name,
@@ -50,6 +50,7 @@ export async function pushConnection(c: Connection): Promise<void> {
     address: c.address ?? null,
     place_id: c.placeId ?? null,
   }, { onConflict: 'follower_id,target_id' });
+  writeFailed('follow', error);
 }
 
 /** Remove by id, place id or name — whichever the calling screen holds. */
@@ -61,7 +62,11 @@ export async function removeConnectionRemote(idOrName: string): Promise<void> {
   // Three separate deletes, because the value could legitimately be any of the
   // three and an `or` filter that matches the wrong column removes nothing
   // while reporting success.
-  await db.from('connections').delete().eq('follower_id', me.id).eq('target_id', idOrName);
-  await db.from('connections').delete().eq('follower_id', me.id).eq('place_id', idOrName);
-  await db.from('connections').delete().eq('follower_id', me.id).eq('target_name', idOrName);
+  // A delete that matches nothing is not an error — two of these three are
+  // expected to match nothing every time — so only a real failure reports.
+  for (const column of ['target_id', 'place_id', 'target_name'] as const) {
+    const { error } = await db.from('connections').delete()
+      .eq('follower_id', me.id).eq(column, idOrName);
+    writeFailed('unfollow', error);
+  }
 }

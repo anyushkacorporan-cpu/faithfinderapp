@@ -101,3 +101,30 @@ export function supabase(): SupabaseClient | null {
   }
   return client;
 }
+
+/**
+ * Say so when a write did not happen.
+ *
+ * Every write in this app is optimistic: the store updates, the screen redraws,
+ * and the row is sent without anyone waiting for it. That is the right feel —
+ * a like should not wait on a round trip — but it means a rejected write looks
+ * exactly like a successful one from the inside.
+ *
+ * It is not hypothetical. A broken trigger made every like fail for weeks
+ * (14_fix_like_counts.sql). Nothing in the app noticed, because the call sites
+ * did not capture the error, let alone report it: the count went up on the
+ * phone, the row never landed, and nobody else ever saw the like.
+ *
+ * So: pass the error here. It cannot undo the write — the screen has moved on,
+ * and the next sync corrects the state — but it puts the reason in the Metro
+ * log, where "every like is failing" is one line instead of a fortnight.
+ *
+ * Returns whether it failed, for callers that want to act on it.
+ */
+export function writeFailed(what: string, error: { message?: string; code?: string; hint?: string } | null): boolean {
+  if (!error) return false;
+  const code = error.code ? ` [${error.code}]` : '';
+  const hint = error.hint ? ` — ${error.hint}` : '';
+  console.warn(`[server] ${what} did not save${code}: ${error.message || 'unknown error'}${hint}`);
+  return true;
+}

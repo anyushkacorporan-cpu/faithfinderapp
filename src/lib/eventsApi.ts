@@ -1,4 +1,4 @@
-import { supabase } from './supabase';
+import { supabase, writeFailed } from './supabase';
 import { getAuthUser } from './auth';
 import { uploadImage } from './postsApi';
 import type { AppEvent } from './eventsStore';
@@ -130,7 +130,7 @@ export async function createEvent(e: AppEvent): Promise<boolean> {
   if (row.venue_layout_image) row.venue_layout_image = await uploadImage(row.venue_layout_image, 'post-images');
 
   const { error } = await db.from('events').insert(row);
-  return !error;
+  return !writeFailed('publish an event', error);
 }
 
 export async function updateEventRemote(e: AppEvent): Promise<void> {
@@ -139,13 +139,15 @@ export async function updateEventRemote(e: AppEvent): Promise<void> {
   if (!db || !me) return;
   const row = eventToRow(e, me.id);
   if (row.banner_image) row.banner_image = await uploadImage(row.banner_image, 'post-images');
-  await db.from('events').update(row).eq('id', e.id);
+  const { error } = await db.from('events').update(row).eq('id', e.id);
+  writeFailed('save changes to an event', error);
 }
 
 export async function deleteEventRemote(id: string): Promise<void> {
   const db = supabase();
   if (!db || !getAuthUser()) return;
-  await db.from('events').delete().eq('id', id);
+  const { error } = await db.from('events').delete().eq('id', id);
+  writeFailed('delete an event', error);
 }
 
 // ── Tickets ────────────────────────────────────────────────────────────────
@@ -209,6 +211,10 @@ export async function createTicket(t: Ticket): Promise<string | null> {
   });
 
   if (!error) return null;
+  // Logged as well as returned: the buyer gets a sentence they can act on, and
+  // the generic one deliberately says nothing about why, which would otherwise
+  // leave no record of the real reason anywhere.
+  writeFailed('buy a ticket', error);
   // The capacity trigger raises with the seats remaining in the message, which
   // is more useful to the buyer than anything this side could word.
   return /ticket\(s\) left/i.test(error.message)
