@@ -9,7 +9,7 @@ import { useThemeColors, ThemeColors } from '../src/lib/theme';
 import { buildEventShareText } from '../src/lib/shareLinks';
 import { addPost } from '../src/lib/postsStore';
 import { getUser } from '../src/lib/userStore';
-import { isEventSaved, toggleSaveEvent, addAttending, removeAttending, useEventActions } from '../src/lib/eventActionsStore';
+import { toggleSaveEvent, addAttending, removeAttending, useEventActions } from '../src/lib/eventActionsStore';
 import { getEvents, seatsLeft } from '../src/lib/eventsStore';
 import { useConnections } from '../src/lib/connectionsStore';
 import { searchPeople, getProfile, PersonResult } from '../src/lib/profilesStore';
@@ -31,7 +31,11 @@ export default function EventDetailScreen() {
   const appSettings = useSettings();
   const { t, tx } = useTranslation();
   const { showConfirm } = useConfirm();
-  const [saved, setSaved] = useState(() => isEventSaved(params.id || ''));
+  // Same store, same reason as `attending` below: a snapshot taken at mount
+  // disagrees with the events tab the moment the event is saved or unsaved
+  // anywhere else while this screen sits under it.
+  const { saved: savedEventIds } = useEventActions();
+  const saved = savedEventIds.includes(params.id || '');
   const [showFullPhoto, setShowFullPhoto] = useState(false);
   // Read through the store rather than snapshotted at mount. Registering
   // happens on the checkout screen, which is pushed over this one — this screen
@@ -254,7 +258,7 @@ export default function EventDetailScreen() {
                 <Ionicons name="arrow-back" size={20} color={c.onPrimary} />
               </TouchableOpacity>
               <View style={s.bannerTopRight}>
-                <TouchableOpacity style={s.bannerIconBtn} onPress={() => { const newSaved = !saved; setSaved(newSaved); toggleSaveEvent(params.id || ''); }}>
+                <TouchableOpacity style={s.bannerIconBtn} onPress={() => toggleSaveEvent(params.id || '')}>
                   <Ionicons name={saved ? 'heart' : 'heart-outline'} size={22} color={saved ? c.red : c.white} />
                 </TouchableOpacity>
                 <TouchableOpacity style={s.bannerIconBtn} onPress={handleShare}>
@@ -271,7 +275,7 @@ export default function EventDetailScreen() {
                 <Ionicons name="arrow-back" size={20} color={c.onPrimary} />
               </TouchableOpacity>
               <View style={s.bannerTopRight}>
-                <TouchableOpacity style={s.bannerIconBtn} onPress={() => { const newSaved = !saved; setSaved(newSaved); toggleSaveEvent(params.id || ''); }}>
+                <TouchableOpacity style={s.bannerIconBtn} onPress={() => toggleSaveEvent(params.id || '')}>
                   <Ionicons name={saved ? 'heart' : 'heart-outline'} size={22} color={saved ? c.red : c.white} />
                 </TouchableOpacity>
                 <TouchableOpacity style={s.bannerIconBtn} onPress={handleShare}>

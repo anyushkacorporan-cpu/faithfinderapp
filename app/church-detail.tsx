@@ -16,7 +16,7 @@ import { usePosts, postsForChurch, postImages} from '../src/lib/postsStore';
 import { isBlocked } from '../src/lib/blockStore';
 import { isHidden, useHidden } from '../src/lib/hiddenStore';
 import { useSavedChurches } from '../src/lib/store';
-import { isConnectedTo, addConnection, removeConnection } from '../src/lib/connectionsStore';
+import { isConnectedTo, addConnection, removeConnection, useConnections } from '../src/lib/connectionsStore';
 import { useChurchPosts, toggleLike, addComment } from '../src/lib/postsStore';
 import { useSettings } from '../src/lib/settingsStore';
 import { useTranslation } from '../src/lib/i18n';
@@ -93,7 +93,12 @@ export default function ChurchDetailScreen() {
   const { saved, toggle } = useSavedChurches();
   const placeId = params.placeId || staticChurch?.placeId || '';
   const isSaved = saved.includes(params.id || '');
-  const [connected, setConnected] = useState(isConnectedTo(params.id || placeId || '', params.name));
+  // Subscribed for the re-render, then read straight from the store. Held as
+  // its own state, this disagreed with the rest of the app whenever the same
+  // church was followed or unfollowed elsewhere — from a post's connect badge,
+  // say — while this screen was open underneath.
+  useConnections();
+  const connected = isConnectedTo(params.id || placeId || '', params.name);
   const allChurchPosts = useChurchPosts(placeId);
 
   const church = {
@@ -139,7 +144,6 @@ export default function ChurchDetailScreen() {
     const connId = params.id || placeId || '';
     if (connected) {
       removeConnection(connId);
-      setConnected(false);
     } else {
       addConnection({
         id: connId,
@@ -150,7 +154,6 @@ export default function ChurchDetailScreen() {
         color: c.gold,
         initials: church.name?.slice(0,2).toUpperCase() || 'CH',
       });
-      setConnected(true);
     }
   }
 
