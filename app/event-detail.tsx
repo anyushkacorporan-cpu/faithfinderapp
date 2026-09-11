@@ -165,7 +165,13 @@ export default function EventDetailScreen() {
 
   async function handleAddToCalendar() {
     try {
-      const Cal = await import('expo-calendar');
+      // The legacy entry point, explicitly. expo-calendar 57 kept these four
+      // functions working from the package root but warns on every call,
+      // because the root now points at a new object-oriented API. Naming
+      // /legacy says which one this wants, and stops a future release —
+      // where the root stops being the old API rather than merely warning —
+      // from taking Add to Calendar with it.
+      const Cal = await import('expo-calendar/legacy');
       const { status } = await Cal.requestCalendarPermissionsAsync();
       if (status !== 'granted') { Alert.alert(tx('Permission needed')); return; }
       const calendars = await Cal.getCalendarsAsync(Cal.EntityTypes.EVENT);
