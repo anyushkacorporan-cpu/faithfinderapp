@@ -432,7 +432,7 @@ export default function EventDetailScreen() {
               color={c.onPrimary}
             />
             <Text style={s.ticketBtnTxt}>
-              {attending ? t('youreRegistered') : soldOut ? tx('Sold out') : t('register')}
+              {attending ? t('youreRegistered') : soldOut ? t('soldOut') : t('register')}
             </Text>
           </TouchableOpacity>
 

@@ -116,3 +116,37 @@ with done as (delete from notifications
   where user_id = '11111111-1111-1111-1111-111111111111' returning 1)
 select count(*) as anas_rows_ben_deleted from done;
 reset role;
+
+-- ── Capacity close-out ──────────────────────────────────────────────────────
+
+\echo '--- 18. an event with capacity 2 accepts two seats'
+insert into events (id, organizer_id, title, capacity, date, time, location)
+  values ('user_cap', '11111111-1111-1111-1111-111111111111', 'Small Room', 2,
+          'Oct 1, 2026', '7:00 PM', 'Brooklyn');
+insert into tickets (id, event_id, buyer_id, event_title, event_date, event_location,
+                     event_type, quantity, price_per_ticket, total_paid, platform_fee, ticket_codes)
+  values ('t1','user_cap','22222222-2222-2222-2222-222222222222','Small Room','Oct 1','Brooklyn','Other',2,0,0,0,'{TKT-1,TKT-2}');
+select capacity, tickets_sold from events where id='user_cap';
+
+\echo '--- 19. the third seat is refused, and says how many are left'
+do $$
+begin
+  insert into tickets (id, event_id, buyer_id, event_title, event_date, event_location,
+                       event_type, quantity, price_per_ticket, total_paid, platform_fee, ticket_codes)
+  values ('t2','user_cap','33333333-3333-3333-3333-333333333333','Small Room','Oct 1','Brooklyn','Other',1,0,0,0,'{TKT-3}');
+  raise notice 'FAIL: the sale was allowed past capacity';
+exception when check_violation then
+  raise notice 'PASS: refused — %', sqlerrm;
+end $$;
+
+\echo '--- 20. the count did not move on the refused sale'
+select tickets_sold from events where id='user_cap';
+
+\echo '--- 21. capacity 0 means no limit'
+insert into events (id, organizer_id, title, capacity, date, time, location)
+  values ('user_nolimit', '11111111-1111-1111-1111-111111111111', 'Open Door', 0,
+          'Oct 2, 2026', '7:00 PM', 'Queens');
+insert into tickets (id, event_id, buyer_id, event_title, event_date, event_location,
+                     event_type, quantity, price_per_ticket, total_paid, platform_fee, ticket_codes)
+  values ('t3','user_nolimit','22222222-2222-2222-2222-222222222222','Open Door','Oct 2','Queens','Other',500,0,0,0,'{TKT-4}');
+select tickets_sold as five_hundred_seats_sold_with_no_limit from events where id='user_nolimit';

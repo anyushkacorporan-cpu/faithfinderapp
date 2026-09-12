@@ -481,6 +481,7 @@ const translations: Record<string, Record<Lang, string>> = {
   dx138: { English: 'Get a ticket for this event and it can go in your calendar.', Español: 'Consigue una entrada para este evento y podrá ir en tu calendario.' },
   dx139: { English: 'Could not register', Español: 'No se pudo registrar' },
   dx140: { English: 'This is a sample event and cannot be registered for.', Español: 'Este es un evento de muestra y no se puede registrar.' },
+  soldOut: { English: 'Sold out', Español: 'Agotado' },
   dx46: { English: 'Please select at least one person.', Español: 'Selecciona al menos una persona.' },
   dx47: { English: 'Email Sent!', Español: '¡Correo Enviado!' },
   dx48: { English: 'Invalid Email', Español: 'Correo Inválido' },

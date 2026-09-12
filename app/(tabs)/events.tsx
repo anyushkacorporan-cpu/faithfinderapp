@@ -10,7 +10,7 @@ import { useThemeColors, ThemeColors } from '../../src/lib/theme';
 import { TAB_BAR_CLEARANCE } from '../../src/lib/tabBar';
 import { getUser } from '../../src/lib/userStore';
 import * as Location from 'expo-location';
-import { useEvents } from '../../src/lib/eventsStore';
+import { useEvents, isSoldOut } from '../../src/lib/eventsStore';
 import { useEventActions, toggleSaveEvent, addAttending, removeAttending } from '../../src/lib/eventActionsStore';
 import { useSettings } from '../../src/lib/settingsStore';
 import { useTranslation } from '../../src/lib/i18n';
@@ -280,6 +280,12 @@ export default function EventsScreen() {
                         ? <View style={s.badgeFree}><Text style={s.badgeFreeTxt}>{t('free')}</Text></View>
                         : <View style={s.badgePaid}><Text style={s.badgePaidTxt}>{event.price}</Text></View>
                       }
+                      {/* Beside the price rather than replacing it: what it
+                          costs and whether any are left are two facts, and
+                          someone deciding whether to open the card wants both. */}
+                      {isSoldOut(event) && (
+                        <View style={s.badgeSoldOut}><Text style={s.badgeSoldOutTxt}>{t('soldOut')}</Text></View>
+                      )}
                     </View>
                     <Text style={s.eventTitle}>{event.title}</Text>
                     {!!event.organizer&&<Text style={s.eventOrganizer}>by {event.organizer}</Text>}
@@ -388,6 +394,12 @@ export default function EventsScreen() {
                         ? <View style={s.badgeFree}><Text style={s.badgeFreeTxt}>{t('free')}</Text></View>
                         : <View style={s.badgePaid}><Text style={s.badgePaidTxt}>{event.price}</Text></View>
                       }
+                      {/* Beside the price rather than replacing it: what it
+                          costs and whether any are left are two facts, and
+                          someone deciding whether to open the card wants both. */}
+                      {isSoldOut(event) && (
+                        <View style={s.badgeSoldOut}><Text style={s.badgeSoldOutTxt}>{t('soldOut')}</Text></View>
+                      )}
                     </View>
                     <Text style={s.eventTitle}>{event.title}</Text>
                 {!!event.organizer && <Text style={s.eventOrganizer}>by {event.organizer}</Text>}
@@ -713,6 +725,8 @@ const makeStyles = (c: ThemeColors) => StyleSheet.create({
   badgeFree:{backgroundColor:c.green,borderRadius:8,paddingHorizontal:10,paddingVertical:4},
   badgeFreeTxt:{color:'#fff',fontSize:11,fontWeight:'700'},
   badgePaid:{backgroundColor:'#e65100',borderRadius:8,paddingHorizontal:10,paddingVertical:4},
+  badgeSoldOut:{backgroundColor:c.red,borderRadius:8,paddingHorizontal:10,paddingVertical:4},
+  badgeSoldOutTxt:{color:'#fff',fontSize:11,fontWeight:'700'},
   badgePaidTxt:{color:'#fff',fontSize:11,fontWeight:'700'},
   badgeAttending:{flexDirection:'row',alignItems:'center',gap:4,backgroundColor:'rgba(46,125,50,0.8)',borderRadius:8,paddingHorizontal:10,paddingVertical:4},
   badgeAttendingTxt:{color:'#fff',fontSize:11,fontWeight:'700'},

@@ -18,6 +18,23 @@
 
 export const GOOGLE_API_KEY = process.env.EXPO_PUBLIC_GOOGLE_API_KEY || '';
 
+/**
+ * The headers every Google REST call from this app has to send.
+ *
+ * The key is restricted to this app's bundle ids, which is right — but Google
+ * enforces that by reading a header its own SDKs send and `fetch` does not.
+ * Without it every call is refused with "this IP, site or mobile application is
+ * not authorized… with empty referer", which reads like a broken key and is
+ * really a missing header.
+ *
+ * Expo Go reports itself as host.exp.Exponent rather than this app, and both
+ * are on the key's allow list, so either value gets through. Sending the app's
+ * own id keeps the meaning right in a real build.
+ */
+export function googleHeaders(extra?: Record<string, string>): Record<string, string> {
+  return { 'X-Ios-Bundle-Identifier': 'com.faithfinder', ...extra };
+}
+
 /** Whether Google-backed features can work in this build. */
 export function hasGoogleKey(): boolean {
   return GOOGLE_API_KEY.startsWith('AIza');
