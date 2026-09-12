@@ -265,7 +265,13 @@ const s = StyleSheet.create({
   orTxt:{fontSize:13,color:'#bbb',fontWeight:'600'},
   infoBox:{flexDirection:'row',alignItems:'flex-start',gap:10,backgroundColor:'rgba(201,169,110,0.08)',borderRadius:14,padding:14,marginBottom:20},
   infoBoxTxt:{fontSize:13,color:'#666',lineHeight:19,flex:1},
-  primaryBtn:{backgroundColor:COLORS.navy,borderRadius:16,paddingVertical:16,flexDirection:'row',alignItems:'center',justifyContent:'center',gap:8,marginBottom:12,shadowColor:COLORS.navy,shadowOffset:{width:0,height:4},shadowOpacity:0.25,shadowRadius:8},
+  // paddingHorizontal matters here in a way it does not on the form screens.
+  // The success layout centres its children, so this button sizes to its own
+  // text instead of filling the width — and with no horizontal padding the
+  // navy pill ended exactly where the words did, which reads as clipped. 28
+  // also leaves room for Spanish, which runs longer than English for most of
+  // these labels.
+  primaryBtn:{backgroundColor:COLORS.navy,borderRadius:16,paddingVertical:16,paddingHorizontal:28,flexDirection:'row',alignItems:'center',justifyContent:'center',gap:8,marginBottom:12,shadowColor:COLORS.navy,shadowOffset:{width:0,height:4},shadowOpacity:0.25,shadowRadius:8},
   primaryBtnDisabled:{opacity:0.7},
   primaryBtnTxt:{color:COLORS.white,fontSize:16,fontWeight:'700'},
   // Success

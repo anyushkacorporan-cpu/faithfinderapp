@@ -91,7 +91,10 @@ export default function NotificationsScreen() {
                 </View>
                 <View style={s.notifContent}>
                   <View style={s.notifTopRow}>
-                    <Text style={s.notifTitle} numberOfLines={1}>{n.title}</Text>
+                    {/* Two lines, not one. Titles are built from a name and an action —
+                        "Grace Community Church posted an announcement" — and the
+                        name is the half that got cut. Spanish runs longer again. */}
+                    <Text style={s.notifTitle} numberOfLines={2}>{n.title}</Text>
                     {!n.read && <View style={s.unreadDot} />}
                   </View>
                   <Text style={s.notifBody} numberOfLines={2}>{n.body}</Text>

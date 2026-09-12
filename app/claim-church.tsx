@@ -409,7 +409,13 @@ const s = StyleSheet.create({
   previewRow:{flexDirection:'row',alignItems:'center',gap:6,marginBottom:5},
   previewAddr:{fontSize:13,color:'#666',flex:1},
   previewRating:{fontSize:13,color:COLORS.gold,fontWeight:'600'},
-  primaryBtn:{backgroundColor:COLORS.navy,borderRadius:16,paddingVertical:16,flexDirection:'row',alignItems:'center',justifyContent:'center',gap:8,marginBottom:12,shadowColor:COLORS.navy,shadowOffset:{width:0,height:4},shadowOpacity:0.25,shadowRadius:8},
+  // paddingHorizontal matters here in a way it does not on the form screens.
+  // The success layout centres its children, so this button sizes to its own
+  // text instead of filling the width — and with no horizontal padding the
+  // navy pill ended exactly where the words did, which reads as clipped. 28
+  // also leaves room for Spanish, which runs longer than English for most of
+  // these labels.
+  primaryBtn:{backgroundColor:COLORS.navy,borderRadius:16,paddingVertical:16,paddingHorizontal:28,flexDirection:'row',alignItems:'center',justifyContent:'center',gap:8,marginBottom:12,shadowColor:COLORS.navy,shadowOffset:{width:0,height:4},shadowOpacity:0.25,shadowRadius:8},
   primaryBtnDisabled:{opacity:0.7},
   primaryBtnTxt:{color:COLORS.white,fontSize:16,fontWeight:'700'},
   secondaryBtn:{borderWidth:1.5,borderColor:COLORS.border,borderRadius:16,paddingVertical:14,alignItems:'center'},
