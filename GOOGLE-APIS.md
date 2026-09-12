@@ -9,6 +9,31 @@ FaithFinder calls three Google APIs, all with one key held in
 | Places API (New) | church search and place photos | `src/lib/googlePlaces.ts`, `src/lib/placesCache.ts` |
 | Cloud Translation | the Translate button on posts | `src/lib/i18n.ts` callers, `TranslateRow` |
 
+## Which of these needs a billing account
+
+Tested against the live API, September 2026, on a project with no billing
+account attached:
+
+| Endpoint | Without billing |
+|---|---|
+| `places.googleapis.com/v1/places:autocomplete` (Places New) | **works** |
+| `places.googleapis.com/v1/places/{id}` (Places New) | **works** |
+| `places.googleapis.com/v1/places:searchText` (Places New) | **works** |
+| `maps.googleapis.com/maps/api/place/*` (legacy) | refused — "You must enable Billing" |
+| `translation.googleapis.com/language/translate/v2` | reachable, rate limited |
+
+This is why address autocomplete moved to Places API (New) rather than the
+project gaining a credit card. The legacy endpoints want billing; the new ones
+do not.
+
+It also means the honest answer to "can this charge me?" is no, while no
+billing account is attached. Past the free allowance the calls fail rather than
+cost anything — the service stops instead of a bill arriving. That changes the
+day a card is added, which is when the quota cap below starts to matter.
+
+`src/lib/googlePlaces.ts` still uses the legacy endpoints for church search and
+place photos, so those are refused today for this reason.
+
 ## Money
 
 These are metered. Each has a monthly free allowance and charges past it, and
