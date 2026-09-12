@@ -34,6 +34,30 @@ the damage is the restrictions on it in the console — the three APIs above, an
 this app's bundle id — plus the quota cap. Rotating it is worth doing if it
 turns up somewhere it should not, but rotation is not what protects it.
 
+## Telling one refusal from another
+
+A key restricted to iOS apps refuses every call that is not from the app,
+including any test from a laptop. That refusal looks alarming and means
+nothing is wrong. The way to tell it apart from a real fault is to read what
+Google says rather than that it said no:
+
+```
+curl -s "https://maps.googleapis.com/maps/api/place/autocomplete/json?input=park&key=THE_KEY"
+curl -s "https://translation.googleapis.com/language/translate/v2?key=THE_KEY&q=hi&target=es"
+```
+
+- *"This IP, site or mobile application is not authorized… with empty referer"*,
+  or `API_KEY_IOS_APP_BLOCKED` with an empty `iosBundleId` — the restriction,
+  working. The key is valid and the API is enabled. Expected from anywhere but
+  the app.
+- *"You must enable Billing on the Google Cloud Project"* — billing, and a real
+  blocker.
+- *"The provided API key is invalid"* with no further detail — a wrong or
+  deleted key.
+
+The first two are easy to confuse because both are refusals with a 403 beside
+them, and reading only the status code gets it backwards.
+
 ## Leaving Google
 
 Worth doing eventually, not urgently. The honest comparison:
