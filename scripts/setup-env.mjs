@@ -202,7 +202,8 @@ async function judge(v, value, env) {
 for (const v of VARS) {
   head(v.label);
 
-  let current = env[v.name] || '';
+  const held = env[v.name] || '';   // what the file had before this run
+  let current = held;
   let entered = false;   // did this value come from the person, this run?
 
   // Every variable asks exactly once on the happy path, whether or not it
@@ -226,8 +227,14 @@ for (const v of VARS) {
       }
     }
 
+    // Enter keeps what is there — but only when what is there could be kept.
+    // A value that just failed its own shape check is not a fallback, and
+    // offering it as one wrote "node scripts/setup-env.mjs" into the file as a
+    // Google key, because the reader pressed Enter at a prompt that said it
+    // would keep that.
+    const keepable = current && (!v.looks || v.looks(current) === true);
     note(v.where);
-    const raw = await rl.question(current
+    const raw = await rl.question(keepable
       ? `    ${v.name}= [Enter keeps ${mask(current)}] `
       : `    ${v.name}= `);
 
@@ -241,7 +248,16 @@ for (const v of VARS) {
 
     const answer = raw.trim();
     if (!answer) {
-      if (current || !v.required) break;      // Enter keeps what is there
+      if (keepable || !v.required) break;     // Enter keeps what is there
+      // Nothing usable typed. Fall back to whatever the file already held, so
+      // a mistaken paste costs a retry rather than the working value that was
+      // there before it.
+      if (current !== held) {
+        current = held;
+        entered = false;
+        bad(held ? 'Keeping the previous value.' : 'This one is required.');
+        continue;
+      }
       bad('This one is required.');
       continue;
     }
