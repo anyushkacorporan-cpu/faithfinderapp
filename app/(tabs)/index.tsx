@@ -14,12 +14,11 @@ import { useSavedChurches, toggleSavedChurch } from '../../src/lib/store';
 import { DENOMINATIONS, US_STATES, CA_PROVINCES, COUNTRY_NAME, regionLabel, Region } from '../../src/lib/filters';
 import { gradientFor } from '../../src/lib/constants';
 import { nearbyChurches as dbNearby, churchesInRegion, searchChurches, hasDatabase, formatDistance } from '../../src/lib/churchesApi';
+import { searchChurchText, searchChurchNearby, fetchChurchPhoto } from '../../src/lib/googlePlaces';
 import { useSettings } from '../../src/lib/settingsStore';
 import { useTranslation } from '../../src/lib/i18n';
 
 import { KeyboardScreen, KEYBOARD_SCROLL_PROPS } from '../../src/components/KeyboardScreen';
-import { GOOGLE_API_KEY } from '../../src/lib/googleConfig';
-const KEY = GOOGLE_API_KEY;
 
 async function getPhotoRef(placeId: string): Promise<string> {
   // Churches from our own database carry no Places id. Without this the
@@ -31,32 +30,25 @@ async function getPhotoRef(placeId: string): Promise<string> {
   // costs the same as asking the first time, so ask once.
   const cached = getCachedPhotoRef(placeId);
   if (cached !== undefined) return cached;
-  try {
-    const res = await fetch(`https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&fields=photos&key=${KEY}`);
-    const data = await res.json();
-    const ref = data?.result?.photos?.[0]?.photo_reference || '';
-    setCachedPhotoRef(placeId, ref);
-    return ref;
-  } catch {
-    // A failure is not cached: the next launch should be free to retry.
-    return '';
-  }
+  // Places (New) hands back a whole media URL rather than a reference to build
+  // one from, so the cache now holds the finished URL. Empty until the project
+  // has billing — photos are a field Google withholds rather than refuses.
+  const url = await fetchChurchPhoto(placeId);
+  if (url) setCachedPhotoRef(placeId, url);
+  return url;
 }
 
 function photoUrl(ref: string) {
-  return `https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photo_reference=${ref}&key=${KEY}`;
+  return ref;
 }
 
 async function searchByQuery(query: string) {
-  try {
-    const res = await fetch(`https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(query + ' church')}&type=church&key=${KEY}`);
-    const data = await res.json();
-    return (data.results || []).slice(0, 20).map((p: any, i: number) => ({
-      id: `s${i}_${p.place_id}`, name: p.name, address: p.formatted_address || '',
-      phone: '', type: 'Church', rating: p.rating || 0, count: p.user_ratings_total || 0,
-      hours: '', website: '', placeId: p.place_id, gradient: gradientFor(p.name || ''), state: '',
-    }));
-  } catch { return []; }
+  const found = await searchChurchText(`${query} church`);
+  return (found || []).map((p, i) => ({
+    id: `s${i}_${p.placeId}`, name: p.name, address: p.address,
+    phone: '', type: 'Church', rating: p.rating, count: p.count,
+    hours: '', website: '', placeId: p.placeId, gradient: gradientFor(p.name), state: '',
+  }));
 }
 
 /**
@@ -69,18 +61,13 @@ async function searchByQuery(query: string) {
  * to fall back to the full list instead of showing a blank screen.
  */
 async function searchNearby(lat: number, lng: number): Promise<any[] | null> {
-  try {
-    const res = await fetch(`https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&radius=50000&type=church&key=${KEY}`);
-    const data = await res.json();
-    // Places reports its own failures in the body with a 200, so the HTTP
-    // status alone does not tell us whether this worked.
-    if (data.status && data.status !== 'OK' && data.status !== 'ZERO_RESULTS') return null;
-    return (data.results || []).slice(0, 20).map((p: any, i: number) => ({
-      id: `n${i}_${p.place_id}`, name: p.name, address: p.vicinity || '',
-      phone: '', type: 'Church', rating: p.rating || 0, count: p.user_ratings_total || 0,
-      hours: '', website: '', placeId: p.place_id, gradient: gradientFor(p.name || ''), state: '',
-    }));
-  } catch { return null; }
+  const found = await searchChurchNearby(lat, lng);
+  if (found === null) return null;   // the lookup failed; not an empty map
+  return found.map((p, i) => ({
+    id: `n${i}_${p.placeId}`, name: p.name, address: p.address,
+    phone: '', type: 'Church', rating: p.rating, count: p.count,
+    hours: '', website: '', placeId: p.placeId, gradient: gradientFor(p.name), state: '',
+  }));
 }
 
 // Searched by full name and country, not by code. "church ON" returns very
@@ -88,16 +75,12 @@ async function searchNearby(lat: number, lng: number): Promise<any[] | null> {
 // only ever half-worked for the US because Google could guess from the key's
 // own region.
 async function searchByRegion(region: Region) {
-  try {
-    const q = `church in ${region.name}, ${COUNTRY_NAME[region.country]}`;
-    const res = await fetch(`https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(q)}&type=church&key=${KEY}`);
-    const data = await res.json();
-    return (data.results || []).slice(0, 20).map((p: any, i: number) => ({
-      id: `st${i}_${p.place_id}`, name: p.name, address: p.formatted_address || '',
-      phone: '', type: 'Church', rating: p.rating || 0, count: p.user_ratings_total || 0,
-      hours: '', website: '', placeId: p.place_id, gradient: gradientFor(p.name || ''), state: region.code,
-    }));
-  } catch { return []; }
+  const found = await searchChurchText(`church in ${region.name}, ${COUNTRY_NAME[region.country]}`);
+  return (found || []).map((p, i) => ({
+    id: `st${i}_${p.placeId}`, name: p.name, address: p.address,
+    phone: '', type: 'Church', rating: p.rating, count: p.count,
+    hours: '', website: '', placeId: p.placeId, gradient: gradientFor(p.name), state: region.code,
+  }));
 }
 
 export default function ChurchesScreen() {

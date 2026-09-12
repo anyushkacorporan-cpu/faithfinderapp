@@ -22,23 +22,17 @@ import { useSettings } from '../src/lib/settingsStore';
 import { useTranslation } from '../src/lib/i18n';
 
 import { KeyboardScreen, KEYBOARD_SCROLL_PROPS } from '../src/components/KeyboardScreen';
-import { GOOGLE_API_KEY } from '../src/lib/googleConfig';
-const KEY = GOOGLE_API_KEY;
+import { fetchChurchDetails } from '../src/lib/googlePlaces';
 const { width: W } = Dimensions.get('window');
 const MY_ID = 'current_user';
 
+// Places (New) returns a finished media URL rather than a reference to build
+// one from, so this is now a pass-through and the callers below are unchanged.
 function photoUrl(ref: string) {
-  return `https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photo_reference=${ref}&key=${KEY}`;
+  return ref;
 }
 
-async function fetchDetails(placeId: string) {
-  try {
-    const fields = 'name,formatted_address,formatted_phone_number,website,rating,user_ratings_total,opening_hours,photos,reviews,editorial_summary';
-    const res = await fetch(`https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&fields=${fields}&key=${KEY}`);
-    const data = await res.json();
-    return data.result || null;
-  } catch { return null; }
-}
+const fetchDetails = fetchChurchDetails;
 
 const TAGS = [
   { label: 'Parking Available', icon: 'car-outline' },

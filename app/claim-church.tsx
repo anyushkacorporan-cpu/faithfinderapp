@@ -6,23 +6,14 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { COLORS, CHURCHES } from '../src/lib/constants';
 import { useTranslation } from '../src/lib/i18n';
+import { searchChurchText } from '../src/lib/googlePlaces';
 import { setUser } from '../src/lib/userStore';
 
 import { KeyboardScreen, KEYBOARD_SCROLL_PROPS } from '../src/components/KeyboardScreen';
-import { GOOGLE_API_KEY } from '../src/lib/googleConfig';
-const KEY = GOOGLE_API_KEY;
 
 async function searchChurchesAPI(query: string) {
-  try {
-    const res = await fetch(`https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(query + ' church')}&type=church&key=${KEY}`);
-    const data = await res.json();
-    return (data.results || []).slice(0, 8).map((p: any) => ({
-      placeId: p.place_id,
-      name: p.name,
-      address: p.formatted_address || '',
-      rating: p.rating || 0,
-    }));
-  } catch { return []; }
+  const found = await searchChurchText(`${query} church`, 8);
+  return found || [];
 }
 
 export default function ClaimChurchScreen() {
