@@ -63,6 +63,7 @@ export async function detectLanguage(text: string): Promise<string | null> {
     return guess;
   }
 
+  if (alreadyRefused()) return null;
   try {
     const res = await fetch(`https://translation.googleapis.com/language/translate/v2/detect?key=${API_KEY}`, {
       method: 'POST',
@@ -70,7 +71,7 @@ export async function detectLanguage(text: string): Promise<string | null> {
       body: JSON.stringify({ q: text }),
     });
     const data = await res.json();
-    if (!res.ok) { translateFailed('detect a language', data); return null; }
+    if (!res.ok) { translateFailed('detect a language', res.status, data); return null; }
     const lang = data?.data?.detections?.[0]?.[0]?.language || null;
     if (lang) remember(key, lang);
     return lang;
@@ -83,12 +84,51 @@ export async function detectLanguage(text: string): Promise<string | null> {
  * Say when Google refused, rather than returning null and leaving the Translate
  * button looking like it does nothing.
  */
-function translateFailed(what: string, body: any): void {
-  console.warn(`[google] could not ${what}: ${body?.error?.message || 'unknown error'}`);
+/**
+ * Stop asking once the answer is no.
+ *
+ * Translation is refused outright on a project with no billing account, and the
+ * feed calls language detection once per post. Seven posts meant seven refused
+ * requests and seven identical warnings, on every load, for a service that had
+ * already said it would not serve this app. The log became something to scroll
+ * past, which is the opposite of why it was added.
+ *
+ * A refusal is remembered for the life of the process. It resets on restart, so
+ * attaching billing and reopening the app is enough to start it working — there
+ * is no state to clear and nothing to remember to undo.
+ *
+ * Only refusals count. A dropped connection or a timeout is not the service
+ * declining, and one bad moment should not turn the feature off for the session.
+ */
+let refused: string | null = null;
+
+function translateFailed(what: string, status: number, body: any): void {
+  const message = body?.error?.message || 'unknown error';
+
+  // 401 and 403 are the service declining: a key it will not accept, or a
+  // project it will not serve. Anything else — a 500, a gateway timeout — is a
+  // bad moment rather than an answer, and latching on one would turn the
+  // feature off for the session over something that fixes itself.
+  const declined = status === 401 || status === 403;
+
+  if (!declined) {
+    console.warn(`[google] could not ${what}: ${message}`);
+    return;
+  }
+  if (refused) return;                       // already said, once is enough
+  refused = message;
+  console.warn(`[google] could not ${what}: ${message}`);
+  console.warn('[google] translation is off for this session; it will try again after a restart.');
+}
+
+/** Whether Google has already turned this app away this session. */
+function alreadyRefused(): boolean {
+  return refused !== null;
 }
 
 export async function translateText(text: string, targetLang: string = 'en'): Promise<TranslateResult | null> {
   if (!text || !text.trim()) return null;
+  if (alreadyRefused()) return null;
   try {
     const res = await fetch(`https://translation.googleapis.com/language/translate/v2?key=${API_KEY}`, {
       method: 'POST',
@@ -96,7 +136,7 @@ export async function translateText(text: string, targetLang: string = 'en'): Pr
       body: JSON.stringify({ q: text, target: targetLang, format: 'text' }),
     });
     const data = await res.json();
-    if (!res.ok) { translateFailed('translate', data); return null; }
+    if (!res.ok) { translateFailed('translate', res.status, data); return null; }
     const translation = data?.data?.translations?.[0];
     if (!translation) return null;
     return {
