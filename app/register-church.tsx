@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator, Alert } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -7,6 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { COLORS } from '../src/lib/constants';
 import { useTranslation } from '../src/lib/i18n';
 import { setUser } from '../src/lib/userStore';
+import { submitVerification } from '../src/lib/profileSync';
 
 import { KeyboardScreen, KEYBOARD_SCROLL_PROPS } from '../src/components/KeyboardScreen';
 const DENOMINATIONS = ['Non-Denominational','Catholic','Baptist','Methodist','Lutheran','Presbyterian','Episcopal','Pentecostal','Assemblies of God','Evangelical','Reformed','AME','Other'];
@@ -43,7 +44,6 @@ export default function RegisterChurchScreen() {
   async function handleSubmit() {
     if (!validate()) return;
     setSubmitting(true);
-    await new Promise(r => setTimeout(r, 1500));
     setUser({
       churchName,
       address,
@@ -51,9 +51,17 @@ export default function RegisterChurchScreen() {
       serviceTimes,
       website,
       phone,
-      verificationStatus: 'pending',
     });
+    // The registration goes to the same place a claim does — a column on the
+    // profile for somebody to read — so it is submitted the same way, and the
+    // success screen waits until it has actually been submitted.
+    const sent = await submitVerification();
     setSubmitting(false);
+    if (!sent) {
+      Alert.alert(tx('Could not submit'),
+        tx('Your registration did not reach us. Check your connection and try again.'));
+      return;
+    }
     setSubmitted(true);
   }
 

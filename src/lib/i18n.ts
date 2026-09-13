@@ -100,6 +100,7 @@ const translations: Record<string, Record<Lang, string>> = {
   showChurchToCommunity: { English: 'Show your church to the community', Español: 'Muestra tu iglesia a la comunidad' },
   pending: { English: 'Pending', Español: 'Pendiente' },
   verified: { English: 'Verified', Español: 'Verificado' },
+  notApproved: { English: 'Not approved', Español: 'No aprobado' },
   noReviewsYet: { English: 'No reviews yet', Español: 'Aún no hay reseñas' },
   about: { English: 'About', Español: 'Acerca de' },
   information: { English: 'Information', Español: 'Información' },
@@ -149,7 +150,7 @@ const translations: Record<string, Record<Lang, string>> = {
   notifChurchPosts: { English: 'Church Updates', Español: 'Actualizaciones de la Iglesia' },
   notifChurchPostsDesc: { English: 'When a connected church posts', Español: 'Cuando una iglesia conectada publica' },
   notifEvents: { English: 'Events', Español: 'Eventos' },
-  notifEventsDesc: { English: 'New events near you', Español: 'Nuevos eventos cerca de ti' },
+  notifEventsDesc: { English: 'New events near you or from churches you follow', Español: 'Nuevos eventos cerca de ti o de iglesias que sigues' },
   notifInvites: { English: 'Invitations', Español: 'Invitaciones' },
   notifInvitesDesc: { English: 'When someone invites you', Español: 'Cuando alguien te invita' },
   notifVerification: { English: 'Verification Updates', Español: 'Actualizaciones de Verificación' },
@@ -225,6 +226,8 @@ const translations: Record<string, Record<Lang, string>> = {
   typeShare: { English: 'Share', Español: 'Compartir' },
   typeInvite: { English: 'Invite', Español: 'Invitación' },
   typeVerification: { English: 'Verification', Español: 'Verificación' },
+  typeAnnouncement: { English: 'Announcement', Español: 'Anuncio' },
+  typeFollow: { English: 'Follow', Español: 'Seguidor' },
 
   // Connections screen
   connections: { English: 'Connections', Español: 'Conexiones' },

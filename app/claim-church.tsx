@@ -8,6 +8,7 @@ import { COLORS, CHURCHES } from '../src/lib/constants';
 import { useTranslation } from '../src/lib/i18n';
 import { searchChurchText } from '../src/lib/googlePlaces';
 import { setUser } from '../src/lib/userStore';
+import { submitVerification } from '../src/lib/profileSync';
 
 import { KeyboardScreen, KEYBOARD_SCROLL_PROPS } from '../src/components/KeyboardScreen';
 
@@ -67,7 +68,6 @@ export default function ClaimChurchScreen() {
   async function handleSubmit() {
     if (!validate()) return;
     setSubmitting(true);
-    await new Promise(r => setTimeout(r, 1500)); // simulate submission
     setUser({
       churchName: selectedChurch.name,
       // Keep the Place ID: it is what lets this account's posts appear on the
@@ -75,9 +75,18 @@ export default function ClaimChurchScreen() {
       placeId: selectedChurch.placeId,
       address: selectedChurch.address,
       website: website,
-      verificationStatus: 'pending',
     });
+    // A real submission now, rather than a 1.5-second wait pretending to be
+    // one. The claim is a column on the profile that somebody reads; if it
+    // does not reach the server there is nothing to read, so say so instead of
+    // showing the thank-you screen.
+    const sent = await submitVerification();
     setSubmitting(false);
+    if (!sent) {
+      Alert.alert(tx('Could not submit'),
+        tx('Your claim did not reach us. Check your connection and try again.'));
+      return;
+    }
     setStep('submitted');
   }
 

@@ -55,8 +55,13 @@ export type User = {
   ministries?: string[];  // free-text ministry names the church added
   /** Amenity key -> offered. Keys come from AMENITY_LIST in edit-church-profile. */
   amenities?: Record<string, boolean>;
-  /** Set to 'pending' when a claim/registration is submitted. */
-  verificationStatus?: 'pending' | 'approved';
+  /**
+   * Where this account's church claim stands. Set to 'pending' when the claim
+   * is submitted; the other two are the review's answer and arrive from the
+   * server (see profileSync.refreshVerificationStatus). Absent means no claim
+   * has ever been made.
+   */
+  verificationStatus?: 'pending' | 'approved' | 'rejected';
 };
 
 let user: User = { id: newId(), createdAt: new Date().toISOString() };

@@ -13,6 +13,7 @@ import { toggleSaveEvent, addAttending, removeAttending, useEventActions } from 
 import { getEvents, seatsLeft } from '../src/lib/eventsStore';
 import { useConnections } from '../src/lib/connectionsStore';
 import { searchPeople, getProfile, PersonResult } from '../src/lib/profilesStore';
+import { sendEventInvites } from '../src/lib/invitesApi';
 import { useSettings } from '../src/lib/settingsStore';
 import { useTranslation } from '../src/lib/i18n';
 
@@ -160,11 +161,17 @@ export default function EventDetailScreen() {
 
   function handleSendInvites() {
     if (selectedUsers.length === 0) { Alert.alert(tx('Select someone'), tx('Please choose at least one person to invite.')); return; }
-    const names = shownPeople.filter(p => selectedUsers.includes(p.id)).map(p => p.name);
+    const chosen = shownPeople.filter(p => selectedUsers.includes(p.id));
+    const names = chosen.map(p => p.name);
     const title = fullEvent?.title || params.title || 'an event';
-    // There is no server yet, so nothing can appear on someone else's phone.
-    // The share sheet is the one channel that genuinely delivers, so the invite
-    // goes out through it rather than a toast claiming it was sent.
+
+    // Two channels, because the list mixes two kinds of person. Anyone with an
+    // account gets the invitation in their notifications, where it can be
+    // tapped through to the event. The share sheet still opens afterwards: it
+    // is the only thing that reaches someone who is not on FaithFinder yet,
+    // and it is how you invite the people who were never in this list at all.
+    void sendEventInvites(params.id || '', title, chosen.map(p => p.id));
+
     setShowInviteModal(false);
     setSelectedUsers([]);
     setInviteSearch('');

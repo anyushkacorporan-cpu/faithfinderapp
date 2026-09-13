@@ -14,6 +14,9 @@ import { useProfile } from '../src/lib/profilesStore';
 const TYPE_KEYS: Record<string, string> = {
   like: 'typeLike', church_post: 'typeChurchPost', event: 'typeEvent',
   comment: 'typeComment', share: 'typeShare', invite: 'typeInvite', verification: 'typeVerification',
+  // Both of these arrive from the server and neither had a key, so the pill
+  // beside them rendered empty — a coloured chip with nothing in it.
+  announcement: 'typeAnnouncement', follow: 'typeFollow',
 };
 
 /**

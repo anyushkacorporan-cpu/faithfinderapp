@@ -50,10 +50,24 @@ function toUser(row: any): Partial<User> {
     lifeVerseRef: row.life_verse_ref || undefined,
     churchName: row.church_name || undefined,
     phone: row.phone || undefined,
+    // Read, never written. `toRow` leaves it out on purpose — see
+    // submitVerification below.
+    verificationStatus: row.verification_status && row.verification_status !== 'none'
+      ? row.verification_status : undefined,
   };
 }
 
-/** The User shape → the columns the server holds. */
+/**
+ * The User shape → the columns the server holds.
+ *
+ * verification_status is deliberately absent. It is the one profile column this
+ * account does not own: the answer is set by whoever reads the claim, and a
+ * phone that has been offline since before the approval still thinks it is
+ * pending. Sending it on every unrelated profile edit would mean a stale copy
+ * arguing with the decision. (The trigger in 17_more_notifications.sql would
+ * refuse it, so this is politeness rather than protection — but a write that is
+ * always thrown away is a write that should not be made.)
+ */
 function toRow(u: User) {
   return {
     account_type: u.accountType || 'personal',
@@ -133,6 +147,61 @@ export async function syncProfileAfterSignIn(userId: string): Promise<void> {
   if (after.profilePhoto?.startsWith('file://') || after.coverPhoto?.startsWith('file://')) {
     void pushProfile();
   }
+}
+
+/**
+ * Submit this account's church claim for review.
+ *
+ * The claim form used to end at `setUser({ verificationStatus: 'pending' })`
+ * and a 1.5-second wait dressed up as a submission. Nothing left the phone, so
+ * nobody could review anything and no church was ever going to hear back.
+ *
+ * Now the claim is a column on the profile. Review is a person reading it and
+ * setting that column to approved or rejected, and the church is told the
+ * moment they do — see notify_verification in 17_more_notifications.sql.
+ *
+ * Returns false if it did not reach the server, so the form can say so rather
+ * than show a success screen for a submission that never happened.
+ */
+export async function submitVerification(): Promise<boolean> {
+  const db = supabase();
+  const u = getUser();
+  if (!db || !u.id) return false;
+
+  // The profile edits made alongside the claim — the church name, the address,
+  // the website — go up first, because they are the substance of what is being
+  // reviewed. An approval granted against a blank profile is meaningless.
+  await pushProfile();
+
+  const { error } = await db
+    .from('profiles').update({ verification_status: 'pending' }).eq('id', u.id);
+  if (error) return false;
+
+  setUser({ verificationStatus: 'pending' });
+  return true;
+}
+
+/**
+ * Bring the verification answer back down.
+ *
+ * The rest of the profile syncs at sign-in, which is often enough for a bio.
+ * It is not often enough for this: the decision arrives while the app is open,
+ * as a notification, and the badge beside it would go on saying "Pending" until
+ * the next sign-in. Called from the profile tab, which is where the badge is.
+ */
+export async function refreshVerificationStatus(): Promise<void> {
+  const db = supabase();
+  const u = getUser();
+  if (!db || !u.id) return;
+
+  const { data, error } = await db
+    .from('profiles').select('verification_status').eq('id', u.id).single();
+  if (error || !data) return;
+
+  const status = data.verification_status;
+  setUser({
+    verificationStatus: status && status !== 'none' ? status : undefined,
+  });
 }
 
 /**

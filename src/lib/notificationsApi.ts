@@ -5,10 +5,11 @@ import type { Notification } from './notificationsStore';
 /**
  * Notifications, on the server.
  *
- * Nothing here creates one. They are made by triggers beside the like, comment
- * or follow that caused them (13_notifications.sql) — a client cannot write
- * into someone else's bell, and cannot decline to ring it either. This module
- * only reads them and marks them read.
+ * Nothing here creates one. They are made by triggers beside the like, comment,
+ * repost, event or invitation that caused them (13_notifications.sql and
+ * 17_more_notifications.sql) — a client cannot write into someone else's bell,
+ * and cannot decline to ring it either. This module only reads them and marks
+ * them read.
  */
 
 type Row = {
@@ -19,6 +20,7 @@ type Row = {
   body: string | null;
   post_id: string | null;
   comment_id: string | null;
+  event_id: string | null;
   read: boolean;
   created_at: string;
 };
@@ -43,9 +45,37 @@ function compose(r: Row): { title: string; icon: string; color: string } {
       return { title: `${who} started following you`, icon: 'person-add', color: '#4a9d7f' };
     case 'announcement':
       return { title: `${who} posted an announcement`, icon: 'megaphone', color: '#c9a96e' };
+    case 'share':
+      return { title: `${who} shared your post`, icon: 'share-social', color: '#43e97b' };
+    case 'church_post':
+      return { title: `${who} posted an update`, icon: 'home', color: '#c9a96e' };
+    case 'event':
+      return { title: `${who} added a new event`, icon: 'calendar', color: '#1f3a5f' };
+    case 'invite':
+      return { title: `${who} invited you to an event`, icon: 'person-add', color: '#9b59b6' };
+    // The only kind with no actor: it is the review answering, not a person
+    // doing something. `body` carries the answer rather than a sentence, so
+    // that the sentence can be written here.
+    case 'verification':
+      return r.body === 'approved'
+        ? { title: 'Your church has been verified', icon: 'shield-checkmark', color: '#4a9d7f' }
+        : { title: 'Your church verification was not approved', icon: 'shield-outline', color: '#e74c6f' };
     default:
       return { title: who, icon: 'notifications', color: '#c9a96e' };
   }
+}
+
+/**
+ * Where tapping it should go.
+ *
+ * An event notification names an event and nothing else; a like names a post.
+ * Verification has neither, and belongs on the profile that was verified.
+ */
+function destination(r: Row): Pick<Notification, 'navigateTo' | 'navigateParams'> {
+  if (r.event_id) return { navigateTo: '/event-detail', navigateParams: { id: r.event_id } };
+  if (r.post_id) return { navigateTo: '/comments', navigateParams: { postId: r.post_id } };
+  if (r.type === 'verification') return { navigateTo: '/(tabs)/profile' };
+  return { navigateTo: '/(tabs)/community' };
 }
 
 /** A server row in the shape the screens already read. */
@@ -57,7 +87,9 @@ function rowToNotification(r: Row): Notification {
     // someone who turned comments off does not want to hear about replies.
     type: (r.type === 'reply' ? 'comment' : r.type) as Notification['type'],
     title,
-    body: r.body || '',
+    // Verification puts its answer in `body` and spends it on the title above;
+    // repeating 'approved' underneath would read as a stray word.
+    body: r.type === 'verification' ? '' : (r.body || ''),
     // Passed through rather than folded into the title, so the list can show
     // whose notification it is as well as say it.
     actorName: r.actor_name || undefined,
@@ -69,8 +101,7 @@ function rowToNotification(r: Row): Notification {
     read: r.read,
     icon,
     color,
-    navigateTo: r.post_id ? '/comments' : '/(tabs)/community',
-    navigateParams: r.post_id ? { postId: r.post_id } : undefined,
+    ...destination(r),
   };
 }
 

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Image, Linking, Alert, Share, FlatList, Dimensions, Modal, TextInput } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -10,7 +10,7 @@ import { useThemeColors, ThemeColors } from '../../src/lib/theme';
 import { TAB_BAR_CLEARANCE } from '../../src/lib/tabBar';
 import { useUser, setUser, getUser } from '../../src/lib/userStore';
 import { displayName as userDisplayName } from '../../src/lib/userStore';
-import { pushProfile } from '../../src/lib/profileSync';
+import { pushProfile, refreshVerificationStatus } from '../../src/lib/profileSync';
 import { useActivity } from '../../src/lib/activityStore';
 import { useConnections, useConnectionCount, removeConnection } from '../../src/lib/connectionsStore';
 import { usePosts, toggleLike, editPost, deletePost, isAuthoredBy, Post } from '../../src/lib/postsStore';
@@ -53,6 +53,13 @@ export default function ProfileScreen() {
   // Which post's Repost/Share sheet is open.
   const [shareTarget, setShareTarget] = useState<Post | null>(null);
   const allPosts = usePosts();
+
+  // The verification answer is decided elsewhere and arrives as a notification
+  // while the app is open. The rest of the profile syncs at sign-in, which
+  // would leave the badge below saying "Pending" for however long it was until
+  // the next one — so this one field is re-read where it is shown.
+  useEffect(() => { void refreshVerificationStatus(); }, []);
+
   const displayName = user.accountType === 'church'
     ? (user.churchName || 'Church')
     : userDisplayName(user);
@@ -232,6 +239,16 @@ export default function ProfileScreen() {
                 <View style={s.verifiedBadge}>
                   <Ionicons name="shield-checkmark" size={12} color="#fff" />
                   <Text style={s.verifiedBadgeTxt}>{t('verified')}</Text>
+                </View>
+              )}
+              {/* Said out loud rather than left blank. A claim that came back
+                  rejected used to show nothing at all, which looks identical to
+                  a claim that was never made — and leaves the church wondering
+                  whether the form went through. */}
+              {user.verificationStatus === 'rejected' && (
+                <View style={s.rejectedBadge}>
+                  <Ionicons name="alert-circle-outline" size={12} color={c.red} />
+                  <Text style={s.rejectedBadgeTxt}>{t('notApproved')}</Text>
                 </View>
               )}
             </View>
@@ -908,6 +925,8 @@ const makeStyles = (c: ThemeColors) => StyleSheet.create({
   pendingBadgeTxt:{fontSize:11,fontWeight:'700',color:c.gold},
   verifiedBadge:{flexDirection:'row',alignItems:'center',gap:4,backgroundColor:c.green,borderRadius:100,paddingHorizontal:10,paddingVertical:5},
   verifiedBadgeTxt:{fontSize:11,fontWeight:'700',color:'#fff'},
+  rejectedBadge:{flexDirection:'row',alignItems:'center',gap:4,backgroundColor:'rgba(231,76,111,0.14)',borderRadius:100,paddingHorizontal:10,paddingVertical:5},
+  rejectedBadgeTxt:{fontSize:11,fontWeight:'700',color:c.red},
   // Church identity
   churchIdentity:{paddingHorizontal:16,paddingBottom:12},
   churchAvatarRow:{flexDirection:'row',alignItems:'flex-start',gap:14,marginBottom:16},

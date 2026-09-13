@@ -222,3 +222,107 @@ exception when insufficient_privilege then
   raise notice 'PASS: blocked by row-level security';
 end $$;
 reset role;
+
+-- ── The other five kinds (17_more_notifications.sql) ────────────────────────
+
+\set QUIET on
+reset request.jwt.claim.sub;   -- test 29 left Ana signed in
+-- Test 26 turned Ben's Announcements switch off and left it off; these tests
+-- are about the new kinds, so everybody starts with everything on again.
+update profiles set notification_prefs = '{}'::jsonb;
+delete from notifications;
+\set QUIET off
+
+\echo '--- 30. Ben reposts Ana''s post -> Ana is told, as a share'
+insert into posts (id, author_id, author_name, content, repost_of)
+  values ('post-r1','22222222-2222-2222-2222-222222222222','Ben Ortiz','',
+          '{"id":"post-a"}'::jsonb);
+select type, actor_name, user_id='11111111-1111-1111-1111-111111111111' as goes_to_ana
+  from notifications where type='share';
+
+\echo '--- 31. Ana reposts her own post -> no second share, only Ben''s'
+insert into posts (id, author_id, author_name, author_type, content, repost_of)
+  values ('post-r2','11111111-1111-1111-1111-111111111111','Grace','church','',
+          '{"id":"post-a"}'::jsonb);
+select count(*) as share_notifications_still from notifications where type='share';
+
+\echo '--- 32. Ana (a church Ben follows) posts -> Ben gets a church update'
+insert into posts (id, author_id, author_name, author_type, content)
+  values ('post-cu','11111111-1111-1111-1111-111111111111','Grace','church','Youth night Friday');
+select type, user_id='22222222-2222-2222-2222-222222222222' as goes_to_ben, left(body,20) as body
+  from notifications where post_id='post-cu';
+
+\echo '--- 33. an announcement is an announcement, not also a church update'
+insert into posts (id, author_id, author_name, author_type, content, is_announcement)
+  values ('post-cu2','11111111-1111-1111-1111-111111111111','Grace','church','Building fund', true);
+select type, count(*) from notifications where post_id='post-cu2' group by type;
+
+\echo '--- 34. Ana turns Shares off -> Ben reposting her again tells her nothing'
+\set QUIET on
+delete from notifications;
+\set QUIET off
+update profiles set notification_prefs = '{"shares": false}'::jsonb
+  where id='11111111-1111-1111-1111-111111111111';
+insert into posts (id, author_id, author_name, content, repost_of)
+  values ('post-r3','22222222-2222-2222-2222-222222222222','Ben Ortiz','',
+          '{"id":"post-cu"}'::jsonb);
+select count(*) as share_notifications from notifications where type='share';
+\set QUIET on
+update profiles set notification_prefs = '{}'::jsonb
+  where id='11111111-1111-1111-1111-111111111111';
+delete from notifications;
+\set QUIET off
+
+\echo '--- 35/36. Ana adds an event -> Ben (follows her) and Cara (lives there) told'
+\set QUIET on
+update profiles set location='Austin, TX' where id='33333333-3333-3333-3333-333333333333';
+update profiles set location='Dallas, TX' where id='22222222-2222-2222-2222-222222222222';
+\set QUIET off
+insert into events (id, organizer_id, title, city, state)
+  values ('user_ev1','11111111-1111-1111-1111-111111111111','Worship Night','Austin','TX');
+select type, left(body,20) as body,
+       (user_id='22222222-2222-2222-2222-222222222222') as ben,
+       (user_id='33333333-3333-3333-3333-333333333333') as cara
+  from notifications where event_id='user_ev1' order by ben desc;
+
+\echo '--- 37. a draft tells nobody; publishing it does'
+insert into events (id, organizer_id, title, city, state, status)
+  values ('user_ev2','11111111-1111-1111-1111-111111111111','Quiet Plan','Austin','TX','draft');
+select count(*) as while_draft from notifications where event_id='user_ev2';
+update events set status='upcoming' where id='user_ev2';
+select count(*) as after_publishing from notifications where event_id='user_ev2';
+
+\echo '--- 38. Ben invites Cara -> Cara told, Ben not'
+insert into event_invites (event_id, event_title, inviter_id, invitee_id)
+  values ('user_ev1','Worship Night','22222222-2222-2222-2222-222222222222',
+          '33333333-3333-3333-3333-333333333333');
+select type, actor_name, user_id='33333333-3333-3333-3333-333333333333' as goes_to_cara
+  from notifications where type='invite';
+
+\echo '--- 39. inviting the same person to the same event twice -> still one'
+insert into event_invites (event_id, event_title, inviter_id, invitee_id)
+  values ('user_ev1','Worship Night','22222222-2222-2222-2222-222222222222',
+          '33333333-3333-3333-3333-333333333333')
+  on conflict do nothing;
+select count(*) as invite_notifications from notifications where type='invite';
+
+\echo '--- 40. a church cannot verify itself'
+set request.jwt.claim.sub = '11111111-1111-1111-1111-111111111111';  -- Ana
+update profiles set verification_status='approved'
+  where id='11111111-1111-1111-1111-111111111111';
+select verification_status as after_self_approval from profiles
+  where id='11111111-1111-1111-1111-111111111111';
+
+\echo '--- 41. ...but may submit a claim, which tells nobody yet'
+update profiles set verification_status='pending'
+  where id='11111111-1111-1111-1111-111111111111';
+select verification_status as after_claim,
+       (select count(*) from notifications where type='verification') as told
+  from profiles where id='11111111-1111-1111-1111-111111111111';
+
+\echo '--- 42. the review approves it -> Ana is told'
+reset request.jwt.claim.sub;   -- the SQL editor, where review happens
+update profiles set verification_status='approved'
+  where id='11111111-1111-1111-1111-111111111111';
+select type, body, user_id='11111111-1111-1111-1111-111111111111' as goes_to_ana
+  from notifications where type='verification';
