@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { pushNotificationPrefs } from './notificationsApi';
 
 const SETTINGS_KEY = 'faithfinder_settings_v1';
 
@@ -85,10 +86,19 @@ hydrate();
 
 export function getSettings(): AppSettings { return settings; }
 
+/**
+ * The one funnel every switch on the Notification Preferences screen goes
+ * through, which is why the server push lives here rather than in the screen:
+ * a preference changed from anywhere still reaches the database.
+ */
 export function updateNotificationPrefs(updates: Partial<NotificationPrefs>) {
   settings = { ...settings, notifications: { ...settings.notifications, ...updates } };
   persist();
   notify();
+  // The whole object, not the change: the server keeps one answer per account
+  // and a push that fails leaves the previous one intact rather than a half
+  // applied set.
+  void pushNotificationPrefs({ ...settings.notifications });
 }
 
 export function updatePrivacyPrefs(updates: Partial<PrivacyPrefs>) {

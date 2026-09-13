@@ -58,6 +58,10 @@ function rowToNotification(r: Row): Notification {
     type: (r.type === 'reply' ? 'comment' : r.type) as Notification['type'],
     title,
     body: r.body || '',
+    // Passed through rather than folded into the title, so the list can show
+    // whose notification it is as well as say it.
+    actorName: r.actor_name || undefined,
+    actorId: r.actor_id || undefined,
     createdAt: new Date(r.created_at).getTime(),
     // A rendered fallback only. The screen ages `createdAt` on every render, so
     // a bell left open for an hour does not keep saying "2 minutes ago".
@@ -112,4 +116,24 @@ export async function removeAll(): Promise<void> {
   if (!db || !me) return;
   const { error } = await db.from('notifications').delete().eq('user_id', me.id);
   writeFailed('clear all notifications', error);
+}
+
+/**
+ * Send this account's notification preferences to the server.
+ *
+ * They are made there — by triggers beside the like or comment that causes
+ * them — so a preference kept only on the phone cannot stop one being written.
+ * It could only hide it afterwards, which is what the switches used to do: the
+ * row was still created, and turning a switch back on revealed everything that
+ * had arrived while it was off.
+ *
+ * Fire and forget, like every other write here. A failed push leaves the server
+ * on the previous answer and the next toggle sends the whole object again.
+ */
+export async function pushNotificationPrefs(prefs: Record<string, boolean>): Promise<void> {
+  const db = supabase();
+  const me = getAuthUser();
+  if (!db || !me) return;
+  const { error } = await db.from('profiles').update({ notification_prefs: prefs }).eq('id', me.id);
+  writeFailed('save notification preferences', error);
 }

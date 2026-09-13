@@ -40,6 +40,9 @@ export type Notification = {
   navigateParams?: Record<string, string>;
   /** When it happened. `time` is only the string this was last rendered as. */
   createdAt?: number;
+  /** Who caused it, for the avatar. Absent on a notification with no actor. */
+  actorName?: string;
+  actorId?: string;
 };
 
 /**

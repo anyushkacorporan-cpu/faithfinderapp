@@ -8,6 +8,8 @@ import { syncTicketsFromServer } from './ticketStore';
 import { syncPostsFromServer } from './postsStore';
 import { syncNotificationsFromServer } from './notificationsStore';
 import { uploadImage } from './postsApi';
+import { pushNotificationPrefs } from './notificationsApi';
+import { getSettings } from './settingsStore';
 
 /**
  * Keeps the account's profile and the on-device user in step.
@@ -92,6 +94,9 @@ export async function syncProfileAfterSignIn(userId: string): Promise<void> {
   // we know who is asking, so likes come back marked as yours.
   await syncPostsFromServer();
   await syncNotificationsFromServer();
+  // The switches are answered on the phone and enforced in the database, so the
+  // database needs this account's answers before the first like lands.
+  void pushNotificationPrefs({ ...getSettings().notifications });
 
   const { data: row, error } = await db
     .from('profiles').select('*').eq('id', userId).single();

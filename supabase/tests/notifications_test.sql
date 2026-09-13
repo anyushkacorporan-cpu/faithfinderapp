@@ -150,3 +150,39 @@ insert into tickets (id, event_id, buyer_id, event_title, event_date, event_loca
                      event_type, quantity, price_per_ticket, total_paid, platform_fee, ticket_codes)
   values ('t3','user_nolimit','22222222-2222-2222-2222-222222222222','Open Door','Oct 2','Queens','Other',500,0,0,0,'{TKT-4}');
 select tickets_sold as five_hundred_seats_sold_with_no_limit from events where id='user_nolimit';
+
+-- ── Preferences the database can see (15_notification_prefs.sql) ────────────
+
+\echo '--- 22. Ana turns Likes off; Ben likes her post; no row is written'
+update profiles set notification_prefs = '{"likes": false}'::jsonb
+  where id = '11111111-1111-1111-1111-111111111111';
+insert into posts (id, author_id, author_name, content)
+  values ('post-p','11111111-1111-1111-1111-111111111111','Grace','Prefs test');
+insert into post_likes (post_id, user_id) values ('post-p','22222222-2222-2222-2222-222222222222');
+select count(*) as like_rows_for_ana from notifications
+  where user_id='11111111-1111-1111-1111-111111111111' and post_id='post-p' and type='like';
+
+\echo '--- 23. Comments still on, so a comment does arrive'
+insert into comments (id, post_id, author_id, author_name, text)
+  values ('cp1','post-p','22222222-2222-2222-2222-222222222222','Ben','Nice');
+select count(*) as comment_rows_for_ana from notifications
+  where user_id='11111111-1111-1111-1111-111111111111' and post_id='post-p' and type='comment';
+
+\echo '--- 24. turn Likes back on; the next like is written'
+update profiles set notification_prefs = '{"likes": true}'::jsonb
+  where id = '11111111-1111-1111-1111-111111111111';
+delete from post_likes where post_id='post-p';
+insert into post_likes (post_id, user_id) values ('post-p','33333333-3333-3333-3333-333333333333');
+select count(*) as like_rows_after_reenabling from notifications
+  where user_id='11111111-1111-1111-1111-111111111111' and post_id='post-p' and type='like';
+
+\echo '--- 25. a profile that never saved preferences still gets everything'
+select wants_notification('22222222-2222-2222-2222-222222222222','likes') as absent_means_on;
+
+\echo '--- 26. announcements: a follower with the switch off is skipped'
+update profiles set notification_prefs = '{"announcements": false}'::jsonb
+  where id = '22222222-2222-2222-2222-222222222222';
+insert into posts (id, author_id, author_name, content, is_announcement)
+  values ('post-ann2','11111111-1111-1111-1111-111111111111','Grace','Second announcement', true);
+select count(*) as announcement_rows_for_ben from notifications
+  where user_id='22222222-2222-2222-2222-222222222222' and post_id='post-ann2';

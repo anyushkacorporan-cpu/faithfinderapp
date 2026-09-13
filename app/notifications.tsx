@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Image } from 'react-native';
 import { formatRelativeTime } from '../src/lib/postsStore';
 import { Swipeable, GestureHandlerRootView } from 'react-native-gesture-handler';
 import { Ionicons } from '@expo/vector-icons';
@@ -9,11 +9,61 @@ import { useThemeColors, ThemeColors } from '../src/lib/theme';
 import { useNotifications, useUnreadCount, markRead, markAllRead, clearAllNotifications, clearNotification,
   syncNotificationsFromServer } from '../src/lib/notificationsStore';
 import { useTranslation } from '../src/lib/i18n';
+import { useProfile } from '../src/lib/profilesStore';
 
 const TYPE_KEYS: Record<string, string> = {
   like: 'typeLike', church_post: 'typeChurchPost', event: 'typeEvent',
   comment: 'typeComment', share: 'typeShare', invite: 'typeInvite', verification: 'typeVerification',
 };
+
+/**
+ * Who the notification is from.
+ *
+ * The list showed a coloured type icon and nothing else, so a row said what had
+ * happened without saying who — the one fact you look for first. The photo is
+ * resolved from the profile directory the way CommentAvatar does it, rather
+ * than copied onto the notification when it is made: a copy would be frozen at
+ * that moment and go stale the next time someone changes their picture.
+ *
+ * The type icon survives as a badge. It is how the list stays scannable, and
+ * losing it to gain the photo would be a trade, not an improvement.
+ *
+ * Deliberately not tappable. The row already has one action — open what the
+ * notification is about — and a second target inside it makes which one fired
+ * a matter of where a thumb landed.
+ */
+function NotifActor({ n }: { n: any }) {
+  const c = useThemeColors();
+  const s = makeStyles(c);
+  const profile = useProfile(n.actorId || undefined, n.actorName || undefined);
+  const photo = profile?.photo;
+
+  // No actor at all — an account since deleted, or a type that never had one.
+  // The icon on its own is the honest answer there.
+  if (!n.actorName) {
+    return (
+      <View style={[s.notifIconWrap, { backgroundColor: n.color + '20' }]}>
+        <Ionicons name={n.icon as any} size={20} color={n.color} />
+      </View>
+    );
+  }
+
+  const initials = n.actorName.trim().split(/\s+/).slice(0, 2)
+    .map((w: string) => w[0]).join('').toUpperCase();
+
+  return (
+    <View style={s.notifAvatarWrap}>
+      <View style={[s.notifAvatar, !photo && { backgroundColor: profile?.color || n.color }]}>
+        {photo
+          ? <Image source={{ uri: photo }} style={{ width: '100%', height: '100%' }} />
+          : <Text style={s.notifAvatarTxt}>{initials}</Text>}
+      </View>
+      <View style={[s.notifTypeBadge, { backgroundColor: n.color }]}>
+        <Ionicons name={n.icon as any} size={10} color="#fff" />
+      </View>
+    </View>
+  );
+}
 
 export default function NotificationsScreen() {
   const c = useThemeColors();
@@ -86,9 +136,7 @@ export default function NotificationsScreen() {
               )}
             >
               <TouchableOpacity style={[s.notifRow, !n.read && s.notifRowUnread]} onPress={() => handleNotifTap(n)} activeOpacity={0.75}>
-                <View style={[s.notifIconWrap, { backgroundColor: n.color + '20' }]}>
-                  <Ionicons name={n.icon as any} size={20} color={n.color} />
-                </View>
+                <NotifActor n={n} />
                 <View style={s.notifContent}>
                   <View style={s.notifTopRow}>
                     {/* Two lines, not one. Titles are built from a name and an action —
@@ -134,6 +182,13 @@ const makeStyles = (c: ThemeColors) => StyleSheet.create({
   deleteActionTxt:{color:'#fff',fontSize:11,fontWeight:'700'},
   notifRowUnread:{backgroundColor:'rgba(201,169,110,0.04)'},
   notifIconWrap:{width:46,height:46,borderRadius:14,alignItems:'center',justifyContent:'center',flexShrink:0},
+  notifAvatarWrap:{width:46,height:46,flexShrink:0},
+  notifAvatar:{width:46,height:46,borderRadius:23,overflow:'hidden',alignItems:'center',justifyContent:'center'},
+  notifAvatarTxt:{color:'#fff',fontWeight:'700',fontSize:16},
+  // Sits on the circle's lower edge, ringed in the screen's own background so
+  // it reads as a badge rather than a smudge on the photo.
+  notifTypeBadge:{position:'absolute',right:-2,bottom:-2,width:20,height:20,borderRadius:10,
+    alignItems:'center',justifyContent:'center',borderWidth:2,borderColor:c.bg},
   notifContent:{flex:1},
   notifTopRow:{flexDirection:'row',alignItems:'center',gap:6,marginBottom:3},
   notifTitle:{fontSize:14,fontWeight:'700',color:c.text,flex:1},

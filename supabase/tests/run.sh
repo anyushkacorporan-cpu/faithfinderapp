@@ -35,7 +35,7 @@ create table churches (id uuid primary key default gen_random_uuid(), name text)
 SHIM
 
 for f in 03_profiles 06_moderation 07_posts 09_connections 10_events 12_post_images \
-         13_notifications 14_fix_like_counts; do
+         13_notifications 14_fix_like_counts 15_notification_prefs; do
   printf '%-22s' "$f"
   out=$(su postgres -c "psql -h $DIR -p 5433 -d ff -qf $SQL/$f.sql" 2>&1 \
         | grep -v 'NOTICE\|role "authenticated" does not exist' || true)
