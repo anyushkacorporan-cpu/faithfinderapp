@@ -1,7 +1,7 @@
 import { load, save } from './persist';
 import { guessLanguage, worthDetecting } from './languageGuess';
 
-import { GOOGLE_API_KEY } from './googleConfig';
+import { GOOGLE_API_KEY, googleHeaders } from './googleConfig';
 const API_KEY = GOOGLE_API_KEY;
 
 export type TranslateResult = {
@@ -66,10 +66,11 @@ export async function detectLanguage(text: string): Promise<string | null> {
   try {
     const res = await fetch(`https://translation.googleapis.com/language/translate/v2/detect?key=${API_KEY}`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: googleHeaders({ 'Content-Type': 'application/json' }),
       body: JSON.stringify({ q: text }),
     });
     const data = await res.json();
+    if (!res.ok) { translateFailed('detect a language', data); return null; }
     const lang = data?.data?.detections?.[0]?.[0]?.language || null;
     if (lang) remember(key, lang);
     return lang;
@@ -78,15 +79,24 @@ export async function detectLanguage(text: string): Promise<string | null> {
   }
 }
 
+/**
+ * Say when Google refused, rather than returning null and leaving the Translate
+ * button looking like it does nothing.
+ */
+function translateFailed(what: string, body: any): void {
+  console.warn(`[google] could not ${what}: ${body?.error?.message || 'unknown error'}`);
+}
+
 export async function translateText(text: string, targetLang: string = 'en'): Promise<TranslateResult | null> {
   if (!text || !text.trim()) return null;
   try {
     const res = await fetch(`https://translation.googleapis.com/language/translate/v2?key=${API_KEY}`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: googleHeaders({ 'Content-Type': 'application/json' }),
       body: JSON.stringify({ q: text, target: targetLang, format: 'text' }),
     });
     const data = await res.json();
+    if (!res.ok) { translateFailed('translate', data); return null; }
     const translation = data?.data?.translations?.[0];
     if (!translation) return null;
     return {

@@ -74,6 +74,19 @@ function toChurch(r: any): ChurchRow {
  * so this costs the same whether the table holds two thousand churches or three
  * hundred thousand.
  */
+/**
+ * Say when the directory itself failed.
+ *
+ * These all return null on failure and the screens handle that properly — they
+ * fall back to the full list rather than reporting an empty neighbourhood. But
+ * nothing said why, so a broken query and a genuinely quiet area were the same
+ * event from outside.
+ */
+function lookupFailed(what: string, error: { message?: string; code?: string } | null): void {
+  if (!error) return;
+  console.warn(`[db] could not ${what}: ${error.message || 'unknown error'}${error.code ? ` [${error.code}]` : ''}`);
+}
+
 export async function nearbyChurches(
   lat: number,
   lng: number,
@@ -90,7 +103,7 @@ export async function nearbyChurches(
       max_rows: opts.limit ?? 40,
       denom: opts.denomination ?? null,
     });
-    if (error) return null;
+    if (error) { lookupFailed('read the church directory', error); return null; }
     return (data || []).map(toChurch);
   } catch {
     return null;
@@ -114,7 +127,7 @@ export async function churchesInRegion(
       .eq('state', stateCode);
     if (opts.denomination) q = q.eq('denomination', opts.denomination);
     const { data, error } = await q.limit(opts.limit ?? 60);
-    if (error) return null;
+    if (error) { lookupFailed('read the church directory', error); return null; }
     return (data || []).map(toChurch);
   } catch {
     return null;
@@ -150,7 +163,7 @@ export async function searchChurches(
       let z = db.from('churches_public').select(COLS).eq('zip', q);
       if (opts.denomination) z = z.eq('denomination', opts.denomination);
       const { data, error } = await z.limit(limit);
-      if (error) return null;
+      if (error) { lookupFailed('read the church directory', error); return null; }
       return (data || []).map(toChurch);
     } catch { return null; }
   }
@@ -171,7 +184,7 @@ export async function searchChurches(
       .or(`name.ilike.%${safe}%,city.ilike.%${safe}%,address.ilike.%${safe}%,denomination.ilike.%${safe}%`);
     if (opts.denomination) f = f.eq('denomination', opts.denomination);
     const { data, error } = await f.limit(limit);
-    if (error) return null;
+    if (error) { lookupFailed('read the church directory', error); return null; }
     return (data || []).map(toChurch);
   } catch {
     return null;
