@@ -10,6 +10,8 @@ import { syncNotificationsFromServer } from './notificationsStore';
 import { uploadImage } from './postsApi';
 import { pushNotificationPrefs } from './notificationsApi';
 import { getSettings } from './settingsStore';
+import { syncSavedEventsFromServer } from './eventActionsStore';
+import { syncHiddenFromServer } from './hiddenStore';
 
 /**
  * Keeps the account's profile and the on-device user in step.
@@ -90,6 +92,8 @@ export async function syncProfileAfterSignIn(userId: string): Promise<void> {
   await syncConnectionsAfterSignIn();
   await syncEventsFromServer();
   await syncTicketsFromServer();
+  await syncSavedEventsFromServer();
+  await syncHiddenFromServer();
   // The feed is the point of the app being shared at all; pull it as soon as
   // we know who is asking, so likes come back marked as yours.
   await syncPostsFromServer();

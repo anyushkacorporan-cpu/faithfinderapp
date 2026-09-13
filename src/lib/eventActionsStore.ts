@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { load, save } from './persist';
+import * as api from './listsApi';
 
 let savedEvents: string[] = [];
 let attendingEvents: string[] = [];
@@ -32,11 +33,31 @@ export function isEventSaved(id: string) { return savedEvents.includes(id); }
 export function isEventAttending(id: string) { return attendingEvents.includes(id); }
 
 export function toggleSaveEvent(id: string) {
-  if (savedEvents.includes(id)) {
-    savedEvents = savedEvents.filter(e => e !== id);
-  } else {
-    savedEvents = [...savedEvents, id];
-  }
+  const wasSaved = savedEvents.includes(id);
+  savedEvents = wasSaved ? savedEvents.filter(e => e !== id) : [...savedEvents, id];
+  persist(); notify();
+  void (wasSaved ? api.unsaveEventRemote(id) : api.saveEventRemote(id));
+}
+
+/**
+ * Bring the saved list in from the server.
+ *
+ * A union rather than a replacement. Saving happens on a phone and the write
+ * that follows can fail, so a device may hold something the server has not
+ * heard about yet — and dropping it here would lose the save rather than sync
+ * it. Anything local that the server is missing is pushed while we are here.
+ *
+ * Attending is left alone: tickets are its source of truth and they arrive
+ * through their own sync.
+ */
+export async function syncSavedEventsFromServer(): Promise<void> {
+  const remote = await api.fetchSavedEvents();
+  if (!remote) return;
+
+  const localOnly = savedEvents.filter(id => !remote.includes(id));
+  for (const id of localOnly) void api.saveEventRemote(id);
+
+  savedEvents = [...remote, ...localOnly];
   persist(); notify();
 }
 

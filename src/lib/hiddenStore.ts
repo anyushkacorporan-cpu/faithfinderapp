@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { load, save } from './persist';
+import * as api from './listsApi';
 
 /**
  * Posts this person has chosen not to see again.
@@ -40,12 +41,32 @@ export function hidePost(postId: string) {
   hidden = [...hidden, postId];
   persist();
   notify();
+  void api.hidePostRemote(postId);
 }
 
 export function unhidePost(postId: string) {
   hidden = hidden.filter(id => id !== postId);
   persist();
   notify();
+  void api.unhidePostRemote(postId);
+}
+
+/**
+ * Bring the hidden list in from the server.
+ *
+ * A union, for the same reason the saved list is one: a post hidden while the
+ * write failed is still hidden as far as the person who hid it is concerned,
+ * and replacing the local list would put it back in front of them.
+ */
+export async function syncHiddenFromServer(): Promise<void> {
+  const remote = await api.fetchHiddenPosts();
+  if (!remote) return;
+
+  const localOnly = hidden.filter(id => !remote.includes(id));
+  for (const id of localOnly) void api.hidePostRemote(id);
+
+  hidden = [...remote, ...localOnly];
+  persist(); notify();
 }
 
 export function useHidden(): string[] {

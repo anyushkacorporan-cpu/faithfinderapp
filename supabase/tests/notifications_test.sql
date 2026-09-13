@@ -186,3 +186,39 @@ insert into posts (id, author_id, author_name, content, is_announcement)
   values ('post-ann2','11111111-1111-1111-1111-111111111111','Grace','Second announcement', true);
 select count(*) as announcement_rows_for_ben from notifications
   where user_id='22222222-2222-2222-2222-222222222222' and post_id='post-ann2';
+
+-- ── Saved events and hidden posts (16_saved_and_hidden.sql) ─────────────────
+
+\echo '--- 27. an id with nothing behind it still saves (no foreign key)'
+insert into saved_events (user_id, event_id)
+  values ('22222222-2222-2222-2222-222222222222','seeded-demo-event-3');
+insert into hidden_posts (user_id, post_id)
+  values ('22222222-2222-2222-2222-222222222222','offline-post-not-uploaded');
+select (select count(*) from saved_events) as saved,
+       (select count(*) from hidden_posts) as hidden;
+
+\echo '--- 28. saving the same event twice is one row'
+insert into saved_events (user_id, event_id)
+  values ('22222222-2222-2222-2222-222222222222','seeded-demo-event-3')
+  on conflict (user_id, event_id) do nothing;
+select count(*) as still_one from saved_events
+  where event_id = 'seeded-demo-event-3';
+
+\echo '--- 29. Ana cannot see or touch what Ben saved or hid'
+set role app;
+grant usage on schema public to app;
+reset role;
+grant select, insert, update, delete on saved_events, hidden_posts to app;
+set role app;
+set request.jwt.claim.sub = '11111111-1111-1111-1111-111111111111';  -- Ana
+select (select count(*) from saved_events) as anas_view_of_saved,
+       (select count(*) from hidden_posts) as anas_view_of_hidden;
+do $$
+begin
+  insert into saved_events (user_id, event_id)
+    values ('22222222-2222-2222-2222-222222222222','sneaky');
+  raise notice 'FAIL: Ana saved something onto Ben''s account';
+exception when insufficient_privilege then
+  raise notice 'PASS: blocked by row-level security';
+end $$;
+reset role;

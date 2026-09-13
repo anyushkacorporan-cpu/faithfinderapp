@@ -16,6 +16,8 @@ import { syncPostsFromServer } from '../src/lib/postsStore';
 import { syncNotificationsFromServer } from '../src/lib/notificationsStore';
 import { syncTicketsFromServer } from '../src/lib/ticketStore';
 import { syncEventsFromServer } from '../src/lib/eventsStore';
+import { syncSavedEventsFromServer } from '../src/lib/eventActionsStore';
+import { syncHiddenFromServer } from '../src/lib/hiddenStore';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -39,6 +41,8 @@ function AuthLinks() {
     void syncNotificationsFromServer();
     void syncEventsFromServer();
     void syncTicketsFromServer();
+    void syncSavedEventsFromServer();
+    void syncHiddenFromServer();
   }, [ready, user?.id]);
 
   return null;
