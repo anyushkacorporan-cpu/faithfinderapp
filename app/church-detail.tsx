@@ -311,7 +311,7 @@ export default function ChurchDetailScreen() {
               <Ionicons name="location-outline" size={13} color={c.textMuted} />
               <Text style={s.metaTxt} numberOfLines={1}>{church.address.split(',').slice(-2).join(',').trim()}</Text>
             </View>
-            {church.count > 0 && <Text style={s.reviewCount}><Text style={s.reviewNum}>{church.count}</Text> Google reviews</Text>}
+            {church.count > 0 && <Text style={s.reviewCount}><Text style={s.reviewNum}>{church.count}</Text> {t('googleReviews')}</Text>}
           </View>
         </View>
 
@@ -583,7 +583,7 @@ export default function ChurchDetailScreen() {
                     <Text style={s.quotedDesc} numberOfLines={2}>{church.description}</Text>
                   )}
                   <View style={s.quotedFooter}>
-                    <Text style={s.quotedLink}>View church on FaithFinder →</Text>
+                    <Text style={s.quotedLink}>{t('viewChurchOnFaithFinder')}</Text>
                   </View>
                 </View>
               </View>

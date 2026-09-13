@@ -64,7 +64,10 @@ export default function ProfileScreen() {
   function handleDeleteGalleryPhoto(item: { uri: string; post: any }) {
     Alert.alert(
       tx('Delete Photo?'),
-      tx('This photo will be removed from your Faith Gallery') + (item.post ? ' and from the Community post it was shared in.' : '.'),
+      // Two whole sentences rather than one with a clause bolted on. Spanish does
+      // not put the pieces in the English order, so a glued fragment reads wrong
+      // there however well each half is translated.
+      item.post ? t('photoRemovedFromGalleryAndPost') : t('photoRemovedFromGallery'),
       [
         { text: tx('Cancel'), style: 'cancel' },
         {

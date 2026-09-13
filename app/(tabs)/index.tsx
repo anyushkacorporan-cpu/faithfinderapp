@@ -409,7 +409,7 @@ export default function ChurchesScreen() {
           <Text style={s.sectionTitle}>
             {activeTab === 'Saved' ? t('savedChurches') : searchResults !== null ? `${t('resultsFor')} "${search || activeRegion?.name || ''}"` : nearbyChurches !== null ? t('nearbyChurches') : t('allChurches')}
           </Text>
-          <Text style={s.sectionSub}>{displayed.length} found</Text>
+          <Text style={s.sectionSub}>{displayed.length} {t('found')}</Text>
         </View>
 
         {/* When there is no nearby list, say why rather than quietly showing the

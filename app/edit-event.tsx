@@ -126,7 +126,7 @@ export default function EditEventScreen() {
           )}
 
           <View style={s.fieldWrap}>
-            <Text style={s.label}>Capacity</Text>
+            <Text style={s.label}>{t('capacity')}</Text>
             <TextInput style={s.input} value={capacityText} onChangeText={v=>setCapacityText(v.replace(/\D/g,''))} placeholder="No limit" placeholderTextColor={c.placeholder} keyboardType="number-pad" />
             {/* Lowering capacity below what is already sold would put the
                 event into a state where it has oversold itself, so the floor

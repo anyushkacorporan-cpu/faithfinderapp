@@ -569,7 +569,7 @@ export default function EventDetailScreen() {
                       <Text style={{fontSize:12,color:c.textMuted,flex:1}} numberOfLines={1}>{(fullEvent?.location || params.location)}</Text>
                     </View>
                     <View style={{borderTopWidth:1,borderTopColor:c.border,paddingTop:8}}>
-                      <Text style={{fontSize:12,color:c.gold,fontWeight:'700'}}>View event on FaithFinder →</Text>
+                      <Text style={{fontSize:12,color:c.gold,fontWeight:'700'}}>{t('viewEventOnFaithFinder')}</Text>
                     </View>
                   </View>
                 </View>
@@ -683,7 +683,7 @@ export default function EventDetailScreen() {
                       <Text style={{fontSize:12,color:c.textMuted,flex:1}} numberOfLines={1}>{(fullEvent?.location || params.location)}</Text>
                     </View>
                     <View style={{borderTopWidth:1,borderTopColor:c.border,paddingTop:8}}>
-                      <Text style={{fontSize:12,color:c.gold,fontWeight:'700'}}>View event on FaithFinder →</Text>
+                      <Text style={{fontSize:12,color:c.gold,fontWeight:'700'}}>{t('viewEventOnFaithFinder')}</Text>
                     </View>
                   </View>
                 </View>

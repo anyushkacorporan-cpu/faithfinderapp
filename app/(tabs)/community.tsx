@@ -256,7 +256,7 @@ export default function CommunityScreen() {
       {activeTab === 'discover' && (
         <View style={s.discoverBanner}>
           <Ionicons name="earth-outline" size={14} color={c.gold} />
-          <Text style={s.discoverTxt}>Believers from all 50 states · Join the conversation</Text>
+          <Text style={s.discoverTxt}>{t('discoverBanner')}</Text>
         </View>
       )}
 

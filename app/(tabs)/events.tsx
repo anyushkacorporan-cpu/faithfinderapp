@@ -254,7 +254,7 @@ export default function EventsScreen() {
                 </View>
                 <Text style={{fontSize:15,fontWeight:'700',color:c.text}}>{t('nearbyEventsTitle')}</Text>
               </View>
-              <Text style={{fontSize:12,color:c.textMuted}}>{nearbyEvents.length} found</Text>
+              <Text style={{fontSize:12,color:c.textMuted}}>{nearbyEvents.length} {t('found')}</Text>
             </View>
             {nearbyEvents.map((event: any) => {
               const gradient = (event.bannerColor || GRADIENTS[event.type] || GRADIENTS['Other']) as [string,string];
@@ -325,10 +325,9 @@ export default function EventsScreen() {
             </View>
             <Text style={{fontSize:16,fontWeight:'700',color:c.text}}>{t('allEvents')}</Text>
           </View>
-          <Text style={{fontSize:12,color:c.textMuted,fontWeight:'600'}}>{filtered.length} found</Text>
+          <Text style={{fontSize:12,color:c.textMuted,fontWeight:'600'}}>{filtered.length} {t('found')}</Text>
         </View>
 
-        <Text style={{display:'none'}}>{filtered.length} event{filtered.length !== 1 ? 's' : ''} found</Text>
 
         {filtered.length === 0 && (
           <View style={s.empty}>

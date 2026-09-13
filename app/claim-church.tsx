@@ -214,7 +214,7 @@ export default function ClaimChurchScreen() {
 
             <TouchableOpacity style={s.addNewBtn} onPress={() => router.push('/register-church')}>
               <Ionicons name="add-circle-outline" size={20} color={COLORS.navy} />
-              <Text style={s.addNewTxt}>My church isn't listed — Add it</Text>
+              <Text style={s.addNewTxt}>{t('churchNotListedAddIt')}</Text>
             </TouchableOpacity>
           </View>
         )}

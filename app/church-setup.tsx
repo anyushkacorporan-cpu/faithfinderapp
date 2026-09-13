@@ -44,7 +44,7 @@ export default function ChurchSetupScreen() {
               </View>
               <View style={s.optionInfo}>
                 <Text style={s.optionTitle}>{t('claimYourChurch')}</Text>
-                <Text style={s.optionDesc}>Your church is already listed on FaithFinder. Claim it as the official account.</Text>
+                <Text style={s.optionDesc}>{t('churchAlreadyListed')}</Text>
                 <View style={s.optionTag}>
                   <Ionicons name="checkmark-circle" size={13} color={COLORS.green} />
                   <Text style={s.optionTagTxt}>{t('alreadyInFaithFinder')}</Text>
