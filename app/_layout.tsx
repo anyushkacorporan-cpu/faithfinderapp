@@ -14,6 +14,7 @@ import { useToast } from '../src/components/Toast';
 import { useAuth } from '../src/lib/auth';
 import { syncPostsFromServer } from '../src/lib/postsStore';
 import { syncNotificationsFromServer } from '../src/lib/notificationsStore';
+import { syncTicketsFromServer } from '../src/lib/ticketStore';
 import { syncEventsFromServer } from '../src/lib/eventsStore';
 
 SplashScreen.preventAutoHideAsync();
@@ -37,6 +38,7 @@ function AuthLinks() {
     void syncPostsFromServer();
     void syncNotificationsFromServer();
     void syncEventsFromServer();
+    void syncTicketsFromServer();
   }, [ready, user?.id]);
 
   return null;

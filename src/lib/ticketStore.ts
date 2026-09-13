@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { load, save } from './persist';
 import { newId, newShortCode } from './ids';
 import * as api from './eventsApi';
+import { addAttending } from './eventActionsStore';
 
 export type Ticket = {
   id: string;
@@ -83,12 +84,12 @@ export async function purchaseTicket(
 }
 
 /**
- * Bring tickets in from the server at sign-in.
+ * Bring tickets in from the server.
  *
  * A ticket that lives only on the phone that bought it is lost with the phone,
  * and cannot be shown on a second device at the door.
  */
-export async function syncTicketsAfterSignIn(): Promise<void> {
+export async function syncTicketsFromServer(): Promise<void> {
   const remote = await api.fetchTickets();
   if (!remote) return;
 
@@ -98,6 +99,22 @@ export async function syncTicketsAfterSignIn(): Promise<void> {
   tickets = [...remote, ...localOnly].sort((a, b) => b.purchasedAt - a.purchasedAt);
   persist();
   notify();
+
+  // Holding a ticket is what being registered means, so say so.
+  //
+  // addAttending was only ever called at the end of checkout, which is the one
+  // moment it is already known. On a new phone the tickets came back from the
+  // server and that flag did not, so an event someone holds a ticket to offered
+  // them Register — and, since the calendar button now asks the same flag,
+  // refused to add it to their calendar too.
+  //
+  // Additive on purpose. A ticket missing from this list is not evidence that
+  // someone is no longer going: a partial sync or a ticket bought on another
+  // device would both look like that, and unregistering somebody over it is
+  // the worse mistake.
+  for (const t of tickets) {
+    if (t.eventId) addAttending(t.eventId);
+  }
 }
 
 export function useTickets() {
