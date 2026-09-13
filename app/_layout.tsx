@@ -4,7 +4,7 @@ import { useFonts, DMSans_400Regular, DMSans_600SemiBold, DMSans_700Bold } from 
 import { PlayfairDisplay_700Bold, PlayfairDisplay_400Regular_Italic, PlayfairDisplay_400Regular } from '@expo-google-fonts/playfair-display';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
-import { StripeProvider } from '@stripe/stripe-react-native';
+import { StripeProvider } from '../src/lib/payments';
 import { STRIPE_PUBLISHABLE_KEY, STRIPE_MERCHANT_ID } from '../src/lib/stripeConfig';
 import { ToastProvider } from '../src/components/Toast';
 import { ConfirmProvider } from '../src/components/Confirm';

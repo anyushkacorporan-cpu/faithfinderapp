@@ -9,7 +9,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useThemeColors, ThemeColors } from '../src/lib/theme';
 import { useTranslation } from '../src/lib/i18n';
 import { addAttending } from '../src/lib/eventActionsStore';
-import { useStripe } from '@stripe/stripe-react-native';
+import { useStripe } from '../src/lib/payments';
 import { purchaseTicket, syncTicketsFromServer } from '../src/lib/ticketStore';
 import { recordTicketSale, syncEventsFromServer, ensureEventOnServer } from '../src/lib/eventsStore';
 import { startPayment, confirmPayment } from '../src/lib/paymentsApi';
