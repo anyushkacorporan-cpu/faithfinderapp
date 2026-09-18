@@ -334,6 +334,9 @@ const translations: Record<string, Record<Lang, string>> = {
   processingFee: { English: 'Processing Fee', Español: 'Tarifa de Procesamiento' },
   feesPaidByBuyer: { English: 'Fees (paid by buyer)', Español: 'Tarifas (pagadas por el comprador)' },
   buyerPays: { English: 'Buyer Pays', Español: 'El Comprador Paga' },
+  thePriceHasChanged: { English: 'The price has changed', Español: 'El precio ha cambiado' },
+  thisEventNowCosts: { English: 'This event now costs', Español: 'Este evento ahora cuesta' },
+  inTotal: { English: 'in total', Español: 'en total' },
   total: { English: 'Total', Español: 'Total' },
   payLater: { English: 'Pay Later', Español: 'Pagar Después' },
 

@@ -123,6 +123,31 @@ export default function EventCheckoutScreen() {
       return;
     }
 
+    // The summary above was priced from the route params this screen was
+    // opened with. The server prices from the event row, and the two disagree
+    // if the organiser changed the price while this screen sat open. The
+    // server's number is the one the card will be charged, so if it differs,
+    // say so and let them decide rather than debiting a figure they never saw.
+    if (Math.abs(payment.amount - total) >= 0.01) {
+      const agreedToNewPrice = await new Promise<boolean>(resolve => {
+        Alert.alert(
+          tx('The price has changed'),
+          `${tx('This event now costs')} $${payment.amount.toFixed(2)} ${tx('in total')}.`,
+          [
+            { text: tx('Cancel'), style: 'cancel', onPress: () => resolve(false) },
+            { text: tx('Continue'), onPress: () => resolve(true) },
+          ],
+        );
+      });
+      if (!agreedToNewPrice) {
+        setProcessing(false);
+        // Same as cancelling the sheet: hand the held seats back rather than
+        // leaving them off sale for a purchase that is not happening.
+        await confirmPayment(payment.ticketId);
+        return;
+      }
+    }
+
     const init = await initPaymentSheet({
       merchantDisplayName: 'FaithFinder',
       paymentIntentClientSecret: payment.clientSecret,
@@ -167,15 +192,21 @@ export default function EventCheckoutScreen() {
     await syncTicketsFromServer();
     await syncEventsFromServer();
     addAttending(params.id || '');
-    goToTicket(payment.ticketCodes);
+    goToTicket(payment.ticketCodes, payment.amount);
   }
 
-  function goToTicket(ticketIds: string[]) {
+  /**
+   * `charged` is what the card was actually debited, which is the server's
+   * figure and not necessarily the one this screen quoted. A receipt that
+   * disagrees with the bank statement is worse than no receipt.
+   */
+  function goToTicket(ticketIds: string[], charged?: number) {
     router.replace({
       pathname: '/ticket-success',
       params: {
         id: params.id, title: params.title, date: params.date,
-        location: params.location, price: isFree ? 'Free' : '$' + total.toFixed(2),
+        location: params.location,
+        price: isFree ? 'Free' : '$' + (charged ?? total).toFixed(2),
         type: params.type, organizer: params.organizer || '',
         quantity: String(quantity), ticketIds: ticketIds.join(','),
       }
