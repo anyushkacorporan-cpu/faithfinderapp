@@ -35,7 +35,7 @@ export default function TermsScreen() {
         <Text style={s.p}>FaithFinder is a community built on respect and faith. We do not tolerate harassment, hate speech, spam, or impersonation. Reported content will be reviewed, and accounts that violate these standards may be suspended or removed.</Text>
 
         <Text style={s.h2}>6. Events & Payments</Text>
-        <Text style={s.p}>FaithFinder facilitates event registration and ticket purchases through Stripe. A platform fee (currently 1.5%) applies to paid ticket transactions. Refunds, cancellations, and event changes are managed by the event organizer (church or individual host), not by FaithFinder. We are not responsible for events hosted by third parties.</Text>
+        <Text style={s.p}>FaithFinder facilitates event registration and ticket purchases through Stripe. A service fee (currently 5% of the ticket price, capped at $5 per ticket) and a card processing fee apply to paid ticket transactions. Both are added at checkout and paid by the buyer, and both are shown separately before payment. Free events carry no fees. Service and processing fees are not refundable on a refunded ticket. Refunds, cancellations, and event changes are managed by the event organizer (church or individual host), not by FaithFinder. We are not responsible for events hosted by third parties.</Text>
 
         <Text style={s.h2}>7. Church Profiles</Text>
         <Text style={s.p}>Church accounts are responsible for the accuracy of their listing, service times, and event information. FaithFinder does not verify denominational claims or doctrine and is not responsible for the content or conduct of any listed church.</Text>

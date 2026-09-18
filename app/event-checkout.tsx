@@ -14,6 +14,7 @@ import { purchaseTicket, syncTicketsFromServer } from '../src/lib/ticketStore';
 import { recordTicketSale, syncEventsFromServer, ensureEventOnServer } from '../src/lib/eventsStore';
 import { startPayment, confirmPayment } from '../src/lib/paymentsApi';
 import { hasStripe } from '../src/lib/stripeConfig';
+import { priceBreakdown } from '../src/lib/ticketPricing';
 import { KeyboardScreen } from '../src/components/KeyboardScreen';
 
 export default function EventCheckoutScreen() {
@@ -35,9 +36,11 @@ export default function EventCheckoutScreen() {
   const priceStr = params.price || '0';
   const isFree = priceStr === 'Free' || priceStr === '0' || priceStr === '';
   const ticketPrice = isFree ? 0 : parseFloat(priceStr.replace('$','') || '0');
-  const subtotal = ticketPrice * quantity;
-  const platformFee = isFree ? 0 : parseFloat((subtotal * 0.015).toFixed(2));
-  const total = isFree ? 0 : parseFloat((subtotal + platformFee).toFixed(2));
+  // One calculation, shared with the organiser's preview and with the server
+  // that charges the card. These three used to be worked out here and only
+  // here, and the server charged the base price without the fee — the summary
+  // below said one number and the card was debited another.
+  const { subtotal, platformFee, processingFee, total } = priceBreakdown(ticketPrice, quantity);
 
 
   async function handlePay() {
@@ -243,11 +246,20 @@ export default function EventCheckoutScreen() {
               <Text style={s.orderLbl}>{quantity}× {isFree ? 'Registration' : `Ticket${quantity>1?'s':''}`}</Text>
               <Text style={s.orderVal}>{isFree ? 'Free' : `$${subtotal.toFixed(2)}`}</Text>
             </View>
+            {/* Both fees, named and separate. A total that is bigger than the
+                ticket price with no explanation for the difference is the
+                single most common reason a buyer disputes a charge. */}
             {!isFree && (
-              <View style={s.orderRow}>
-                <Text style={s.orderLbl}>{t('platformFee')}</Text>
-                <Text style={s.orderVal}>${platformFee.toFixed(2)}</Text>
-              </View>
+              <>
+                <View style={s.orderRow}>
+                  <Text style={s.orderLbl}>{t('serviceFee')}</Text>
+                  <Text style={s.orderVal}>${platformFee.toFixed(2)}</Text>
+                </View>
+                <View style={s.orderRow}>
+                  <Text style={s.orderLbl}>{t('processingFee')}</Text>
+                  <Text style={s.orderVal}>${processingFee.toFixed(2)}</Text>
+                </View>
+              </>
             )}
             <View style={[s.orderRow, {marginTop:8}]}>
               <Text style={s.orderTotalLbl}>{t('total')}</Text>

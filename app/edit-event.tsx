@@ -7,6 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useThemeColors, ThemeColors } from '../src/lib/theme';
 import { getEvents, updateEvent, formatPrice } from '../src/lib/eventsStore';
 import { KeyboardScreen } from '../src/components/KeyboardScreen';
+import { platformFeePerTicket, organizerPayoutPerTicket } from '../src/lib/ticketPricing';
 
 export default function EditEventScreen() {
   const { t, tx } = useTranslation();
@@ -48,7 +49,7 @@ export default function EditEventScreen() {
       Alert.alert(tx('Invalid price'), tx('Please enter a valid ticket price.'));
       return;
     }
-    const platformFee = isPaid ? parseFloat((parsedPrice * 0.015).toFixed(2)) : 0;
+    const platformFee = isPaid ? platformFeePerTicket(parsedPrice) : 0;
     const creatorPayout = isPaid ? parseFloat((parsedPrice - platformFee).toFixed(2)) : 0;
     updateEvent(event!.id, {
       title: title.trim(),

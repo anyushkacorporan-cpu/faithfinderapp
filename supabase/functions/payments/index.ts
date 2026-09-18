@@ -102,9 +102,25 @@ Deno.serve(async (req) => {
     // request except the count, and that is bounded above.
     const unit = Number(event.ticket_price) || 0;
     const fee = Number(event.platform_fee) || 0;
-    const total = +(unit * quantity).toFixed(2);
+    const subtotal = +(unit * quantity).toFixed(2);
     const totalFee = +(fee * quantity).toFixed(2);
-    if (total <= 0) return json({ error: 'That event has no ticket price set.' }, 400);
+    if (subtotal <= 0) return json({ error: 'That event has no ticket price set.' }, 400);
+
+    // What the card is actually charged: the organiser's price, our fee, and
+    // Stripe's own cut recovered from the buyer.
+    //
+    // This used to charge `subtotal` alone while the checkout screen showed a
+    // total with the platform fee added — the app quoted one number and the
+    // card was debited another, and the difference came out of the platform.
+    // Stripe takes its percentage of the final total, including the part that
+    // is there to pay Stripe, so the figure is solved for rather than added.
+    //
+    // Keep these two constants and this formula in step with
+    // src/lib/ticketPricing.ts, which is what the buyer was shown.
+    const STRIPE_RATE = 0.029;
+    const STRIPE_FLAT = 0.30;
+    const total = Math.ceil(((subtotal + totalFee + STRIPE_FLAT) / (1 - STRIPE_RATE)) * 100 - 1e-9) / 100;
+    const processingFee = +(total - subtotal - totalFee).toFixed(2);
 
     const ticketId = crypto.randomUUID();
     const codes = Array.from({ length: quantity }, () =>
@@ -126,6 +142,7 @@ Deno.serve(async (req) => {
       price_per_ticket: unit,
       total_paid: total,
       platform_fee: totalFee,
+      processing_fee: processingFee,
       currency: event.currency ?? 'USD',
       ticket_codes: codes,
       status: 'pending',

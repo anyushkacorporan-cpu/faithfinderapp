@@ -83,7 +83,7 @@ export default function EarningsScreen() {
             <View style={s.statsGrid}>
               {[
                 { label: 'Gross Revenue', value: formatCurrency(earnings.grossRevenue), icon: 'trending-up', color: '#667eea' },
-                { label: 'Platform Fees', value: formatCurrency(earnings.totalFees), icon: 'remove-circle', color: c.red },
+                { label: 'Fees Paid by Buyers', value: formatCurrency(earnings.totalFees), icon: 'information-circle', color: c.textMuted },
                 { label: 'Net Revenue', value: formatCurrency(earnings.netRevenue), icon: 'checkmark-circle', color: c.green },
                 { label: 'Pending Payout', value: formatCurrency(earnings.pendingPayout), icon: 'time', color: c.gold },
                 { label: 'Completed Payout', value: formatCurrency(earnings.completedPayout), icon: 'wallet', color: '#43e97b' },

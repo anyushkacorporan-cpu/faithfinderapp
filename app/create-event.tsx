@@ -17,6 +17,7 @@ import { useTranslation } from '../src/lib/i18n';
 import { suggestAddresses, resolveAddress, newSessionToken, AddressSuggestion } from '../src/lib/addressAutocomplete';
 
 import { KeyboardScreen, KEYBOARD_SCROLL_PROPS } from '../src/components/KeyboardScreen';
+import { priceBreakdown, platformFeePerTicket, organizerPayoutPerTicket } from '../src/lib/ticketPricing';
 const EVENT_TYPES = ['Conference','Festival','Workshop','Revival','Service','Concert','Retreat','Other'];
 const SPEAKER_COLORS = ['#667eea','#f093fb','#4facfe','#43e97b','#fa709a','#c9a96e'];
 const RECURRENCE_OPTIONS = [
@@ -171,8 +172,12 @@ export default function CreateEventScreen() {
   const [submitting, setSubmitting] = useState(false);
 
   const price = parseFloat(ticketPrice)||0;
-  const platformFee = isPaid ? parseFloat((price*0.015).toFixed(2)) : 0;
-  const creatorPayout = isPaid ? parseFloat((price-platformFee).toFixed(2)) : 0;
+  // The organiser's side of the same calculation the buyer sees at checkout.
+  // Their payout is the price itself — the fees are added on top for the
+  // buyer, not taken out of what the organiser asked for.
+  const buyerPays = isPaid ? priceBreakdown(price, 1).total : 0;
+  const platformFee = isPaid ? platformFeePerTicket(price) : 0;
+  const creatorPayout = isPaid ? organizerPayoutPerTicket(price) : 0;
 
   const displayDate = startDate
     ? (endDate && endDate.toDateString()!==startDate.toDateString()
@@ -711,7 +716,8 @@ export default function CreateEventScreen() {
                     <View style={s.feeCard}>
                       <Text style={s.feeCardTitle}>{t('revenueBreakdown')}</Text>
                       <View style={s.feeRow}><Text style={s.feeLbl}>{t('ticketPriceLabel')}</Text><Text style={s.feeVal}>${price.toFixed(2)}</Text></View>
-                      <View style={s.feeRow}><Text style={s.feeLbl}>Platform Fee (1.5%)</Text><Text style={[s.feeVal,{color:c.red}]}>-${platformFee.toFixed(2)}</Text></View>
+                      <View style={s.feeRow}><Text style={s.feeLbl}>{t('feesPaidByBuyer')}</Text><Text style={s.feeVal}>+${(buyerPays - price).toFixed(2)}</Text></View>
+                      <View style={s.feeRow}><Text style={s.feeLbl}>{t('buyerPays')}</Text><Text style={s.feeVal}>${buyerPays.toFixed(2)}</Text></View>
                       <View style={[s.feeRow,s.feeTotalRow]}><Text style={s.feeTotalLbl}>{t('youReceive')}</Text><Text style={[s.feeVal,{color:c.green,fontWeight:'700',fontSize:17}]}>${creatorPayout.toFixed(2)}</Text></View>
                     </View>
                   )}

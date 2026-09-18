@@ -3,6 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { EVENTS as SEED_EVENTS, EVENT_DETAILS as SEED_EVENT_DETAILS } from './constants';
 import * as api from './eventsApi';
 import { getUser } from './userStore';
+import { platformFeePerTicket, organizerPayoutPerTicket } from './ticketPricing';
 
 const EVENTS_KEY = 'faithfinder_events_v1';
 
@@ -181,8 +182,12 @@ export function getUserEvents() { return [...events].sort((a,b) => b.createdAt -
 
 export function addEvent(event: Omit<AppEvent, 'id' | 'createdAt' | 'bannerColor' | 'platformFee' | 'creatorPayout' | 'ticketsSold' | 'attending'> & { capacity?: number; currency?: Currency }) {
   const idx = events.length % GRADIENTS.length;
-  const platformFee = event.isPaid ? parseFloat((event.ticketPrice * 0.015).toFixed(2)) : 0;
-  const creatorPayout = event.isPaid ? parseFloat((event.ticketPrice - platformFee).toFixed(2)) : 0;
+  // Both from ticketPricing.ts, so the number quoted to the organiser here is
+  // the number charged at checkout and the number the server bills. The fee is
+  // added on top for the buyer rather than taken out of the price, so the
+  // payout is simply the price: an organiser who says $10 is paid $10.
+  const platformFee = event.isPaid ? platformFeePerTicket(event.ticketPrice) : 0;
+  const creatorPayout = event.isPaid ? organizerPayoutPerTicket(event.ticketPrice) : 0;
   const newEvent: AppEvent = {
     ...event,
     id: 'user_' + Date.now().toString(),
@@ -357,8 +362,12 @@ export function useUserEvents() {
 export function getEarnings() {
   const paidEvents = events.filter(e => e.isPaid);
   const grossRevenue = paidEvents.reduce((sum, e) => sum + (e.ticketPrice * e.ticketsSold), 0);
+  // What buyers paid on top, shown so an organiser can see what their
+  // attendees were charged. It is not deducted from anything below: the fees
+  // are added to the buyer's total, not taken out of the organiser's price,
+  // so an organiser selling a $10 ticket is owed the whole $10.
   const totalFees = paidEvents.reduce((sum, e) => sum + (e.platformFee * e.ticketsSold), 0);
-  const netRevenue = grossRevenue - totalFees;
+  const netRevenue = grossRevenue;
   const totalTickets = events.reduce((sum, e) => sum + e.ticketsSold, 0);
   const totalAttendees = events.reduce((sum, e) => sum + e.attending, 0);
   // Everything earned is owed until a transfer actually happens. These used to

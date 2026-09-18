@@ -330,6 +330,10 @@ const translations: Record<string, Record<Lang, string>> = {
   termsConditions: { English: 'Terms & Conditions', Español: 'Términos y Condiciones' },
   agreeTerms: { English: 'I agree to the above terms and conditions.', Español: 'Acepto los términos y condiciones anteriores.' },
   platformFee: { English: 'Platform Fee', Español: 'Tarifa de la Plataforma' },
+  serviceFee: { English: 'Service Fee', Español: 'Tarifa de Servicio' },
+  processingFee: { English: 'Processing Fee', Español: 'Tarifa de Procesamiento' },
+  feesPaidByBuyer: { English: 'Fees (paid by buyer)', Español: 'Tarifas (pagadas por el comprador)' },
+  buyerPays: { English: 'Buyer Pays', Español: 'El Comprador Paga' },
   total: { English: 'Total', Español: 'Total' },
   payLater: { English: 'Pay Later', Español: 'Pagar Después' },
 
