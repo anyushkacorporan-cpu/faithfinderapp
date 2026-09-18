@@ -20,16 +20,14 @@ export default function EarningsScreen() {
   const events = useUserEvents();
   const earnings = getEarnings();
   const [activeTab, setActiveTab] = useState('Overview');
-  const [showPayoutSetup, setShowPayoutSetup] = useState(false);
-  const [bankName, setBankName] = useState('');
-  const [accountNumber, setAccountNumber] = useState('');
-  const [routingNumber, setRoutingNumber] = useState('');
 
   const paidEvents = events.filter(e => e.isPaid);
 
   function handleWithdraw() {
     if (earnings.pendingPayout <= 0) { Alert.alert(tx('No Balance'), tx('You have no available balance to withdraw.')); return; }
-    Alert.alert("Bank Account Required", "Withdrawals require a connected payout account, which is not set up yet. Connect your bank account in Payout Settings to enable real withdrawals.");
+    Alert.alert(
+      tx('No payout account yet'),
+      tx('Withdrawals need a connected Stripe account, which is not switched on yet. See the Settings tab.'));
   }
 
   return (
@@ -159,40 +157,24 @@ export default function EarningsScreen() {
         {activeTab === 'Settings' && (
           <>
             <Text style={s.sectionTitle}>{t('payoutAccount')}</Text>
-            <View style={s.payoutCard}>
-              <View style={s.payoutCardHdr}>
-                <View style={[s.payoutIcon, {backgroundColor:'#e8f5e9'}]}>
-                  <Ionicons name="business-outline" size={22} color={c.green} />
-                </View>
-                <View>
-                  <Text style={s.payoutCardTitle}>{t('bankAccount')}</Text>
-                  <Text style={s.payoutCardSub}>{t('addBankDetails')}</Text>
-                </View>
-              </View>
-              {[
-                { label: 'Bank Name', placeholder: 'Chase, Wells Fargo...', value: bankName, onChange: setBankName },
-                { label: 'Account Number', placeholder: '••••••••1234', value: accountNumber, onChange: setAccountNumber },
-                { label: 'Routing Number', placeholder: '9 digit routing number', value: routingNumber, onChange: setRoutingNumber },
-              ].map((field, i) => (
-                <View key={i} style={s.payoutField}>
-                  <Text style={s.payoutFieldLabel}>{field.label}</Text>
-                  <View style={s.payoutInputWrap}>
-                    <TextInput
-                      style={s.payoutInput}
-                      placeholder={field.placeholder}
-                      placeholderTextColor={c.placeholder}
-                      value={field.value}
-                      onChangeText={field.onChange}
-                      secureTextEntry={field.label !== 'Bank Name'}
-                      keyboardType={field.label === 'Bank Name' ? 'default' : 'number-pad'}
-                    />
-                  </View>
-                </View>
-              ))}
-              <TouchableOpacity style={s.savePayoutBtn} onPress={() => Alert.alert("Not Connected Yet", "Payout account setup requires a connected banking integration, which is not live yet. This preview shows what payout settings will look like once that is connected.")}>
-                <Text style={s.savePayoutBtnTxt}>{t('savePayoutAccount')}</Text>
-              </TouchableOpacity>
-            </View>
+
+            {/* There used to be a form here asking for bank name, account
+                number and routing number. It collected all three into
+                component state and threw them away with an alert saying the
+                integration was not live.
+
+                It is not coming back. Taking somebody's account and routing
+                number means handling banking credentials, and an app that
+                asks for them has made itself responsible for them — for how
+                they are stored, who can reach them, and what happens when
+                that goes wrong. Stripe is set up to carry exactly that, and
+                the reason every platform bounces you out to Stripe's own
+                onboarding instead of asking in-app is that none of them want
+                to carry it either.
+
+                So the card below is the whole of this screen now: the
+                organiser connects an account on Stripe's site, enters their
+                details there, and comes back with nothing more than an id. */}
 
             <View style={s.stripeConnectCard}>
               <View style={s.stripeConnectHdr}>
@@ -201,12 +183,19 @@ export default function EarningsScreen() {
                   <Text style={s.stripeConnectTitle}>{t('connectStripe')}</Text>
                   <Text style={s.stripeConnectSub}>{t('forInstantPayouts')}</Text>
                 </View>
-                <View style={s.stripeBadge}><Text style={s.stripeBadgeTxt}>{t('recommended')}</Text></View>
               </View>
-              <Text style={s.stripeConnectDesc}>Connect your Stripe account to receive automatic payouts within 2-3 business days after each event.</Text>
-              <TouchableOpacity style={s.stripeConnectBtn} onPress={() => Alert.alert(tx('Connect Stripe'), tx('You will be redirected to Stripe to connect your account.'))}>
-                <Ionicons name="link-outline" size={16} color={c.onPrimary} />
-                <Text style={s.stripeConnectBtnTxt}>{t('connectStripe')}</Text>
+              <Text style={s.stripeConnectDesc}>
+                {tx('Ticket money is paid out through Stripe. You enter your bank details on Stripe’s own site, never here, and payouts arrive automatically after each event.')}
+              </Text>
+              {/* Honest about not existing yet. This button used to say "you
+                  will be redirected to Stripe" and then redirect nowhere. */}
+              <TouchableOpacity
+                style={[s.stripeConnectBtn, { backgroundColor: c.cardAlt }]}
+                onPress={() => Alert.alert(
+                  tx('Not available yet'),
+                  tx('Connecting a Stripe account is not switched on yet. Nothing can be paid out until it is, and no tickets are being charged in the meantime.'))}>
+                <Ionicons name="time-outline" size={16} color={c.textSecondary} />
+                <Text style={[s.stripeConnectBtnTxt, { color: c.textSecondary }]}>{tx('Coming soon')}</Text>
               </TouchableOpacity>
             </View>
           </>
@@ -218,8 +207,6 @@ export default function EarningsScreen() {
     </SafeAreaView>
   );
 }
-
-import { TextInput } from 'react-native';
 
 const makeStyles = (c: ThemeColors) => StyleSheet.create({
   emptyPayouts:{alignItems:'center',paddingVertical:32,paddingHorizontal:24,backgroundColor:c.card,borderRadius:16,borderWidth:1,borderColor:c.border,gap:8},
@@ -276,17 +263,6 @@ const makeStyles = (c: ThemeColors) => StyleSheet.create({
   withdrawalAmt:{fontSize:15,fontWeight:'700',color:c.text,marginBottom:4},
   withdrawalStatus:{borderRadius:100,paddingHorizontal:8,paddingVertical:3},
   withdrawalStatusTxt:{fontSize:11,fontWeight:'700'},
-  payoutCard:{margin:16,backgroundColor:c.card,borderRadius:16,padding:16,borderWidth:1,borderColor:c.border},
-  payoutCardHdr:{flexDirection:'row',alignItems:'center',gap:12,marginBottom:16},
-  payoutIcon:{width:44,height:44,borderRadius:12,alignItems:'center',justifyContent:'center'},
-  payoutCardTitle:{fontSize:15,fontWeight:'700',color:c.text},
-  payoutCardSub:{fontSize:12,color:c.textMuted,marginTop:2},
-  payoutField:{marginBottom:14},
-  payoutFieldLabel:{fontSize:13,fontWeight:'600',color:c.textSecondary,marginBottom:8},
-  payoutInputWrap:{borderWidth:1.5,borderColor:c.border,borderRadius:12,overflow:'hidden'},
-  payoutInput:{paddingHorizontal:14,paddingVertical:13,fontSize:14,color:c.text},
-  savePayoutBtn:{backgroundColor:c.primary,borderRadius:12,paddingVertical:14,alignItems:'center',marginTop:4},
-  savePayoutBtnTxt:{color:c.onPrimary,fontSize:14,fontWeight:'700'},
   stripeConnectCard:{margin:16,backgroundColor:c.card,borderRadius:16,padding:16,borderWidth:1,borderColor:c.border},
   stripeConnectHdr:{flexDirection:'row',alignItems:'center',gap:12,marginBottom:10},
   stripeConnectTitle:{fontSize:15,fontWeight:'700',color:c.text},

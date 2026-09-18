@@ -272,12 +272,9 @@ const translations: Record<string, Record<Lang, string>> = {
   createPaidEvent: { English: 'Create a paid event to start earning', Español: 'Crea un evento de pago para empezar a ganar' },
   requestWithdrawal: { English: 'Request Withdrawal', Español: 'Solicitar Retiro' },
   payoutAccount: { English: 'Payout Account', Español: 'Cuenta de Pagos' },
-  bankAccount: { English: 'Bank Account', Español: 'Cuenta Bancaria' },
-  addBankDetails: { English: 'Add your bank details to receive payouts', Español: 'Añade tus datos bancarios para recibir pagos' },
   connectStripe: { English: 'Connect Stripe Account', Español: 'Conectar Cuenta de Stripe' },
   forInstantPayouts: { English: 'For instant, secure payouts', Español: 'Para pagos instantáneos y seguros' },
   recommended: { English: 'Recommended', Español: 'Recomendado' },
-  savePayoutAccount: { English: 'Save Payout Account', Español: 'Guardar Cuenta de Pagos' },
   withdrawalHistory: { English: 'Withdrawal History', Español: 'Historial de Retiros' },
 
   // Auth: login / forgot password
@@ -337,6 +334,17 @@ const translations: Record<string, Record<Lang, string>> = {
   thePriceHasChanged: { English: 'The price has changed', Español: 'El precio ha cambiado' },
   thisEventNowCosts: { English: 'This event now costs', Español: 'Este evento ahora cuesta' },
   inTotal: { English: 'in total', Español: 'en total' },
+  payoutsThroughStripe: {
+    English: 'Ticket money is paid out through Stripe. You enter your bank details on Stripe’s own site, never here, and payouts arrive automatically after each event.',
+    Español: 'El dinero de los boletos se paga a través de Stripe. Ingresas los datos de tu banco en el sitio de Stripe, nunca aquí, y los pagos llegan automáticamente después de cada evento.' },
+  notAvailableYet: { English: 'Not available yet', Español: 'Aún no disponible' },
+  stripeNotSwitchedOn: {
+    English: 'Connecting a Stripe account is not switched on yet. Nothing can be paid out until it is, and no tickets are being charged in the meantime.',
+    Español: 'Conectar una cuenta de Stripe aún no está activado. No se puede pagar nada hasta entonces, y mientras tanto no se cobra ningún boleto.' },
+  noPayoutAccountYet: { English: 'No payout account yet', Español: 'Aún no hay cuenta de pago' },
+  withdrawalsNeedStripe: {
+    English: 'Withdrawals need a connected Stripe account, which is not switched on yet. See the Settings tab.',
+    Español: 'Los retiros requieren una cuenta de Stripe conectada, que aún no está activada. Consulta la pestaña de Configuración.' },
   total: { English: 'Total', Español: 'Total' },
   payLater: { English: 'Pay Later', Español: 'Pagar Después' },
 
@@ -554,8 +562,6 @@ const translations: Record<string, Record<Lang, string>> = {
   dx95: { English: 'Pending Payout', Español: 'Pago Pendiente' },
   dx96: { English: 'Completed Payout', Español: 'Pago Completado' },
   dx97: { English: 'Bank Name', Español: 'Nombre del Banco' },
-  dx98: { English: 'Account Number', Español: 'Número de Cuenta' },
-  dx99: { English: 'Routing Number', Español: 'Número de Ruta' },
   dx100: { English: 'Light', Español: 'Claro' },
   dx101: { English: 'Dark', Español: 'Oscuro' },
   dx102: { English: 'System Default', Español: 'Predeterminado del Sistema' },
