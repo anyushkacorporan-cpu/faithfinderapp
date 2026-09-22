@@ -185,7 +185,7 @@ export default function ProfileScreen() {
 
           {/* Photo Gallery */}
           {(user.photos?.length ?? 0) > 0 ? (
-            <View style={[s.galleryWrap, {height: 320 + insets.top}]}>
+            <View style={[s.galleryWrap, {marginTop: insets.top}]}>
 
               <FlatList
             {...KEYBOARD_SCROLL_PROPS}
@@ -193,7 +193,7 @@ export default function ProfileScreen() {
                 horizontal pagingEnabled
                 showsHorizontalScrollIndicator={false}
                 onMomentumScrollEnd={e => setActivePhoto(Math.round(e.nativeEvent.contentOffset.x / W))}
-                renderItem={({ item }) => <Image source={{ uri: item }} style={{ width: W, height: 380 + insets.top }} resizeMode="cover" />}
+                renderItem={({ item }) => <Image source={{ uri: item }} style={{ width: W, height: 380 }} resizeMode="cover" />}
                 keyExtractor={(_, i) => String(i)}
               />
               <View style={s.dots}>
@@ -205,8 +205,8 @@ export default function ProfileScreen() {
               </TouchableOpacity>
             </View>
           ) : (
-            <View style={{position:'relative'}}>
-              <TouchableOpacity style={[s.photoBanner, {height: 380 + insets.top}]} onPress={handleAddPhotoOptions} activeOpacity={0.85}>
+            <View style={{position:'relative', marginTop: insets.top}}>
+              <TouchableOpacity style={s.photoBanner} onPress={handleAddPhotoOptions} activeOpacity={0.85}>
                 <LinearGradient colors={['#1a1a2e', '#2d2240']} style={StyleSheet.absoluteFill} start={{x:0,y:0}} end={{x:1,y:1}} />
                 <View style={s.photoUploadWrap}>
                   <View style={s.photoUploadIcon}>
@@ -463,10 +463,21 @@ export default function ProfileScreen() {
     <SafeAreaView style={s.root} edges={[]}>
         <ScrollView
             {...KEYBOARD_SCROLL_PROPS} showsVerticalScrollIndicator={false}>
-        <View style={[s.coverWrap, {height: 220 + insets.top}]}>
+        {/* marginTop rather than a taller box: the cover used to start at y=0
+            and carry `+ insets.top` of extra height to fill the space behind
+            the status bar, which put a photo under the clock and battery and
+            left them unreadable on anything but a dark, even image. Starting
+            below the inset leaves the screen's own background up there, where
+            ThemedStatusBar's light/dark choice is already correct against it.
+
+            The heights lose the `+ insets.top` at the same time, because that
+            was only ever paying for the hidden strip. 200 visible before, 200
+            visible now — and the avatar hangs off the bottom of this box, so
+            its overlap is unchanged. */}
+        <View style={[s.coverWrap, {marginTop: insets.top}]}>
           {user.coverPhoto
-            ? <Image source={{uri:user.coverPhoto}} style={{width:'100%',height:200 + insets.top}} resizeMode="cover"/>
-            : <View style={[s.cover, {height: 200 + insets.top}]} />
+            ? <Image source={{uri:user.coverPhoto}} style={{width:'100%',height:200}} resizeMode="cover"/>
+            : <View style={s.cover} />
           }
           <TouchableOpacity style={s.addCoverBtn} onPress={async () => {
             const {status} = await ImagePicker.requestMediaLibraryPermissionsAsync();
