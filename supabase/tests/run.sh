@@ -32,6 +32,11 @@ create function storage.foldername(name text) returns text[] language sql immuta
   select (string_to_array(name, '/'))[1:greatest(array_length(string_to_array(name, '/'), 1) - 1, 0)]; $$;
 -- 01_churches.sql needs PostGIS, which is not assumed here.
 create table churches (id uuid primary key default gen_random_uuid(), name text);
+-- The Data API roles. Real on Supabase; created here so 21_data_api_grants.sql
+-- has something to grant to.
+create role anon;
+create role authenticated;
+create role service_role;
 SHIM
 
 for f in 03_profiles 06_moderation 07_posts 09_connections 10_events 12_post_images \
