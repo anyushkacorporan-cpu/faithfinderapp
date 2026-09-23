@@ -8,7 +8,7 @@ import Header from '../src/components/Header';
 import { useThemeColors, ThemeColors } from '../src/lib/theme';
 import { useTranslation } from '../src/lib/i18n';
 import { useProfile } from '../src/lib/profilesStore';
-import { usePosts, toggleLike, isAuthoredBy } from '../src/lib/postsStore';
+import { usePosts, toggleLike, isAuthoredBy, Post } from '../src/lib/postsStore';
 import { isBlocked, useBlocked } from '../src/lib/blockStore';
 import { isHidden, useHidden } from '../src/lib/hiddenStore';
 import { useUser } from '../src/lib/userStore';
@@ -16,9 +16,13 @@ import { useConnectionCount, useConnections, isConnectedTo, addConnection, remov
 import { useToast } from '../src/components/Toast';
 import { useConfirm } from '../src/components/Confirm';
 import { PostCard } from '../src/components/PostCard';
+import { PostShareSheet } from '../src/components/PostShareSheet';
 
 export default function OtherUserProfileScreen() {
   const c = useThemeColors();
+  // Which post has its Repost/Share sheet open. The same state the community
+  // feed and your own profile keep, because it opens the same sheet.
+  const [shareTarget, setShareTarget] = useState<Post | null>(null);
   const s = makeStyles(c);
   const { t, tx } = useTranslation();
   const params = useLocalSearchParams<{
@@ -336,7 +340,7 @@ export default function OtherUserProfileScreen() {
                 showLocation={true}
                 onLike={() => {}}
                 onComment={() => router.push({ pathname: '/comments', params: { postId: post.id } })}
-                onShare={() => {}}
+                onShare={() => setShareTarget(post)}
                 onOpenProfile={() => {}}
               />
             ))}
@@ -345,6 +349,10 @@ export default function OtherUserProfileScreen() {
 
         <View style={{height:40}} />
       </ScrollView>
+      {/* Outside the ScrollView, the same as the community feed and your own
+          profile render it. Without this the button above had a handler and
+          still did nothing, because there was no sheet for it to open. */}
+      <PostShareSheet post={shareTarget} onClose={() => setShareTarget(null)} />
     </SafeAreaView>
   );
 }
