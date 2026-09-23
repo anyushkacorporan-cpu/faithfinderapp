@@ -14,7 +14,7 @@ import { pushProfile, refreshVerificationStatus } from '../../src/lib/profileSyn
 import { useActivity } from '../../src/lib/activityStore';
 import { useConnections, useConnectionCount, removeConnection } from '../../src/lib/connectionsStore';
 import { usePosts, toggleLike, editPost, deletePost, isAuthoredBy, Post } from '../../src/lib/postsStore';
-import { PostCard, PostPhotos } from '../../src/components/PostCard';
+import { PostCard } from '../../src/components/PostCard';
 import { useConfirm } from '../../src/components/Confirm';
 import { ActivityList } from '../../src/components/ActivityList';
 import { PostShareSheet } from '../../src/components/PostShareSheet';
@@ -43,10 +43,9 @@ const CHURCH_TABS = ['About', 'Posts'];
 // Posts first, because it is what someone opening their own profile came to
 // see. The labels are looked up at render rather than stored here, so the
 // order survives a language change.
-type PersonalTab = 'Posts' | 'Gallery' | 'Activity';
-const PERSONAL_TABS: { key: PersonalTab; labelKey: 'posts' | 'faithGallery' | 'activity' }[] = [
+type PersonalTab = 'Posts' | 'Activity';
+const PERSONAL_TABS: { key: PersonalTab; labelKey: 'posts' | 'activity' }[] = [
   { key: 'Posts',    labelKey: 'posts' },
-  { key: 'Gallery',  labelKey: 'faithGallery' },
   { key: 'Activity', labelKey: 'activity' },
 ];
 
@@ -603,34 +602,15 @@ export default function ProfileScreen() {
           ))}
         </View>
 
-        {/* Faith Gallery. The divider that used to open this section is gone:
-            the tab bar's own bottom border now draws that line, and keeping
-            both put two rules a margin apart. */}
-        {personalTab === 'Gallery' && galleryPhotos.length > 0 && (
-          <View style={{paddingTop:16}}>
-            {galleryPhotos.map((uri: string, i: number) => (
-              // paddingHorizontal on the button rather than on a wrapper: the
-              // photo below pulls back out through exactly this much, so the
-              // image spans the screen while staying inside its own touch
-              // target. An image that overflows its TouchableOpacity is not
-              // tappable where it overflows, and on iOS that failure is
-              // silent — the tap simply does nothing.
-              <TouchableOpacity
-                key={uri}
-                activeOpacity={0.9}
-                style={{paddingHorizontal:16}}
-                onPress={() => { setPhotoViewerIndex(i); setPhotoViewerVisible(true); }}
-              >
-                {/* The feed's own photo component, at its defaults: full
-                    device width, height from the image's real proportions and
-                    clamped, square corners where it meets the edge. Writing a
-                    second set of image rules here is how the gallery and the
-                    feed end up disagreeing about what a photo looks like. */}
-                <PostPhotos uris={[uri]} />
-              </TouchableOpacity>
-            ))}
-          </View>
-        )}
+        {/* Faith Gallery was a third tab here. It was only ever in this
+            layout — a church profile has its own photo pager at the top of the
+            page and its own About|Posts bar, and shares no code with this —
+            so taking it out is a change to personal profiles alone.
+
+            The viewer below and the galleryPhotos it reads are left standing.
+            They cost nothing while nothing opens them, and this is the third
+            change to the gallery in two days; deleting sixty lines that would
+            have to be written again is not tidying. */}
 
         <Modal visible={photoViewerVisible} transparent animationType="fade" onRequestClose={() => setPhotoViewerVisible(false)}>
           <View style={{flex:1,backgroundColor:'#000'}}>
@@ -1026,7 +1006,7 @@ const makeStyles = (c: ThemeColors) => StyleSheet.create({
   statChipTxt:{fontSize:13,color:c.textSecondary,fontWeight:'600'},
   statChipPrivate:{backgroundColor:c.isDark?'rgba(201,169,110,0.14)':'rgba(201,169,110,0.10)'},
   statChipTxtPrivate:{color:c.gold},
-  name:{fontFamily:'PlayfairDisplay_700Bold',fontSize:30,lineHeight:36,letterSpacing:-0.5,color:c.text,marginBottom:2,textAlign:'center'},
+  name:{fontFamily:'PlayfairDisplay_700Bold',fontSize:24,lineHeight:30,letterSpacing:-0.3,color:c.text,marginBottom:2,textAlign:'center'},
   // System sans, not the serif italic this started as. Playfair is the app's
   // display face and nothing else uses it for body copy; setting the bio in it
   // too put the same voice twice under one another and read as a pull-quote.
