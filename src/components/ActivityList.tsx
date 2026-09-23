@@ -1,12 +1,14 @@
+import { useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useThemeColors, ThemeColors } from '../lib/theme';
 import { useActivity } from '../lib/activityStore';
-import { usePosts, toggleLike } from '../lib/postsStore';
+import { usePosts, toggleLike, Post } from '../lib/postsStore';
 import { isBlocked, useBlocked } from '../lib/blockStore';
 import { isHidden, useHidden } from '../lib/hiddenStore';
 import { PostCard } from './PostCard';
+import { PostShareSheet } from './PostShareSheet';
 import { useTranslation } from '../lib/i18n';
 
 /**
@@ -26,6 +28,12 @@ export function ActivityList() {
   const { t } = useTranslation();
   const activity = useActivity();
   const allPosts = usePosts();
+  // The sheet belongs to this component rather than to whoever mounts it: the
+  // profile's Activity tab and the /activity route both render this list, and
+  // a sheet owned by the caller would have to be wired up twice and then stay
+  // wired up. Reposting was dead here for exactly that kind of reason — the
+  // handler was an empty function with no sheet behind it.
+  const [shareTarget, setShareTarget] = useState<Post | null>(null);
 
   // Re-render when the block list changes so an unblock shows immediately.
   useBlocked();
@@ -68,10 +76,11 @@ export function ActivityList() {
           showLocation={!!(item!.post.city && item!.post.state)}
           onLike={() => toggleLike(item!.post.id)}
           onComment={() => router.push({ pathname: '/comments', params: { postId: item!.post.id } })}
-          onShare={() => {}}
+          onShare={() => setShareTarget(item!.post)}
           onOpenProfile={() => router.push({ pathname: '/user-profile', params: { name: item!.post.authorName } })}
         />
       ))}
+      <PostShareSheet post={shareTarget} onClose={() => setShareTarget(null)} />
     </View>
   );
 }

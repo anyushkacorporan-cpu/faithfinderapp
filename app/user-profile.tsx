@@ -338,7 +338,7 @@ export default function OtherUserProfileScreen() {
                 key={post.id}
                 post={post}
                 showLocation={true}
-                onLike={() => {}}
+                onLike={() => toggleLike(post.id)}
                 onComment={() => router.push({ pathname: '/comments', params: { postId: post.id } })}
                 onShare={() => setShareTarget(post)}
                 onOpenProfile={() => {}}

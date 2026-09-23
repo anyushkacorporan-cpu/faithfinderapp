@@ -11,7 +11,6 @@ import { TAB_BAR_CLEARANCE } from '../../src/lib/tabBar';
 import { useUser, setUser, getUser } from '../../src/lib/userStore';
 import { displayName as userDisplayName } from '../../src/lib/userStore';
 import { pushProfile, refreshVerificationStatus } from '../../src/lib/profileSync';
-import { useActivity } from '../../src/lib/activityStore';
 import { useConnections, useConnectionCount, removeConnection } from '../../src/lib/connectionsStore';
 import { usePosts, toggleLike, editPost, deletePost, isAuthoredBy, Post } from '../../src/lib/postsStore';
 import { PostCard } from '../../src/components/PostCard';
@@ -810,82 +809,6 @@ function OwnPostActions({ post, onClose }: { post: Post | null; onClose: () => v
   );
 }
 
-
-function ActivityTabContent() {
-  const c = useThemeColors();
-  const { t } = useTranslation();
-  const activity = useActivity();
-  const { attending: myAttendingEvents } = useEventActions();
-  const allEvents = useEvents ? useEvents() : [];
-  const allPosts = usePosts();
-
-  const TYPE_CONFIG = {
-    like: { icon: 'heart', color: '#e74c6f', label: 'Liked a post' },
-    comment: { icon: 'chatbubble', color: '#667eea', label: 'Commented on a post' },
-    attending: { icon: 'calendar', color: c.gold, label: 'Attending an event' },
-  };
-
-  // Merge likes/comments with attended events into one chronological list
-  const attendingItems = (myAttendingEvents || []).map(eventId => {
-    const event = allEvents.find((e: any) => e.id === eventId);
-    return {
-      id: 'attending-' + eventId,
-      type: 'attending' as const,
-      eventTitle: event?.title || 'An event',
-      timestamp: Date.now() - 1000,
-    };
-  });
-
-  const allActivity = [...activity, ...attendingItems]
-    .sort((a, b) => b.timestamp - a.timestamp);
-
-  if (allActivity.length === 0) {
-    return (
-      <View style={{ paddingVertical: 60, alignItems: 'center', gap: 10 }}>
-        <Ionicons name="pulse-outline" size={40} color={c.placeholder} />
-        <Text style={{ fontSize: 15, fontWeight: '600', color: c.textMuted }}>{t('noActivityYet')}</Text>
-        <Text style={{ fontSize: 13, color: c.textMuted, textAlign: 'center', paddingHorizontal: 40 }}>
-          Like posts, leave comments, or attend events to see your activity here.
-        </Text>
-      </View>
-    );
-  }
-
-  return (
-    <View style={{ paddingTop: 12 }}>
-      {allActivity.map(item => {
-        if (item.type === 'attending') {
-          return (
-            <View key={item.id} style={{ marginHorizontal: 14, marginBottom: 14, backgroundColor: c.card, borderRadius: 22, padding: 18, shadowColor: '#000', shadowOffset: {width:0,height:2}, shadowOpacity: 0.06, shadowRadius: 10 }}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                <View style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: 'rgba(201,169,110,0.16)', alignItems: 'center', justifyContent: 'center' }}>
-                  <Ionicons name="calendar" size={18} color={c.gold} />
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={{ fontSize: 13, color: c.textMuted, marginBottom: 2 }}>{t('attendingEvent')}</Text>
-                  <Text style={{ fontSize: 14, fontWeight: '700', color: c.text }}>{item.eventTitle}</Text>
-                </View>
-              </View>
-            </View>
-          );
-        }
-        const post = allPosts.find(p => p.id === item.postId);
-        if (!post) return null;
-        return (
-          <PostCard
-            key={item.id}
-            post={post}
-            showLocation={!!(post.city && post.state)}
-            onLike={() => toggleLike(post.id)}
-            onComment={() => router.push({ pathname: '/comments', params: { postId: post.id } })}
-            onShare={() => {}}
-            onOpenProfile={() => {}}
-          />
-        );
-      })}
-    </View>
-  );
-}
 
 const makeStyles = (c: ThemeColors) => StyleSheet.create({
   // Copied from church-detail's tabsRow/tab/tabActive so a church's own profile
