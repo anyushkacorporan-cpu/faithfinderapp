@@ -16,6 +16,7 @@ import { useConnections, useConnectionCount, removeConnection } from '../../src/
 import { usePosts, toggleLike, editPost, deletePost, isAuthoredBy, Post } from '../../src/lib/postsStore';
 import { PostCard } from '../../src/components/PostCard';
 import { useConfirm } from '../../src/components/Confirm';
+import { ActivityList } from '../../src/components/ActivityList';
 import { PostShareSheet } from '../../src/components/PostShareSheet';
 import { useEventActions } from '../../src/lib/eventActionsStore';
 import { EVENTS } from '../../src/lib/constants';
@@ -38,7 +39,16 @@ const AMENITY_LIST = [
 ];
 
 const CHURCH_TABS = ['About', 'Posts'];
-const PERSONAL_TABS = ['Community Sharing'];
+
+// Posts first, because it is what someone opening their own profile came to
+// see. The labels are looked up at render rather than stored here, so the
+// order survives a language change.
+type PersonalTab = 'Posts' | 'Gallery' | 'Activity';
+const PERSONAL_TABS: { key: PersonalTab; labelKey: 'posts' | 'faithGallery' | 'activity' }[] = [
+  { key: 'Posts',    labelKey: 'posts' },
+  { key: 'Gallery',  labelKey: 'faithGallery' },
+  { key: 'Activity', labelKey: 'activity' },
+];
 
 export default function ProfileScreen() {
   const c = useThemeColors();
@@ -48,6 +58,10 @@ export default function ProfileScreen() {
   const appSettings = useSettings();
   const { t, tx } = useTranslation();
   const [activeTab, setActiveTab] = useState('About');
+  // Separate from activeTab, which belongs to the church layout's About|Posts
+  // pair. Sharing one variable would mean a church tab and a personal tab
+  // fighting over the same default.
+  const [personalTab, setPersonalTab] = useState<PersonalTab>('Posts');
   // Which of your own posts has its menu open. Both profile layouts use it.
   const [menuPost, setMenuPost] = useState<Post | null>(null);
   // Which post's Repost/Share sheet is open.
@@ -540,21 +554,15 @@ export default function ProfileScreen() {
               ))}
             </View>
           )}
-          {/* Edit and See Activity share a row. See Activity used to sit
-              alone below the (usually empty) life-verse block, which left it
-              stranded in about 100pt of white and reading as an accident. */}
+          {/* See Activity used to share this row. Activity is a tab now, and
+              a chip that pushes a separate screen showing the same posts —
+              with a back header the tab does not have — is two doors into one
+              room that do not match. Edit Profile already has flex:1, so it
+              takes the row back on its own. */}
           <View style={s.actionRow}>
             <TouchableOpacity style={s.editBtn} activeOpacity={0.7} onPress={() => router.push('/edit-profile')}>
               <Ionicons name="pencil-outline" size={16} color={c.text}/>
               <Text style={s.editTxt}>{t('editProfile')}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={s.seeActivityChip}
-              activeOpacity={0.7}
-              onPress={() => router.push('/activity')}
-            >
-              <Text style={s.seeActivityTxt}>{t('seeActivity')}</Text>
-              <Ionicons name="chevron-forward" size={14} color={c.gold} />
             </TouchableOpacity>
           </View>
 
@@ -579,20 +587,32 @@ export default function ProfileScreen() {
               edit button or verse that share the container. */}
         </View>
 
-        {/* Faith Gallery */}
-        {galleryPhotos.length > 0 && (
+        {/* ── TABS ───────────────────────────────────────────────────────
+            Same markup and the same styles as the church layout's About|Posts
+            bar above, rather than a second set that drifts from it. */}
+        <View style={s.churchTabsRow}>
+          {PERSONAL_TABS.map(tab => (
+            <TouchableOpacity
+              key={tab.key}
+              style={[s.churchTab, personalTab === tab.key && s.churchTabActive]}
+              onPress={() => setPersonalTab(tab.key)}
+            >
+              <Text style={[s.churchTabTxt, personalTab === tab.key && s.churchTabTxtActive]}>
+                {t(tab.labelKey)}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        {/* Faith Gallery. The divider that used to open this section is gone:
+            the tab bar's own bottom border now draws that line, and keeping
+            both put two rules a margin apart. */}
+        {personalTab === 'Gallery' && galleryPhotos.length > 0 && (
           <>
-            <View style={s.divider} />
+            <View style={{height:16}} />
             <View style={s.section}>
-              <View style={s.sectionHdr}>
-                <View>
-                  <View style={{flexDirection:'row',alignItems:'center'}}>
-                    <Ionicons name="images-outline" size={16} color={c.text} style={{marginRight:6}} />
-                    <Text style={s.sectionTitle}>{t('faithGallery')}</Text>
-                  </View>
-                  <View style={s.titleRule} />
-                </View>
-              </View>
+              {/* The "Faith Gallery" heading is gone for the same reason the
+                  "Posts" one is: the tab above already says it. */}
               <View style={{flexDirection:'row',flexWrap:'wrap',gap:6}}>
                 {(showAllGallery ? galleryPhotos : galleryPhotos.slice(0, 3)).map((uri: string) => {
                   const thumbSize = (Dimensions.get('window').width - 32 - 6 * 3) / 4;
@@ -680,16 +700,10 @@ export default function ProfileScreen() {
           </View>
         </Modal>
 
-        <View style={s.divider} />
-        <View style={s.section}>
-          <View style={s.sectionHdr}>
-            <View>
-              <Text style={s.sectionTitle}>{t('posts')}</Text>
-              <View style={s.titleRule} />
-            </View>
-          </View>
-        </View>
-        {(
+        {/* The "Posts" heading that used to sit here is gone with the
+            divider above it: the tab is labelled Posts, and a title repeating
+            the tab you are standing on is a second name for the same thing. */}
+        {personalTab === 'Posts' && (
           myPosts.length === 0 ? (
             <View style={s.emptyState}>
               <Ionicons name="book-outline" size={40} color={c.placeholder} />
@@ -715,6 +729,8 @@ export default function ProfileScreen() {
           )
         )}
 
+        {/* The same list app/activity.tsx shows, from the same component. */}
+        {personalTab === 'Activity' && <ActivityList />}
 
         <View style={{height:TAB_BAR_CLEARANCE}} />
       </ScrollView>
@@ -900,8 +916,6 @@ function ActivityTabContent() {
 }
 
 const makeStyles = (c: ThemeColors) => StyleSheet.create({
-  seeActivityBtn:{flexDirection:'row',alignItems:'center',gap:3,alignSelf:'flex-end',marginTop:14},
-  seeActivityTxt:{fontSize:13,fontWeight:'600',color:c.gold},
   // Copied from church-detail's tabsRow/tab/tabActive so a church's own profile
   // and its public page share one visual language.
   churchTabsRow:{flexDirection:'row',borderTopWidth:1,borderBottomWidth:1,borderColor:c.border,marginTop:8},
@@ -1040,7 +1054,6 @@ const makeStyles = (c: ThemeColors) => StyleSheet.create({
   ministryTagTxt:{fontSize:13,color:c.gold,fontWeight:'600'},
   actionRow:{flexDirection:'row',alignItems:'center',gap:10,width:'100%',marginBottom:16},
   editBtn:{flex:1,flexDirection:'row',alignItems:'center',gap:8,borderWidth:1,borderColor:c.border,borderRadius:12,paddingHorizontal:20,paddingVertical:12,justifyContent:'center'},
-  seeActivityChip:{flexDirection:'row',alignItems:'center',gap:3,borderWidth:1,borderColor:c.border,borderRadius:12,paddingHorizontal:14,paddingVertical:12},
   activityBtn:{flexDirection:'row',alignItems:'center',justifyContent:'space-between',borderWidth:1,borderColor:c.border,borderRadius:16,paddingHorizontal:16,paddingVertical:16},
   editTxt:{fontSize:15,fontWeight:'700',color:c.text},
   verseWrap:{alignItems:'center',paddingHorizontal:16},

@@ -3,41 +3,22 @@ import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useThemeColors, ThemeColors } from '../src/lib/theme';
-import { useActivity } from '../src/lib/activityStore';
-import { usePosts, toggleLike } from '../src/lib/postsStore';
-import { isBlocked, useBlocked } from '../src/lib/blockStore';
-import { isHidden, useHidden } from '../src/lib/hiddenStore';
-import { PostCard } from '../src/components/PostCard';
+import { ActivityList } from '../src/components/ActivityList';
 import { useTranslation } from '../src/lib/i18n';
 
+/**
+ * Activity as its own screen.
+ *
+ * The profile's Activity tab is the way in now — nothing in the app pushes
+ * this route any more. It stays registered because the list it shows lives in
+ * ActivityList either way, so keeping the route costs a header and nothing
+ * else, and a link that arrives here from outside the app still lands
+ * somewhere sensible.
+ */
 export default function ActivityScreen() {
   const c = useThemeColors();
   const s = makeStyles(c);
   const { t } = useTranslation();
-  const activity = useActivity();
-  const allPosts = usePosts();
-
-  // Re-render when the block list changes so an unblock shows immediately.
-  useBlocked();
-  useHidden();
-
-  const likedCommentedPosts = activity
-    .filter(a => a.type === 'like' || a.type === 'comment')
-    .map(a => {
-      const post = allPosts.find(p => p.id === a.postId);
-      return post ? { activity: a, post } : null;
-    })
-    // Something you liked last week belongs to someone you may have blocked
-    // since. Your own history is not a way back to their content.
-    .filter(item => !!item && !isBlocked(item.post.authorId, item.post.authorName) && !isHidden(item.post.id));
-
-  // Deduplicate by postId (show each post once even if both liked and commented)
-  const seen = new Set<string>();
-  const uniquePosts = likedCommentedPosts.filter(item => {
-    if (seen.has(item!.post.id)) return false;
-    seen.add(item!.post.id);
-    return true;
-  });
 
   return (
     <SafeAreaView style={s.root} edges={['top']}>
@@ -49,27 +30,7 @@ export default function ActivityScreen() {
         <View style={{width:36}} />
       </View>
       <ScrollView showsVerticalScrollIndicator={false}>
-        {uniquePosts.length === 0 ? (
-          <View style={s.empty}>
-            <Ionicons name="pulse-outline" size={44} color={c.placeholder} />
-            <Text style={s.emptyTxt}>{t('noActivityYet')}</Text>
-            <Text style={s.emptySub}>{t('postsYouLike')}</Text>
-          </View>
-        ) : (
-          <View style={{paddingTop:8}}>
-            {uniquePosts.map(item => (
-              <PostCard
-                key={item!.post.id}
-                post={item!.post}
-                showLocation={!!(item!.post.city && item!.post.state)}
-                onLike={() => toggleLike(item!.post.id)}
-                onComment={() => router.push({ pathname: '/comments', params: { postId: item!.post.id } })}
-                onShare={() => {}}
-                onOpenProfile={() => router.push({ pathname: '/user-profile', params: { name: item!.post.authorName } })}
-              />
-            ))}
-          </View>
-        )}
+        <ActivityList />
         <View style={{height:40}} />
       </ScrollView>
     </SafeAreaView>
@@ -81,7 +42,4 @@ const makeStyles = (c: ThemeColors) => StyleSheet.create({
   hdr:{flexDirection:'row',alignItems:'center',justifyContent:'space-between',paddingHorizontal:16,paddingVertical:12,borderBottomWidth:1,borderBottomColor:c.border,backgroundColor:c.card},
   backBtn:{width:36,height:36,borderRadius:18,backgroundColor:c.cardAlt,alignItems:'center',justifyContent:'center'},
   hdrTitle:{fontSize:16,fontWeight:'700',color:c.text},
-  empty:{paddingVertical:80,alignItems:'center',gap:10,paddingHorizontal:40},
-  emptyTxt:{fontSize:16,fontWeight:'600',color:c.textMuted},
-  emptySub:{fontSize:13,color:c.textMuted,textAlign:'center',lineHeight:18},
 });
