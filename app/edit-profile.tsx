@@ -69,22 +69,6 @@ export default function EditProfileScreen() {
     if (!result.canceled) setCoverPhoto(result.assets[0].uri);
   }
 
-  async function handleAddGalleryPhoto() {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== 'granted') { Alert.alert(tx('Permission needed'), tx('Please allow access to your photo library.')); return; }
-    const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], allowsMultipleSelection: true, quality: 0.8 });
-    if (!result.canceled) {
-      const liveUser = getUser();
-      const newPhotos = result.assets.map(a => a.uri);
-      setUser({ photos: [...(liveUser.photos || []), ...newPhotos] });
-    }
-  }
-
-  function handleRemoveGalleryPhoto(uri: string) {
-    const liveUser = getUser();
-    setUser({ photos: (liveUser.photos || []).filter((p: string) => p !== uri) });
-  }
-
   async function handlePickPhoto() {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') { Alert.alert(tx('Permission needed')); return; }
@@ -290,27 +274,15 @@ export default function EditProfileScreen() {
                 />
               </View>
 
-              <Text style={s.sectionTitle}>{t('faithGallery')}</Text>
-              <View style={{marginBottom:20}}>
-                <Text style={{fontSize:12,color:c.textMuted,marginBottom:8}}>{t('faithGalleryDesc')}</Text>
-                <ScrollView
-            {...KEYBOARD_SCROLL_PROPS} horizontal showsHorizontalScrollIndicator={false}>
-                  {(user.photos || []).map((uri: string) => (
-                    <View key={uri} style={{marginRight:10,position:'relative'}}>
-                      <Image source={{uri}} style={{width:80,height:80,borderRadius:12}} resizeMode="cover" />
-                      <TouchableOpacity
-                        onPress={() => handleRemoveGalleryPhoto(uri)}
-                        style={{position:'absolute',top:-6,right:-6,width:22,height:22,borderRadius:11,backgroundColor:'#e74c6f',alignItems:'center',justifyContent:'center',borderWidth:2,borderColor:c.card}}
-                      >
-                        <Ionicons name="close" size={12} color={c.onPrimary} />
-                      </TouchableOpacity>
-                    </View>
-                  ))}
-                  <TouchableOpacity onPress={handleAddGalleryPhoto} style={{width:80,height:80,borderRadius:12,borderWidth:1.5,borderColor:c.gold,borderStyle:'dashed',alignItems:'center',justifyContent:'center'}}>
-                    <Ionicons name="add" size={22} color={c.gold} />
-                  </TouchableOpacity>
-                </ScrollView>
-              </View>
+              {/* Faith Gallery was here, and only here: this is already the
+                  personal half of the isChurch ternary above, so no gate was
+                  needed to leave churches alone — a church edits its photos on
+                  its own profile page, not on this form.
+
+                  It went because the tab that displayed these photos went with
+                  it. A picker that files pictures somewhere nobody can look at
+                  them is worse than no picker: the photos are still saved,
+                  still synced, and still invisible. */}
             </>
           )}
 
