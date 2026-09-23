@@ -14,7 +14,7 @@ import { pushProfile, refreshVerificationStatus } from '../../src/lib/profileSyn
 import { useActivity } from '../../src/lib/activityStore';
 import { useConnections, useConnectionCount, removeConnection } from '../../src/lib/connectionsStore';
 import { usePosts, toggleLike, editPost, deletePost, isAuthoredBy, Post } from '../../src/lib/postsStore';
-import { PostCard } from '../../src/components/PostCard';
+import { PostCard, PostPhotos } from '../../src/components/PostCard';
 import { useConfirm } from '../../src/components/Confirm';
 import { ActivityList } from '../../src/components/ActivityList';
 import { PostShareSheet } from '../../src/components/PostShareSheet';
@@ -116,7 +116,6 @@ export default function ProfileScreen() {
     .map(id => allEventsPool.find((e: any) => e.id === id))
     .filter(Boolean);
   const [activePhoto, setActivePhoto] = useState(0);
-  const [showAllGallery, setShowAllGallery] = useState(false);
   const isChurch = user.accountType === 'church';
   const connections = useConnections();
   const connectionCount = useConnectionCount();
@@ -608,36 +607,29 @@ export default function ProfileScreen() {
             the tab bar's own bottom border now draws that line, and keeping
             both put two rules a margin apart. */}
         {personalTab === 'Gallery' && galleryPhotos.length > 0 && (
-          <>
-            <View style={{height:16}} />
-            <View style={s.section}>
-              {/* The "Faith Gallery" heading is gone for the same reason the
-                  "Posts" one is: the tab above already says it. */}
-              <View style={{flexDirection:'row',flexWrap:'wrap',gap:6}}>
-                {(showAllGallery ? galleryPhotos : galleryPhotos.slice(0, 3)).map((uri: string) => {
-                  const thumbSize = (Dimensions.get('window').width - 32 - 6 * 3) / 4;
-                  const fullIndex = galleryPhotos.indexOf(uri);
-                  return (
-                    <TouchableOpacity
-                      key={uri}
-                      onPress={() => { setPhotoViewerIndex(fullIndex); setPhotoViewerVisible(true); }}
-                      activeOpacity={0.7}
-                      style={s.thumbLift}
-                    >
-                      <Image source={{uri}} style={[s.thumb, {width:thumbSize,height:thumbSize}]} resizeMode="cover" />
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
-              {galleryPhotos.length > 3 && (
-                <TouchableOpacity onPress={() => setShowAllGallery(!showAllGallery)} style={{marginTop:10,alignSelf:'flex-start'}}>
-                  <Text style={{fontSize:13,fontWeight:'600',color:c.gold}}>
-                    {showAllGallery ? 'Show Less' : `See More (${galleryPhotos.length - 3})`}
-                  </Text>
-                </TouchableOpacity>
-              )}
-            </View>
-          </>
+          <View style={{paddingTop:16}}>
+            {galleryPhotos.map((uri: string, i: number) => (
+              // paddingHorizontal on the button rather than on a wrapper: the
+              // photo below pulls back out through exactly this much, so the
+              // image spans the screen while staying inside its own touch
+              // target. An image that overflows its TouchableOpacity is not
+              // tappable where it overflows, and on iOS that failure is
+              // silent — the tap simply does nothing.
+              <TouchableOpacity
+                key={uri}
+                activeOpacity={0.9}
+                style={{paddingHorizontal:16}}
+                onPress={() => { setPhotoViewerIndex(i); setPhotoViewerVisible(true); }}
+              >
+                {/* The feed's own photo component, at its defaults: full
+                    device width, height from the image's real proportions and
+                    clamped, square corners where it meets the edge. Writing a
+                    second set of image rules here is how the gallery and the
+                    feed end up disagreeing about what a photo looks like. */}
+                <PostPhotos uris={[uri]} />
+              </TouchableOpacity>
+            ))}
+          </View>
         )}
 
         <Modal visible={photoViewerVisible} transparent animationType="fade" onRequestClose={() => setPhotoViewerVisible(false)}>
@@ -975,8 +967,6 @@ const makeStyles = (c: ThemeColors) => StyleSheet.create({
   section:{paddingHorizontal:16,marginBottom:4},
   // The lift sits on the wrapper, not the Image: a view that clips its content
   // to a radius cannot also cast a shadow.
-  thumbLift:{borderRadius:18,backgroundColor:c.card,shadowColor:c.navy,shadowOffset:{width:0,height:3},shadowOpacity:0.15,shadowRadius:9,elevation:3},
-  thumb:{borderRadius:18,backgroundColor:c.cardAlt},
   sectionHdr:{flexDirection:'row',justifyContent:'space-between',alignItems:'center',marginBottom:14},
   sectionTitle:{fontSize:17,fontWeight:'700',color:c.text},
   titleRule:{width:24,height:2,borderRadius:1,backgroundColor:c.gold,marginTop:5},
