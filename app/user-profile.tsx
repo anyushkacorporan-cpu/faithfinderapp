@@ -71,8 +71,13 @@ export default function OtherUserProfileScreen() {
     bio:          isSelf ? currentUser.bio          : snapshot?.bio,
     lifeVerse:    isSelf ? currentUser.lifeVerse    : snapshot?.lifeVerse,
     lifeVerseRef: isSelf ? currentUser.lifeVerseRef : snapshot?.lifeVerseRef,
-    city:         snapshot?.city  || params.city,
-    state:        snapshot?.state || params.state,
+    // The directory wins outright once it has an entry, rather than falling
+    // back on `||`. Somebody with "Show Location on Profile" off publishes an
+    // empty city, and an empty string is falsy — so `||` reached past the
+    // answer to the route param, which carries the city of whichever post was
+    // tapped to get here and would have put it back on screen.
+    city:         snapshot ? snapshot.city  : params.city,
+    state:        snapshot ? snapshot.state : params.state,
   };
 
   const connectionCount = useConnectionCount();

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { pushNotificationPrefs } from './notificationsApi';
+import { pushPrivacyPrefs } from './privacyApi';
 
 const SETTINGS_KEY = 'faithfinder_settings_v1';
 
@@ -103,6 +104,34 @@ export function updateNotificationPrefs(updates: Partial<NotificationPrefs>) {
 
 export function updatePrivacyPrefs(updates: Partial<PrivacyPrefs>) {
   settings = { ...settings, privacy: { ...settings.privacy, ...updates } };
+  persist();
+  notify();
+  // Same reasoning as the notification preferences above, and for longer: the
+  // row-level security policy on profiles has always read public_profile, and
+  // nothing has ever written to it. A privacy switch that only this phone can
+  // see is not a privacy switch.
+  void pushPrivacyPrefs({ ...settings.privacy });
+}
+
+/**
+ * Take the account's stored answers from the server.
+ *
+ * Deliberately does not push. Sign-in used to send this device's preferences
+ * up to whichever account had just signed in, which is backwards on a shared
+ * phone: sign in as somebody else and their settings were overwritten with
+ * yours before they had looked at them. The server is the record for anything
+ * that belongs to an account; the phone is the record only for how this phone
+ * looks, which is why appearance is not in here.
+ */
+export function applyServerPrefs(server: {
+  notifications?: Partial<NotificationPrefs>;
+  privacy?: Partial<PrivacyPrefs>;
+}) {
+  settings = {
+    ...settings,
+    notifications: { ...settings.notifications, ...(server.notifications || {}) },
+    privacy: { ...settings.privacy, ...(server.privacy || {}) },
+  };
   persist();
   notify();
 }

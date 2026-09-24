@@ -40,12 +40,24 @@ import { deleteAccount as deleteServerAccount } from './auth';
  * of both — the person believes they are gone and they are not. Apple requires
  * the account to be gone from the service, not only from the phone.
  */
-export async function deleteAccountAndData(): Promise<string | null> {
-  // Server first. A device wiped while the account survives is worse than a
-  // device left intact — it tells the person they are deleted when they are not.
-  const err = await deleteServerAccount();
-  if (err) return err;
-
+/**
+ * Return every store to a fresh-install state.
+ *
+ * Shared with signing out, which for a long time did none of this: it cleared
+ * the user record and the server session and left the posts, notifications,
+ * connections, blocks, tickets, saved events, hidden posts and the profile
+ * directory sitting on the device. Sign in as somebody else on the same phone
+ * and you were looking at the previous account's content until each sync
+ * happened to overwrite it — and the feed sync merges local-only posts rather
+ * than replacing them, so some of it stayed, and could be uploaded again.
+ *
+ * `resetSettings` is the one difference between the two callers. Deleting an
+ * account should take its preferences with it. Signing out should not take the
+ * theme and the language, which belong to the phone rather than the account —
+ * and the account-scoped preferences inside settings are pulled down from the
+ * server on the next sign-in anyway (see profileSync.applyServerPrefs).
+ */
+export function clearLocalAccountData(opts: { includeSettings: boolean }) {
   resetPosts();
   resetEvents();
   resetTickets();
@@ -57,7 +69,16 @@ export async function deleteAccountAndData(): Promise<string | null> {
   resetPlacesCache();
   resetProfiles();
   resetEventActions();
-  resetSettings();
+  if (opts.includeSettings) resetSettings();
+}
+
+export async function deleteAccountAndData(): Promise<string | null> {
+  // Server first. A device wiped while the account survives is worse than a
+  // device left intact — it tells the person they are deleted when they are not.
+  const err = await deleteServerAccount();
+  if (err) return err;
+
+  clearLocalAccountData({ includeSettings: true });
 
   // Last, so the app is already back to a clean state by the time the user
   // record goes and the screen redirects to login.

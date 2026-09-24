@@ -97,7 +97,11 @@ export default function ChurchesScreen() {
   const [photoRefs, setPhotoRefs] = useState<Record<string,string>>({});
   const [searchResults, setSearchResults] = useState<any[]|null>(null);
   const [searching, setSearching] = useState(false);
-  const [locationLabel, setLocationLabel] = useState('Near you');
+  // Held as the place, not the sentence. Storing "Near Austin, TX" meant the
+  // word "Near" — and the whole label before a location resolves — was English
+  // wherever it was shown, including to somebody reading the app in Spanish.
+  // The words are put together at render, where the language is known.
+  const [nearbyPlace, setNearbyPlace] = useState<string | null>(null);
   const [nearbyChurches, setNearbyChurches] = useState<any[]|null>(null);
   // Why we are not showing a nearby list, when we are not. Drives the note
   // above the fallback list so an empty result is never unexplained.
@@ -139,7 +143,7 @@ export default function ChurchesScreen() {
         if (geo[0]) {
           const city = geo[0].city || geo[0].subregion || '';
           const state = geo[0].region || '';
-          setLocationLabel(`Near ${city}, ${state}`);
+          setNearbyPlace(`${city}, ${state}`);
         }
         // Which churches sit within 50km of a street corner does not change
         // between sessions. Reuse the answer rather than buying it again.
@@ -361,7 +365,7 @@ export default function ChurchesScreen() {
             their own, so removing the wordmark costs the screen no height. */}
         <View style={s.locationRow}>
           <Ionicons name="location-outline" size={19} color={c.gold} />
-          <Text style={s.locationTxt} numberOfLines={1}>{locationLabel}</Text>
+          <Text style={s.locationTxt} numberOfLines={1}>{nearbyPlace ? `${tx('Near')} ${nearbyPlace}` : tx('Near you')}</Text>
           {loadingNearby && <ActivityIndicator size="small" color={c.gold} style={{ marginLeft: 8 }} />}
           <HeaderIcons />
         </View>

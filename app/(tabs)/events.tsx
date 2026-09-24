@@ -69,7 +69,12 @@ export default function EventsScreen() {
   const [filterCity, setFilterCity] = useState('');
   const [showStateFilter, setShowStateFilter] = useState(false);
   const user = getUser();
-  const [locationLabel, setLocationLabel] = useState(user.location || 'Near you');
+  // The place, not the sentence — see the same change on the Churches tab.
+  // Here it mattered twice over: the label was English wherever it appeared,
+  // and the nearby list was derived by stripping the English word "Near" back
+  // off it, so translating the label in place would have quietly emptied the
+  // list for every Spanish reader.
+  const [nearbyPlace, setNearbyPlace] = useState<string | null>(user.location || null);
 
   useEffect(() => {
     (async () => {
@@ -81,7 +86,7 @@ export default function EventsScreen() {
         if (geo[0]) {
           const city = geo[0].city || geo[0].subregion || '';
           const state = geo[0].region || '';
-          if (city) setLocationLabel(`Near ${city}, ${state}`);
+          if (city) setNearbyPlace(`${city}, ${state}`);
         }
       } catch {}
     })();
@@ -94,15 +99,16 @@ export default function EventsScreen() {
     userEvents.filter(e => e.status !== 'draft')
   , [userEvents]);
 
-  // Nearby events - match user's city/state from locationLabel
+  // Nearby events — matched against nearbyPlace, the "City, ST" this device resolved.
   const nearbyEvents = useMemo(() => {
     if (!appSettings.location.locationEnabled || !appSettings.location.nearbyEvents) return [];
     if (activeTab === 'Attending') return [];
     if (activeTab === 'Saved') return [];
-    const loc = locationLabel.replace('Near ', '').toLowerCase();
-    const parts = loc.split(',').map((s: string) => s.trim());
+    // No string surgery: nearbyPlace holds "City, ST" or nothing at all, so
+    // there is no prefix to strip and no placeholder wording to recognise.
+    const parts = (nearbyPlace || '').toLowerCase().split(',').map((s: string) => s.trim());
     const city = parts[0] || '';
-    if (!city || city === 'near you' || city === 'set your location') return [];
+    if (!city) return [];
     // reverseGeocode gives the full state name; events store the abbreviation.
     // Compare them as codes, or a traveller in Florida matches nothing.
     const myState = stateCode(parts[1]);
@@ -111,7 +117,7 @@ export default function EventsScreen() {
       if (e.location && e.location.toLowerCase().includes(city)) return true;
       return !!myState && eventStateCode(e) === myState;
     }).slice(0, 5);
-  }, [allEvents, locationLabel, activeTab, appSettings.location.nearbyEvents, appSettings.location.locationEnabled]);
+  }, [allEvents, nearbyPlace, activeTab, appSettings.location.nearbyEvents, appSettings.location.locationEnabled]);
 
   const filtered = useMemo(() => {
     let result = allEvents;
@@ -179,7 +185,7 @@ export default function EventsScreen() {
           bar costs this screen no height. */}
       <View style={s.locationRow}>
         <Ionicons name="location-outline" size={19} color={c.gold} />
-        <Text style={s.locationTxt} numberOfLines={1}>{locationLabel}</Text>
+        <Text style={s.locationTxt} numberOfLines={1}>{nearbyPlace ? `${tx('Near')} ${nearbyPlace}` : tx('Near you')}</Text>
         <HeaderIcons />
       </View>
 

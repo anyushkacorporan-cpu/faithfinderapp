@@ -9,7 +9,8 @@ import { syncPostsFromServer } from './postsStore';
 import { syncNotificationsFromServer } from './notificationsStore';
 import { uploadImage } from './postsApi';
 import { pushNotificationPrefs } from './notificationsApi';
-import { getSettings } from './settingsStore';
+import { pushPrivacyPrefs } from './privacyApi';
+import { getSettings, applyServerPrefs } from './settingsStore';
 import { syncSavedEventsFromServer } from './eventActionsStore';
 import { syncHiddenFromServer } from './hiddenStore';
 
@@ -112,13 +113,28 @@ export async function syncProfileAfterSignIn(userId: string): Promise<void> {
   // we know who is asking, so likes come back marked as yours.
   await syncPostsFromServer();
   await syncNotificationsFromServer();
-  // The switches are answered on the phone and enforced in the database, so the
-  // database needs this account's answers before the first like lands.
-  void pushNotificationPrefs({ ...getSettings().notifications });
-
   const { data: row, error } = await db
     .from('profiles').select('*').eq('id', userId).single();
   if (error || !row) return;
+
+  // Preferences come DOWN here, not up.
+  //
+  // This used to push `getSettings()` to whichever account had just signed in,
+  // which is backwards on a phone more than one person uses: signing in as
+  // somebody else overwrote their stored answers with the ones left on the
+  // device. The server holds the record for anything belonging to an account,
+  // and sign-in is when this phone learns it.
+  //
+  // Absent means on, matching wants_notification() in the database, so a
+  // profile that has never saved preferences still gets everything.
+  applyServerPrefs({
+    notifications: (row.notification_prefs && typeof row.notification_prefs === 'object')
+      ? row.notification_prefs : {},
+    privacy: {
+      publicProfile: row.public_profile !== false,
+      showLocation: row.show_location === true,
+    },
+  });
 
   const local = getUser();
   const hasLocalContent = !!(local.bio || local.location || local.profilePhoto
@@ -130,6 +146,11 @@ export async function syncProfileAfterSignIn(userId: string): Promise<void> {
   // without the second, signing in on a friend's phone would overwrite yours.
   if (!migrated[userId] && hasLocalContent && isBlank(row)) {
     await db.from('profiles').update(toRow(local)).eq('id', userId);
+    // The one path where the device is the record: a profile filled in before
+    // this account existed, moving onto a blank one. Its preferences go with
+    // it — otherwise the migration carries the bio and drops the privacy.
+    void pushNotificationPrefs({ ...getSettings().notifications });
+    void pushPrivacyPrefs({ ...getSettings().privacy });
     migrated[userId] = true;
     save(MIGRATED_KEY, migrated);
     setUser({ id: userId });

@@ -138,6 +138,8 @@ const translations: Record<string, Record<Lang, string>> = {
   ticketsSaved: { English: 'Your tickets are saved in My Events', Español: 'Tus entradas están guardadas en Mis Eventos' },
   blockedUsers: { English: 'Blocked Users', Español: 'Usuarios Bloqueados' },
   publicProfile: { English: 'Public Profile', Español: 'Perfil Público' },
+  near: { English: 'Near', Español: 'Cerca de' },
+  nearYou: { English: 'Near you', Español: 'Cerca de ti' },
   allowOthersViewProfile: { English: 'Allow others to view your profile', Español: 'Permitir que otros vean tu perfil' },
   showLocationOnProfile: { English: 'Show Location on Profile', Español: 'Mostrar Ubicación en el Perfil' },
   displayCityOnProfile: { English: 'Display your city on your profile', Español: 'Mostrar tu ciudad en tu perfil' },

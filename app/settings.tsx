@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useThemeColors, ThemeColors } from '../src/lib/theme';
 import { signOut } from '../src/lib/userStore';
+import { clearLocalAccountData } from '../src/lib/accountDeletion';
 import { signOut as signOutServer } from '../src/lib/auth';
 import { useTranslation } from '../src/lib/i18n';
 
@@ -65,10 +66,18 @@ export default function SettingsScreen() {
               style={s.row}
               onPress={() => {
                 if (item.route) { router.push(item.route as any); return; }
-                // Both halves: the device's idea of who is signed in, and the
-                // session on the server. Without the second, the next launch
-                // restores the session and signing out did nothing.
+                // Three halves, as it turns out. The session on the server,
+                // without which the next launch restores it and signing out
+                // did nothing; the device's idea of who is signed in; and the
+                // account's data, which used to stay behind — so signing in as
+                // somebody else on the same phone showed them the previous
+                // account's feed, notifications and connections.
+                //
+                // Settings stay: the theme and the language belong to the
+                // phone. The preferences inside them that belong to an account
+                // are read back from the server on the next sign-in.
                 signOutServer();
+                clearLocalAccountData({ includeSettings: false });
                 signOut();
                 router.replace('/login');
               }}

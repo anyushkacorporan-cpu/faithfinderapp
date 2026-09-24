@@ -4,6 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { newId } from './ids';
 import { getUser } from './userStore';
 import { publishProfile } from './profilesStore';
+import { getSettings } from './settingsStore';
 import { getConnections } from './connectionsStore';
 import { submitReport } from './moderationApi';
 import * as api from './postsApi';
@@ -293,6 +294,14 @@ function publishSelf(who: { name: string; color: string; initials: string; city?
   if (!u.id || !who.name) return;
   // userStore keeps one free-text "City, ST"; the directory keeps them apart.
   const [savedCity, savedState] = (u.location || '').split(',').map(part => part.trim());
+  // "Show Location on Profile", honoured at the point it leaves this device.
+  //
+  // The switch was being read where a profile is drawn, which hides the city
+  // from the only person already allowed to see it. The directory entry is
+  // what everybody else reads, so this is where turning it off has to bite —
+  // and publishProfile merges rather than overwrites, so a city published
+  // before the switch was turned off is cleared explicitly, not just omitted.
+  const shareLocation = getSettings().privacy.showLocation;
   publishProfile({
     id: u.id,
     name: who.name,
@@ -300,8 +309,8 @@ function publishSelf(who: { name: string; color: string; initials: string; city?
     photo: u.profilePhoto || u.avatar,
     cover: u.coverPhoto,
     bio: u.bio,
-    city: who.city || savedCity || undefined,
-    state: who.state || savedState || undefined,
+    city: shareLocation ? (who.city || savedCity || undefined) : '',
+    state: shareLocation ? (who.state || savedState || undefined) : '',
     lifeVerse: u.lifeVerse,
     lifeVerseRef: u.lifeVerseRef,
     color: who.color,
