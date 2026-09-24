@@ -97,6 +97,10 @@ export default function OtherUserProfileScreen() {
   const churchesShared = userPosts.filter(p => !!p.churchShareData).map(p => p.churchShareData!);
 
   const [showAllGallery, setShowAllGallery] = useState(false);
+  // Separate from the gallery's viewer below. That one pages through a list by
+  // index; this shows one picture and closes. Sharing it would mean feeding a
+  // profile photo into an array it does not belong to.
+  const [avatarFull, setAvatarFull] = useState(false);
   const [photoViewerVisible, setPhotoViewerVisible] = useState(false);
   const [photoViewerIndex, setPhotoViewerIndex] = useState(0);
 
@@ -129,13 +133,29 @@ export default function OtherUserProfileScreen() {
           <TouchableOpacity style={s.backBtn} onPress={() => router.back()}>
             <Ionicons name="arrow-back" size={20} color={c.onPrimary} />
           </TouchableOpacity>
+          {/* Tappable only when there is a photo to show. Enlarging a circle
+              with two letters in it produces two enormous letters, which looks
+              like a bug rather than a feature — so with no photo this stays
+              the plain View it was and swallows nothing.
+
+              The small avatars in the feed and on comments keep opening the
+              person's profile. That is what a tap on those means in every app
+              this one is measured against; enlarging is what a tap on the big
+              one means, and this is the big one. */}
           <View style={s.avatarWrap}>
-            {view.photo
-              ? <Image source={{uri: view.photo}} style={[s.avatar,{overflow:'hidden'}]} resizeMode="cover"/>
-              : <View style={[s.avatar,{backgroundColor:color}]}>
-                  <Text style={s.avatarTxt}>{initials}</Text>
-                </View>
-            }
+            {/* The button wraps the photo, not avatarWrap. avatarWrap is
+                absolutely positioned with left:0 right:0, so making it the
+                touchable would put an invisible full-width band across the
+                cover that opens someone's picture wherever you tapped. */}
+            {view.photo ? (
+              <TouchableOpacity activeOpacity={0.85} onPress={() => setAvatarFull(true)}>
+                <Image source={{uri: view.photo}} style={[s.avatar,{overflow:'hidden'}]} resizeMode="cover"/>
+              </TouchableOpacity>
+            ) : (
+              <View style={[s.avatar,{backgroundColor:color}]}>
+                <Text style={s.avatarTxt}>{initials}</Text>
+              </View>
+            )}
           </View>
         </View>
 
@@ -353,6 +373,28 @@ export default function OtherUserProfileScreen() {
           profile render it. Without this the button above had a handler and
           still did nothing, because there was no sheet for it to open. */}
       <PostShareSheet post={shareTarget} onClose={() => setShareTarget(null)} />
+
+      {/* Same shape as the event banner viewer in event-detail.tsx: near-black
+          ground, close button top right, `contain` so a portrait photo is
+          shown whole rather than cropped to fill. Tapping the background
+          closes it too — the button is for people who look for a button. */}
+      <Modal visible={avatarFull} transparent animationType="fade" onRequestClose={() => setAvatarFull(false)}>
+        <TouchableOpacity
+          style={{flex:1,backgroundColor:'rgba(0,0,0,0.95)',justifyContent:'center',alignItems:'center'}}
+          activeOpacity={1}
+          onPress={() => setAvatarFull(false)}
+        >
+          <TouchableOpacity
+            style={{position:'absolute',top:60,right:20,zIndex:1,width:40,height:40,borderRadius:20,backgroundColor:'rgba(255,255,255,0.2)',alignItems:'center',justifyContent:'center'}}
+            onPress={() => setAvatarFull(false)}
+          >
+            <Ionicons name="close" size={24} color={c.onPrimary} />
+          </TouchableOpacity>
+          {!!view.photo && (
+            <Image source={{uri: view.photo}} style={{width:'100%',height:'80%'}} resizeMode="contain" />
+          )}
+        </TouchableOpacity>
+      </Modal>
     </SafeAreaView>
   );
 }
