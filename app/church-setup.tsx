@@ -8,7 +8,7 @@ import { useTranslation } from '../src/lib/i18n';
 import { getUser } from '../src/lib/userStore';
 
 export default function ChurchSetupScreen() {
-  const { t } = useTranslation();
+  const { t, tx } = useTranslation();
   const user = getUser();
 
   return (
@@ -84,7 +84,7 @@ export default function ChurchSetupScreen() {
         {/* Info */}
         <View style={s.infoBox}>
           <Ionicons name="shield-checkmark-outline" size={16} color={COLORS.gold} />
-          <Text style={s.infoTxt}>All church accounts go through a verification process. FaithFinder reviews submissions within 3–5 business days.</Text>
+          <Text style={s.infoTxt}>{tx('All church accounts go through a verification process. FaithFinder reviews submissions within 3–5 business days.')}</Text>
         </View>
 
       </View>

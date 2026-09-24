@@ -364,7 +364,7 @@ export default function CreateEventScreen() {
                   :<LinearGradient colors={gradient} style={s.bannerGradient} start={{x:0,y:0}} end={{x:1,y:1}}>
                     <Ionicons name="camera-outline" size={28} color="rgba(255,255,255,0.7)"/>
                     <Text style={s.bannerTxt}>{t('addEventBanner')}</Text>
-                    <Text style={s.bannerSub}>Tap to upload · 16:9</Text>
+                    <Text style={s.bannerSub}>{tx('Tap to upload · 16:9')}</Text>
                   </LinearGradient>}
               </TouchableOpacity>
 
@@ -665,7 +665,7 @@ export default function CreateEventScreen() {
                 <View style={s.emptyAgenda}>
                   <Ionicons name="time-outline" size={40} color={c.placeholder}/>
                   <Text style={s.emptyAgendaTxt}>{t('noAgendaYet')}</Text>
-                  <Text style={s.emptyAgendaSub}>Add a time + activity above</Text>
+                  <Text style={s.emptyAgendaSub}>{tx('Add a time + activity above')}</Text>
                 </View>
               )}
             </>

@@ -46,7 +46,7 @@ export default function AboutScreen() {
           ))}
         </View>
         <Text style={s.copyright}>© 2026 FaithFinder App. All rights reserved.</Text>
-        <Text style={s.builtWith}>Made with ♥ for the faith community</Text>
+        <Text style={s.builtWith}>{tx('Made with ♥ for the faith community')}</Text>
       </ScrollView>
     </SafeAreaView>
   );

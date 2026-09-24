@@ -122,7 +122,7 @@ export default function RegisterChurchScreen() {
               <Text style={s.stepBadgeTxt}>{t('registerNewChurch')}</Text>
             </View>
             <Text style={s.title}>{t('churchDetails')}</Text>
-            <Text style={s.subtitle}>Fill in your church information. All fields marked * are required.</Text>
+            <Text style={s.subtitle}>{tx('Fill in your church information. All fields marked * are required.')}</Text>
 
             {/* Church Info */}
             <Text style={s.sectionTitle}>{t('churchInformation')}</Text>

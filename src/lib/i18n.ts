@@ -140,6 +140,23 @@ const translations: Record<string, Record<Lang, string>> = {
   publicProfile: { English: 'Public Profile', Español: 'Perfil Público' },
   near: { English: 'Near', Español: 'Cerca de' },
   nearYou: { English: 'Near you', Español: 'Cerca de ti' },
+  tapToUpload: { English: 'Tap to upload · 16:9', Español: 'Toca para subir · 16:9' },
+  addTimeActivityAbove: { English: 'Add a time + activity above', Español: 'Agrega una hora y una actividad arriba' },
+  fillChurchInfo: {
+    English: 'Fill in your church information. All fields marked * are required.',
+    Español: 'Completa la información de tu iglesia. Todos los campos marcados con * son obligatorios.' },
+  churchVerificationNote: {
+    English: 'All church accounts go through a verification process. FaithFinder reviews submissions within 3–5 business days.',
+    Español: 'Todas las cuentas de iglesia pasan por un proceso de verificación. FaithFinder revisa las solicitudes en un plazo de 3 a 5 días hábiles.' },
+  couldNotSubmit: { English: 'Could not submit', Español: 'No se pudo enviar' },
+  claimDidNotReachUs: {
+    English: 'Your claim did not reach us. Check your connection and try again.',
+    Español: 'Tu solicitud no nos llegó. Revisa tu conexión e inténtalo de nuevo.' },
+  registrationDidNotReachUs: {
+    English: 'Your registration did not reach us. Check your connection and try again.',
+    Español: 'Tu registro no nos llegó. Revisa tu conexión e inténtalo de nuevo.' },
+  continueWord: { English: 'Continue', Español: 'Continuar' },
+  madeWithLove: { English: 'Made with ♥ for the faith community', Español: 'Hecho con ♥ para la comunidad de fe' },
   allowOthersViewProfile: { English: 'Allow others to view your profile', Español: 'Permitir que otros vean tu perfil' },
   showLocationOnProfile: { English: 'Show Location on Profile', Español: 'Mostrar Ubicación en el Perfil' },
   displayCityOnProfile: { English: 'Display your city on your profile', Español: 'Mostrar tu ciudad en tu perfil' },
