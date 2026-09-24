@@ -148,6 +148,10 @@ const translations: Record<string, Record<Lang, string>> = {
   churchVerificationNote: {
     English: 'All church accounts go through a verification process. FaithFinder reviews submissions within 3–5 business days.',
     Español: 'Todas las cuentas de iglesia pasan por un proceso de verificación. FaithFinder revisa las solicitudes en un plazo de 3 a 5 días hábiles.' },
+  eventNotAvailableToRegister: {
+    English: 'This event is not available to register for. It may be a sample event, or it may not have finished uploading.',
+    Español: 'Este evento no está disponible para registrarse. Puede ser un evento de muestra o puede que aún no haya terminado de subirse.' },
+  isNowLive: { English: 'is now live.', Español: 'ya está publicado.' },
   couldNotSubmit: { English: 'Could not submit', Español: 'No se pudo enviar' },
   claimDidNotReachUs: {
     English: 'Your claim did not reach us. Check your connection and try again.',
@@ -592,7 +596,7 @@ const translations: Record<string, Record<Lang, string>> = {
   dx108: { English: 'Add your thoughts about this event...', Español: 'Añade tus pensamientos sobre este evento...' },
   dx109: { English: 'Write a comment...', Español: 'Escribe un comentario...' },
   dx110: { English: 'Search by name, city, state, venue...', Español: 'Busca por nombre, ciudad, estado o lugar...' },
-  dx111: { English: 'Search church, city, ZIP, state, denomination...', Español: 'Busca iglesia, ciudad, código postal, estado o denominación...' },
+  dx111: { English: 'Church, city, ZIP or state', Español: 'Iglesia, ciudad, CP o estado' },
   dx112: { English: 'Search by church name or city...', Español: 'Busca por nombre de iglesia o ciudad...' },
   dx113: { English: 'Filter by city...', Español: 'Filtrar por ciudad...' },
   dx114: { English: 'Any additional information to help verify your claim...', Español: 'Información adicional para ayudar a verificar tu solicitud...' },

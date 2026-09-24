@@ -18,6 +18,7 @@ import { suggestAddresses, resolveAddress, newSessionToken, AddressSuggestion } 
 
 import { KeyboardScreen, KEYBOARD_SCROLL_PROPS } from '../src/components/KeyboardScreen';
 import { priceBreakdown, platformFeePerTicket, organizerPayoutPerTicket } from '../src/lib/ticketPricing';
+import { useConfirm } from '../src/components/Confirm';
 const EVENT_TYPES = ['Conference','Festival','Workshop','Revival','Service','Concert','Retreat','Other'];
 const SPEAKER_COLORS = ['#667eea','#f093fb','#4facfe','#43e97b','#fa709a','#c9a96e'];
 const RECURRENCE_OPTIONS = [
@@ -56,6 +57,7 @@ export default function CreateEventScreen() {
   const c = useThemeColors();
   const s = makeStyles(c);
   const { t, tx } = useTranslation();
+  const { showConfirm } = useConfirm();
   const user = getUser();
   const [step, setStep] = useState(0);
 
@@ -306,9 +308,17 @@ export default function CreateEventScreen() {
     if (draft) {
       Alert.alert(tx('Saved as Draft'), tx('Find it in Settings → My Events'),[{text:'OK',onPress:()=>router.back()}]);
     } else {
-      Alert.alert(tx('Event Published! 🎉'), '"'+title+'" is now live.',[
-        {text: tx('View Events'),onPress:()=>router.replace('/(tabs)/events')}
-      ]);
+      // The app's own confirmation rather than the system one. A native alert
+      // is the operating system speaking; the moment an event goes live is the
+      // app's to mark. "is now live" was also the last English left in this
+      // sentence — the title and the button were already translated around it.
+      showConfirm({
+        title: tx('Event Published! 🎉'),
+        message: `"${title}" ${tx('is now live.')}`,
+        buttons: [
+          { text: tx('View Events'), onPress: () => router.replace('/(tabs)/events') },
+        ],
+      });
     }
   }
 

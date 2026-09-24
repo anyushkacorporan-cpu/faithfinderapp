@@ -212,7 +212,7 @@ export default function EventsScreen() {
         >
           <Ionicons name="options-outline" size={15} color={activeFilters.length > 0 ? c.onPrimary : c.textSecondary} />
           <Text style={[s.filterBtnTxt, activeFilters.length > 0 && {color: c.onPrimary}]}>
-            Filter{activeFilters.length > 0 ? ` (${activeFilters.length})` : ''}
+            {t('filter')}{activeFilters.length > 0 ? ` (${activeFilters.length})` : ''}
           </Text>
         </TouchableOpacity>
 

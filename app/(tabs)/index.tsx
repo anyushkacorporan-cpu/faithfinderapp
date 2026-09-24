@@ -374,7 +374,12 @@ export default function ChurchesScreen() {
             <Ionicons name="search-outline" size={18} color={c.gold} />
             <TextInput
               style={s.searchInput}
-              placeholder={tx('Search church, city, ZIP, state, denomination...')}
+              // Five things listed in a box that holds about thirty-one
+              // characters. English ran to forty-eight and was being cut off
+              // too — it just read as a sentence trailing off rather than as a
+              // fault. Denomination is gone from the hint because the button
+              // immediately to the right of this one filters by it.
+              placeholder={tx('Church, city, ZIP or state')}
               placeholderTextColor={c.placeholder}
               value={search}
               onChangeText={setSearch}
@@ -390,7 +395,7 @@ export default function ChurchesScreen() {
           <TouchableOpacity style={[s.filterBtn, hasActiveFilter && s.filterBtnActive]} onPress={() => setFilterVisible(true)}>
             <Ionicons name="options-outline" size={14} color={hasActiveFilter ? c.onPrimary : c.textSecondary} />
             <Text style={[s.filterTxt, hasActiveFilter && s.filterTxtActive]}>
-              Filter{activeFilterCount > 0 ? ` (${activeFilterCount})` : ''}
+              {t('filter')}{activeFilterCount > 0 ? ` (${activeFilterCount})` : ''}
             </Text>
           </TouchableOpacity>
         </View>

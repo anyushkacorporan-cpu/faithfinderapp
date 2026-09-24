@@ -16,9 +16,11 @@ import { startPayment, confirmPayment } from '../src/lib/paymentsApi';
 import { hasStripe } from '../src/lib/stripeConfig';
 import { priceBreakdown } from '../src/lib/ticketPricing';
 import { KeyboardScreen } from '../src/components/KeyboardScreen';
+import { useConfirm } from '../src/components/Confirm';
 
 export default function EventCheckoutScreen() {
   const { t, tx } = useTranslation();
+  const { showConfirm } = useConfirm();
   const c = useThemeColors();
   const s = makeStyles(c);
   const params = useLocalSearchParams<{
@@ -59,9 +61,22 @@ export default function EventCheckoutScreen() {
     const onServer = await ensureEventOnServer(params.id || '');
     if (onServer === 'local-only') {
       setProcessing(false);
-      Alert.alert(tx('Could not register'),
-        tx('This is a sample event and cannot be registered for.'),
-        [{ text: tx('OK'), onPress: () => router.back() }]);
+      // The app's own dialog, and a message that covers what actually
+      // happened. ensureEventOnServer returns 'local-only' for four different
+      // situations and only one of them is a sample event: the event is not in
+      // the local store, nobody is signed in, the id is a seeded one, or the
+      // upload was attempted and failed. Telling somebody their own event is a
+      // demo — which is what the old wording did in three cases out of four —
+      // sends them off to look for a problem that is not there.
+      //
+      // Distinguishing the four properly means ensureEventOnServer returning a
+      // reason rather than a verdict. That is a change to the flow rather than
+      // to what it says, so it is not made here.
+      showConfirm({
+        title: tx('Could not register'),
+        message: tx('This event is not available to register for. It may be a sample event, or it may not have finished uploading.'),
+        buttons: [{ text: tx('OK'), onPress: () => router.back() }],
+      });
       return;
     }
 
