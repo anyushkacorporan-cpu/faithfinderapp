@@ -100,6 +100,9 @@ const VARS = [
     label: 'Supabase database connection string',
     // Optional to the app, asked for anyway — see the prompt loop below.
     ask: true,
+    // What to swap out when the string arrives with Supabase's own wording
+    // still in it, which is how it arrives if you copy and paste it.
+    fill: /\[YOUR-PASSWORD\]|\[your-password\]/,
     where: 'Supabase → the green Connect button at the top → copy the connection string',
     // Not EXPO_PUBLIC_, and that is the point: this one holds the database
     // password and must never reach the app bundle. Expo only ships variables
@@ -310,6 +313,27 @@ for (const v of VARS) {
         continue;
       }
       bad('This one is required.');
+      continue;
+    }
+
+    // A value that arrives with its own placeholder still in it is not a
+    // mistake to reject — it is the string Supabase hands you, pasted exactly
+    // as given. Editing [YOUR-PASSWORD] out of it by hand means a text editor
+    // and a careful selection, which is a lot of ceremony for a substitution
+    // this script can do. So ask for the missing half and splice it.
+    const placeholder = v.fill && answer.match(v.fill);
+    if (placeholder) {
+      note('That still has Supabase\'s placeholder in it — I can fill it in.');
+      note('Project Settings → Database → Reset database password, if you do not have it.');
+      const pw = await rl.question('    Database password: ');
+      if (pw === null) { console.log(); bad('Input ended. Nothing written.'); process.exit(1); }
+      const typed = pw.trim();
+      if (!typed) { bad('No password given — nothing to fill in.'); continue; }
+      // Encoded, because a password is allowed to contain the characters that
+      // mean something in a URL. An unencoded @ or / silently rewrites which
+      // host it points at, and the error that follows names neither.
+      current = answer.replace(v.fill, encodeURIComponent(typed));
+      entered = true;
       continue;
     }
 
