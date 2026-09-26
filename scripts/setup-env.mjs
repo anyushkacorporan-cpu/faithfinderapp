@@ -18,6 +18,7 @@
 
 import { readFileSync, writeFileSync, copyFileSync, existsSync } from 'node:fs';
 import { stdin, stdout } from 'node:process';
+import pg from 'pg';
 
 const ok    = s => console.log(`  \x1b[32m✓\x1b[0m ${s}`);
 const bad   = s => console.log(`  \x1b[31m✗\x1b[0m ${s}`);
@@ -92,6 +93,49 @@ const VARS = [
           + 'type an address.' };
       }
       return `Places API says ${j.status}. ${j.error_message || ''}`.trim();
+    },
+  },
+  {
+    name: 'DATABASE_URL',
+    label: 'Supabase database connection string',
+    where: 'Supabase → the green Connect button at the top → copy the connection string',
+    // Not EXPO_PUBLIC_, and that is the point: this one holds the database
+    // password and must never reach the app bundle. Expo only ships variables
+    // with that prefix, so the name is the protection.
+    //
+    // It is what run-sql.mjs, migrate.mjs and import-churches.mjs all need,
+    // and it was the only thing any of them were missing — which is why every
+    // schema change so far went through the browser and the clipboard instead
+    // of `node scripts/migrate.mjs`.
+    looks: v => {
+      if (!/^postgres(ql)?:\/\//.test(v)) return 'Should start with postgresql://';
+      // The single most common paste: the string copied with Supabase's
+      // placeholder still in it. It looks complete and cannot connect.
+      if (/\[YOUR-PASSWORD\]|YOURPASSWORD/i.test(v)) {
+        return 'That still has the placeholder in it — replace [YOUR-PASSWORD] with your database password.';
+      }
+      if (!/@/.test(v) || !/\/postgres/.test(v)) return 'That does not look like a full connection string.';
+      return true;
+    },
+    required: false,
+    check: async v => {
+      const client = new pg.Client({ connectionString: v, ssl: { rejectUnauthorized: false } });
+      try {
+        await client.connect();
+        await client.query('select 1');
+        return true;
+      } catch (e) {
+        const m = String(e?.message || e);
+        // Wrong password is the answer that is about this value. Anything else
+        // — DNS, a firewall, the project asleep — is between here and there
+        // and says nothing about what was typed.
+        if (/password authentication failed/i.test(m)) {
+          return 'the database refused that password.';
+        }
+        return { state: 'unknown', msg: `could not reach the database: ${m}` };
+      } finally {
+        await client.end().catch(() => {});
+      }
     },
   },
   {
