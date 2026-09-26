@@ -320,10 +320,21 @@ export default function ChurchDetailScreen() {
           <View style={s.starsRow}>
             {[1,2,3,4,5].map(i => <Ionicons key={i} name={i<=Math.round(church.rating)?'star':'star-outline'} size={20} color={c.gold} />)}
             <Text style={s.ratingNum}>{church.rating.toFixed(1)}</Text>
-            <TouchableOpacity style={s.seeReviewsBtn} onPress={() => setShowReviews(true)}>
-              <Text style={s.seeReviewsTxt}>{t('seeReviews')}</Text>
-              <Ionicons name="chevron-forward" size={14} color={c.gold} />
-            </TouchableOpacity>
+            {/* Only when there is something behind it.
+                The rating and the count are free from Places and arrive for
+                almost every church; the review text is on Google's Enterprise
+                tier and comes back empty until the project has billing. So
+                this button sat under "128 Google reviews" and opened a page
+                saying there were none — the page telling you a number and then
+                contradicting itself.
+                Nothing here is disabled or hidden permanently: the button
+                reappears on its own the day the reviews do. */}
+            {church.reviews.length > 0 && (
+              <TouchableOpacity style={s.seeReviewsBtn} onPress={() => setShowReviews(true)}>
+                <Text style={s.seeReviewsTxt}>{t('seeReviews')}</Text>
+                <Ionicons name="chevron-forward" size={14} color={c.gold} />
+              </TouchableOpacity>
+            )}
           </View>
         )}
 
