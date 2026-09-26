@@ -98,6 +98,8 @@ const VARS = [
   {
     name: 'DATABASE_URL',
     label: 'Supabase database connection string',
+    // Optional to the app, asked for anyway — see the prompt loop below.
+    ask: true,
     where: 'Supabase → the green Connect button at the top → copy the connection string',
     // Not EXPO_PUBLIC_, and that is the point: this one holds the database
     // password and must never reach the app bundle. Expo only ships variables
@@ -257,7 +259,12 @@ for (const v of VARS) {
   // variable.
   for (;;) {
     if (!current) {
-      if (!v.required) { note('(blank — not needed yet)'); break; }
+      // "The app runs without it" and "do not bother asking" are two different
+      // things, and treating them as one skipped the question for the value
+      // that most needed asking. Stripe and Apple really are parked. The
+      // database URL is not: nothing in the app reads it, and every script
+      // that applies a migration is stuck without it.
+      if (!v.required && !v.ask) { note('(blank — not needed yet)'); break; }
     } else {
       const verdict = await judge(v, current, env);
       if (verdict.state === 'ok') {
