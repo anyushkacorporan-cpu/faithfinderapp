@@ -12,7 +12,7 @@ import Logo from '../src/components/Logo';
 import { KeyboardScreen } from '../src/components/KeyboardScreen';
 
 export default function SignupScreen() {
-  const { t } = useTranslation();
+  const { t, tx } = useTranslation();
   const [accountType, setAccountType] = useState<'personal'|'church'>('personal');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -43,7 +43,7 @@ export default function SignupScreen() {
     }
     if (!email.includes('@')) { setError('Please enter a valid email address.'); return; }
     if (password.length < 8) { setError('Password must be at least 8 characters.'); return; }
-    if (password !== confirm) { setError('Passwords do not match.'); return; }
+    if (password !== confirm) { setError('The passwords do not match.'); return; }
 
     const local = { accountType, firstName, lastName, churchName, email };
 
@@ -97,7 +97,7 @@ export default function SignupScreen() {
           <View style={s.logoWrap}>
             <Logo size="medium" tint="#1a1a2e" />
           </View>
-          <Text style={s.verse}>"For I know the plans I have for you," declares the Lord. — Jeremiah 29:11</Text>
+          <Text style={s.verse}>{tx('"For I know the plans I have for you," declares the Lord. — Jeremiah 29:11')}</Text>
           <View style={s.card}>
             <View style={s.typeRow}>
               <TouchableOpacity style={[s.typeBtn, accountType==='personal' && s.typeBtnActive]} onPress={() => setAccountType('personal')} activeOpacity={0.85}>
@@ -118,24 +118,24 @@ export default function SignupScreen() {
             {!!error && (
               <View style={s.errBox}>
                 <Ionicons name="alert-circle-outline" size={16} color='#dc2626' />
-                <Text style={s.errTxt}>{error}</Text>
+                <Text style={s.errTxt}>{tx(error)}</Text>
               </View>
             )}
             {accountType === 'personal' ? (
               <View style={s.row}>
                 <View style={[s.fieldWrap, {flex:1, marginRight:10}]}>
                   <Text style={s.label}>{t('firstName')}</Text>
-                  <TextInput style={s.input} placeholder="John" placeholderTextColor={COLORS.placeholder} value={firstName} onChangeText={setFirstName} />
+                  <TextInput style={s.input} placeholder={tx('John')} placeholderTextColor={COLORS.placeholder} value={firstName} onChangeText={setFirstName} />
                 </View>
                 <View style={[s.fieldWrap, {flex:1}]}>
                   <Text style={s.label}>{t('lastName')}</Text>
-                  <TextInput style={s.input} placeholder="Doe" placeholderTextColor={COLORS.placeholder} value={lastName} onChangeText={setLastName} />
+                  <TextInput style={s.input} placeholder={tx('Doe')} placeholderTextColor={COLORS.placeholder} value={lastName} onChangeText={setLastName} />
                 </View>
               </View>
             ) : (
               <View style={s.fieldWrap}>
                 <Text style={s.label}>{t('churchName')}</Text>
-                <TextInput style={s.input} placeholder="Grace Community Church" placeholderTextColor={COLORS.placeholder} value={churchName} onChangeText={setChurchName} />
+                <TextInput style={s.input} placeholder={tx('Grace Community Church')} placeholderTextColor={COLORS.placeholder} value={churchName} onChangeText={setChurchName} />
               </View>
             )}
             <View style={s.fieldWrap}>
@@ -162,7 +162,7 @@ export default function SignupScreen() {
             </View>
             <TouchableOpacity style={[s.primaryBtn, creating && {opacity:0.6}]} onPress={handleCreate} disabled={creating} activeOpacity={0.88}>
               <Text style={s.primaryBtnTxt}>
-                {creating ? 'Creating account…' : accountType === 'church' ? 'Continue to Claim Church' : 'Create Account'}
+                {creating ? tx('Creating account…') : accountType === 'church' ? tx('Continue to Claim Church') : tx('Create Account')}
               </Text>
               {!creating && accountType === 'church' && <Ionicons name="arrow-forward" size={18} color={COLORS.white} />}
             </TouchableOpacity>

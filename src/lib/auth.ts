@@ -117,16 +117,34 @@ function readable(message: string): string {
  * is ever set, and there is nothing to report. A hang is a failure and should
  * say so.
  */
-function withTimeout<T>(work: Promise<T>, ms: number, label: string): Promise<T | { __timedOut: string }> {
+/**
+ * What a timeout says to the person, and what it says to us.
+ *
+ * These were one string, which read `Sign-up timed out after 20s — …`. That is
+ * the right amount of detail in a log and the wrong text on a screen: it names
+ * an internal label, and because it interpolates that label and a duration it
+ * can never match an entry in the translation table, so it stayed English in
+ * the Spanish app no matter what was added there. The fixed sentence goes to
+ * the screen and translates; the detailed one goes to lastAuthRaw().
+ */
+const TIMEOUT_MESSAGE =
+  'The phone could not reach the server. Check your connection and try again.';
+
+function withTimeout<T>(work: Promise<T>, ms: number, label: string): Promise<T | TimedOut> {
   return Promise.race([
     work,
-    new Promise<{ __timedOut: string }>(resolve =>
-      setTimeout(() => resolve({ __timedOut: `${label} timed out after ${ms / 1000}s — the phone could not reach the server.` }), ms),
+    new Promise<TimedOut>(resolve =>
+      setTimeout(() => resolve({
+        __timedOut: TIMEOUT_MESSAGE,
+        __detail: `${label} timed out after ${ms / 1000}s — the phone could not reach the server.`,
+      }), ms),
     ),
   ]);
 }
 
-function timedOut(r: unknown): r is { __timedOut: string } {
+type TimedOut = { __timedOut: string; __detail: string };
+
+function timedOut(r: unknown): r is TimedOut {
   return !!r && typeof r === 'object' && '__timedOut' in (r as object);
 }
 
@@ -182,7 +200,7 @@ export async function signUp(
   }), 20000, 'Sign-up');
 
   if (timedOut(result)) {
-    lastRaw = result.__timedOut;
+    lastRaw = result.__detail;
     return { error: result.__timedOut, needsConfirmation: false };
   }
   const { data, error } = result;
@@ -198,7 +216,7 @@ export async function signIn(email: string, password: string): Promise<AuthError
   if (!db) return 'The app is not connected to its server yet.';
   const result = await withTimeout(
     db.auth.signInWithPassword({ email: email.trim(), password }), 20000, 'Sign-in');
-  if (timedOut(result)) { lastRaw = result.__timedOut; return result.__timedOut; }
+  if (timedOut(result)) { lastRaw = result.__detail; return result.__timedOut; }
   return result.error ? readable(result.error.message) : null;
 }
 
@@ -220,11 +238,11 @@ export async function changePassword(currentPassword: string, next: string): Pro
 
   const check = await withTimeout(
     db.auth.signInWithPassword({ email, password: currentPassword }), 20000, 'Verification');
-  if (timedOut(check)) { lastRaw = check.__timedOut; return check.__timedOut; }
+  if (timedOut(check)) { lastRaw = check.__detail; return check.__timedOut; }
   if (check.error) return 'Your current password is not correct.';
 
   const upd = await withTimeout(db.auth.updateUser({ password: next }), 20000, 'Password change');
-  if (timedOut(upd)) { lastRaw = upd.__timedOut; return upd.__timedOut; }
+  if (timedOut(upd)) { lastRaw = upd.__detail; return upd.__timedOut; }
   return upd.error ? readable(upd.error.message) : null;
 }
 
@@ -244,7 +262,7 @@ export async function setNewPassword(next: string): Promise<AuthError> {
   if (next.length < 8) return 'New password must be at least 8 characters.';
 
   const upd = await withTimeout(db.auth.updateUser({ password: next }), 20000, 'Password change');
-  if (timedOut(upd)) { lastRaw = upd.__timedOut; return upd.__timedOut; }
+  if (timedOut(upd)) { lastRaw = upd.__detail; return upd.__timedOut; }
   return upd.error ? readable(upd.error.message) : null;
 }
 

@@ -13,7 +13,7 @@ import Logo from '../src/components/Logo';
 import { KeyboardScreen } from '../src/components/KeyboardScreen';
 
 export default function LoginScreen() {
-  const { t } = useTranslation();
+  const { t, tx } = useTranslation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPw, setShowPw] = useState(false);
@@ -60,14 +60,14 @@ export default function LoginScreen() {
           <View style={s.logoWrap}>
             <Logo size="large" tint="#1a1a2e" />
           </View>
-          <Text style={s.verse}>"For I know the plans I have for you," declares the Lord.</Text>
-          <Text style={s.verseRef}>— Jeremiah 29:11</Text>
+          <Text style={s.verse}>{tx('"For I know the plans I have for you," declares the Lord.')}</Text>
+          <Text style={s.verseRef}>{tx('— Jeremiah 29:11')}</Text>
           <View style={s.card}>
             <Text style={s.cardTitle}>{t('welcome')}</Text><Text style={s.cardSub}>{t('signInSubtitle')}</Text>
             {!!error && (
               <View style={s.errBox}>
                 <Ionicons name="alert-circle-outline" size={16} color="#dc2626" />
-                <Text style={s.errTxt}>{error}</Text>
+                <Text style={s.errTxt}>{tx(error)}</Text>
               </View>
             )}
             <View style={s.fieldWrap}>
@@ -96,7 +96,7 @@ export default function LoginScreen() {
               disabled={busy}
               activeOpacity={0.88}
             >
-              <Text style={s.signInTxt}>{busy ? 'Signing in…' : t('signIn')}</Text>
+              <Text style={s.signInTxt}>{busy ? tx('Signing in…') : t('signIn')}</Text>
               {!busy && <Ionicons name="arrow-forward" size={18} color={COLORS.white} />}
             </TouchableOpacity>
             <View style={s.dividerRow}>

@@ -900,6 +900,53 @@ const translations: Record<string, Record<Lang, string>> = {
   esx99: { English: 'photos', Español: 'fotos' },
   esx100: { English: 'seats left', Español: 'asientos disponibles' },
   esx101: { English: 'were added — a post can have up to', Español: 'se añadieron — una publicación puede tener hasta' },
+
+  // ── Auth errors ─────────────────────────────────────────────────────────
+  // Every sign-in and sign-up failure reaches the screen as an English
+  // sentence built in src/lib/auth.ts, which is not a component and cannot
+  // call t(). The screens pass it through tx() instead, so these are the
+  // exact strings readable() returns — change one there and change it here.
+  ax1: { English: 'That email and password do not match — or the account has not been confirmed yet. Check your inbox for a confirmation link.', Español: 'Ese correo y contraseña no coinciden — o la cuenta aún no se ha confirmado. Revisa tu bandeja de entrada para encontrar el enlace de confirmación.' },
+  ax2: { English: 'Check your inbox for a confirmation link, then sign in.', Español: 'Revisa tu bandeja de entrada para encontrar el enlace de confirmación y luego inicia sesión.' },
+  ax3: { English: 'An account already exists for that email.', Español: 'Ya existe una cuenta con ese correo electrónico.' },
+  ax4: { English: 'Password must be at least 6 characters.', Español: 'La contraseña debe tener al menos 6 caracteres.' },
+  ax5: { English: 'Too many attempts. Try again in a few minutes.', Español: 'Demasiados intentos. Inténtalo de nuevo en unos minutos.' },
+  ax6: { English: 'Could not reach the server. Check your connection.', Español: 'No se pudo conectar con el servidor. Revisa tu conexión.' },
+  ax7: { English: 'The app is not connected to its server yet.', Español: 'La aplicación aún no está conectada a su servidor.' },
+  ax8: { English: 'The phone could not reach the server. Check your connection and try again.', Español: 'El teléfono no pudo conectar con el servidor. Revisa tu conexión e inténtalo de nuevo.' },
+
+  // Checks the auth screens make before calling the server at all.
+  ax9:  { English: 'Please enter your password.', Español: 'Introduce tu contraseña.' },
+  ax10: { English: 'Please enter your first and last name.', Español: 'Introduce tu nombre y apellido.' },
+  ax11: { English: 'Please enter your church name.', Español: 'Introduce el nombre de tu iglesia.' },
+  ax12: { English: 'Password must be at least 8 characters.', Español: 'La contraseña debe tener al menos 8 caracteres.' },
+  ax13: { English: 'Account created. Check your email for a confirmation link, then sign in.', Español: 'Cuenta creada. Revisa tu correo para encontrar el enlace de confirmación y luego inicia sesión.' },
+  ax14: { English: 'Signing in…', Español: 'Iniciando sesión…' },
+  ax15: { English: 'Creating account…', Español: 'Creando cuenta…' },
+  ax16: { English: 'Continue to Claim Church', Español: 'Continuar para reclamar la iglesia' },
+  ax17: { English: 'Create Account', Español: 'Crear cuenta' },
+  ax18: { English: 'Link problem', Español: 'Problema con el enlace' },
+  ax19: { English: 'You are not signed in.', Español: 'No has iniciado sesión.' },
+  ax20: { English: 'That is already your password.', Español: 'Esa ya es tu contraseña.' },
+  ax21: { English: 'Your current password is not correct.', Español: 'Tu contraseña actual no es correcta.' },
+  ax22: { English: 'This reset link is no longer valid. Request a new one.', Español: 'Este enlace de restablecimiento ya no es válido. Solicita uno nuevo.' },
+
+  // The verse on the sign-in and sign-up screens. Jeremiah 29:11 in the
+  // register the English uses — the book's name is Jeremías in Spanish, so
+  // leaving the reference alone would have been its own small wrongness.
+  ax23: { English: '"For I know the plans I have for you," declares the Lord.', Español: '"Porque yo sé muy bien los planes que tengo para ustedes", afirma el Señor.' },
+  ax24: { English: '— Jeremiah 29:11', Español: '— Jeremías 29:11' },
+  ax25: { English: '"For I know the plans I have for you," declares the Lord. — Jeremiah 29:11', Español: '"Porque yo sé muy bien los planes que tengo para ustedes", afirma el Señor. — Jeremías 29:11' },
+  ax26: { English: 'Jeremiah 29:11', Español: 'Jeremías 29:11' },
+
+  // Example text inside the sign-up and profile forms. A Spanish form that
+  // hints "John" and "Grace Community Church" is still telling you it was
+  // written for someone else.
+  ax27: { English: 'John', Español: 'Juan' },
+  ax28: { English: 'Doe', Español: 'Pérez' },
+  ax29: { English: 'Grace Community Church', Español: 'Iglesia Comunidad de Gracia' },
+  ax30: { English: 'First', Español: 'Nombre' },
+  ax31: { English: 'Last', Español: 'Apellido' },
 };
 
 // Reverse index so a raw English string can be translated directly. This is for

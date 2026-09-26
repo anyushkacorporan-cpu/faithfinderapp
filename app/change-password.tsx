@@ -92,7 +92,7 @@ export default function ChangePasswordScreen() {
           {!!error && (
             <View style={s.errBox}>
               <Ionicons name="alert-circle-outline" size={16} color={c.red} />
-              <Text style={s.errTxt}>{error}</Text>
+              <Text style={s.errTxt}>{tx(error)}</Text>
             </View>
           )}
 
