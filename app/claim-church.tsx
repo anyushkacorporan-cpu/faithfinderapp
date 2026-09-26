@@ -333,7 +333,7 @@ export default function ClaimChurchScreen() {
             <View style={s.verifySection}>
               <View style={s.verifySectionHdr}>
                 <View style={s.stepNum}><Text style={s.stepNumTxt}>3</Text></View>
-                <Text style={s.verifySectionTitle}>{t('photoProof')} <Text style={s.optional}>(optional but recommended)</Text></Text>
+                <Text style={s.verifySectionTitle}>{t('photoProof')} <Text style={s.optional}>{tx('(optional but recommended)')}</Text></Text>
               </View>
               <Text style={s.verifyHint}>{t('uploadPhotoOfSign')}</Text>
               <TouchableOpacity style={s.uploadBtn}>
@@ -342,7 +342,7 @@ export default function ClaimChurchScreen() {
                 <Text style={s.uploadSub}>{t('churchSignBulletin')}</Text>
               </TouchableOpacity>
               <View style={s.fieldWrap}>
-                <Text style={s.label}>{t('additionalNotes')} <Text style={s.optional}>(optional)</Text></Text>
+                <Text style={s.label}>{t('additionalNotes')} <Text style={s.optional}>{tx('(optional)')}</Text></Text>
                 <TextInput
                   style={[s.input, {height:80, textAlignVertical:'top', paddingTop:12}]}
                   placeholder={tx('Any additional information to help verify your claim...')}
@@ -357,7 +357,7 @@ export default function ClaimChurchScreen() {
             {/* Info box */}
             <View style={s.infoBox}>
               <Ionicons name="information-circle-outline" size={18} color={COLORS.gold} />
-              <Text style={s.infoBoxTxt}>FaithFinder reviews all church claims within 3–5 business days. You'll receive an email and app notification when approved.</Text>
+              <Text style={s.infoBoxTxt}>{t('claimReviewNotice')}</Text>
             </View>
 
             <TouchableOpacity style={[s.primaryBtn, submitting && s.primaryBtnDisabled]} onPress={handleSubmit} activeOpacity={0.85}>

@@ -128,7 +128,7 @@ export default function EditEventScreen() {
 
           <View style={s.fieldWrap}>
             <Text style={s.label}>{t('capacity')}</Text>
-            <TextInput style={s.input} value={capacityText} onChangeText={v=>setCapacityText(v.replace(/\D/g,''))} placeholder="No limit" placeholderTextColor={c.placeholder} keyboardType="number-pad" />
+            <TextInput style={s.input} value={capacityText} onChangeText={v=>setCapacityText(v.replace(/\D/g,''))} placeholder={tx('No limit')} placeholderTextColor={c.placeholder} keyboardType="number-pad" />
             {/* Lowering capacity below what is already sold would put the
                 event into a state where it has oversold itself, so the floor
                 is whatever has gone already. */}
@@ -139,7 +139,7 @@ export default function EditEventScreen() {
             </Text>
           </View>
 
-          <Text style={s.note}>Note: this quick-edit updates the core event details. Venue, speakers, and agenda aren't editable here yet.</Text>
+          <Text style={s.note}>{t('quickEditNote')}</Text>
 
           <TouchableOpacity style={s.saveFullBtn} onPress={handleSave}>
             <Text style={s.saveFullBtnTxt}>{t('saveChanges')}</Text>

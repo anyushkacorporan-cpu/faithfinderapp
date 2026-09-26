@@ -947,6 +947,73 @@ const translations: Record<string, Record<Lang, string>> = {
   ax29: { English: 'Grace Community Church', Español: 'Iglesia Comunidad de Gracia' },
   ax30: { English: 'First', Español: 'Nombre' },
   ax31: { English: 'Last', Español: 'Apellido' },
+
+  // ── Long copy on the about, claim and edit screens ──────────────────────
+  // Named rather than looked up by its English, for the reason the legal
+  // block above gives: a paragraph is too long to read as a lookup key.
+  aboutTagline: {
+    English: '"Connecting believers, one church at a time."',
+    Español: '"Conectando creyentes, una iglesia a la vez."' },
+  aboutMission: {
+    English: "FaithFinder exists to help believers find their spiritual home. We connect people with churches, faith communities, and events that align with their values and beliefs. Whether you're new to an area or searching for a church home, FaithFinder makes it easy to discover, connect, and grow in faith.",
+    Español: 'FaithFinder existe para ayudar a los creyentes a encontrar su hogar espiritual. Conectamos a las personas con iglesias, comunidades de fe y eventos que se alinean con sus valores y creencias. Ya sea que seas nuevo en la zona o estés buscando una iglesia donde congregarte, FaithFinder facilita descubrir, conectar y crecer en la fe.' },
+  aboutCopyright: {
+    English: '© 2026 FaithFinder App. All rights reserved.',
+    Español: '© 2026 FaithFinder App. Todos los derechos reservados.' },
+  claimReviewNotice: {
+    English: "FaithFinder reviews all church claims within 3–5 business days. You'll receive an email and app notification when approved.",
+    Español: 'FaithFinder revisa todas las reclamaciones de iglesias en un plazo de 3 a 5 días hábiles. Recibirás un correo electrónico y una notificación en la aplicación cuando se apruebe.' },
+  registerReviewNotice: {
+    English: 'FaithFinder reviews all new church submissions within 3–5 business days. Your church will appear in search results once approved.',
+    Español: 'FaithFinder revisa todas las nuevas solicitudes de iglesias en un plazo de 3 a 5 días hábiles. Tu iglesia aparecerá en los resultados de búsqueda una vez aprobada.' },
+  quickEditNote: {
+    English: "Note: this quick-edit updates the core event details. Venue, speakers, and agenda aren't editable here yet.",
+    Español: 'Nota: esta edición rápida actualiza los detalles principales del evento. El lugar, los oradores y la agenda aún no se pueden editar aquí.' },
+
+  // ── Short UI strings the screens pass to tx() ───────────────────────────
+  // Field labels are stored without their trailing asterisk and the screens
+  // append it. The asterisk means "required" in both languages; it is
+  // punctuation, not copy, and keeping it out means "Church Name" is one
+  // entry serving both the label and anything else that names the field.
+  ux1: { English: 'or share outside FaithFinder', Español: 'o comparte fuera de FaithFinder' },
+  ux2: { English: 'All Regions', Español: 'Todas las regiones' },
+  ux3: { English: '(optional but recommended)', Español: '(opcional pero recomendado)' },
+  ux4: { English: '(optional)', Español: '(opcional)' },
+  ux5: { English: '(Optional)', Español: '(Opcional)' },
+  ux6: { English: 'edited', Español: 'editado' },
+  ux7: { English: 'Edited', Español: 'Editado' },
+  ux8: { English: 'Required', Español: 'Obligatorio' },
+  ux9: { English: 'Event Title', Español: 'Título del evento' },
+  ux10: { English: 'Event Type', Español: 'Tipo de evento' },
+  ux11: { English: 'Event Schedule', Español: 'Programa del evento' },
+  ux12: { English: 'Event Summary', Español: 'Resumen del evento' },
+  ux13: { English: 'What Will Happen', Español: 'Qué sucederá' },
+  ux14: { English: 'Target Audience', Español: 'Público objetivo' },
+  ux15: { English: 'Organizer', Español: 'Organizador' },
+  ux16: { English: 'Venue Name', Español: 'Nombre del lugar' },
+  ux17: { English: 'Street Address', Español: 'Dirección' },
+  ux18: { English: 'Start typing an address...', Español: 'Empieza a escribir una dirección...' },
+  ux19: { English: 'City', Español: 'Ciudad' },
+  ux20: { English: 'State / Prov', Español: 'Estado / Prov' },
+  ux21: { English: 'Postal', Español: 'Código postal' },
+  ux22: { English: 'Parking', Español: 'Estacionamiento' },
+  ux23: { English: 'Venue Instructions', Español: 'Instrucciones del lugar' },
+  ux24: { English: 'Venue Map / Layout', Español: 'Mapa / Plano del lugar' },
+  ux25: { English: 'Platform', Español: 'Plataforma' },
+  ux26: { English: 'Livestream URL', Español: 'URL de transmisión en vivo' },
+  ux27: { English: 'Meeting URL', Español: 'URL de la reunión' },
+  ux28: { English: 'No limit', Español: 'Sin límite' },
+  ux29: { English: 'Currency', Español: 'Moneda' },
+  ux30: { English: 'Your Role', Español: 'Tu función' },
+  ux31: { English: 'About / Bio', Español: 'Acerca de / Biografía' },
+  ux32: { English: 'About / Description', Español: 'Acerca de / Descripción' },
+  ux33: { English: 'Tap + to create your first event', Español: 'Toca + para crear tu primer evento' },
+  ux34: { English: 'View Event', Español: 'Ver evento' },
+  ux35: { English: 'View Church', Español: 'Ver iglesia' },
+  ux36: { English: 'Women of Purpose Conference', Español: 'Conferencia Mujeres de Propósito' },
+  ux37: { English: 'Enter valid price', Español: 'Introduce un precio válido' },
+  ux38: { English: '(one per line)', Español: '(uno por línea)' },
+  ux39: { English: 'Seats available. Leave blank for no limit.', Español: 'Asientos disponibles. Déjalo en blanco para no poner límite.' },
 };
 
 // Reverse index so a raw English string can be translated directly. This is for

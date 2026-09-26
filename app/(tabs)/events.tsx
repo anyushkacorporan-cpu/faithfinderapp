@@ -533,7 +533,7 @@ export default function EventsScreen() {
                         <Text style={s.quotedTxt} numberOfLines={1}>{shareEvent.location}</Text>
                       </View>
                       <View style={s.quotedFooter}>
-                        <Text style={s.quotedLink}>View Event Details →</Text>
+                        <Text style={s.quotedLink}>{t('viewEventDetails')} →</Text>
                       </View>
                     </View>
                   )}
@@ -542,7 +542,7 @@ export default function EventsScreen() {
 
               <View style={{flexDirection:'row',alignItems:'center',gap:12,paddingHorizontal:16,marginVertical:16}}>
                 <View style={{flex:1,height:1,backgroundColor:c.border}}/>
-                <Text style={{fontSize:12,color:c.textMuted}}>or share outside FaithFinder</Text>
+                <Text style={{fontSize:12,color:c.textMuted}}>{tx('or share outside FaithFinder')}</Text>
                 <View style={{flex:1,height:1,backgroundColor:c.border}}/>
               </View>
 

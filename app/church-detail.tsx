@@ -607,7 +607,7 @@ export default function ChurchDetailScreen() {
             {/* Divider */}
             <View style={s.shareOrRow}>
               <View style={s.shareOrLine} />
-              <Text style={s.shareOrTxt}>or share outside FaithFinder</Text>
+              <Text style={s.shareOrTxt}>{tx('or share outside FaithFinder')}</Text>
               <View style={s.shareOrLine} />
             </View>
 

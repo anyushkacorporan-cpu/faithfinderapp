@@ -509,7 +509,7 @@ export default function ChurchesScreen() {
             <ScrollView
             {...KEYBOARD_SCROLL_PROPS} style={s.filterScroll} showsVerticalScrollIndicator={false}>
               <TouchableOpacity style={[s.stateRow, !activeRegion && s.stateRowActive]} onPress={() => setActiveRegion(null)}>
-                <Text style={[s.stateTxt, !activeRegion && s.stateTxtActive]}>All Regions</Text>
+                <Text style={[s.stateTxt, !activeRegion && s.stateTxtActive]}>{tx('All Regions')}</Text>
                 {!activeRegion && <Ionicons name="checkmark" size={18} color={c.gold} />}
               </TouchableOpacity>
               {/* Grouped by country and left in each country's own order rather

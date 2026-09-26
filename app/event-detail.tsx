@@ -584,7 +584,7 @@ export default function EventDetailScreen() {
 
               <View style={{flexDirection:'row',alignItems:'center',gap:12,paddingHorizontal:16,marginVertical:16}}>
                 <View style={{flex:1,height:1,backgroundColor:c.border}}/>
-                <Text style={{fontSize:12,color:c.textMuted}}>or share outside FaithFinder</Text>
+                <Text style={{fontSize:12,color:c.textMuted}}>{tx('or share outside FaithFinder')}</Text>
                 <View style={{flex:1,height:1,backgroundColor:c.border}}/>
               </View>
 
@@ -698,7 +698,7 @@ export default function EventDetailScreen() {
 
               <View style={{flexDirection:'row',alignItems:'center',gap:12,paddingHorizontal:16,marginVertical:16}}>
                 <View style={{flex:1,height:1,backgroundColor:c.border}}/>
-                <Text style={{fontSize:12,color:c.textMuted}}>or share outside FaithFinder</Text>
+                <Text style={{fontSize:12,color:c.textMuted}}>{tx('or share outside FaithFinder')}</Text>
                 <View style={{flex:1,height:1,backgroundColor:c.border}}/>
               </View>
 

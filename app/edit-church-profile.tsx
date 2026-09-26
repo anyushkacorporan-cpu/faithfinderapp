@@ -204,7 +204,7 @@ export default function EditChurchProfileScreen() {
             <Text style={s.label}>{t('churchName')}</Text>
             <View style={s.inputWrap}>
               <Ionicons name="home-outline" size={18} color={c.textMuted} style={s.icon} />
-              <TextInput style={[s.input, s.inputWithIcon]} placeholder="Grace Community Church" placeholderTextColor={c.placeholder} value={churchName} onChangeText={setChurchName} />
+              <TextInput style={[s.input, s.inputWithIcon]} placeholder={tx('Grace Community Church')} placeholderTextColor={c.placeholder} value={churchName} onChangeText={setChurchName} />
             </View>
           </View>
 
@@ -259,7 +259,7 @@ export default function EditChurchProfileScreen() {
           </View>
 
           <View style={s.fieldWrap}>
-            <Text style={s.label}>About / Description</Text>
+            <Text style={s.label}>{tx('About / Description')}</Text>
             <TextInput
               style={[s.input, s.bioInput]}
               placeholder={tx('Tell the community about your church...')}

@@ -127,7 +127,7 @@ export default function RegisterChurchScreen() {
             {/* Church Info */}
             <Text style={s.sectionTitle}>{t('churchInformation')}</Text>
             <View style={s.fieldWrap}>
-              <Text style={s.label}>Church Name *</Text>
+              <Text style={s.label}>{t('churchName')} *</Text>
               <View style={s.inputWrap}>
                 <Ionicons name="home-outline" size={18} color="#bbb" style={s.inputIcon} />
                 <TextInput style={[s.input, s.inputWithIcon, errors.churchName && s.inputErr]} placeholder="Grace Community Church" placeholderTextColor={COLORS.placeholder} value={churchName} onChangeText={v => { setChurchName(v); setErrors(e => ({...e,churchName:''})); }} />
@@ -135,7 +135,7 @@ export default function RegisterChurchScreen() {
               {!!errors.churchName && <Text style={s.errTxt}>{errors.churchName}</Text>}
             </View>
             <View style={s.fieldWrap}>
-              <Text style={s.label}>Address *</Text>
+              <Text style={s.label}>{t('address')} *</Text>
               <View style={s.inputWrap}>
                 <Ionicons name="location-outline" size={18} color="#bbb" style={s.inputIcon} />
                 <TextInput style={[s.input, s.inputWithIcon, errors.address && s.inputErr]} placeholder="123 Faith St, Glen Cove, NY 11542" placeholderTextColor={COLORS.placeholder} value={address} onChangeText={v => { setAddress(v); setErrors(e => ({...e,address:''})); }} />
@@ -179,7 +179,7 @@ export default function RegisterChurchScreen() {
             {/* Verification */}
             <Text style={s.sectionTitle}>{t('verification')}</Text>
             <View style={s.fieldWrap}>
-              <Text style={s.label}>Your Role *</Text>
+              <Text style={s.label}>{tx('Your Role')} *</Text>
               <TouchableOpacity style={[s.picker, showRoles && s.pickerOpen, errors.role && s.pickerErr]} onPress={() => setShowRoles(!showRoles)}>
                 <Text style={[s.pickerTxt, !role && s.pickerPlaceholder]}>{role || 'Select your role'}</Text>
                 <Ionicons name={showRoles ? 'chevron-up' : 'chevron-down'} size={18} color="#bbb" />
@@ -215,13 +215,13 @@ export default function RegisterChurchScreen() {
               {!!errors.contact && <Text style={s.errTxt}>{errors.contact}</Text>}
             </View>
             <View style={s.fieldWrap}>
-              <Text style={s.label}>{t('additionalNotes')} <Text style={s.optional}>(optional)</Text></Text>
+              <Text style={s.label}>{t('additionalNotes')} <Text style={s.optional}>{tx('(optional)')}</Text></Text>
               <TextInput style={[s.input, {height:80,textAlignVertical:'top',paddingTop:12}]} placeholder={tx('Anything else you\'d like to share...')} placeholderTextColor={COLORS.placeholder} value={notes} onChangeText={setNotes} multiline />
             </View>
 
             <View style={s.infoBox}>
               <Ionicons name="information-circle-outline" size={18} color={COLORS.gold} />
-              <Text style={s.infoBoxTxt}>FaithFinder reviews all new church submissions within 3–5 business days. Your church will appear in search results once approved.</Text>
+              <Text style={s.infoBoxTxt}>{t('registerReviewNotice')}</Text>
             </View>
 
             <TouchableOpacity style={[s.primaryBtn, submitting && s.primaryBtnDisabled]} onPress={handleSubmit} activeOpacity={0.85}>

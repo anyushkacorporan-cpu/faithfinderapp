@@ -116,14 +116,21 @@ for (const f of files) {
     const seen = [];
     for (const m of line.matchAll(/>([^<>{}\n]*[A-Za-z][^<>{}\n]*)</g)) seen.push(['text', m[1].trim()]);
     for (const m of line.matchAll(
-      /\b(placeholder|title|label|accessibilityLabel|accessibilityHint)=(?:"([^"]*)"|'([^']*)')/g,
+      /\b(placeholder|title|label|hint|accessibilityLabel|accessibilityHint)=(?:"([^"]*)"|'([^']*)')/g,
     )) seen.push([m[1], (m[2] ?? m[3]).trim()]);
 
     for (const [kind, text] of seen) {
       if (!text || skip.test(text) || technical(text)) continue;
       if (!/[A-Za-z]{2}/.test(text)) continue;
       if (LEAVE_IN_ENGLISH.has(text)) continue;
-      if (byEnglish.has(text)) { covered++; if (showAll) ok(`${f}:${i + 1} ${JSON.stringify(text)}`); continue; }
+      // A required field is written "Street Address *" and looked up without
+      // the asterisk — it is punctuation, and the same punctuation in Spanish,
+      // so the table holds the words once. Check the same way the screens do,
+      // or every required label reads as a gap that must not be filled.
+      const lookup = text.replace(/ \*$/, '');
+      if (byEnglish.has(text) || byEnglish.has(lookup)) {
+        covered++; if (showAll) ok(`${f}:${i + 1} ${JSON.stringify(text)}`); continue;
+      }
       missing.push({ f, ln: i + 1, kind, text });
     }
   });

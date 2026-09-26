@@ -23,7 +23,7 @@ export default function AboutScreen() {
         <View style={s.logoSection}>
           <Logo size="large" />
           <Text style={s.version}>Version 1.0.0</Text>
-          <Text style={s.tagline}>"Connecting believers, one church at a time."</Text>
+          <Text style={s.tagline}>{t('aboutTagline')}</Text>
         </View>
         <View style={s.missionBox}>
           <Text style={s.missionTitle}>{t('ourMission')}</Text>
@@ -45,7 +45,7 @@ export default function AboutScreen() {
             </TouchableOpacity>
           ))}
         </View>
-        <Text style={s.copyright}>© 2026 FaithFinder App. All rights reserved.</Text>
+        <Text style={s.copyright}>{t('aboutCopyright')}</Text>
         <Text style={s.builtWith}>{tx('Made with ♥ for the faith community')}</Text>
       </ScrollView>
     </SafeAreaView>

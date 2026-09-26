@@ -14,7 +14,7 @@ const STATUS_TABS = ['All', 'Upcoming', 'Active', 'Past', 'Drafts'];
 export default function MyEventsScreen() {
   const c = useThemeColors();
   const s = makeStyles(c);
-  const { t } = useTranslation();
+  const { t, tx } = useTranslation();
   const { showConfirm } = useConfirm();
   const events = useUserEvents();
   const [activeTab, setActiveTab] = useState('All');
@@ -76,7 +76,7 @@ export default function MyEventsScreen() {
           <View style={s.empty}>
             <Ionicons name="calendar-outline" size={48} color={c.placeholder} />
             <Text style={s.emptyTxt}>{t('noEventsYet')}</Text>
-            <Text style={s.emptySub}>Tap + to create your first event</Text>
+            <Text style={s.emptySub}>{tx('Tap + to create your first event')}</Text>
             <TouchableOpacity style={s.createFirstBtn} onPress={() => router.push('/create-event')}>
               <Text style={s.createFirstBtnTxt}>{t('createEvent')}</Text>
             </TouchableOpacity>

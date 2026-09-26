@@ -375,7 +375,7 @@ function CommentRow({ comment, postId, onReply, onLike, onReplyLike, onMenu }: {
   const c = useThemeColors();
   const cs = makeCs(c);
   const [showReplies, setShowReplies] = useState(true);
-  const { t } = useTranslation();
+  const { t, tx } = useTranslation();
 
   return (
     <View style={cs.wrap}>
@@ -397,7 +397,7 @@ function CommentRow({ comment, postId, onReply, onLike, onReplyLike, onMenu }: {
             <Text style={cs.name}>{comment.author}</Text>
             {comment.city && comment.state && <Text style={cs.meta}> · {comment.city}, {comment.state}</Text>}
             <Text style={cs.meta}> · {comment.time}</Text>
-            {!!comment.edited && <Text style={cs.meta}> · edited</Text>}
+            {!!comment.edited && <Text style={cs.meta}> · {tx('edited')}</Text>}
             <View style={{flex:1}} />
             <TouchableOpacity onPress={onMenu} hitSlop={{top:8,bottom:8,left:8,right:8}}>
               <Ionicons name="ellipsis-horizontal" size={15} color={c.textMuted} />

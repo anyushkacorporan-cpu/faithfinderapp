@@ -189,7 +189,7 @@ export default function EditProfileScreen() {
               <Text style={s.sectionTitle}>{t('churchInformation')}</Text>
               <View style={s.fieldWrap}>
                 <Text style={s.label}>{t('churchName')}</Text>
-                <TextInput style={s.input} value={churchName} onChangeText={setChurchName} placeholder="Grace Community Church" placeholderTextColor={c.placeholder} />
+                <TextInput style={s.input} value={churchName} onChangeText={setChurchName} placeholder={tx('Grace Community Church')} placeholderTextColor={c.placeholder} />
               </View>
               <View style={s.fieldWrap}>
                 <Text style={s.label}>{t('address')}</Text>
@@ -208,7 +208,7 @@ export default function EditProfileScreen() {
                 <TextInput style={s.input} value={serviceTimes} onChangeText={setServiceTimes} placeholder={tx('Sunday 9AM & 11AM')} placeholderTextColor={c.placeholder} />
               </View>
               <View style={s.fieldWrap}>
-                <Text style={s.label}>About / Bio</Text>
+                <Text style={s.label}>{tx('About / Bio')}</Text>
                 <TextInput style={[s.input, s.bioInput]} value={bio} onChangeText={setBio} placeholder={tx('Tell the community about your church...')} placeholderTextColor={c.placeholder} multiline />
               </View>
             </>
@@ -218,11 +218,11 @@ export default function EditProfileScreen() {
               <View style={s.row}>
                 <View style={[s.fieldWrap, {flex:1, marginRight:8}]}>
                   <Text style={s.label}>{t('firstName')}</Text>
-                  <TextInput style={s.input} value={firstName} onChangeText={setFirstName} placeholder="First" placeholderTextColor={c.placeholder} />
+                  <TextInput style={s.input} value={firstName} onChangeText={setFirstName} placeholder={tx('First')} placeholderTextColor={c.placeholder} />
                 </View>
                 <View style={[s.fieldWrap, {flex:1}]}>
                   <Text style={s.label}>{t('lastName')}</Text>
-                  <TextInput style={s.input} value={lastName} onChangeText={setLastName} placeholder="Last" placeholderTextColor={c.placeholder} />
+                  <TextInput style={s.input} value={lastName} onChangeText={setLastName} placeholder={tx('Last')} placeholderTextColor={c.placeholder} />
                 </View>
               </View>
               <View style={s.fieldWrap}>
@@ -269,7 +269,7 @@ export default function EditProfileScreen() {
                   style={s.input}
                   value={lifeVerseRef}
                   onChangeText={setLifeVerseRef}
-                  placeholder="Jeremiah 29:11"
+                  placeholder={tx('Jeremiah 29:11')}
                   placeholderTextColor={c.placeholder}
                 />
               </View>

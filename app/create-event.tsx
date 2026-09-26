@@ -379,11 +379,11 @@ export default function CreateEventScreen() {
               </TouchableOpacity>
 
               <LField label="Event Title *" error={errors.title}>
-                <TextInput style={[s.input,!!errors.title&&s.inputErr]} placeholder="Women of Purpose Conference" placeholderTextColor={c.placeholder} value={title} onChangeText={v=>{setTitle(v);setErrors(e=>({...e,title:''}));}}/>
+                <TextInput style={[s.input,!!errors.title&&s.inputErr]} placeholder={tx('Women of Purpose Conference')} placeholderTextColor={c.placeholder} value={title} onChangeText={v=>{setTitle(v);setErrors(e=>({...e,title:''}));}}/>
               </LField>
 
               <LField label="Organizer">
-                <TextInput style={s.input} placeholder="Grace Community Church" placeholderTextColor={c.placeholder} value={organizer} onChangeText={setOrganizer}/>
+                <TextInput style={s.input} placeholder={tx('Grace Community Church')} placeholderTextColor={c.placeholder} value={organizer} onChangeText={setOrganizer}/>
               </LField>
 
               <LField label="Event Type *" error={errors.eventType}>
@@ -404,7 +404,7 @@ export default function CreateEventScreen() {
               </LField>
 
               {/* Date/Time pickers */}
-              <Text style={s.fieldLbl}>Event Schedule *</Text>
+              <Text style={s.fieldLbl}>{tx('Event Schedule')} *</Text>
               <View style={s.scheduleCard}>
                 <View style={s.scheduleRow}>
                   <Text style={s.scheduleSectionLbl}>{t('startLabel')}</Text>
@@ -548,12 +548,12 @@ export default function CreateEventScreen() {
               {(venueType==='in-person'||venueType==='hybrid')&&(
                 <>
                   <LField label="Venue Name">
-                    <TextInput style={s.input} placeholder="Grace Community Church" placeholderTextColor={c.placeholder} value={venueName} onChangeText={setVenueName}/>
+                    <TextInput style={s.input} placeholder={tx('Grace Community Church')} placeholderTextColor={c.placeholder} value={venueName} onChangeText={setVenueName}/>
                   </LField>
                   <LField label="Street Address *" error={errors.venueAddress}>
                     <TextInput
                       style={[s.input,!!errors.venueAddress&&s.inputErr]}
-                      placeholder="Start typing an address..."
+                      placeholder={tx('Start typing an address...')}
                       placeholderTextColor={c.placeholder}
                       value={venueAddress}
                       onChangeText={onAddressChange}
@@ -631,7 +631,7 @@ export default function CreateEventScreen() {
                 </>
               )}
 
-              <Text style={s.fieldLbl}>Venue Map / Layout <Text style={{fontWeight:'400',color:c.textMuted,fontSize:11}}>(Optional)</Text></Text>
+              <Text style={s.fieldLbl}>{tx('Venue Map / Layout')} <Text style={{fontWeight:'400',color:c.textMuted,fontSize:11}}>{tx('(Optional)')}</Text></Text>
               <TouchableOpacity style={s.uploadBox} onPress={handlePickVenueLayout}>
                 {venueLayoutImage
                   ?<Image source={{uri:venueLayoutImage}} style={s.venueLayoutImg} resizeMode="contain"/>
@@ -706,7 +706,7 @@ export default function CreateEventScreen() {
                     </View>
                   </LField>
                   <LField label="Capacity" hint="Seats available. Leave blank for no limit.">
-                    <TextInput style={s.input} placeholder="No limit" placeholderTextColor={c.placeholder} value={capacity} onChangeText={v=>setCapacity(v.replace(/\D/g,''))} keyboardType="number-pad"/>
+                    <TextInput style={s.input} placeholder={tx('No limit')} placeholderTextColor={c.placeholder} value={capacity} onChangeText={v=>setCapacity(v.replace(/\D/g,''))} keyboardType="number-pad"/>
                   </LField>
                   <LField label="Currency">
                     <View style={{flexDirection:'row',gap:8}}>
@@ -882,13 +882,27 @@ const makePc = (c: ThemeColors) => StyleSheet.create({
   infoTxt:{fontSize:12,color:c.textSecondary,flex:1},
 });
 
+/**
+ * Every label, hint and error on this form is translated here rather than at
+ * the twenty call sites that pass them, so a new field is translated by
+ * existing an entry and nothing else.
+ *
+ * The trailing asterisk on a required field is handled separately from the
+ * words. It means the same thing in both languages — it is punctuation, not
+ * copy — so the table holds 'Street Address' once and this puts the asterisk
+ * back, instead of holding 'Street Address *' as a second entry that has to
+ * be kept in step with the first.
+ */
 function LField({label,hint,error,children}:{label:string;hint?:string;error?:string;children:React.ReactNode}) {
   const c = useThemeColors();
+  const { tx } = useTranslation();
+  const required = / \*$/.test(label);
+  const shown = tx(label.replace(/ \*$/, '')) + (required ? ' *' : '');
   return (
     <View style={{marginBottom:14}}>
-      <Text style={{fontSize:13,fontWeight:'600',color:c.textSecondary,marginBottom:8}}>{label}{hint&&<Text style={{fontWeight:'400',color:c.textMuted,fontSize:11}}> {hint}</Text>}</Text>
+      <Text style={{fontSize:13,fontWeight:'600',color:c.textSecondary,marginBottom:8}}>{shown}{hint&&<Text style={{fontWeight:'400',color:c.textMuted,fontSize:11}}> {tx(hint)}</Text>}</Text>
       {children}
-      {!!error&&<Text style={{fontSize:12,color:c.red,marginTop:4}}>{error}</Text>}
+      {!!error&&<Text style={{fontSize:12,color:c.red,marginTop:4}}>{tx(error)}</Text>}
     </View>
   );
 }

@@ -375,7 +375,7 @@ export function PostCard({post,showLocation,onLike,onComment,onShare,onOpenProfi
             )}
             {showLocation&&!!post.city&&<Text style={p.dot}>·</Text>}
             <Text style={p.time}>{formatRelativeTime(post.createdAt, post.time)}</Text>
-            {post.edited&&<Text style={p.time}> · Edited</Text>}
+            {post.edited&&<Text style={p.time}> · {tx('Edited')}</Text>}
             <Ionicons name="globe-outline" size={11} color={c.textMuted}/>
           </View>
         </View>
@@ -458,7 +458,7 @@ export function PostCard({post,showLocation,onLike,onComment,onShare,onOpenProfi
                 {!!post.repostOf.eventShareData.location && (
                   <Text style={{fontSize:11,color:c.textMuted,marginTop:2}} numberOfLines={1}>{post.repostOf.eventShareData.location}</Text>
                 )}
-                <Text style={{fontSize:11,color:c.gold,fontWeight:'700',marginTop:6}}>View Event →</Text>
+                <Text style={{fontSize:11,color:c.gold,fontWeight:'700',marginTop:6}}>{tx('View Event')} →</Text>
               </View>
             </TouchableOpacity>
           )}
@@ -485,7 +485,7 @@ export function PostCard({post,showLocation,onLike,onComment,onShare,onOpenProfi
                   <Text style={{fontSize:11,color:c.gold,fontWeight:'600',marginTop:2}}>{post.repostOf.churchShareData.type}</Text>
                 )}
                 <Text style={{fontSize:11,color:c.textMuted,marginTop:4}} numberOfLines={1}>{post.repostOf.churchShareData.address}</Text>
-                <Text style={{fontSize:11,color:c.gold,fontWeight:'700',marginTop:6}}>View Church →</Text>
+                <Text style={{fontSize:11,color:c.gold,fontWeight:'700',marginTop:6}}>{tx('View Church')} →</Text>
               </View>
             </TouchableOpacity>
           )}
@@ -528,7 +528,7 @@ export function PostCard({post,showLocation,onLike,onComment,onShare,onOpenProfi
                 </View>
               )}
             </View>
-            <Text style={{fontSize:12,color:c.gold,fontWeight:'700',marginTop:10}}>View Event →</Text>
+            <Text style={{fontSize:12,color:c.gold,fontWeight:'700',marginTop:10}}>{tx('View Event')} →</Text>
           </View>
         </TouchableOpacity>
       )}
@@ -568,7 +568,7 @@ export function PostCard({post,showLocation,onLike,onComment,onShare,onOpenProfi
               <Text style={{fontSize:11,color:c.gold,fontWeight:'600',marginBottom:4}}>{post.churchShareData.type}</Text>
             )}
             <Text style={{fontSize:12,color:c.textMuted}}>{post.churchShareData.address}</Text>
-            <Text style={{fontSize:12,color:c.gold,fontWeight:'700',marginTop:10}}>View Church →</Text>
+            <Text style={{fontSize:12,color:c.gold,fontWeight:'700',marginTop:10}}>{tx('View Church')} →</Text>
           </View>
         </TouchableOpacity>
       )}
