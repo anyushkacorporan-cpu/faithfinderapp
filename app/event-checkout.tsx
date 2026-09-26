@@ -59,22 +59,23 @@ export default function EventCheckoutScreen() {
     // free and paid — fail on the insert if the server has never seen it. Ask
     // first, so the reason given is the real one.
     const onServer = await ensureEventOnServer(params.id || '');
-    if (onServer === 'local-only') {
+    if (onServer !== 'ok' && onServer !== 'unknown') {
       setProcessing(false);
-      // The app's own dialog, and a message that covers what actually
-      // happened. ensureEventOnServer returns 'local-only' for four different
-      // situations and only one of them is a sample event: the event is not in
-      // the local store, nobody is signed in, the id is a seeded one, or the
-      // upload was attempted and failed. Telling somebody their own event is a
-      // demo — which is what the old wording did in three cases out of four —
-      // sends them off to look for a problem that is not there.
+      // One message per reason. This was a single sentence for all four, and
+      // the sentence it chose was "this is a sample event" — true of one of
+      // them. Somebody whose own event had failed to upload was being told it
+      // was a demo, which sends them looking for a problem that is not there.
       //
-      // Distinguishing the four properly means ensureEventOnServer returning a
-      // reason rather than a verdict. That is a change to the flow rather than
-      // to what it says, so it is not made here.
+      // 'unknown' is not handled here on purpose: it means the existence check
+      // itself could not run, and the insert below fails with its own error
+      // rather than this screen guessing at one.
+      const why = onServer === 'sample-event'  ? tx('This is a sample event and cannot be registered for.')
+                : onServer === 'missing'       ? tx('This event could not be found. It may have been deleted.')
+                : onServer === 'not-signed-in' ? tx('You need to be signed in to register for an event.')
+                : tx('This event has not finished uploading. Check your connection and try again.');
       showConfirm({
         title: tx('Could not register'),
-        message: tx('This event is not available to register for. It may be a sample event, or it may not have finished uploading.'),
+        message: why,
         buttons: [{ text: tx('OK'), onPress: () => router.back() }],
       });
       return;

@@ -152,6 +152,177 @@ const translations: Record<string, Record<Lang, string>> = {
     English: 'This event is not available to register for. It may be a sample event, or it may not have finished uploading.',
     Español: 'Este evento no está disponible para registrarse. Puede ser un evento de muestra o puede que aún no haya terminado de subirse.' },
   isNowLive: { English: 'is now live.', Español: 'ya está publicado.' },
+
+  // ── Legal text ──────────────────────────────────────────────────────────
+  // Long enough to be worth naming rather than looking up by its English.
+  // The app offers itself in Spanish; its terms and its privacy policy are
+  // not the two screens where it should stop.
+
+  termsTitle: {
+    English: 'Terms of Service',
+    Español: 'Términos de Servicio' },
+  legalLastUpdated: {
+    English: 'Last updated: June 2026',
+    Español: 'Última actualización: junio de 2026' },
+  termsH1: {
+    English: '1. Acceptance of Terms',
+    Español: '1. Aceptación de los Términos' },
+  termsP1: {
+    English: 'By creating an account or using FaithFinder ("the App"), you agree to these Terms of Service. If you do not agree, please do not use the App.',
+    Español: 'Al crear una cuenta o usar FaithFinder ("la App"), aceptas estos Términos de Servicio. Si no estás de acuerdo, por favor no uses la App.' },
+  termsH2: {
+    English: '2. Who Can Use FaithFinder',
+    Español: '2. Quién Puede Usar FaithFinder' },
+  termsP2: {
+    English: 'You must be at least 13 years old to create an account. Church accounts must be created by an authorized representative of that church or ministry.',
+    Español: 'Debes tener al menos 13 años para crear una cuenta. Las cuentas de iglesia deben ser creadas por un representante autorizado de esa iglesia o ministerio.' },
+  termsH3: {
+    English: '3. Your Account',
+    Español: '3. Tu Cuenta' },
+  termsP3: {
+    English: 'You are responsible for the accuracy of the information you provide and for keeping your account credentials secure. You agree to provide truthful information when registering a church or personal profile.',
+    Español: 'Eres responsable de la exactitud de la información que proporcionas y de mantener seguras las credenciales de tu cuenta. Aceptas proporcionar información veraz al registrar una iglesia o un perfil personal.' },
+  termsH4: {
+    English: '4. User Content',
+    Español: '4. Contenido del Usuario' },
+  termsP4: {
+    English: 'You retain ownership of content you post (including text, photos, and comments). By posting, you grant FaithFinder a license to display that content within the App. You are solely responsible for what you post and agree not to post content that is unlawful, harassing, hateful, or that infringes on others\' rights.',
+    Español: 'Conservas la propiedad del contenido que publicas (incluidos textos, fotos y comentarios). Al publicar, otorgas a FaithFinder una licencia para mostrar ese contenido dentro de la App. Eres el único responsable de lo que publicas y aceptas no publicar contenido ilegal, acosador, de odio o que infrinja los derechos de otros.' },
+  termsH5: {
+    English: '5. Community Conduct',
+    Español: '5. Conducta en la Comunidad' },
+  termsP5: {
+    English: 'FaithFinder is a community built on respect and faith. We do not tolerate harassment, hate speech, spam, or impersonation. Reported content will be reviewed, and accounts that violate these standards may be suspended or removed.',
+    Español: 'FaithFinder es una comunidad basada en el respeto y la fe. No toleramos el acoso, el discurso de odio, el spam ni la suplantación de identidad. El contenido reportado será revisado, y las cuentas que violen estas normas podrán ser suspendidas o eliminadas.' },
+  termsH6: {
+    English: '6. Events & Payments',
+    Español: '6. Eventos y Pagos' },
+  termsP6: {
+    English: 'FaithFinder facilitates event registration and ticket purchases through Stripe. A service fee (currently 5% of the ticket price, capped at $5 per ticket) and a card processing fee apply to paid ticket transactions. Both are added at checkout and paid by the buyer, and both are shown separately before payment. Free events carry no fees. Service and processing fees are not refundable on a refunded ticket. Refunds, cancellations, and event changes are managed by the event organizer (church or individual host), not by FaithFinder. We are not responsible for events hosted by third parties.',
+    Español: 'FaithFinder facilita el registro a eventos y la compra de boletos a través de Stripe. Se aplica una tarifa de servicio (actualmente el 5% del precio del boleto, con un máximo de $5 por boleto) y una tarifa de procesamiento de tarjeta a las transacciones de boletos pagados. Ambas se agregan al finalizar la compra, las paga el comprador y se muestran por separado antes del pago. Los eventos gratuitos no tienen tarifas. Las tarifas de servicio y de procesamiento no son reembolsables cuando se reembolsa un boleto. Los reembolsos, las cancelaciones y los cambios de evento los gestiona el organizador del evento (la iglesia o el anfitrión individual), no FaithFinder. No somos responsables de los eventos organizados por terceros.' },
+  termsH7: {
+    English: '7. Church Profiles',
+    Español: '7. Perfiles de Iglesias' },
+  termsP7: {
+    English: 'Church accounts are responsible for the accuracy of their listing, service times, and event information. FaithFinder does not verify denominational claims or doctrine and is not responsible for the content or conduct of any listed church.',
+    Español: 'Las cuentas de iglesia son responsables de la exactitud de su ficha, sus horarios de servicio y la información de sus eventos. FaithFinder no verifica las afirmaciones denominacionales ni la doctrina, y no es responsable del contenido ni de la conducta de ninguna iglesia listada.' },
+  termsH8: {
+    English: '8. Location Information',
+    Español: '8. Información de Ubicación' },
+  termsP8: {
+    English: 'The App may request access to your device\'s location to show nearby churches and events. You can control this through your device settings at any time. Declining location access may limit certain features.',
+    Español: 'La App puede solicitar acceso a la ubicación de tu dispositivo para mostrar iglesias y eventos cercanos. Puedes controlarlo desde la configuración de tu dispositivo en cualquier momento. Rechazar el acceso a la ubicación puede limitar ciertas funciones.' },
+  termsH9: {
+    English: '9. Termination',
+    Español: '9. Cancelación de la Cuenta' },
+  termsP9: {
+    English: 'We may suspend or terminate your account if you violate these Terms or engage in conduct harmful to the community. You may delete your account at any time through Settings.',
+    Español: 'Podemos suspender o cancelar tu cuenta si incumples estos Términos o realizas conductas dañinas para la comunidad. Puedes eliminar tu cuenta en cualquier momento desde Configuración.' },
+  termsH10: {
+    English: '10. Disclaimer',
+    Español: '10. Descargo de Responsabilidad' },
+  termsP10: {
+    English: 'FaithFinder is provided "as is." We do not guarantee the accuracy of church listings, event details, or user-submitted content. We are not liable for interactions, transactions, or relationships formed through the App.',
+    Español: 'FaithFinder se ofrece "tal cual". No garantizamos la exactitud de las fichas de iglesias, los detalles de los eventos ni el contenido enviado por los usuarios. No somos responsables de las interacciones, transacciones o relaciones que surjan a través de la App.' },
+  termsH11: {
+    English: '11. Changes to These Terms',
+    Español: '11. Cambios a Estos Términos' },
+  termsP11: {
+    English: 'We may update these Terms from time to time. Continued use of the App after changes take effect constitutes acceptance of the revised Terms.',
+    Español: 'Podemos actualizar estos Términos de vez en cuando. El uso continuado de la App después de que los cambios entren en vigor constituye la aceptación de los Términos revisados.' },
+  termsH12: {
+    English: '12. Contact Us',
+    Español: '12. Contáctanos' },
+  termsP12: {
+    English: 'Questions about these Terms can be sent to support@faithfinderapp.com.',
+    Español: 'Las preguntas sobre estos Términos pueden enviarse a support@faithfinderapp.com.' },
+  privacyTitle: {
+    English: 'Privacy Policy',
+    Español: 'Política de Privacidad' },
+  privacyH1: {
+    English: '1. Information We Collect',
+    Español: '1. Información que Recopilamos' },
+  privacyP1: {
+    English: 'We collect information you provide directly, such as your name, email, profile photo, bio, and church affiliation. We also collect content you create, including posts, comments, and event registrations.',
+    Español: 'Recopilamos la información que proporcionas directamente, como tu nombre, correo electrónico, foto de perfil, biografía y afiliación a una iglesia. También recopilamos el contenido que creas, incluidas publicaciones, comentarios y registros a eventos.' },
+  privacyH2: {
+    English: '2. Location Information',
+    Español: '2. Información de Ubicación' },
+  privacyP2: {
+    English: 'With your permission, we collect precise location data from your device (GPS) to show nearby churches and events. You can disable location access at any time in your device settings; doing so may limit some features like "Nearby Churches."',
+    Español: 'Con tu permiso, recopilamos datos de ubicación precisos de tu dispositivo (GPS) para mostrar iglesias y eventos cercanos. Puedes desactivar el acceso a la ubicación en cualquier momento desde la configuración de tu dispositivo; hacerlo puede limitar algunas funciones como "Iglesias Cercanas".' },
+  privacyH3: {
+    English: '3. Payment Information',
+    Español: '3. Información de Pago' },
+  privacyP3: {
+    English: 'When you purchase event tickets, payment is processed securely through Stripe. FaithFinder does not store your full credit card number. Stripe\'s own privacy practices govern how your payment data is handled; see stripe.com/privacy for details.',
+    Español: 'Cuando compras boletos para eventos, el pago se procesa de forma segura a través de Stripe. FaithFinder no almacena el número completo de tu tarjeta de crédito. Las propias prácticas de privacidad de Stripe rigen cómo se maneja tu información de pago; consulta stripe.com/privacy para más detalles.' },
+  privacyH4: {
+    English: '4. How We Use Your Information',
+    Español: '4. Cómo Usamos Tu Información' },
+  privacyP4: {
+    English: 'We use your information to operate the App, including displaying your profile and posts to other users, processing event registrations and payments, sending notifications you\'ve opted into, and improving the App\'s features.',
+    Español: 'Usamos tu información para operar la App, lo que incluye mostrar tu perfil y tus publicaciones a otros usuarios, procesar registros y pagos de eventos, enviar las notificaciones que hayas aceptado y mejorar las funciones de la App.' },
+  privacyH5: {
+    English: '5. What Other Users Can See',
+    Español: '5. Lo Que Otros Usuarios Pueden Ver' },
+  privacyP5: {
+    English: 'Your name, profile photo, bio, and posts marked "Public" are visible to other users. Posts marked "Connections" are visible only to people you\'re connected with. Your exact location is never shown to other users — only the city-level area you choose to display, if any.',
+    Español: 'Tu nombre, foto de perfil, biografía y las publicaciones marcadas como "Públicas" son visibles para otros usuarios. Las publicaciones marcadas como "Conexiones" solo son visibles para las personas con las que estás conectado. Tu ubicación exacta nunca se muestra a otros usuarios: solo la ciudad que elijas mostrar, si decides hacerlo.' },
+  privacyH6: {
+    English: '6. Data Storage',
+    Español: '6. Almacenamiento de Datos' },
+  privacyP6: {
+    English: 'Your information is stored on your device, and — for features that require it, such as sharing posts and processing ticket purchases — on secure servers operated by our infrastructure providers. We take reasonable measures to protect your data but cannot guarantee absolute security.',
+    Español: 'Tu información se almacena en tu dispositivo y, para las funciones que lo requieren, como compartir publicaciones y procesar compras de boletos, en servidores seguros operados por nuestros proveedores de infraestructura. Tomamos medidas razonables para proteger tus datos, pero no podemos garantizar una seguridad absoluta.' },
+  privacyH7: {
+    English: '7. Data Sharing',
+    Español: '7. Compartir Datos' },
+  privacyP7: {
+    English: 'We do not sell your personal information. We share data only with service providers necessary to operate the App (such as Stripe for payments and Google for location/maps services), and when required by law.',
+    Español: 'No vendemos tu información personal. Solo compartimos datos con los proveedores de servicios necesarios para operar la App (como Stripe para los pagos y Google para los servicios de ubicación y mapas), y cuando la ley lo exige.' },
+  privacyH8: {
+    English: '8. Your Choices',
+    Español: '8. Tus Opciones' },
+  privacyP8a: {
+    English: 'You can edit or delete your profile information at any time through Edit Profile. You can disable location access and notifications through Settings or your device\'s system settings.',
+    Español: 'Puedes editar o eliminar la información de tu perfil en cualquier momento desde Editar Perfil. Puedes desactivar el acceso a la ubicación y las notificaciones desde Configuración o desde los ajustes de tu dispositivo.' },
+  privacyP8b: {
+    English: 'You can delete your account from within the App at any time: Settings → Privacy → Delete Account. This removes your profile, posts, comments, connections and saved items. It cannot be undone.',
+    Español: 'Puedes eliminar tu cuenta desde la App en cualquier momento: Configuración → Privacidad → Eliminar Cuenta. Esto elimina tu perfil, publicaciones, comentarios, conexiones y elementos guardados. No se puede deshacer.' },
+  privacyP8c: {
+    English: 'Records of ticket purchases and payments are kept after account deletion, as tax and accounting law requires us to retain transaction records. These records are separated from your profile and are not shown to other users.',
+    Español: 'Los registros de compras de boletos y pagos se conservan tras la eliminación de la cuenta, ya que la legislación fiscal y contable nos obliga a conservar los registros de transacciones. Estos registros se separan de tu perfil y no se muestran a otros usuarios.' },
+  privacyH9: {
+    English: '9. Children\'s Privacy',
+    Español: '9. Privacidad de los Menores' },
+  privacyP9: {
+    English: 'FaithFinder is not intended for children under 13. We do not knowingly collect information from children under 13.',
+    Español: 'FaithFinder no está dirigida a menores de 13 años. No recopilamos a sabiendas información de menores de 13 años.' },
+  privacyH10: {
+    English: '10. Changes to This Policy',
+    Español: '10. Cambios a Esta Política' },
+  privacyP10: {
+    English: 'We may update this Privacy Policy from time to time. We will notify you of material changes through the App.',
+    Español: 'Podemos actualizar esta Política de Privacidad de vez en cuando. Te notificaremos de los cambios importantes a través de la App.' },
+  privacyH11: {
+    English: '11. Contact Us',
+    Español: '11. Contáctanos' },
+  privacyP11: {
+    English: 'Questions about this Privacy Policy can be sent to support@faithfinderapp.com.',
+    Español: 'Las preguntas sobre esta Política de Privacidad pueden enviarse a support@faithfinderapp.com.' },
+  sampleEventCannotRegister: {
+    English: 'This is a sample event and cannot be registered for.',
+    Español: 'Este es un evento de muestra y no se puede registrar.' },
+  eventNotFoundBody: {
+    English: 'This event could not be found. It may have been deleted.',
+    Español: 'No se encontró este evento. Es posible que haya sido eliminado.' },
+  signInToRegister: {
+    English: 'You need to be signed in to register for an event.',
+    Español: 'Debes iniciar sesión para registrarte en un evento.' },
+  eventStillUploading: {
+    English: 'This event has not finished uploading. Check your connection and try again.',
+    Español: 'Este evento aún no ha terminado de subirse. Revisa tu conexión e inténtalo de nuevo.' },
   couldNotSubmit: { English: 'Could not submit', Español: 'No se pudo enviar' },
   claimDidNotReachUs: {
     English: 'Your claim did not reach us. Check your connection and try again.',

@@ -294,17 +294,38 @@ export function deleteEvent(id: string) {
  * pushed, since the insert policy requires the organiser to be the person
  * asking, and saying so honestly beats a constraint error.
  */
-export async function ensureEventOnServer(id: string): Promise<'ok' | 'local-only' | 'unknown'> {
+/**
+ * Why an event is not on the server, when it is not.
+ *
+ * This used to be one answer, 'local-only', for four different situations, and
+ * the screen that received it told the person their event was a sample. Three
+ * times out of four that was untrue and unhelpful: an event that failed to
+ * upload is not a demo, and neither is one belonging to somebody who is not
+ * signed in. A reason costs nothing to return and lets the message be right.
+ */
+export type EventOnServer =
+  | 'ok'
+  | 'unknown'         // no database, or the existence check itself failed
+  | 'missing'         // no such event, here or there
+  | 'sample-event'    // seeded, belongs to nobody, cannot be uploaded
+  | 'not-signed-in'   // the insert policy needs an organiser to be the caller
+  | 'upload-failed';  // it is ours, we tried, the write did not land
+
+export async function ensureEventOnServer(id: string): Promise<EventOnServer> {
   const exists = await api.eventExistsRemote(id);
   if (exists === null) return 'unknown';   // no database, or the call failed
   if (exists) return 'ok';
 
   const local = events.find(e => e.id === id);
-  const me = getUser().id;
-  if (!local || !me || !id.startsWith('user_')) return 'local-only';
+  if (!local) return 'missing';
+
+  // Checked before the sign-in state because it is the more specific fact: a
+  // seeded event cannot be registered for however you are signed in.
+  if (!id.startsWith('user_')) return 'sample-event';
+  if (!getUser().id) return 'not-signed-in';
 
   const created = await api.createEvent(local);
-  return created ? 'ok' : 'local-only';
+  return created ? 'ok' : 'upload-failed';
 }
 
 export async function syncEventsFromServer(): Promise<void> {
