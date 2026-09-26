@@ -11,6 +11,7 @@ import { resetStore as resetHidden } from './hiddenStore';
 import { resetStore as resetPlacesCache } from './placesCache';
 import { resetStore as resetProfiles } from './profilesStore';
 import { resetStore as resetEventActions } from './eventActionsStore';
+import { resetStore as resetSavedChurches } from './store';
 import { resetSettings } from './settingsStore';
 import { deleteAccount as deleteServerAccount } from './auth';
 
@@ -69,6 +70,10 @@ export function clearLocalAccountData(opts: { includeSettings: boolean }) {
   resetPlacesCache();
   resetProfiles();
   resetEventActions();
+  // New to this list, because saved churches only started being written down
+  // when the Saved tab was fixed. While they lived in memory they emptied
+  // themselves; now they would outlive the account that saved them.
+  resetSavedChurches();
   if (opts.includeSettings) resetSettings();
 }
 

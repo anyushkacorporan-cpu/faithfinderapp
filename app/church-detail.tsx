@@ -84,9 +84,9 @@ export default function ChurchDetailScreen() {
   const [activeTab, setActiveTab] = useState('About');
   const [commentModal, setCommentModal] = useState<string|null>(null);
   const [commentText, setCommentText] = useState('');
-  const { saved, toggle } = useSavedChurches();
+  const { ids: savedIds, toggle } = useSavedChurches();
   const placeId = params.placeId || staticChurch?.placeId || '';
-  const isSaved = saved.includes(params.id || '');
+  const isSaved = savedIds.includes(params.id || '');
   // Subscribed for the re-render, then read straight from the store. Held as
   // its own state, this disagreed with the rest of the app whenever the same
   // church was followed or unfollowed elsewhere — from a post's connect badge,
@@ -286,7 +286,11 @@ export default function ChurchDetailScreen() {
             <Ionicons name="arrow-back" size={22} color={c.text} />
           </TouchableOpacity>
           <View style={s.actionBtns}>
-            <TouchableOpacity onPress={() => toggle(church.id)}>
+            {/* The whole church, not its id. The Saved tab draws from what
+                it was given rather than hunting for the church in whatever
+                happens to be on screen, which is what used to leave it
+                empty. */}
+            <TouchableOpacity onPress={() => toggle(church)}>
               <Ionicons name={isSaved ? 'heart' : 'heart-outline'} size={24} color={isSaved ? c.red : c.textMuted} />
             </TouchableOpacity>
             <TouchableOpacity onPress={handleShare}>

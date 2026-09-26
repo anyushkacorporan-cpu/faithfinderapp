@@ -107,7 +107,7 @@ export default function ChurchesScreen() {
   // above the fallback list so an empty result is never unexplained.
   const [nearbyNote, setNearbyNote] = useState<'off'|'denied'|'failed'|'none'|null>(null);
   const [loadingNearby, setLoadingNearby] = useState(false);
-  const { saved } = useSavedChurches();
+  const { saved, ids: savedIds } = useSavedChurches();
   const timer = useRef<any>(null);
 
   const hasActiveFilter = activeDenom !== 'All' || !!activeRegion;
@@ -259,13 +259,14 @@ export default function ChurchesScreen() {
 
   let displayed: any[] = [];
   if (activeTab === 'Saved') {
-    // Build a pool combining static churches + any nearby/search results
-    // the user has saved, so saved nearby/Google-Places churches aren't lost.
-    const pool = new Map<string, any>();
-    CHURCHES.forEach(c => pool.set(c.id, c));
-    (nearbyChurches || []).forEach((c: any) => pool.set(c.id, c));
-    (searchResults || []).forEach((c: any) => pool.set(c.id, c));
-    displayed = saved.map(id => pool.get(id)).filter(Boolean);
+    // Straight from the store, which holds the churches themselves.
+    //
+    // This used to look each saved id up in a pool built from the seeded list
+    // plus whatever was currently on screen — and the button that opens this
+    // tab clears the search results in the same tap, so a church saved from a
+    // search was looked for in a pool that no longer contained it. The tab
+    // came up empty under a heading that counted it.
+    displayed = saved;
   } else if (searchResults !== null) {
     displayed = searchResults;
     if (activeDenom !== 'All') {
@@ -327,12 +328,12 @@ export default function ChurchesScreen() {
           <TouchableOpacity
             style={[s.savedIndicator, {zIndex:10}]}
             hitSlop={{top:10,bottom:10,left:10,right:10}}
-            onPress={() => toggleSavedChurch(church.id)}
+            onPress={() => toggleSavedChurch(church)}
           >
             <Ionicons
-              name={saved.includes(church.id) ? 'heart' : 'heart-outline'}
+              name={savedIds.includes(church.id) ? 'heart' : 'heart-outline'}
               size={16}
-              color={saved.includes(church.id) ? c.red : '#fff'}
+              color={savedIds.includes(church.id) ? c.red : '#fff'}
             />
           </TouchableOpacity>
         </View>
