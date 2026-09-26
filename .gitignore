@@ -47,3 +47,11 @@ app-example
 
 # Supabase service key — never commit
 .env.local
+
+# Church data pulled from OpenStreetMap: churches-<area>.json in the root from
+# fetch-churches.mjs, data/churches-US-XX.json per state from
+# fetch-churches-us.mjs. Regenerate rather than commit — fifty states of it is
+# large, it changes as OpenStreetMap does, and import-churches.mjs upserts on
+# source_id so a re-fetch is cheaper than a stale copy in the history.
+churches-*.json
+data/churches-US-*.json
