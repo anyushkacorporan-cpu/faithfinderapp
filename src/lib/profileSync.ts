@@ -186,7 +186,7 @@ export async function syncProfileAfterSignIn(userId: string): Promise<void> {
  * Returns false if it did not reach the server, so the form can say so rather
  * than show a success screen for a submission that never happened.
  */
-export async function submitVerification(): Promise<boolean> {
+export async function submitVerification(churchUuid?: string | null): Promise<boolean> {
   const db = supabase();
   const u = getUser();
   if (!db || !u.id) return false;
@@ -196,8 +196,23 @@ export async function submitVerification(): Promise<boolean> {
   // reviewed. An approval granted against a blank profile is meaningless.
   await pushProfile();
 
-  const { error } = await db
-    .from('profiles').update({ verification_status: 'pending' }).eq('id', u.id);
+  // Which church, as an id rather than as text.
+  //
+  // The claim used to record only the church's name and address, which is
+  // enough for a person reading the claim and nothing else: no query could get
+  // from an approved claim back to the row it was about, so approving one
+  // granted no ownership of anything. Nothing could then be edited on the
+  // church's behalf. This is what the approval trigger in
+  // 23_church_photos_editable.sql joins on.
+  //
+  // Only churches from our own directory can be named this way. A Google result
+  // or a seeded demo church has no row to point at, so the claim still goes up
+  // and is still reviewable — it just cannot confer ownership, which is honest,
+  // because there is nothing to own.
+  const patch: Record<string, unknown> = { verification_status: 'pending' };
+  if (churchUuid) patch.claimed_church_id = churchUuid;
+
+  const { error } = await db.from('profiles').update(patch).eq('id', u.id);
   if (error) return false;
 
   setUser({ verificationStatus: 'pending' });

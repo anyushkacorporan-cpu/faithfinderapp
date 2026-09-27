@@ -16,6 +16,7 @@ import { usePosts, postsForChurch, postImages} from '../src/lib/postsStore';
 import { isBlocked } from '../src/lib/blockStore';
 import { isHidden, useHidden } from '../src/lib/hiddenStore';
 import { useSavedChurches } from '../src/lib/store';
+import { churchUuid, fetchChurchPhotos, fetchImportedPhoto } from '../src/lib/churchPhotosApi';
 import { isConnectedTo, addConnection, removeConnection, useConnections } from '../src/lib/connectionsStore';
 import { useChurchPosts, toggleLike, addComment } from '../src/lib/postsStore';
 import { useSettings } from '../src/lib/settingsStore';
@@ -80,6 +81,8 @@ export default function ChurchDetailScreen() {
   const [details, setDetails] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [activePhoto, setActivePhoto] = useState(0);
+  /** Gallery urls from our own directory, already ordered. */
+  const [dbPhotos, setDbPhotos] = useState<string[]>([]);
   const [showReviews, setShowReviews] = useState(false);
   const [activeTab, setActiveTab] = useState('About');
   const [commentModal, setCommentModal] = useState<string|null>(null);
@@ -106,6 +109,13 @@ export default function ChurchDetailScreen() {
     hours: details?.opening_hours?.weekday_text || [],
     description: details?.editorial_summary?.overview || '',
     photos: details?.photos?.slice(0, 8) || [],
+    // Every photo to show, as plain urls. Our directory's come first because a
+    // church that uploaded its own means those to be what people see; Google's
+    // need building from a photo_reference, ours are already urls.
+    photoUris: [
+      ...dbPhotos,
+      ...((details?.photos?.slice(0, 8) || []) as any[]).map(pp => photoUrl(pp.photo_reference)),
+    ].slice(0, 12),
     reviews: details?.reviews || [],
     gradient: staticChurch?.gradient || ['#667eea','#764ba2'] as [string,string],
     // Google Places returns neither of these and no route param carries them,
@@ -133,6 +143,38 @@ export default function ChurchDetailScreen() {
     }
     load();
   }, [placeId]);
+
+  /**
+   * Photos for a church out of our own directory.
+   *
+   * The carousel above was fed only by Google Places, and a directory church has
+   * no Places id — so a church that added its own photos still showed the empty
+   * gradient here, on the one screen someone opens to look at it. This is where
+   * an approved church's gallery becomes visible to everybody.
+   *
+   * The imported photo comes along too, and last, so taking it down in Edit
+   * Church Profile is visible here rather than only on the cards.
+   */
+  useEffect(() => {
+    const uuid = churchUuid(params.id);
+    if (!uuid) return;
+    let live = true;
+    (async () => {
+      const [photos, base] = await Promise.all([
+        fetchChurchPhotos(uuid),
+        fetchImportedPhoto(uuid),
+      ]);
+      if (!live) return;
+      const uris = (photos || []).map(p => p.url);
+      if (base?.url && !base.hidden) uris.push(base.url);
+      setDbPhotos(uris);
+      // The gradient placeholder is what `loading` shows; with no Places id it
+      // was already false by now, but a directory church reaching here has
+      // finished loading whatever it has.
+      setLoading(false);
+    })();
+    return () => { live = false; };
+  }, [params.id]);
 
   function handleConnect() {
     const connId = params.id || placeId || '';
@@ -208,7 +250,10 @@ export default function ChurchDetailScreen() {
         id: church.id,
         type: church.type,
         rating: church.rating,
-        photo: church.photos?.[0]?.photo_reference ? photoUrl(church.photos[0].photo_reference) : undefined,
+        // The first photo of whichever kind this church has. Read only Google's
+        // before, so sharing a directory church that had added its own photos
+        // shared it without one.
+        photo: church.photoUris[0],
         gradient: church.gradient,
         phone: church.phone,
       },
@@ -254,23 +299,23 @@ export default function ChurchDetailScreen() {
             <ActivityIndicator color="rgba(255,255,255,0.8)" size="large" />
             <Text style={s.loadingTxt}>{t('loadingDetails')}</Text>
           </View>
-        ) : church.photos.length > 0 ? (
+        ) : church.photoUris.length > 0 ? (
           <View style={s.galleryWrap}>
             <FlatList
             {...KEYBOARD_SCROLL_PROPS}
-              data={church.photos}
+              data={church.photoUris}
               horizontal pagingEnabled
               showsHorizontalScrollIndicator={false}
               onMomentumScrollEnd={e => setActivePhoto(Math.round(e.nativeEvent.contentOffset.x / W))}
-              renderItem={({ item }) => <Image source={{ uri: photoUrl(item.photo_reference) }} style={{ width: W, height: 280 }} resizeMode="cover" />}
-              keyExtractor={(_, i) => String(i)}
+              renderItem={({ item }) => <Image source={{ uri: item }} style={{ width: W, height: 280 }} resizeMode="cover" />}
+              keyExtractor={(uri, i) => `${i}-${uri}`}
             />
             <View style={s.dots}>
-              {church.photos.map((_: any, i: number) => <View key={i} style={[s.dot, i===activePhoto && s.dotActive]} />)}
+              {church.photoUris.map((_: string, i: number) => <View key={i} style={[s.dot, i===activePhoto && s.dotActive]} />)}
             </View>
             <View style={s.photoCount}>
               <Ionicons name="images-outline" size={13} color="#fff" />
-              <Text style={s.photoCountTxt}>{activePhoto+1}/{church.photos.length}</Text>
+              <Text style={s.photoCountTxt}>{activePhoto+1}/{church.photoUris.length}</Text>
             </View>
           </View>
         ) : (

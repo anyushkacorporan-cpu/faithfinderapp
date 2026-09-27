@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Modal, TextInput, Image, Alert } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -8,6 +8,10 @@ import { useThemeColors, ThemeColors } from '../src/lib/theme';
 import { useTranslation } from '../src/lib/i18n';
 import { useUser, setUser, getUser } from '../src/lib/userStore';
 import { useToast } from '../src/components/Toast';
+import {
+  fetchMyChurch, fetchChurchPhotos, addChurchPhotos, removeChurchPhoto,
+  fetchImportedPhoto, setImportedPhotoHidden, type ChurchPhoto,
+} from '../src/lib/churchPhotosApi';
 
 import { KeyboardScreen, KEYBOARD_SCROLL_PROPS } from '../src/components/KeyboardScreen';
 const DENOMINATIONS = ['Non-Denominational','Catholic','Baptist','Methodist','Lutheran','Presbyterian','Episcopal','Pentecostal','Assemblies of God','Evangelical','Reformed','AME','Other'];
@@ -83,20 +87,95 @@ export default function EditChurchProfileScreen() {
     if (!result.canceled) setUser({ avatar: result.assets[0].uri });
   }
 
+  /**
+   * The church's gallery, which lives on the church and not on this account.
+   *
+   * This grid used to read and write userStore.photos — a field on the signed-in
+   * person. Adding a photo here put it on the phone, under the user, and nowhere
+   * near the church; nobody else ever saw it, and the church's actual listing
+   * photo could not be touched at all. It reads church_photos now.
+   *
+   * `ownedChurchId` is null until the claim is known, and stays null unless the
+   * claim was approved. Everything below is offered only when it is set; the
+   * server refuses these writes for anyone else regardless, so this decides what
+   * the screen shows rather than what is allowed.
+   */
+  const [ownedChurchId, setOwnedChurchId] = useState<string | null>(null);
+  const [claimPending, setClaimPending] = useState(false);
+  const [gallery, setGallery] = useState<ChurchPhoto[]>([]);
+  const [imported, setImported] = useState<{ url: string | null; credit: string | null; hidden: boolean } | null>(null);
+  const [busyPhotos, setBusyPhotos] = useState(false);
+
+  const loadPhotos = useCallback(async (churchId: string) => {
+    const [photos, base] = await Promise.all([
+      fetchChurchPhotos(churchId),
+      fetchImportedPhoto(churchId),
+    ]);
+    if (photos) setGallery(photos);
+    if (base) setImported(base);
+  }, []);
+
+  useEffect(() => {
+    let live = true;
+    (async () => {
+      const mine = await fetchMyChurch();
+      if (!live || !mine) return;
+      // A claim that names a church but has not been granted yet is worth saying
+      // out loud: the difference between "not yours" and "not yet" is the whole
+      // of what the person is waiting for.
+      setClaimPending(!!mine.churchId && !mine.approved);
+      if (!mine.churchId || !mine.approved) return;
+      setOwnedChurchId(mine.churchId);
+      await loadPhotos(mine.churchId);
+    })();
+    return () => { live = false; };
+  }, [loadPhotos]);
+
   async function handleAddGalleryPhoto() {
+    if (!ownedChurchId || busyPhotos) return;
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') { Alert.alert(tx('Permission needed'), tx('Please allow access to your photo library.')); return; }
     const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], allowsMultipleSelection: true, quality: 0.8 });
-    if (!result.canceled) {
-      const liveUser = getUser();
-      const newPhotos = result.assets.map(a => a.uri);
-      setUser({ photos: [...(liveUser.photos || []), ...newPhotos] });
+    if (result.canceled) return;
+
+    setBusyPhotos(true);
+    const added = await addChurchPhotos(ownedChurchId, result.assets.map(a => a.uri));
+    await loadPhotos(ownedChurchId);
+    setBusyPhotos(false);
+
+    // Said plainly, because an upload that failed leaves the grid looking
+    // exactly like one that worked minus a photo nobody counted.
+    if (!added.length) {
+      showToast(tx('Not saved'), tx('Those photos could not be uploaded. Check your connection and try again.'), 'error');
+    } else if (added.length < result.assets.length) {
+      showToast(tx('Partly saved'), tx('Some photos could not be uploaded. Try adding the rest again.'), 'error');
     }
   }
 
-  function handleRemoveGalleryPhoto(uri: string) {
-    const liveUser = getUser();
-    setUser({ photos: (liveUser.photos || []).filter((p: string) => p !== uri) });
+  async function handleRemoveGalleryPhoto(photo: ChurchPhoto) {
+    if (!ownedChurchId || busyPhotos) return;
+    setBusyPhotos(true);
+    const gone = await removeChurchPhoto(photo.id);
+    await loadPhotos(ownedChurchId);
+    setBusyPhotos(false);
+    if (!gone) showToast(tx('Not removed'), tx('That photo is still there. Check your connection and try again.'), 'error');
+  }
+
+  /**
+   * Remove, or bring back, the photo that was on the listing before the claim.
+   *
+   * Not a delete. That photo is import-owned — `churches` has no write policy
+   * and a re-import would restore it — so this records that it should not be
+   * shown, which is the only form of removal that lasts.
+   */
+  async function handleToggleImported() {
+    if (!ownedChurchId || !imported?.url || busyPhotos) return;
+    const next = !imported.hidden;
+    setBusyPhotos(true);
+    const ok = await setImportedPhotoHidden(ownedChurchId, next);
+    await loadPhotos(ownedChurchId);
+    setBusyPhotos(false);
+    if (!ok) showToast(tx('Not saved'), tx('That change did not reach the server. Check your connection and try again.'), 'error');
   }
 
   function addMinistry() {
@@ -179,23 +258,65 @@ export default function EditChurchProfileScreen() {
 
           <View style={{marginBottom:20}}>
             <Text style={s.label}>{t('galleryPhotos')}</Text>
-            <ScrollView
-            {...KEYBOARD_SCROLL_PROPS} horizontal showsHorizontalScrollIndicator={false} style={{marginTop:8}}>
-              {(user.photos || []).map((uri: string) => (
-                <View key={uri} style={{marginRight:10,position:'relative'}}>
-                  <Image source={{uri}} style={{width:80,height:80,borderRadius:12}} resizeMode="cover" />
-                  <TouchableOpacity
-                    onPress={() => handleRemoveGalleryPhoto(uri)}
-                    style={{position:'absolute',top:-6,right:-6,width:22,height:22,borderRadius:11,backgroundColor:c.red,alignItems:'center',justifyContent:'center',borderWidth:2,borderColor:c.card}}
-                  >
-                    <Ionicons name="close" size={12} color={c.onPrimary} />
+
+            {/* Only an approved claim gets a picker. A grid that files photos
+                where nobody can see them is worse than no grid — the same
+                reasoning that took the Faith Gallery out of the personal Edit
+                Profile form. */}
+            {!ownedChurchId ? (
+              <Text style={{fontSize:12,color:c.textMuted,marginTop:8,lineHeight:18}}>
+                {claimPending ? t('photosAfterApproval') : t('photosNeedClaim')}
+              </Text>
+            ) : (
+              <>
+                {/* The photo that was on the listing before the claim. Shown
+                    apart from the church's own, because it is not the church's
+                    to delete — it can only be taken down or put back. */}
+                {!!imported?.url && (
+                  <View style={{marginTop:10,flexDirection:'row',alignItems:'center',gap:12}}>
+                    <Image
+                      source={{uri: imported.url}}
+                      style={{width:80,height:80,borderRadius:12,opacity: imported.hidden ? 0.35 : 1}}
+                      resizeMode="cover"
+                    />
+                    <View style={{flex:1}}>
+                      <Text style={{fontSize:12,color:c.textSecondary,fontWeight:'600'}}>
+                        {imported.hidden ? t('importedPhotoHidden') : t('importedPhotoShown')}
+                      </Text>
+                      {!!imported.credit && (
+                        <Text style={{fontSize:11,color:c.textMuted,marginTop:2}} numberOfLines={2}>{imported.credit}</Text>
+                      )}
+                      <TouchableOpacity onPress={handleToggleImported} disabled={busyPhotos} style={{marginTop:6}}>
+                        <Text style={{fontSize:12,color: imported.hidden ? c.gold : c.red,fontWeight:'700'}}>
+                          {imported.hidden ? t('showAgain') : t('removeFromListing')}
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                )}
+
+                <ScrollView
+                {...KEYBOARD_SCROLL_PROPS} horizontal showsHorizontalScrollIndicator={false} style={{marginTop:12}}>
+                  {gallery.map(photo => (
+                    <View key={photo.id} style={{marginRight:10,position:'relative'}}>
+                      <Image source={{uri:photo.url}} style={{width:80,height:80,borderRadius:12}} resizeMode="cover" />
+                      <TouchableOpacity
+                        onPress={() => handleRemoveGalleryPhoto(photo)}
+                        disabled={busyPhotos}
+                        style={{position:'absolute',top:-6,right:-6,width:22,height:22,borderRadius:11,backgroundColor:c.red,alignItems:'center',justifyContent:'center',borderWidth:2,borderColor:c.card}}
+                      >
+                        <Ionicons name="close" size={12} color={c.onPrimary} />
+                      </TouchableOpacity>
+                    </View>
+                  ))}
+                  <TouchableOpacity onPress={handleAddGalleryPhoto} disabled={busyPhotos} style={{width:80,height:80,borderRadius:12,borderWidth:1.5,borderColor:c.gold,borderStyle:'dashed',alignItems:'center',justifyContent:'center',opacity: busyPhotos ? 0.5 : 1}}>
+                    <Ionicons name={busyPhotos ? 'hourglass-outline' : 'add'} size={22} color={c.gold} />
                   </TouchableOpacity>
-                </View>
-              ))}
-              <TouchableOpacity onPress={handleAddGalleryPhoto} style={{width:80,height:80,borderRadius:12,borderWidth:1.5,borderColor:c.gold,borderStyle:'dashed',alignItems:'center',justifyContent:'center'}}>
-                <Ionicons name="add" size={22} color={c.gold} />
-              </TouchableOpacity>
-            </ScrollView>
+                </ScrollView>
+
+                <Text style={{fontSize:11,color:c.textMuted,marginTop:8}}>{t('galleryVisibleToEveryone')}</Text>
+              </>
+            )}
           </View>
 
           <Text style={s.sectionTitle}>{t('churchInformation')}</Text>

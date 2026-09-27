@@ -9,6 +9,7 @@ import { useTranslation } from '../src/lib/i18n';
 import { searchChurchText } from '../src/lib/googlePlaces';
 import { setUser } from '../src/lib/userStore';
 import { submitVerification } from '../src/lib/profileSync';
+import { churchUuid } from '../src/lib/churchPhotosApi';
 
 import { KeyboardScreen, KEYBOARD_SCROLL_PROPS } from '../src/components/KeyboardScreen';
 
@@ -80,7 +81,7 @@ export default function ClaimChurchScreen() {
     // one. The claim is a column on the profile that somebody reads; if it
     // does not reach the server there is nothing to read, so say so instead of
     // showing the thank-you screen.
-    const sent = await submitVerification();
+    const sent = await submitVerification(churchUuid(selectedChurch.id));
     setSubmitting(false);
     if (!sent) {
       Alert.alert(tx('Could not submit'),

@@ -1014,6 +1014,32 @@ const translations: Record<string, Record<Lang, string>> = {
   ux37: { English: 'Enter valid price', Español: 'Introduce un precio válido' },
   ux38: { English: '(one per line)', Español: '(uno por línea)' },
   ux39: { English: 'Seats available. Leave blank for no limit.', Español: 'Asientos disponibles. Déjalo en blanco para no poner límite.' },
+
+  // ── A claimed church's photos ───────────────────────────────────────────
+  photosAfterApproval: {
+    English: 'You can add and remove photos once your claim is approved.',
+    Español: 'Podrás añadir y quitar fotos una vez que se apruebe tu reclamación.' },
+  photosNeedClaim: {
+    English: 'Claim your church to manage its photos.',
+    Español: 'Reclama tu iglesia para gestionar sus fotos.' },
+  importedPhotoShown: {
+    English: 'Existing listing photo',
+    Español: 'Foto actual del directorio' },
+  importedPhotoHidden: {
+    English: 'Removed from the listing',
+    Español: 'Quitada del directorio' },
+  removeFromListing: { English: 'Remove from listing', Español: 'Quitar del directorio' },
+  showAgain: { English: 'Show again', Español: 'Mostrar de nuevo' },
+  galleryVisibleToEveryone: {
+    English: 'These photos appear on your church page for everyone.',
+    Español: 'Estas fotos aparecen en la página de tu iglesia para todos.' },
+  ux40: { English: 'Not saved', Español: 'No se guardó' },
+  ux41: { English: 'Partly saved', Español: 'Se guardó en parte' },
+  ux42: { English: 'Not removed', Español: 'No se quitó' },
+  ux43: { English: 'Those photos could not be uploaded. Check your connection and try again.', Español: 'No se pudieron subir esas fotos. Revisa tu conexión e inténtalo de nuevo.' },
+  ux44: { English: 'Some photos could not be uploaded. Try adding the rest again.', Español: 'Algunas fotos no se pudieron subir. Intenta añadir las demás de nuevo.' },
+  ux45: { English: 'That photo is still there. Check your connection and try again.', Español: 'Esa foto sigue ahí. Revisa tu conexión e inténtalo de nuevo.' },
+  ux46: { English: 'That change did not reach the server. Check your connection and try again.', Español: 'Ese cambio no llegó al servidor. Revisa tu conexión e inténtalo de nuevo.' },
 };
 
 // Reverse index so a raw English string can be translated directly. This is for
