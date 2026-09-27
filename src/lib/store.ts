@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { load, save } from './persist';
 import * as api from './listsApi';
+import { churchesByIds } from './churchesApi';
 
 /**
  * Churches you have saved.
@@ -161,6 +162,42 @@ export async function syncSavedChurchesFromServer(): Promise<void> {
   savedChurches = [...kept, ...localOnly];
   persist();
   notify();
+
+  await refreshDirectorySaves();
+}
+
+/**
+ * Bring saved directory churches up to date.
+ *
+ * A saved church is stored whole, which is what lets the Saved tab draw one
+ * that came from Google or the seeded list — neither can be fetched back by id.
+ * The cost is that a church from our own directory also froze: rename it, or
+ * add a photo to it, and the Saved tab went on showing the version from the day
+ * it was hearted. A church that had just uploaded its first photo still looked
+ * photoless to everyone who had already saved it.
+ *
+ * The ones that can be re-read are re-read. Anything else is left exactly as it
+ * is, because for those the snapshot is the only copy there is.
+ */
+export async function refreshDirectorySaves(): Promise<void> {
+  const ids = savedChurches.filter(c => c.id.startsWith('db_')).map(c => c.id);
+  if (!ids.length) return;
+
+  const fresh = await churchesByIds(ids);
+  if (!fresh) return;  // the read failed; keep what we have
+
+  let changed = false;
+  savedChurches = savedChurches.map(c => {
+    const now = fresh[c.id];
+    if (!now) return c;  // deleted from the directory: keep the snapshot
+    // Merged rather than replaced, so anything the saved copy carries that the
+    // directory does not is not dropped on the way through.
+    const merged = { ...c, ...now };
+    if (JSON.stringify(merged) !== JSON.stringify(c)) changed = true;
+    return merged;
+  });
+
+  if (changed) { persist(); notify(); }
 }
 
 export function useSavedChurches() {

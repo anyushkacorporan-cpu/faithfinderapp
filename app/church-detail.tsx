@@ -349,9 +349,16 @@ export default function ChurchDetailScreen() {
 
         {/* Identity */}
         <View style={s.identityRow}>
-          <LinearGradient colors={[c.navy,'#2d2240']} style={s.churchIcon} start={{x:0,y:0}} end={{x:1,y:1}}>
-            <Ionicons name="home" size={28} color={c.gold} />
-          </LinearGradient>
+          {/* The church's own photo, not a house. This square stayed a
+              gradient even for a church that had uploaded three photos, which
+              made its page look unclaimed from the one row that names it. */}
+          {church.photoUris[0] ? (
+            <Image source={{uri: church.photoUris[0]}} style={s.churchIcon} resizeMode="cover" />
+          ) : (
+            <LinearGradient colors={[c.navy,'#2d2240']} style={s.churchIcon} start={{x:0,y:0}} end={{x:1,y:1}}>
+              <Ionicons name="home" size={28} color={c.gold} />
+            </LinearGradient>
+          )}
           <View style={s.identityInfo}>
             <Text style={s.churchName}>{church.name}</Text>
             <View style={s.metaRow}>

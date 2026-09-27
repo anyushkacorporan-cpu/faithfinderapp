@@ -10,7 +10,7 @@ import { CHURCHES } from '../../src/lib/constants';
 import { getCachedPhotoRef, setCachedPhotoRef, getCachedNearby, setCachedNearby, nearbyKey } from '../../src/lib/placesCache';
 import { useThemeColors, ThemeColors } from '../../src/lib/theme';
 import { TAB_BAR_CLEARANCE } from '../../src/lib/tabBar';
-import { useSavedChurches, toggleSavedChurch } from '../../src/lib/store';
+import { useSavedChurches, toggleSavedChurch, refreshDirectorySaves } from '../../src/lib/store';
 import { DENOMINATIONS, US_STATES, CA_PROVINCES, COUNTRY_NAME, regionLabel, Region } from '../../src/lib/filters';
 import { gradientFor } from '../../src/lib/constants';
 import { nearbyChurches as dbNearby, churchesInRegion, searchChurches, hasDatabase, formatDistance } from '../../src/lib/churchesApi';
@@ -405,7 +405,13 @@ export default function ChurchesScreen() {
       <View style={s.toggleRow}>
         <View style={s.toggle}>
           {['List','Saved'].map(t => (
-            <TouchableOpacity key={t} style={[s.toggleBtn, activeTab===t && s.toggleBtnActive]} onPress={() => { setActiveTab(t); setSearch(''); setSearchResults(null); }}>
+            <TouchableOpacity key={t} style={[s.toggleBtn, activeTab===t && s.toggleBtnActive]} onPress={() => {
+                setActiveTab(t); setSearch(''); setSearchResults(null);
+                // Opening Saved re-reads the directory churches in it, so a
+                // church that has changed its photo since it was hearted stops
+                // showing the version from that day.
+                if (t === 'Saved') void refreshDirectorySaves();
+              }}>
               <Text style={[s.toggleTxt, activeTab===t && s.toggleTxtActive]}>{t}{t==='Saved'&&saved.length>0?` (${saved.length})`:''}</Text>
             </TouchableOpacity>
           ))}

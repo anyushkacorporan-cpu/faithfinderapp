@@ -207,6 +207,40 @@ export async function searchChurches(
   }
 }
 
+/**
+ * Re-read specific churches from the directory.
+ *
+ * For the saved list, which stores each church whole. That is what makes the
+ * Saved tab work at all — an id alone cannot be drawn for a church that came
+ * from Google or the seeded list — but it means a directory church keeps
+ * whatever it looked like on the day it was saved, including a photo that has
+ * since been replaced. This re-reads the ones that can be re-read.
+ *
+ * Takes the `db_`-prefixed ids the app uses and returns the same prefix, so the
+ * caller matches on what it already holds.
+ */
+export async function churchesByIds(ids: string[]): Promise<Record<string, ChurchRow> | null> {
+  const db = supabase();
+  const uuids = ids
+    .filter(id => id.startsWith('db_'))
+    .map(id => id.slice(3))
+    .filter(Boolean);
+  if (!db || !uuids.length) return {};
+
+  try {
+    const { data, error } = await db.from('churches_public').select(COLS).in('id', uuids);
+    if (error) { lookupFailed('refresh saved churches', error); return null; }
+    const out: Record<string, ChurchRow> = {};
+    for (const row of data || []) {
+      const c = toChurch(row);
+      out[c.id] = c;
+    }
+    return out;
+  } catch {
+    return null;
+  }
+}
+
 export { hasDatabase };
 
 /** "0.4 mi" / "12 mi" — miles, since this ships to the US and Canada. */
