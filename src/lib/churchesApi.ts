@@ -34,6 +34,8 @@ export type ChurchRow = {
   photo?: string;
   /** Who to credit for `photo`. Null when it is the church's own upload. */
   photoCredit?: string;
+  /** The wide photo behind the name, when the church has set one. */
+  cover?: string;
   isClaimed?: boolean;
   distanceKm?: number;
 };
@@ -62,6 +64,7 @@ function toChurch(r: any): ChurchRow {
     city: r.city || '',
     photo: r.photo_url || undefined,
     photoCredit: r.photo_credit || undefined,
+    cover: r.cover_url || undefined,
     isClaimed: !!r.is_claimed,
     distanceKm: typeof r.distance_m === 'number' ? r.distance_m / 1000 : undefined,
   };
@@ -110,7 +113,7 @@ export async function nearbyChurches(
   }
 }
 
-const COLS = 'id,name,address,city,state,zip,denomination,phone,website,photo_url,photo_credit,is_claimed';
+const COLS = 'id,name,address,city,state,zip,denomination,phone,website,photo_url,photo_credit,cover_url,is_claimed';
 
 /** Every church in a state or province, optionally of one denomination. */
 export async function churchesInRegion(

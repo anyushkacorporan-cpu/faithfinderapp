@@ -149,3 +149,60 @@ export async function fetchImportedPhoto(
     hidden: claim.data?.hide_imported_photo === true,
   };
 }
+
+/**
+ * The church's two single photos, as distinct from its gallery.
+ *
+ * The profile photo is the square beside the name; the cover is the wide one
+ * behind it. Both live on the claim, so both are the church's own and neither
+ * needs attribution.
+ *
+ * The picker for the profile photo used to call setUser({ avatar }) — the
+ * signed-in person's avatar, on their device. It was not uploaded, not attached
+ * to the church, and invisible to everyone including the person who set it.
+ * That is why photo changes did not stick.
+ */
+export async function fetchChurchImages(
+  churchId: string,
+): Promise<{ photoUrl: string | null; coverUrl: string | null } | null> {
+  const db = supabase();
+  if (!db || !churchId) return null;
+  const { data, error } = await db.from('church_profiles')
+    .select('photo_url,cover_url').eq('church_id', churchId).maybeSingle();
+  if (error) { writeFailed('read the church images', error); return null; }
+  return { photoUrl: data?.photo_url || null, coverUrl: data?.cover_url || null };
+}
+
+/**
+ * Upload and attach one of the church's single photos.
+ *
+ * Uploaded before the row is written, and the row is not written if the upload
+ * failed: a church_profiles row pointing at a phone-local file:// path is a
+ * photo only its uploader can see, which looks like success and is not. Pass
+ * null to clear.
+ *
+ * Returns whether the church now has what was asked for.
+ */
+async function setSingleImage(
+  churchId: string,
+  column: 'photo_url' | 'cover_url',
+  localUri: string | null,
+): Promise<boolean> {
+  const db = supabase();
+  if (!db || !churchId) return false;
+
+  let value: string | null = null;
+  if (localUri) {
+    value = await uploadImage(localUri, 'church-photos');
+    if (value === localUri && !/^https?:/.test(localUri)) return false;  // already warned
+  }
+  const { error } = await db.from('church_profiles')
+    .update({ [column]: value }).eq('church_id', churchId);
+  return !writeFailed(`set the church ${column === 'cover_url' ? 'cover' : 'profile'} photo`, error);
+}
+
+export const setChurchProfilePhoto = (churchId: string, uri: string | null) =>
+  setSingleImage(churchId, 'photo_url', uri);
+
+export const setChurchCoverPhoto = (churchId: string, uri: string | null) =>
+  setSingleImage(churchId, 'cover_url', uri);

@@ -16,7 +16,7 @@ import { usePosts, postsForChurch, postImages} from '../src/lib/postsStore';
 import { isBlocked } from '../src/lib/blockStore';
 import { isHidden, useHidden } from '../src/lib/hiddenStore';
 import { useSavedChurches } from '../src/lib/store';
-import { churchUuid, fetchChurchPhotos, fetchImportedPhoto } from '../src/lib/churchPhotosApi';
+import { churchUuid, fetchChurchPhotos, fetchImportedPhoto, fetchChurchImages } from '../src/lib/churchPhotosApi';
 import { isConnectedTo, addConnection, removeConnection, useConnections } from '../src/lib/connectionsStore';
 import { useChurchPosts, toggleLike, addComment } from '../src/lib/postsStore';
 import { useSettings } from '../src/lib/settingsStore';
@@ -83,6 +83,8 @@ export default function ChurchDetailScreen() {
   const [activePhoto, setActivePhoto] = useState(0);
   /** Gallery urls from our own directory, already ordered. */
   const [dbPhotos, setDbPhotos] = useState<string[]>([]);
+  /** The church's own single photos: the square one and the wide one. */
+  const [churchImages, setChurchImages] = useState<{ photoUrl: string | null; coverUrl: string | null }>({ photoUrl: null, coverUrl: null });
   const [showReviews, setShowReviews] = useState(false);
   const [activeTab, setActiveTab] = useState('About');
   const [commentModal, setCommentModal] = useState<string|null>(null);
@@ -160,14 +162,21 @@ export default function ChurchDetailScreen() {
     if (!uuid) return;
     let live = true;
     (async () => {
-      const [photos, base] = await Promise.all([
+      const [photos, base, singles] = await Promise.all([
         fetchChurchPhotos(uuid),
         fetchImportedPhoto(uuid),
+        fetchChurchImages(uuid),
       ]);
       if (!live) return;
-      const uris = (photos || []).map(p => p.url);
+      // The cover leads, because it is the photo the church chose for exactly
+      // this spot. Then the gallery, then ours — and ours only if it is still
+      // wanted.
+      const uris: string[] = [];
+      if (singles?.coverUrl) uris.push(singles.coverUrl);
+      uris.push(...(photos || []).map(p => p.url));
       if (base?.url && !base.hidden) uris.push(base.url);
       setDbPhotos(uris);
+      if (singles) setChurchImages(singles);
       // The gradient placeholder is what `loading` shows; with no Places id it
       // was already false by now, but a directory church reaching here has
       // finished loading whatever it has.
@@ -352,8 +361,8 @@ export default function ChurchDetailScreen() {
           {/* The church's own photo, not a house. This square stayed a
               gradient even for a church that had uploaded three photos, which
               made its page look unclaimed from the one row that names it. */}
-          {church.photoUris[0] ? (
-            <Image source={{uri: church.photoUris[0]}} style={s.churchIcon} resizeMode="cover" />
+          {(churchImages.photoUrl || church.photoUris[0]) ? (
+            <Image source={{uri: churchImages.photoUrl || church.photoUris[0]}} style={s.churchIcon} resizeMode="cover" />
           ) : (
             <LinearGradient colors={[c.navy,'#2d2240']} style={s.churchIcon} start={{x:0,y:0}} end={{x:1,y:1}}>
               <Ionicons name="home" size={28} color={c.gold} />

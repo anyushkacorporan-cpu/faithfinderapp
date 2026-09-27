@@ -10,7 +10,8 @@ import { useUser, setUser, getUser } from '../src/lib/userStore';
 import { useToast } from '../src/components/Toast';
 import {
   fetchMyChurch, fetchChurchPhotos, addChurchPhotos, removeChurchPhoto,
-  fetchImportedPhoto, setImportedPhotoHidden, type ChurchPhoto,
+  fetchImportedPhoto, setImportedPhotoHidden, fetchChurchImages,
+  setChurchProfilePhoto, setChurchCoverPhoto, type ChurchPhoto,
 } from '../src/lib/churchPhotosApi';
 
 import { KeyboardScreen, KEYBOARD_SCROLL_PROPS } from '../src/components/KeyboardScreen';
@@ -80,11 +81,46 @@ export default function EditChurchProfileScreen() {
   const [bio, setBio] = useState(user.bio || '');
   const [newMinistry, setNewMinistry] = useState('');
 
-  async function handlePickAvatar() {
+  /**
+   * The church's profile photo and cover.
+   *
+   * The profile picker called setUser({ avatar }) — the signed-in person's
+   * avatar, on this device only. Nothing was uploaded and nothing was attached
+   * to the church, so the change was invisible to everyone, including whoever
+   * made it. Both now upload and land on the claim.
+   *
+   * Without an approved claim there is nothing to write to, so the picker is
+   * not offered; the server would refuse the write in any case.
+   */
+  async function pickSingleImage(which: 'profile' | 'cover') {
+    if (!ownedChurchId || busyPhotos) return;
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') { Alert.alert(tx('Permission needed'), tx('Please allow access to your photo library.')); return; }
-    const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], allowsEditing: true, aspect: [1,1], quality: 0.8 });
-    if (!result.canceled) setUser({ avatar: result.assets[0].uri });
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      // Square for the badge beside the name, wide for the one behind it.
+      aspect: which === 'profile' ? [1, 1] : [16, 9],
+      quality: 0.8,
+    });
+    if (result.canceled) return;
+
+    setBusyPhotos(true);
+    const set = which === 'profile' ? setChurchProfilePhoto : setChurchCoverPhoto;
+    const ok = await set(ownedChurchId, result.assets[0].uri);
+    await loadPhotos(ownedChurchId);
+    setBusyPhotos(false);
+    if (!ok) showToast(tx('Not saved'), tx('That photo could not be uploaded. Check your connection and try again.'), 'error');
+  }
+
+  async function clearSingleImage(which: 'profile' | 'cover') {
+    if (!ownedChurchId || busyPhotos) return;
+    setBusyPhotos(true);
+    const set = which === 'profile' ? setChurchProfilePhoto : setChurchCoverPhoto;
+    const ok = await set(ownedChurchId, null);
+    await loadPhotos(ownedChurchId);
+    setBusyPhotos(false);
+    if (!ok) showToast(tx('Not removed'), tx('That photo is still there. Check your connection and try again.'), 'error');
   }
 
   /**
@@ -105,14 +141,17 @@ export default function EditChurchProfileScreen() {
   const [gallery, setGallery] = useState<ChurchPhoto[]>([]);
   const [imported, setImported] = useState<{ url: string | null; credit: string | null; hidden: boolean } | null>(null);
   const [busyPhotos, setBusyPhotos] = useState(false);
+  const [images, setImages] = useState<{ photoUrl: string | null; coverUrl: string | null }>({ photoUrl: null, coverUrl: null });
 
   const loadPhotos = useCallback(async (churchId: string) => {
-    const [photos, base] = await Promise.all([
+    const [photos, base, singles] = await Promise.all([
       fetchChurchPhotos(churchId),
       fetchImportedPhoto(churchId),
+      fetchChurchImages(churchId),
     ]);
     if (photos) setGallery(photos);
     if (base) setImported(base);
+    if (singles) setImages(singles);
   }, []);
 
   useEffect(() => {
@@ -238,23 +277,56 @@ export default function EditChurchProfileScreen() {
 
           <Text style={s.sectionTitle}>{t('photos')}</Text>
 
+          {/* Profile photo — the square beside the church's name. Reads the
+              church's own photo now rather than the signed-in person's avatar. */}
           <View style={{flexDirection:'row',alignItems:'center',gap:16,marginBottom:20}}>
-            <TouchableOpacity onPress={handlePickAvatar} activeOpacity={0.85}>
-              {user.avatar
-                ? <Image source={{uri:user.avatar}} style={{width:72,height:72,borderRadius:18}} resizeMode="cover" />
+            <TouchableOpacity onPress={() => pickSingleImage('profile')} activeOpacity={0.85} disabled={!ownedChurchId || busyPhotos}>
+              {images.photoUrl
+                ? <Image source={{uri:images.photoUrl}} style={{width:72,height:72,borderRadius:18}} resizeMode="cover" />
                 : <View style={{width:72,height:72,borderRadius:18,backgroundColor:c.primary,alignItems:'center',justifyContent:'center'}}>
                     <Ionicons name="home" size={26} color={c.gold} />
                   </View>
               }
-              <View style={{position:'absolute',bottom:-2,right:-2,width:22,height:22,borderRadius:11,backgroundColor:c.gold,alignItems:'center',justifyContent:'center',borderWidth:2,borderColor:c.card}}>
-                <Ionicons name="camera" size={11} color={c.onPrimary} />
-              </View>
+              {!!ownedChurchId && (
+                <View style={{position:'absolute',bottom:-2,right:-2,width:22,height:22,borderRadius:11,backgroundColor:c.gold,alignItems:'center',justifyContent:'center',borderWidth:2,borderColor:c.card}}>
+                  <Ionicons name="camera" size={11} color={c.onPrimary} />
+                </View>
+              )}
             </TouchableOpacity>
             <View style={{flex:1}}>
               <Text style={s.label}>{t('profilePhoto')}</Text>
-              <Text style={{fontSize:12,color:c.textMuted}}>{t('tapToChangeChurchPhoto')}</Text>
+              <Text style={{fontSize:12,color:c.textMuted}}>
+                {ownedChurchId ? t('tapToChangeChurchPhoto') : (claimPending ? t('photosAfterApproval') : t('photosNeedClaim'))}
+              </Text>
+              {!!images.photoUrl && !!ownedChurchId && (
+                <TouchableOpacity onPress={() => clearSingleImage('profile')} disabled={busyPhotos}>
+                  <Text style={{fontSize:12,color:c.red,fontWeight:'700',marginTop:4}}>{t('removePhoto')}</Text>
+                </TouchableOpacity>
+              )}
             </View>
           </View>
+
+          {/* Cover photo — the wide one behind the name. */}
+          {!!ownedChurchId && (
+            <View style={{marginBottom:20}}>
+              <Text style={s.label}>{t('coverPhoto')}</Text>
+              <TouchableOpacity onPress={() => pickSingleImage('cover')} activeOpacity={0.85} disabled={busyPhotos} style={{marginTop:8}}>
+                {images.coverUrl ? (
+                  <Image source={{uri:images.coverUrl}} style={{width:'100%',height:120,borderRadius:14}} resizeMode="cover" />
+                ) : (
+                  <View style={{width:'100%',height:120,borderRadius:14,borderWidth:1.5,borderColor:c.gold,borderStyle:'dashed',alignItems:'center',justifyContent:'center',gap:6}}>
+                    <Ionicons name={busyPhotos ? 'hourglass-outline' : 'image-outline'} size={22} color={c.gold} />
+                    <Text style={{fontSize:12,color:c.textMuted}}>{t('tapToAddCover')}</Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+              {!!images.coverUrl && (
+                <TouchableOpacity onPress={() => clearSingleImage('cover')} disabled={busyPhotos}>
+                  <Text style={{fontSize:12,color:c.red,fontWeight:'700',marginTop:6}}>{t('removePhoto')}</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          )}
 
           <View style={{marginBottom:20}}>
             <Text style={s.label}>{t('galleryPhotos')}</Text>
