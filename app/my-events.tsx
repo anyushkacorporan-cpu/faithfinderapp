@@ -114,7 +114,7 @@ export default function MyEventsScreen() {
               <View style={s.cardInfoRow}>
                 <View style={s.cardInfo}>
                   <Ionicons name="ticket-outline" size={13} color={c.textMuted} />
-                  <Text style={s.cardInfoTxt}>{event.ticketsSold} tickets sold</Text>
+                  <Text style={s.cardInfoTxt}>{event.ticketsSold} {tx('tickets sold')}</Text>
                 </View>
                 <View style={s.cardInfo}>
                   <Ionicons name="cash-outline" size={13} color={c.textMuted} />

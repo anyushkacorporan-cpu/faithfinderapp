@@ -217,12 +217,21 @@ export default function ClaimChurchScreen() {
 
             {results.length > 0 && (
               <View style={s.resultsList}>
-                <Text style={s.resultsLabel}>{results.length} churches found</Text>
+                <Text style={s.resultsLabel}>{results.length} {tx('churches found')}</Text>
                 {results.map((church, i) => (
                   <TouchableOpacity key={i} style={s.resultCard} onPress={() => handleSelect(church)} activeOpacity={0.85}>
-                    <View style={s.resultIcon}>
-                      <Ionicons name="home" size={20} color={COLORS.navy} />
-                    </View>
+                    {/* The directory's photo when there is one. This screen
+                        drew a home icon for every result, which made a church
+                        we hold a real listing and photo for look exactly like a
+                        Google search hit — and left the photo we had already
+                        fetched unused. */}
+                    {church.photo ? (
+                      <Image source={{uri:church.photo}} style={s.resultIcon} resizeMode="cover" />
+                    ) : (
+                      <View style={s.resultIcon}>
+                        <Ionicons name="home" size={20} color={COLORS.navy} />
+                      </View>
+                    )}
                     <View style={s.resultInfo}>
                       <Text style={s.resultName}>{church.name}</Text>
                       <Text style={s.resultAddr} numberOfLines={1}>{church.address}</Text>
@@ -268,9 +277,13 @@ export default function ClaimChurchScreen() {
             <Text style={s.subtitle}>{t('confirmClaimChurch')}</Text>
 
             <View style={s.previewCard}>
-              <LinearGradient colors={[COLORS.navy, '#2d2240']} style={s.previewBanner} start={{x:0,y:0}} end={{x:1,y:1}}>
-                <Ionicons name="home" size={36} color={COLORS.gold} />
-              </LinearGradient>
+              {selectedChurch.photo ? (
+                <Image source={{uri:selectedChurch.photo}} style={s.previewBanner} resizeMode="cover" />
+              ) : (
+                <LinearGradient colors={[COLORS.navy, '#2d2240']} style={s.previewBanner} start={{x:0,y:0}} end={{x:1,y:1}}>
+                  <Ionicons name="home" size={36} color={COLORS.gold} />
+                </LinearGradient>
+              )}
               <View style={s.previewBody}>
                 <Text style={s.previewName}>{selectedChurch.name}</Text>
                 <View style={s.previewRow}>
@@ -280,7 +293,7 @@ export default function ClaimChurchScreen() {
                 {selectedChurch.rating > 0 && (
                   <View style={s.previewRow}>
                     <Ionicons name="star" size={14} color={COLORS.gold} />
-                    <Text style={s.previewRating}>{selectedChurch.rating} Google rating</Text>
+                    <Text style={s.previewRating}>{selectedChurch.rating} {tx('Google rating')}</Text>
                   </View>
                 )}
               </View>

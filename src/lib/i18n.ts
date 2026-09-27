@@ -1040,6 +1040,9 @@ const translations: Record<string, Record<Lang, string>> = {
   ux44: { English: 'Some photos could not be uploaded. Try adding the rest again.', Español: 'Algunas fotos no se pudieron subir. Intenta añadir las demás de nuevo.' },
   ux45: { English: 'That photo is still there. Check your connection and try again.', Español: 'Esa foto sigue ahí. Revisa tu conexión e inténtalo de nuevo.' },
   ux46: { English: 'That change did not reach the server. Check your connection and try again.', Español: 'Ese cambio no llegó al servidor. Revisa tu conexión e inténtalo de nuevo.' },
+  ux47: { English: 'churches found', Español: 'iglesias encontradas' },
+  ux48: { English: 'Google rating', Español: 'valoración de Google' },
+  ux49: { English: 'tickets sold', Español: 'entradas vendidas' },
   notInDirectoryYet: {
     English: "This church isn't in our directory yet. You can still submit the claim and we'll review it, but photo editing needs a listing to attach to — we'll add one when we approve it.",
     Español: 'Esta iglesia aún no está en nuestro directorio. Puedes enviar la reclamación y la revisaremos, pero para editar fotos hace falta una ficha a la que asociarlas — la crearemos al aprobarla.' },

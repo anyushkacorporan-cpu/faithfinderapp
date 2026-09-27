@@ -115,6 +115,28 @@ for (const f of files) {
 
     const seen = [];
     for (const m of line.matchAll(/>([^<>{}\n]*[A-Za-z][^<>{}\n]*)</g)) seen.push(['text', m[1].trim()]);
+
+    /**
+     * Words sharing a text node with an expression, like
+     * `<Text>{n} churches found</Text>`. The plain pattern above stops at { and
+     * }, so anything sitting next to a count, a name or a date was invisible to
+     * this check — which is how "churches found" survived it.
+     *
+     * Both halves need care. `>` also opens the arrow in `=>`, so a loose
+     * version of this reported `StyleSheet.create(` and `router.push(` as
+     * untranslated copy, 85 times. `codeish` is what separates prose from the
+     * source it sits in: real copy has a space in it and does not carry
+     * brackets, assignment or semicolons.
+     */
+    const codeish = (t) => !/ /.test(t) || /[()[\]=;]|\.[A-Za-z]/.test(t);
+    if (line.includes('<Text') || line.includes('</Text>')) {
+      for (const m of line.matchAll(/\}([^<>{}\n]*[A-Za-z]{2}[^<>{}\n]*)</g)) {
+        const t = m[1].trim(); if (!codeish(t)) seen.push(['text-with-expr', t]);
+      }
+      for (const m of line.matchAll(/>([^<>{}\n]*[A-Za-z]{2}[^<>{}\n]*)\{/g)) {
+        const t = m[1].trim(); if (!codeish(t)) seen.push(['text-with-expr', t]);
+      }
+    }
     for (const m of line.matchAll(
       /\b(placeholder|title|label|hint|accessibilityLabel|accessibilityHint)=(?:"([^"]*)"|'([^']*)')/g,
     )) seen.push([m[1], (m[2] ?? m[3]).trim()]);
