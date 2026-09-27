@@ -34,8 +34,6 @@ export type ChurchRow = {
   photo?: string;
   /** Who to credit for `photo`. Null when it is the church's own upload. */
   photoCredit?: string;
-  /** The wide photo behind the name, when the church has set one. */
-  cover?: string;
   isClaimed?: boolean;
   distanceKm?: number;
 };
@@ -64,7 +62,6 @@ function toChurch(r: any): ChurchRow {
     city: r.city || '',
     photo: r.photo_url || undefined,
     photoCredit: r.photo_credit || undefined,
-    cover: r.cover_url || undefined,
     isClaimed: !!r.is_claimed,
     distanceKm: typeof r.distance_m === 'number' ? r.distance_m / 1000 : undefined,
   };
@@ -113,7 +110,18 @@ export async function nearbyChurches(
   }
 }
 
-const COLS = 'id,name,address,city,state,zip,denomination,phone,website,photo_url,photo_credit,cover_url,is_claimed';
+/**
+ * Deliberately no cover_url.
+ *
+ * Every church card, search result and saved row goes through this list, and
+ * Postgres rejects an entire query over one unknown column — so naming a column
+ * that a migration adds means the moment app code is pulled without the
+ * migration having run, searching, browsing a region, looking up a ZIP and
+ * refreshing the saved list all fail at once. Nothing here renders a cover
+ * anyway; the two screens that show one read it from church_profiles directly,
+ * where a missing column costs that one fetch and nothing else.
+ */
+const COLS = 'id,name,address,city,state,zip,denomination,phone,website,photo_url,photo_credit,is_claimed';
 
 /** Every church in a state or province, optionally of one denomination. */
 export async function churchesInRegion(
@@ -203,6 +211,23 @@ export async function searchChurches(
       denom: opts.denomination ?? null,
       max_rows: limit,
     });
+
+    // The function arrives with 24_search_performance.sql. Until that has run
+    // it does not exist, and without this the Churches tab would simply stop
+    // working for anyone who pulled the app before applying the migration —
+    // a worse failure than the slow query it replaced. PGRST202 is PostgREST
+    // for "no such function".
+    if (error && (error.code === 'PGRST202' || /function.*does not exist/i.test(error.message || ''))) {
+      const safe = q.replace(/[,()]/g, ' ').trim();
+      let f = db.from('churches_public').select(COLS)
+        .or(`name.ilike.%${safe}%,city.ilike.%${safe}%,address.ilike.%${safe}%,denomination.ilike.%${safe}%`);
+      if (opts.denomination) f = f.eq('denomination', opts.denomination);
+      const fallback = await f.limit(limit);
+      if (fallback.error) { lookupFailed('read the church directory', fallback.error); return null; }
+      console.warn('[db] search_churches is missing — run: node scripts/migrate.mjs');
+      return (fallback.data || []).map(toChurch);
+    }
+
     if (error) { lookupFailed('read the church directory', error); return null; }
     return (data || []).map(toChurch);
   } catch {

@@ -42,13 +42,31 @@ await client.connect();
 const { rows: cols } = await client.query(`
   select
     (select count(*) from information_schema.columns
-      where table_name='profiles' and column_name='claimed_church_id') as has_claim_col,
+      where table_name='profiles' and column_name='claimed_church_id') as m23_claim_col,
     (select count(*) from information_schema.tables
-      where table_name='church_photos') as has_photos_table`);
-if (!Number(cols[0].has_claim_col) || !Number(cols[0].has_photos_table)) {
+      where table_name='church_photos') as m23_photos_table,
+    (select count(*) from pg_proc where proname='search_churches') as m24_search_fn,
+    (select count(*) from information_schema.columns
+      where table_name='church_profiles' and column_name='cover_url') as m25_cover_col,
+    (select count(*) from information_schema.columns
+      where table_name='churches_public' and column_name='cover_url') as m25_view_col`);
+const c0 = cols[0];
+
+console.log('\n\x1b[1mMigrations\x1b[0m');
+const m23 = Number(c0.m23_claim_col) && Number(c0.m23_photos_table);
+const m24 = Number(c0.m24_search_fn);
+const m25 = Number(c0.m25_cover_col) && Number(c0.m25_view_col);
+m23 ? ok('23_church_photos_editable.sql — gallery and ownership')
+    : bad('23_church_photos_editable.sql NOT applied');
+m24 ? ok('24_search_performance.sql — indexed search')
+    : bad('24_search_performance.sql NOT applied — searching the directory will time out');
+m25 ? ok('25_church_profile_cover.sql — profile and cover photos')
+    : bad('25_church_profile_cover.sql NOT applied — the profile photo and cover cannot save');
+if (!m23 || !m24 || !m25) {
   console.log('');
-  bad('23_church_photos_editable.sql has not been applied.');
-  info('Run: node scripts/migrate.mjs');
+  info('\x1b[33mRun: node scripts/migrate.mjs\x1b[0m');
+}
+if (!m23) {
   console.log('');
   await client.end();
   process.exit(1);
@@ -63,6 +81,11 @@ const { rows } = await client.query(`
     c.name                                     as church_name,
     cp.claimed_at                              as owned_since,
     cp.hide_imported_photo,
+    cp.photo_url                               as profile_photo,
+    ${m25 ? 'cp.cover_url' : 'null::text as cover_url'},
+    c.photo_url                                as imported_photo,
+    (select g.url from church_photos g where g.church_id = p.claimed_church_id
+      order by g.sort, g.created_at limit 1)   as first_gallery,
     (select count(*) from church_photos g where g.church_id = p.claimed_church_id) as gallery
   from auth.users u
   left join profiles p        on p.id = u.id
@@ -102,7 +125,14 @@ for (const r of rows) {
   } else {
     ok(`owns it since ${new Date(r.owned_since).toLocaleString()}`);
     ok(`gallery photos: ${r.gallery}`);
-    if (r.hide_imported_photo) warn('the imported photo is hidden');
+    // What a card will actually draw, worked out the same way the view does.
+    const shown = r.profile_photo || r.first_gallery
+      || (r.hide_imported_photo ? null : r.imported_photo);
+    console.log(`      profile photo  ${r.profile_photo || '(none)'}`);
+    console.log(`      cover photo    ${r.cover_url || '(none)'}`);
+    console.log(`      imported       ${r.imported_photo || '(none)'}${r.hide_imported_photo ? '  \x1b[33m(hidden)\x1b[0m' : ''}`);
+    if (shown) ok(`cards will show: ${shown}`);
+    else warn('cards will show no photo at all — nothing is set and the imported one is hidden or absent');
     ok('\x1b[32mphoto editing is unlocked for this account\x1b[0m');
     anyReady = true;
   }
