@@ -7,6 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { COLORS, CHURCHES } from '../src/lib/constants';
 import { useTranslation } from '../src/lib/i18n';
 import { searchChurchText } from '../src/lib/googlePlaces';
+import { searchChurches } from '../src/lib/churchesApi';
 import { setUser } from '../src/lib/userStore';
 import { submitVerification } from '../src/lib/profileSync';
 import { churchUuid } from '../src/lib/churchPhotosApi';
@@ -40,15 +41,42 @@ export default function ClaimChurchScreen() {
   async function handleSearch() {
     if (!search.trim()) return;
     setSearching(true);
-    // Search local list first
+
+    // Our own directory first, and first for a reason.
+    //
+    // This screen searched Google Places and the seeded demo list, and neither
+    // result carries an id from our database — the seeded branch below does not
+    // even map one. So every church someone claimed was a church we had no row
+    // for, and an approved claim could confer ownership of nothing. The
+    // directory holds 235,147 churches and was not being searched by the one
+    // screen whose whole job is finding the searcher's own church in it.
+    const directory = await searchChurches(search, { limit: 8 });
+    const mine = (directory || []).map(c => ({
+      id: c.id, placeId: c.placeId, name: c.name, address: c.address,
+      rating: c.rating, photo: c.photo, inDirectory: true,
+    }));
+
+    const sameAsDirectory = (name: string, address: string) => mine.some(m =>
+      m.name.toLowerCase() === (name || '').toLowerCase() &&
+      (m.address || '').toLowerCase().slice(0, 18) === (address || '').toLowerCase().slice(0, 18));
+
     const local = CHURCHES.filter(c =>
       c.name.toLowerCase().includes(search.toLowerCase()) ||
       c.address.toLowerCase().includes(search.toLowerCase())
-    ).map(c => ({ placeId: c.placeId, name: c.name, address: c.address, rating: c.rating, local: true }));
+    ).map(c => ({ placeId: c.placeId, name: c.name, address: c.address, rating: c.rating, local: true }))
+     .filter(c => !sameAsDirectory(c.name, c.address));
 
-    // Also search Google Places
+    // Google last, and only for churches the directory does not have. It stays
+    // because the directory is not complete; a church that is genuinely missing
+    // should still be able to submit a claim, even though there is no row yet
+    // for an approval to hand over.
     const remote = await searchChurchesAPI(search);
-    const combined = [...local, ...remote.filter((r: any) => !local.find(l => l.placeId === r.placeId))];
+    const combined = [
+      ...mine,
+      ...local,
+      ...remote.filter((r: any) =>
+        !local.find(l => l.placeId === r.placeId) && !sameAsDirectory(r.name, r.address)),
+    ];
     setResults(combined);
     setSearching(false);
   }
@@ -257,6 +285,18 @@ export default function ClaimChurchScreen() {
                 )}
               </View>
             </View>
+
+            {/* Said before the claim is made, not discovered after it is
+                approved. A church the directory does not have is still worth
+                claiming — somebody reads the claim — but approving it hands over
+                nothing, because there is no listing to take charge of. Silence
+                here would read as a feature that did not work. */}
+            {!selectedChurch.inDirectory && (
+              <View style={{flexDirection:'row',gap:8,backgroundColor:'rgba(201,169,110,0.10)',borderRadius:12,padding:12,marginBottom:14}}>
+                <Ionicons name="information-circle-outline" size={16} color={COLORS.gold} style={{marginTop:1}} />
+                <Text style={{flex:1,fontSize:12,color:'#555',lineHeight:18}}>{t('notInDirectoryYet')}</Text>
+              </View>
+            )}
 
             <TouchableOpacity style={s.primaryBtn} onPress={() => setStep('verify')}>
               <Text style={s.primaryBtnTxt}>{t('yesClaimChurch')}</Text>
