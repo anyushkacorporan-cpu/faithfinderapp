@@ -174,6 +174,12 @@ export default function ChurchDetailScreen() {
       const uris: string[] = [];
       if (singles?.coverUrl) uris.push(singles.coverUrl);
       uris.push(...(photos || []).map(p => p.url));
+      // The profile photo belongs here too when nothing else fills the space.
+      // Without this a church that set only a profile photo — a perfectly
+      // ordinary thing to do — got the house-icon placeholder on its own page
+      // while its card everywhere else showed the photo, which reads as the
+      // page being broken rather than as the gallery being empty.
+      if (!uris.length && singles?.photoUrl) uris.push(singles.photoUrl);
       if (base?.url && !base.hidden) uris.push(base.url);
       setDbPhotos(uris);
       if (singles) setChurchImages(singles);

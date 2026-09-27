@@ -52,6 +52,26 @@ const { rows: cols } = await client.query(`
       where table_name='churches_public' and column_name='cover_url') as m25_view_col`);
 const c0 = cols[0];
 
+// A private bucket serves an error for every photo url, everywhere, while the
+// rows all look correct — which is indistinguishable from the app being broken.
+try {
+  const { rows: b } = await client.query(
+    `select public from storage.buckets where id = 'church-photos'`);
+  console.log('\n\x1b[1mStorage\x1b[0m');
+  if (!b.length) bad("the 'church-photos' bucket does not exist — run: node scripts/migrate.mjs");
+  else if (b[0].public) ok("'church-photos' bucket is public");
+  else {
+    bad("'church-photos' bucket is NOT public — every photo url will fail to load");
+    info(`node scripts/sql.mjs "update storage.buckets set public = true where id='church-photos'"`);
+  }
+  const { rows: f } = await client.query(
+    `select count(*)::int as n from storage.objects where bucket_id = 'church-photos'`);
+  ok(`${f[0].n} file${f[0].n === 1 ? '' : 's'} uploaded`);
+} catch {
+  console.log('\n\x1b[1mStorage\x1b[0m');
+  warn('could not read storage.buckets from this connection');
+}
+
 console.log('\n\x1b[1mMigrations\x1b[0m');
 const m23 = Number(c0.m23_claim_col) && Number(c0.m23_photos_table);
 const m24 = Number(c0.m24_search_fn);
@@ -131,6 +151,12 @@ for (const r of rows) {
     console.log(`      profile photo  ${r.profile_photo || '(none)'}`);
     console.log(`      cover photo    ${r.cover_url || '(none)'}`);
     console.log(`      imported       ${r.imported_photo || '(none)'}${r.hide_imported_photo ? '  \x1b[33m(hidden)\x1b[0m' : ''}`);
+    if (Number(r.gallery)) {
+      const { rows: g } = await client.query(
+        `select url from church_photos where church_id = $1 order by sort, created_at`,
+        [r.claimed_church_id]);
+      g.forEach((row, i) => console.log(`      gallery ${i + 1}       ${row.url}`));
+    }
     if (shown) ok(`cards will show: ${shown}`);
     else warn('cards will show no photo at all — nothing is set and the imported one is hidden or absent');
     ok('\x1b[32mphoto editing is unlocked for this account\x1b[0m');
