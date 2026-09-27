@@ -176,14 +176,30 @@ export async function searchChurches(
   }
 
   try {
-    // Name, city, address and denomination together, because the box is one
-    // box and people type all four into it. Commas break PostgREST's `or`
-    // syntax, so they come out of the pattern rather than out of the query.
-    const safe = q.replace(/[,()]/g, ' ').trim();
-    let f = db.from('churches_public').select(COLS)
-      .or(`name.ilike.%${safe}%,city.ilike.%${safe}%,address.ilike.%${safe}%,denomination.ilike.%${safe}%`);
-    if (opts.denomination) f = f.eq('denomination', opts.denomination);
-    const { data, error } = await f.limit(limit);
+    // Name, city, address and denomination together, because the box is one box
+    // and people type all four into it — but through a function rather than a
+    // PostgREST `or` against the view.
+    //
+    // The `or` version read the view, where name is coalesce(p.name, c.name),
+    // and a predicate on that expression cannot use the trigram index on
+    // c.name. Three of the four columns had no index at all. Every search was a
+    // sequential scan of the whole directory, which a common word survived
+    // because LIMIT stopped it early and a precise one did not: 'Presbyterian'
+    // came back in under a millisecond and 'Fifth Avenue Presbyterian' took
+    // 451, reading all 235,147 rows to report a handful. On a shared instance
+    // that is the statement timeout the Churches tab was hitting.
+    //
+    // search_churches matches against `churches` where the indexes are, then
+    // joins the view onto what matched. Same results, same shape, and the
+    // precise search is now the fast one. See supabase/24_search_performance.sql.
+    //
+    // Commas no longer need stripping — the pattern is a parameter now, not
+    // part of a query string that a comma would split.
+    const { data, error } = await db.rpc('search_churches', {
+      q,
+      denom: opts.denomination ?? null,
+      max_rows: limit,
+    });
     if (error) { lookupFailed('read the church directory', error); return null; }
     return (data || []).map(toChurch);
   } catch {
