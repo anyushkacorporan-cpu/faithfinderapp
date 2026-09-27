@@ -30,7 +30,7 @@ function notify() { [...listeners].forEach(fn => fn()); }
 
 const STORAGE_KEY = 'faithfinder_hidden_posts_v1';
 function persist() { save(STORAGE_KEY, hidden); }
-load<string[]>(STORAGE_KEY, v => { hidden = v || []; notify(); });
+const hydrated = load<string[]>(STORAGE_KEY, v => { hidden = v || []; notify(); });
 
 export function isHidden(postId?: string): boolean {
   return !!postId && hidden.includes(postId);
@@ -59,6 +59,8 @@ export function unhidePost(postId: string) {
  * and replacing the local list would put it back in front of them.
  */
 export async function syncHiddenFromServer(): Promise<void> {
+  // See persist.ts: unioning before hydration lands drops the local-only ids.
+  await hydrated;
   const remote = await api.fetchHiddenPosts();
   if (!remote) return;
 

@@ -13,6 +13,7 @@ import { pushPrivacyPrefs } from './privacyApi';
 import { getSettings, applyServerPrefs } from './settingsStore';
 import { syncSavedEventsFromServer } from './eventActionsStore';
 import { syncHiddenFromServer } from './hiddenStore';
+import { syncSavedChurchesFromServer } from './store';
 
 /**
  * Keeps the account's profile and the on-device user in step.
@@ -109,6 +110,7 @@ export async function syncProfileAfterSignIn(userId: string): Promise<void> {
   await syncTicketsFromServer();
   await syncSavedEventsFromServer();
   await syncHiddenFromServer();
+  await syncSavedChurchesFromServer();
   // The feed is the point of the app being shared at all; pull it as soon as
   // we know who is asking, so likes come back marked as yours.
   await syncPostsFromServer();

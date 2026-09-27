@@ -18,6 +18,7 @@ import { syncTicketsFromServer } from '../src/lib/ticketStore';
 import { syncEventsFromServer } from '../src/lib/eventsStore';
 import { syncSavedEventsFromServer } from '../src/lib/eventActionsStore';
 import { syncHiddenFromServer } from '../src/lib/hiddenStore';
+import { syncSavedChurchesFromServer } from '../src/lib/store';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -43,6 +44,7 @@ function AuthLinks() {
     void syncTicketsFromServer();
     void syncSavedEventsFromServer();
     void syncHiddenFromServer();
+    void syncSavedChurchesFromServer();
   }, [ready, user?.id]);
 
   return null;

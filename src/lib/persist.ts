@@ -18,9 +18,17 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
  * component has to change.
  */
 
-/** Read a stored value once at startup and hand it to the store. */
-export function load<T>(key: string, apply: (value: T) => void): void {
-  AsyncStorage.getItem(key)
+/**
+ * Read a stored value once at startup and hand it to the store.
+ *
+ * Returns when hydration has finished, which matters to any store that also
+ * pulls the same list from the server. A sync that ran first saw an empty list,
+ * treated the server's copy as the whole truth, and wrote that over the stored
+ * one — losing anything saved on this device while signed out. Callers that
+ * only hydrate can carry on ignoring the result.
+ */
+export function load<T>(key: string, apply: (value: T) => void): Promise<void> {
+  return AsyncStorage.getItem(key)
     .then(raw => {
       if (!raw) return;
       const parsed = JSON.parse(raw) as T;

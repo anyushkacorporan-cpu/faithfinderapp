@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { load, save } from './persist';
+import * as api from './listsApi';
 
 /**
  * Churches you have saved.
@@ -47,8 +48,25 @@ function subscribe(fn: () => void) {
 function notify() { [...listeners].forEach(fn => fn()); }
 
 const KEY = 'faithfinder_saved_churches_v1';
+
+/**
+ * Unsaves the server has not accepted yet.
+ *
+ * The union in syncSavedChurchesFromServer keeps anything the server has that
+ * the phone does not, which is what stops a failed save from being lost. It
+ * does the wrong thing to a failed *unsave*: the row is still up there, so the
+ * union reads it as a church to restore and the heart comes back on by itself.
+ *
+ * So an unsave that does not reach the server is written down, and stays
+ * written down across restarts until it does. Without persisting it, closing
+ * the app is enough to forget the intent and let the church return.
+ */
+const PENDING_KEY = 'faithfinder_unsaved_churches_pending_v1';
+let pendingRemovals: string[] = [];
+function persistPending() { save(PENDING_KEY, pendingRemovals); }
+const hydratedPending = load<string[]>(PENDING_KEY, v => { pendingRemovals = v || []; });
 function persist() { save(KEY, savedChurches); }
-load<any[]>(KEY, v => {
+const hydrated = load<any[]>(KEY, v => {
   // Old installs stored ids. There is no church behind a bare string any more,
   // so they are dropped rather than kept as rows that cannot be drawn.
   savedChurches = (v || []).filter(c => c && typeof c === 'object' && c.id);
@@ -70,13 +88,77 @@ export function toggleSavedChurch(church: SavedChurch | string) {
   if (!id) return;
   if (savedChurches.some(c => c.id === id)) {
     savedChurches = savedChurches.filter(c => c.id !== id);
-  } else if (typeof church === 'string') {
+    persist();
+    notify();
+    void (async () => {
+      if (await api.unsaveChurchRemote(id)) return;
+      if (pendingRemovals.includes(id)) return;
+      pendingRemovals = [...pendingRemovals, id];
+      persistPending();
+    })();
+    return;
+  }
+  if (typeof church === 'string') {
     // An id with no church behind it cannot be rendered, so saving one would
     // put the empty row back. Callers pass the church.
     return;
-  } else {
-    savedChurches = [...savedChurches, church];
   }
+  savedChurches = [...savedChurches, church];
+  persist();
+  notify();
+  // Saving again clears any pending unsave: the later tap is the intent.
+  if (pendingRemovals.includes(id)) {
+    pendingRemovals = pendingRemovals.filter(p => p !== id);
+    persistPending();
+  }
+  // Not awaited, and deliberately. The tap has already been answered on the
+  // phone; a slow or failed write must not make the heart hesitate. A write
+  // that fails is recovered by the union in syncSavedChurchesFromServer.
+  void api.saveChurchRemote(church);
+}
+
+/**
+ * Bring the saved list in from the account.
+ *
+ * A union, not a replacement, for the same reason the hidden list is one: a
+ * church saved while the write failed — offline, or signed out at the time —
+ * is still saved as far as the person who tapped the heart is concerned, and
+ * taking the server's list as the truth would quietly un-save it. Anything
+ * held locally and missing on the server is pushed up rather than dropped.
+ *
+ * A null return means the read failed, which is not the same as an empty list
+ * and must not empty anything.
+ */
+export async function syncSavedChurchesFromServer(): Promise<void> {
+  // Before anything is compared. Hydration is async, and a union against a list
+  // that has not loaded yet is a union against nothing.
+  await hydrated;
+  await hydratedPending;
+
+  // Retry the unsaves that never landed, before reading. One that succeeds now
+  // stops being pending; one that fails again is still excluded from the union
+  // below, so the church does not reappear while we keep trying.
+  if (pendingRemovals.length) {
+    const stillPending: string[] = [];
+    for (const id of pendingRemovals) {
+      if (!(await api.unsaveChurchRemote(id))) stillPending.push(id);
+    }
+    if (stillPending.length !== pendingRemovals.length) {
+      pendingRemovals = stillPending;
+      persistPending();
+    }
+  }
+
+  const remote = await api.fetchSavedChurches();
+  if (!remote) return;
+
+  const dropped = new Set(pendingRemovals);
+  const kept = (remote as SavedChurch[]).filter(c => !dropped.has(c.id));
+  const keptIds = new Set(kept.map(c => c.id));
+  const localOnly = savedChurches.filter(c => !keptIds.has(c.id) && !dropped.has(c.id));
+  for (const c of localOnly) void api.saveChurchRemote(c);
+
+  savedChurches = [...kept, ...localOnly];
   persist();
   notify();
 }
@@ -97,6 +179,8 @@ export function useSavedChurches() {
 
 /** Return this store to a fresh-install state. See accountDeletion.ts. */
 export function resetStore() {
+  pendingRemovals = [];
+  persistPending();
   savedChurches = [];
   persist();
   notify();

@@ -21,7 +21,7 @@ function notify() { [...listeners].forEach(fn => fn()); }
 const STORAGE_KEY = 'faithfinder_event_actions_v1';
 type Persisted = { saved: string[]; attending: string[] };
 function persist() { save(STORAGE_KEY, { saved: savedEvents, attending: attendingEvents }); }
-load<Persisted>(STORAGE_KEY, v => {
+const hydrated = load<Persisted>(STORAGE_KEY, v => {
   savedEvents = v.saved || [];
   attendingEvents = v.attending || [];
   notify();
@@ -51,6 +51,8 @@ export function toggleSaveEvent(id: string) {
  * through their own sync.
  */
 export async function syncSavedEventsFromServer(): Promise<void> {
+  // See persist.ts: unioning before hydration lands drops the local-only ids.
+  await hydrated;
   const remote = await api.fetchSavedEvents();
   if (!remote) return;
 
