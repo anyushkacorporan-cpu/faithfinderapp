@@ -27,9 +27,28 @@
  * Without it, a straight percentage eventually overtakes Eventbrite. Their
  * service fee is 3.7% plus a flat $1.79, and a flat component gets cheaper as
  * a share of the ticket the more expensive the ticket is — their effective
- * rate falls toward 3.7% while ours would stay at 5%. The lines cross around
- * $107. The cap means they never cross: this stays cheaper at every price,
- * with no asterisk.
+ * rate falls toward 3.7% while ours would stay at 5%.
+ *
+ * The lines cross at $137.69, where 0.05p first exceeds 0.037p + 1.79. This
+ * said $107 before, which was simply wrong; the working is one line, so here
+ * it is rather than another number to take on trust:
+ *
+ *     0.05p = 0.037p + 1.79  ->  0.013p = 1.79  ->  p = 137.69
+ *
+ * The cap means they never cross: this stays cheaper at every price, with no
+ * asterisk.
+ *
+ * $5 binds at a $100 ticket, which is earlier than it has to be — a cap of up
+ * to $6.88 would still bind before $137.69 and so keep the claim intact, while
+ * earning about 30% more on anything above $130. That is left on the table on
+ * purpose. These are churches already paying for the room before anyone walks
+ * in, and a fee that grows with their biggest event of the year is the thing
+ * that makes people resent a platform. "Never more than $5, whatever the
+ * ticket" is worth more here than the difference.
+ *
+ * Anything above $6.88 would break the claim outright: a $10 cap makes this
+ * dearer than Eventbrite at a $200 ticket by 81 cents, and one exception is
+ * enough to cost the sentence.
  *
  * WHY NOTHING IS CHARGED ON A FREE TICKET
  *
