@@ -46,6 +46,23 @@ await client.query(`
   )
 `);
 
+// Secured at creation, not by a later migration.
+//
+// This table was created here without RLS and Supabase flagged it as publicly
+// readable, editable and deletable. 19_security_advisor.sql was meant to cover
+// it, but ran before this script existed, found no table, and did nothing —
+// and having been recorded as applied, never looked again. A table created by
+// code has to be secured by that same code; leaving it to a migration only
+// works if the migration happens to run afterwards, which is not something the
+// ledger can promise about itself.
+//
+// No policy: nothing in the app reads this, and this script connects as the
+// owner, which RLS does not apply to. Enabled with no policy denies the app
+// keys outright.
+await client.query('alter table schema_migrations enable row level security');
+await client.query('revoke all on schema_migrations from anon, authenticated')
+  .catch(() => { /* roles may not exist outside Supabase */ });
+
 const { rows } = await client.query('select filename from schema_migrations');
 const done = new Set(rows.map(r => r.filename));
 
