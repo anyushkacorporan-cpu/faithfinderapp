@@ -48,13 +48,17 @@ await client.query(`
 
 // Secured at creation, not by a later migration.
 //
-// This table was created here without RLS and Supabase flagged it as publicly
-// readable, editable and deletable. 19_security_advisor.sql was meant to cover
-// it, but ran before this script existed, found no table, and did nothing —
-// and having been recorded as applied, never looked again. A table created by
-// code has to be secured by that same code; leaving it to a migration only
-// works if the migration happens to run afterwards, which is not something the
-// ledger can promise about itself.
+// Precautionary, not a fix for anything that went wrong: on the live project
+// this table already has row-level security, because 19_security_advisor.sql
+// was applied by this script, which creates the ledger before it applies
+// anything — so 19's guard found the table and enabled it.
+//
+// That is luck, not design. Apply 19 by hand first, as one would when setting
+// up a new project from the SQL editor, and its guard finds nothing, does
+// nothing, and is then recorded as applied and never looks again; this script
+// would afterwards create the table unprotected with nothing left to secure
+// it. A table created by code should be secured by that same code rather than
+// by a migration that may or may not run afterwards.
 //
 // No policy: nothing in the app reads this, and this script connects as the
 // owner, which RLS does not apply to. Enabled with no policy denies the app
