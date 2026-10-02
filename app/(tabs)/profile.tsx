@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Image, Linking, Alert, Share, FlatList, Dimensions, Modal, TextInput } from 'react-native';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -11,6 +11,10 @@ import { TAB_BAR_CLEARANCE } from '../../src/lib/tabBar';
 import { useUser, setUser, getUser } from '../../src/lib/userStore';
 import { displayName as userDisplayName } from '../../src/lib/userStore';
 import { pushProfile, refreshVerificationStatus } from '../../src/lib/profileSync';
+import {
+  fetchMyChurch, fetchChurchImages, fetchChurchPhotos, addChurchPhotos,
+  setChurchCoverPhoto,
+} from '../../src/lib/churchPhotosApi';
 import { useConnections, useConnectionCount, removeConnection } from '../../src/lib/connectionsStore';
 import { usePosts, toggleLike, editPost, deletePost, isAuthoredBy, Post } from '../../src/lib/postsStore';
 import { PostCard } from '../../src/components/PostCard';
@@ -72,6 +76,41 @@ export default function ProfileScreen() {
   // the next one — so this one field is re-read where it is shown.
   useEffect(() => { void refreshVerificationStatus(); }, []);
 
+  /**
+   * A church's own photos, on its own profile.
+   *
+   * This screen read user.avatar, user.coverPhoto and user.photos — fields on
+   * the signed-in person. For a church account that is the wrong record: its
+   * real profile photo, cover and gallery live on the claim, which is what Edit
+   * Church Profile writes and what every other screen reads. So a church could
+   * set its photos, watch them appear in search and on its public page, and
+   * find its own profile still showing nothing. The one place it would look
+   * first was the one place not reading them.
+   *
+   * Null until the claim is known, and stays null without an approved one, in
+   * which case the userStore fields below are still the right answer.
+   */
+  const [churchId, setChurchId] = useState<string | null>(null);
+  const [churchImages, setChurchImages] = useState<{ photoUrl: string | null; coverUrl: string | null }>({ photoUrl: null, coverUrl: null });
+  const [churchGallery, setChurchGallery] = useState<string[]>([]);
+
+  const loadChurchPhotos = useCallback(async (id: string) => {
+    const [images, photos] = await Promise.all([fetchChurchImages(id), fetchChurchPhotos(id)]);
+    if (images) setChurchImages(images);
+    if (photos) setChurchGallery(photos.map(ph => ph.url));
+  }, []);
+
+  useFocusEffect(useCallback(() => {
+    let live = true;
+    (async () => {
+      const mine = await fetchMyChurch();
+      if (!live || !mine?.churchId || !mine.approved) return;
+      setChurchId(mine.churchId);
+      await loadChurchPhotos(mine.churchId);
+    })();
+    return () => { live = false; };
+  }, [loadChurchPhotos]));
+
   const displayName = user.accountType === 'church'
     ? (user.churchName || 'Church')
     : userDisplayName(user);
@@ -115,6 +154,14 @@ export default function ProfileScreen() {
     .filter(Boolean);
   const [activePhoto, setActivePhoto] = useState(0);
   const isChurch = user.accountType === 'church';
+  /**
+   * What the carousel at the top of a church profile shows.
+   *
+   * The church's own gallery once the claim is approved — the same rows Edit
+   * Church Profile writes and the public church page reads — and the account's
+   * local photos until then, which is all an unclaimed account has.
+   */
+  const churchPhotoStrip = churchId ? churchGallery : (user.photos || []);
   const connections = useConnections();
   const connectionCount = useConnectionCount();
 
@@ -129,10 +176,30 @@ export default function ProfileScreen() {
       allowsMultipleSelection: true,
       quality: 0.8,
     });
-    if (!result.canceled) {
-      const newPhotos = result.assets.map(a => a.uri);
-      setUser({ photos: [...(user.photos || []), ...newPhotos] });
+    if (result.canceled) return;
+    const newPhotos = result.assets.map(a => a.uri);
+    await savePickedPhotos(newPhotos);
+  }
+
+  /**
+   * Put picked photos where they will actually be seen.
+   *
+   * An approved church's photos belong to the church, so they are uploaded and
+   * attached to it — exactly what Edit Church Profile does, so the two screens
+   * cannot disagree. Without a claim there is nowhere else to put them, so they
+   * stay on the account as before.
+   */
+  async function savePickedPhotos(uris: string[]) {
+    if (!uris.length) return;
+    if (churchId) {
+      const added = await addChurchPhotos(churchId, uris);
+      await loadChurchPhotos(churchId);
+      if (!added.length) {
+        Alert.alert(tx('Not saved'), tx('Those photos could not be uploaded. Check your connection and try again.'));
+      }
+      return;
     }
+    setUser({ photos: [...(getUser().photos || []), ...uris] });
   }
 
   async function handleTakePhoto() {
@@ -143,7 +210,7 @@ export default function ProfileScreen() {
     }
     const result = await ImagePicker.launchCameraAsync({ quality: 0.8 });
     if (!result.canceled) {
-      setUser({ photos: [...(user.photos || []), result.assets[0].uri] });
+      await savePickedPhotos([result.assets[0].uri]);
     }
   }
 
@@ -195,12 +262,12 @@ export default function ProfileScreen() {
             {...KEYBOARD_SCROLL_PROPS} showsVerticalScrollIndicator={false}>
 
           {/* Photo Gallery */}
-          {(user.photos?.length ?? 0) > 0 ? (
+          {churchPhotoStrip.length > 0 ? (
             <View style={[s.galleryWrap, {marginTop: insets.top}]}>
 
               <FlatList
             {...KEYBOARD_SCROLL_PROPS}
-                data={user.photos}
+                data={churchPhotoStrip}
                 horizontal pagingEnabled
                 showsHorizontalScrollIndicator={false}
                 onMomentumScrollEnd={e => setActivePhoto(Math.round(e.nativeEvent.contentOffset.x / W))}
@@ -208,7 +275,7 @@ export default function ProfileScreen() {
                 keyExtractor={(_, i) => String(i)}
               />
               <View style={s.dots}>
-                {(user.photos || []).map((_, i) => <View key={i} style={[s.dot, i===activePhoto && s.dotActive]} />)}
+                {churchPhotoStrip.map((_, i) => <View key={i} style={[s.dot, i===activePhoto && s.dotActive]} />)}
               </View>
               <TouchableOpacity style={s.addMorePhotosBtn} onPress={handleAddPhotoOptions}>
                 <Ionicons name="camera" size={16} color="#fff" />
@@ -268,8 +335,8 @@ export default function ProfileScreen() {
           {/* Church Identity */}
           <View style={s.churchIdentity}>
             <View style={s.churchAvatarRow}>
-              {user.avatar ? (
-                <Image source={{uri:user.avatar}} style={s.churchAvatar} resizeMode="cover" />
+              {(churchImages.photoUrl || user.avatar) ? (
+                <Image source={{uri: churchImages.photoUrl || user.avatar}} style={s.churchAvatar} resizeMode="cover" />
               ) : (
                 <LinearGradient colors={['#1a1a2e', '#2d2240']} style={s.churchAvatar} start={{x:0,y:0}} end={{x:1,y:1}}>
                   <Ionicons name="home" size={28} color={c.gold} />
@@ -486,18 +553,29 @@ export default function ProfileScreen() {
             visible now — and the avatar hangs off the bottom of this box, so
             its overlap is unchanged. */}
         <View style={[s.coverWrap, {marginTop: insets.top}]}>
-          {user.coverPhoto
-            ? <Image source={{uri:user.coverPhoto}} style={{width:'100%',height:200}} resizeMode="cover"/>
+          {(churchImages.coverUrl || user.coverPhoto)
+            ? <Image source={{uri: churchImages.coverUrl || user.coverPhoto}} style={{width:'100%',height:200}} resizeMode="cover"/>
             : <View style={s.cover} />
           }
           <TouchableOpacity style={s.addCoverBtn} onPress={async () => {
             const {status} = await ImagePicker.requestMediaLibraryPermissionsAsync();
             if (status !== 'granted') return;
             const result = await ImagePicker.launchImageLibraryAsync({mediaTypes:['images'],allowsEditing:true,aspect:[16,9],quality:0.8});
-            if (!result.canceled) { setUser({coverPhoto:result.assets[0].uri}); void pushProfile(); }
+            if (result.canceled) return;
+            // An approved church's cover belongs to the church, the same place
+            // Edit Church Profile writes it, so the two screens agree. Without
+            // a claim it stays on the account, which is all there is.
+            if (churchId) {
+              const ok = await setChurchCoverPhoto(churchId, result.assets[0].uri);
+              await loadChurchPhotos(churchId);
+              if (!ok) Alert.alert(tx('Not saved'), tx('That photo could not be uploaded. Check your connection and try again.'));
+            } else {
+              setUser({coverPhoto:result.assets[0].uri});
+              void pushProfile();
+            }
           }}>
             <Ionicons name="camera-outline" size={14} color="#fff" />
-            <Text style={s.addCoverTxt}>{user.coverPhoto ? 'Change cover' : 'Add cover'}</Text>
+            <Text style={s.addCoverTxt}>{(churchImages.coverUrl || user.coverPhoto) ? t('changeCover') : t('addCover')}</Text>
           </TouchableOpacity>
           <View style={s.avatarWrap}>
             <TouchableOpacity style={{width:90,height:90}} activeOpacity={0.7} onPress={async () => {

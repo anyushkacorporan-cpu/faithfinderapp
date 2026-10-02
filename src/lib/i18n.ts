@@ -1043,6 +1043,8 @@ const translations: Record<string, Record<Lang, string>> = {
   ux47: { English: 'churches found', Español: 'iglesias encontradas' },
   ux48: { English: 'Google rating', Español: 'valoración de Google' },
   ux49: { English: 'tickets sold', Español: 'entradas vendidas' },
+  addCover: { English: 'Add cover', Español: 'Añadir portada' },
+  changeCover: { English: 'Change cover', Español: 'Cambiar portada' },
   coverPhoto: { English: 'Cover photo', Español: 'Foto de portada' },
   tapToAddCover: { English: 'Tap to add a cover photo', Español: 'Toca para añadir una foto de portada' },
   removePhoto: { English: 'Remove photo', Español: 'Quitar foto' },
