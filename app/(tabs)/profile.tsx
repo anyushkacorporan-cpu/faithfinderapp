@@ -10,7 +10,7 @@ import { useThemeColors, ThemeColors } from '../../src/lib/theme';
 import { TAB_BAR_CLEARANCE } from '../../src/lib/tabBar';
 import { useUser, setUser, getUser } from '../../src/lib/userStore';
 import { displayName as userDisplayName } from '../../src/lib/userStore';
-import { pushProfile, refreshVerificationStatus } from '../../src/lib/profileSync';
+import { pushProfile, refreshVerificationStatus, retryProfilePush } from '../../src/lib/profileSync';
 import {
   fetchMyChurch, fetchChurchImages, fetchChurchPhotos, addChurchPhotos,
   setChurchCoverPhoto,
@@ -102,6 +102,9 @@ export default function ProfileScreen() {
 
   useFocusEffect(useCallback(() => {
     let live = true;
+    // An edit that never reached the server is still owed. Costs nothing when
+    // nothing is owed, and coming back to this screen is the natural moment.
+    void retryProfilePush();
     (async () => {
       const mine = await fetchMyChurch();
       if (!live || !mine?.churchId || !mine.approved) return;

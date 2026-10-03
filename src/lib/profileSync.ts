@@ -37,6 +37,13 @@ const MIGRATED_KEY = 'faithfinder_profile_migrated_v1';
 let migrated: Record<string, boolean> = {};
 load<Record<string, boolean>>(MIGRATED_KEY, v => { migrated = v || {}; });
 
+// Accounts whose profile edits have not reached the server yet. Kept on the
+// device so a push lost to a dead connection is still owed after a restart.
+const PENDING_KEY = 'faithfinder_profile_push_pending_v1';
+
+let pendingPush: Record<string, boolean> = {};
+load<Record<string, boolean>>(PENDING_KEY, v => { pendingPush = v || {}; });
+
 /** Server row → the User shape the app already uses. */
 function toUser(row: any): Partial<User> {
   return {
@@ -147,7 +154,24 @@ export async function syncProfileAfterSignIn(userId: string): Promise<void> {
   // first, a reinstall would push stale data over a profile edited elsewhere;
   // without the second, signing in on a friend's phone would overwrite yours.
   if (!migrated[userId] && hasLocalContent && isBlank(row)) {
-    await db.from('profiles').update(toRow(local)).eq('id', userId);
+    const { error } = await db.from('profiles').update(toRow(local)).eq('id', userId);
+
+    // The flag is only set once the write has landed. It used to be set either
+    // way, which quietly threw the profile away: this runs once per account per
+    // device, so a write that failed — offline on the walk home, a timeout —
+    // left the flag saying "done" and the condition above could never be true
+    // again. The bio, photos and life verse someone wrote before they had an
+    // account were gone from the server for good, and because the local copy
+    // still showed them they looked fine on that one phone and blank to
+    // everybody else.
+    //
+    // Leaving the flag unset costs nothing: the next sign-in finds the profile
+    // still blank and tries again.
+    if (error) {
+      setUser({ id: userId });
+      return;
+    }
+
     // The one path where the device is the record: a profile filled in before
     // this account existed, moving onto a blank one. Its preferences go with
     // it — otherwise the migration carries the bio and drops the privacy.
@@ -245,13 +269,22 @@ export async function refreshVerificationStatus(): Promise<void> {
 /**
  * Push local profile edits to the server.
  *
- * Fire-and-forget on purpose: a failed sync must not block someone editing
- * their own profile, and the next edit sends the whole row again anyway.
+ * Callers do not wait on this, and should not: a sync must never block someone
+ * editing their own profile. But not waiting is different from not looking.
+ * This used to end in `.then(() => {}, () => {})`, which threw the outcome
+ * away, so a profile that never reached the server looked saved on the phone
+ * that wrote it and stayed blank to everyone else — and the comment excused it
+ * on the grounds that "the next edit sends the whole row again anyway", which
+ * is only true if there is a next edit. Someone who fills in their profile
+ * once, on a bad connection, never gets one.
+ *
+ * So it retries, and it returns whether the row landed. Callers are still free
+ * to ignore that; `pendingProfilePush()` lets a screen notice and try again.
  */
-export async function pushProfile(): Promise<void> {
+export async function pushProfile(): Promise<boolean> {
   const db = supabase();
   const u = getUser();
-  if (!db || !u.id) return;
+  if (!db || !u.id) return false;
 
   // Photos first. A picked image is a path on this phone; stored as-is it
   // renders for its owner and as a blank for everyone else — and because it
@@ -268,5 +301,41 @@ export async function pushProfile(): Promise<void> {
   }
 
   const row = toRow({ ...getUser(), profilePhoto, coverPhoto });
-  await db.from('profiles').update(row).eq('id', u.id).then(() => {}, () => {});
+
+  // Three tries over about three seconds. A profile push is one small row, and
+  // the failure being guarded against is a phone that was on a lift or a train
+  // for a moment, not a server that is down.
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    const { error } = await db.from('profiles').update(row).eq('id', u.id);
+    if (!error) {
+      if (pendingPush[u.id]) {
+        delete pendingPush[u.id];
+        save(PENDING_KEY, pendingPush);
+      }
+      return true;
+    }
+    if (attempt < 3) await new Promise(s => setTimeout(s, 500 * attempt * attempt));
+  }
+
+  // Remembered across restarts, because the phone being closed is the likeliest
+  // reason this failed in the first place.
+  pendingPush[u.id] = true;
+  save(PENDING_KEY, pendingPush);
+  return false;
+}
+
+/** Whether this account has profile edits that never reached the server. */
+export function pendingProfilePush(): boolean {
+  const u = getUser();
+  return !!(u.id && pendingPush[u.id]);
+}
+
+/**
+ * Try again, if an earlier push never landed.
+ *
+ * Safe to call freely — it does nothing unless something is actually owed, and
+ * pushProfile sends the whole row, so one success settles it.
+ */
+export async function retryProfilePush(): Promise<void> {
+  if (pendingProfilePush()) void pushProfile();
 }
