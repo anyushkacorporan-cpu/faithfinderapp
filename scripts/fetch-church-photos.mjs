@@ -60,8 +60,39 @@ function commonsUrl(filename) {
   return `https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(filename)}?width=800`;
 }
 
-const targets = churches.filter(c => c.wikidata && c.osmId);
+/**
+ * OSM's `wikidata` tag is typed by hand, so some of it is not an entity id:
+ * two ids separated the way OSM separates values, a pasted URL, a `wikidata:`
+ * prefix, stray spaces. That matters more than it sounds, because
+ * wbgetentities refuses an entire request if a single id in it is malformed.
+ * One mistyped tag took fifty churches down with it, on every run.
+ *
+ * This is deliberately strict. A tag that does not clearly name one entity is
+ * dropped rather than guessed at — a church with no photo is a gap, a church
+ * wearing another church's photo is a lie.
+ */
+function toQid(tag) {
+  let s = String(tag).trim();
+  s = s.replace(/^https?:\/\/(?:www\.)?wikidata\.org\/(?:wiki|entity)\//i, '');
+  s = s.split(';')[0].trim();
+  s = s.replace(/^wikidata\s*[:=]\s*/i, '');
+  return /^[Qq][1-9][0-9]*$/.test(s) ? 'Q' + s.slice(1) : '';
+}
+
+const targets = [];
+const unusable = [];
+for (const c of churches) {
+  if (!c.wikidata || !c.osmId) continue;
+  const qid = toQid(c.wikidata);
+  if (qid) targets.push({ ...c, qid });
+  else unusable.push(c.wikidata);
+}
+
 console.log(`\n  ${targets.length} churches with a wikidata entry`);
+if (unusable.length) {
+  const show = [...new Set(unusable)].slice(0, 5).map(s => JSON.stringify(s)).join(', ');
+  console.log(`  ${unusable.length} tag(s) do not name an entity and were skipped: ${show}`);
+}
 
 if (!targets.length) {
   console.log('  Nothing to look up.\n');
@@ -89,33 +120,36 @@ if (!cols.length) {
 
 process.stdout.write('  Asking wikidata for images … ');
 
-/** qid → { file, credit } */
+/** qid → { file, label } */
 const found = new Map();
-const qids = targets.map(c => c.wikidata);
+// Normally one church per entity, but nothing stops two from carrying the
+// same tag, so ask once and let both have the answer.
+const qids = [...new Set(targets.map(c => c.qid))];
 
 /**
- * One batch of fifty, with retries, and never silently.
+ * One request, retried only while wikidata is asking us to wait.
  *
- * This swallowed every failure — `catch { /* a failed batch just finds fewer
- * photos *\/ }` — which was wrong twice over. A failed batch finds none, not
- * fewer; and saying nothing let the script report a number as though it were
- * the answer.
+ * This once swallowed every failure — `catch { /* a failed batch just finds
+ * fewer photos *\/ }` — which was wrong twice over. A failed batch finds none,
+ * not fewer; and saying nothing let the script report a number as though it
+ * were the answer. 4,813 churches is ninety-seven requests, fired back to back
+ * with no pause, which wikidata throttles: five states answered, forty-four
+ * got nothing, and it announced "found 471".
  *
- * It mattered. 4,813 churches is ninety-seven requests, and they were fired
- * back to back with no pause, which Wikidata throttles. The first few landed
- * and the rest were refused, so the run covered AK, AL, AR, AZ and CA — the
- * first five files alphabetically — and announced "found 471". Forty-four
- * states got nothing and nobody was told. Texas has 16,123 churches and zero
- * photos because of this line.
+ * A throttle or a server error is a request to come back later, so those are
+ * retried. Everything else is handed back to the caller, which asks something
+ * smaller instead. The last real error travels with the refusal — the old code
+ * always said "gave up after 4 attempts", which named the symptom and hid the
+ * cause.
  */
-async function askWikidata(batch) {
-  const url = 'https://www.wikidata.org/w/api.php?action=wbgetentities&format=json&props=claims|labels&languages=en&ids=' + batch.join('|');
+async function ask(ids) {
+  const url = 'https://www.wikidata.org/w/api.php?action=wbgetentities&format=json&props=claims|labels&languages=en&ids=' + ids.join('|');
+  let last = 'no answer after 4 attempts';
   for (let attempt = 1; attempt <= 4; attempt++) {
     try {
       const r = await fetch(url, { headers: UA });
       if (r.status === 429 || r.status >= 500) {
-        // Backing off rather than giving up: a throttle is a request to wait,
-        // not a refusal.
+        last = `HTTP ${r.status}`;
         await new Promise(s => setTimeout(s, 1000 * attempt * attempt));
         continue;
       }
@@ -124,47 +158,98 @@ async function askWikidata(batch) {
       if (j.error) return { error: j.error.info || j.error.code };
       return { entities: j.entities || {} };
     } catch (e) {
+      // A response too large to arrive whole lands here as well as a dropped
+      // connection, and both are worth asking again more modestly.
+      last = e.message || String(e);
       await new Promise(s => setTimeout(s, 1000 * attempt * attempt));
     }
   }
-  return { error: 'gave up after 4 attempts' };
+  return { error: last };
 }
 
-let failed = 0;
+let asked = 0;
 let firstError = '';
-const batches = Math.ceil(qids.length / 50);
+const dead = [];       // ids wikidata refused even when asked about alone
+let exhausted = false; // wikidata is unwell; stop rather than hammer it
 
-for (let i = 0; i < qids.length; i += 50) {
-  const batch = qids.slice(i, i + 50);
-  const res = await askWikidata(batch);
-  if (res.error) {
-    failed++;
-    if (!firstError) firstError = res.error;
-  } else {
+// Twenty ids refused one at a time is no longer a story about bad tags. These
+// servers are donated, and a split that keeps splitting through an outage
+// would turn one refused request into a hundred.
+const GIVE_UP_AFTER = 20;
+
+function progress() {
+  process.stdout.write(`\r  Asking wikidata for images … ${asked}/${qids.length}`);
+}
+
+/**
+ * Ask about a group; if the whole request is refused, ask about the halves.
+ *
+ * This is the fix for the thirteen batches that failed on every run. Retrying
+ * an identical request cannot help when the request is itself the problem — a
+ * malformed id, or a response too large to come back whole — so a refusal now
+ * halves the question, down to a single id if that is what it takes. One bad
+ * id costs one church instead of fifty, and gets named at the end rather than
+ * disappearing into a count.
+ */
+async function harvest(ids) {
+  if (exhausted) return;
+
+  const res = await ask(ids);
+  // Wikidata asks for serial, unhurried clients. A quarter second between
+  // requests is the difference between ninety-seven answers and five.
+  await new Promise(s => setTimeout(s, 250));
+
+  if (!res.error) {
     for (const [qid, ent] of Object.entries(res.entities)) {
       const file = ent?.claims?.P18?.[0]?.mainsnak?.datavalue?.value;
       if (file) found.set(qid, { file, label: ent?.labels?.en?.value || '' });
     }
+    asked += ids.length;
+    progress();
+    return;
   }
-  process.stdout.write(`\r  Asking wikidata for images … ${Math.min(i + 50, qids.length)}/${qids.length}`);
-  // Wikidata asks for serial, unhurried clients. A quarter second between
-  // batches is the difference between ninety-seven answers and five.
-  await new Promise(s => setTimeout(s, 250));
+
+  if (!firstError) firstError = res.error;
+
+  if (ids.length === 1) {
+    dead.push(ids[0]);
+    asked += 1;
+    progress();
+    if (dead.length >= GIVE_UP_AFTER) exhausted = true;
+    return;
+  }
+
+  const mid = Math.ceil(ids.length / 2);
+  await harvest(ids.slice(0, mid));
+  await harvest(ids.slice(mid));
 }
 
-console.log(`\r  Asking wikidata for images … found ${found.size}` + ' '.repeat(20));
+for (let i = 0; i < qids.length; i += 50) {
+  await harvest(qids.slice(i, i + 50));
+  if (exhausted) break;
+}
 
-if (failed) {
-  console.log(`\n  \x1b[31m${failed} of ${batches} batches failed\x1b[0m — first error: ${firstError}`);
-  console.log(`  Up to ${(failed * 50).toLocaleString()} churches were never asked about.`);
-  console.log(`  Re-run this; already-found photos are rewritten harmlessly.\n`);
+console.log(`\r  Asking wikidata for images … found ${found.size} of ${asked} asked` + ' '.repeat(20));
+
+if (dead.length && !exhausted) {
+  console.log(`\n  ${dead.length} entr${dead.length === 1 ? 'y was' : 'ies were'} refused: ${dead.slice(0, 10).join(' ')}${dead.length > 10 ? ' …' : ''}`);
+  console.log(`  First error: ${firstError}`);
+  console.log(`  Every other church was asked about, so re-running will not change these.\n`);
+}
+
+if (exhausted) {
+  console.log(`\n  \x1b[31mStopped early — wikidata refused ${dead.length} requests in a row\x1b[0m`);
+  console.log(`  First error: ${firstError}`);
+  console.log(`  ${(qids.length - asked).toLocaleString()} churches were never asked about. This looks`);
+  console.log(`  temporary, so wait a few minutes and run it again; photos already`);
+  console.log(`  found are rewritten harmlessly.\n`);
 }
 
 const updates = targets
-  .filter(c => found.has(c.wikidata))
+  .filter(c => found.has(c.qid))
   .map(c => ({
     source_id: `osm:${c.osmId}`,
-    photo_url: commonsUrl(found.get(c.wikidata).file),
+    photo_url: commonsUrl(found.get(c.qid).file),
     // Commons licences require attribution. Storing the credit next to the URL
     // means the screen showing the photo can always show who to credit.
     photo_credit: 'Wikimedia Commons',
