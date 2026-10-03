@@ -215,7 +215,7 @@ if (categories.length) {
   if (refused) console.log(`  \x1b[31m${refused} refused\x1b[0m — first error: ${firstError} (re-run to retry those)`);
 }
 
-console.log(`\n  ${direct.size} churches will get a photo\n`);
+console.log(`\n  ${direct.size} church${direct.size === 1 ? "" : "es"} will get a photo\n`);
 
 if (!direct.size) {
   await client.end().catch(() => {});

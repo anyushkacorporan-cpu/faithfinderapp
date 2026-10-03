@@ -264,7 +264,7 @@ const updates = targets
     photo_credit: 'Wikimedia Commons',
   }));
 
-console.log(`  ${updates.length} churches will get a photo\n`);
+console.log(`  ${updates.length} church${updates.length === 1 ? "" : "es"} will get a photo\n`);
 
 
 let done = 0;
