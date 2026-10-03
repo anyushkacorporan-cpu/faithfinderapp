@@ -61,13 +61,17 @@ function commonsUrl(filename) {
 }
 
 /**
- * OSM's `wikidata` tag is typed by hand, so some of it is not an entity id:
- * two ids separated the way OSM separates values, a pasted URL, a `wikidata:`
- * prefix, stray spaces. That matters more than it sounds, because
- * wbgetentities refuses an entire request if a single id in it is malformed.
- * One mistyped tag took fifty churches down with it, on every run.
+ * OSM's `wikidata` tag is typed by hand, so some of it may not be an entity
+ * id: two ids separated the way OSM separates values, a pasted URL, a
+ * `wikidata:` prefix, stray spaces. wbgetentities refuses an entire request if
+ * a single id in it is malformed, so one bad tag can cost its whole batch.
  *
- * This is deliberately strict. A tag that does not clearly name one entity is
+ * On the 235,146-church national set this finds nothing to clean — all 4,813
+ * tags are already well formed. It stays because the tags come from an open
+ * map that anyone can edit, and the failure it prevents is silent and
+ * disproportionate.
+ *
+ * It is deliberately strict. A tag that does not clearly name one entity is
  * dropped rather than guessed at — a church with no photo is a gap, a church
  * wearing another church's photo is a lie.
  */
@@ -184,12 +188,17 @@ function progress() {
 /**
  * Ask about a group; if the whole request is refused, ask about the halves.
  *
- * This is the fix for the thirteen batches that failed on every run. Retrying
- * an identical request cannot help when the request is itself the problem — a
- * malformed id, or a response too large to come back whole — so a refusal now
- * halves the question, down to a single id if that is what it takes. One bad
- * id costs one church instead of fifty, and gets named at the end rather than
- * disappearing into a count.
+ * This is the fix for the thirteen batches that failed on every run, taking
+ * NC, IA, MT, ID, ND and HI to exactly zero photos twice over. Retrying an
+ * identical request cannot help when the request is itself the problem, which
+ * is why repeating the run never moved those states.
+ *
+ * Fifty entities' worth of claims was simply more than would come back whole.
+ * Halving the question fixes it: the run that had been finding 3,682 images
+ * found 4,255, with nothing permanently refused and no malformed tag anywhere
+ * in the set. Splitting also covers the other reason a request cannot
+ * succeed — one bad id — which then costs one church instead of fifty and
+ * gets named at the end rather than disappearing into a count.
  */
 async function harvest(ids) {
   if (exhausted) return;
