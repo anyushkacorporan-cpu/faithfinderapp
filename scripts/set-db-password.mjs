@@ -27,45 +27,86 @@ if (!existsSync(FILE)) {
   process.exit(1);
 }
 
+/** Why this cannot be a password — or '' if it can. */
+function notAPassword(s) {
+  if (!s) return 'it is empty';
+  if (s.includes('://')) return 'it is a whole connection url, not a password';
+  if (/\s/.test(s)) {
+    const lines = s.split('\n').length;
+    return lines > 1
+      ? `it is ${s.length} characters across ${lines} lines, so it is some other text`
+      : 'it has a space in it';
+  }
+  return '';
+}
+
+/**
+ * Ask at the terminal, without echoing.
+ *
+ * The clipboard was meant to spare anyone retyping a generated password, but
+ * it only holds one thing at a time and everything else in this process — a
+ * git command, copying output to send on — overwrites it. Asking here does not
+ * care what happened in between: copy the password whenever, come back, paste.
+ *
+ * Nothing is echoed, so it does not end up in the scrollback either.
+ */
+function askHidden(question) {
+  return new Promise((resolve, reject) => {
+    const stdin = process.stdin;
+    if (!stdin.isTTY) { reject(new Error('not a terminal')); return; }
+    process.stdout.write(question);
+    stdin.setRawMode(true);
+    stdin.resume();
+    stdin.setEncoding('utf8');
+    let buf = '';
+    const done = (value) => {
+      stdin.setRawMode(false);
+      stdin.pause();
+      stdin.removeListener('data', onData);
+      process.stdout.write('\n');
+      resolve(value);
+    };
+    // A paste arrives as one chunk, not one keystroke at a time.
+    const onData = (chunk) => {
+      for (const ch of chunk) {
+        if (ch === '\r' || ch === '\n' || ch === '\u0004') { done(buf); return; }
+        if (ch === '\u0003') { process.stdout.write('\n'); process.exit(130); }
+        if (ch === '\u007f' || ch === '\b') buf = buf.slice(0, -1);
+        else if (ch >= ' ') buf += ch;
+      }
+    };
+    stdin.on('data', onData);
+  });
+}
+
 let password = '';
 if (process.argv.includes('--stdin')) {
-  password = readFileSync(0, 'utf8');
+  password = readFileSync(0, 'utf8').trim();
 } else {
   try {
-    password = execFileSync('pbpaste', { encoding: 'utf8' });
-  } catch {
-    console.error(`
-  Could not read the clipboard. On a Mac this should just work; if you are
-  somewhere else, pipe the password in instead:
+    password = execFileSync('pbpaste', { encoding: 'utf8' }).trim();
+  } catch { /* no clipboard; the prompt below covers it */ }
 
-    node scripts/set-db-password.mjs --stdin
+  const why = notAPassword(password);
+  if (why) {
+    // Not an error. The clipboard is a convenience, and when it holds something
+    // else there is no reason to send anyone back round the loop.
+    if (password) console.log(`\n  The clipboard is not the password — ${why}.`);
+    try {
+      password = (await askHidden('\n  Paste the password here (it will not be shown): ')).trim();
+    } catch {
+      console.error(`
+  Nothing to read the password from. Run this straight from Terminal, or pipe
+  it in:   node scripts/set-db-password.mjs --stdin
 `);
-    process.exit(1);
+      process.exit(1);
+    }
   }
 }
 
-// A copy button sometimes brings a newline with it, and a double-click can
-// bring a trailing space. Neither is part of the password.
-password = password.trim();
-
-if (!password) {
-  console.error('\n  The clipboard is empty. Copy the password in Supabase first.\n');
-  process.exit(1);
-}
-
-if (password.includes('://')) {
-  console.error(`
-  That looks like a whole connection url, not a password. Copy just the
-  password — the field in Supabase's reset dialog, using its copy button.
-`);
-  process.exit(1);
-}
-
-if (/\s/.test(password)) {
-  console.error(`
-  There is a space or line break inside what was copied, so it is not a
-  password. Copy it again with the copy button rather than by selecting it.
-`);
+const why = notAPassword(password);
+if (why) {
+  console.error(`\n  That is not a password — ${why}.\n`);
   process.exit(1);
 }
 
