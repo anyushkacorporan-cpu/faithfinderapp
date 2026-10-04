@@ -61,6 +61,8 @@ function notAPassword(s) {
 // again for something already given.
 let typedAhead = '';
 
+const SHOW = process.argv.includes('--show');
+
 function askHidden(question) {
   return new Promise((resolve, reject) => {
     const stdin = process.stdin;
@@ -77,8 +79,16 @@ function askHidden(question) {
           return true;
         }
         if (ch === '\u0003') { process.stdout.write('\n'); process.exit(130); }
-        if (ch === '\u007f' || ch === '\b') buf = buf.slice(0, -1);
-        else if (ch >= ' ') buf += ch;
+        if (ch === '\u007f' || ch === '\b') {
+          buf = buf.slice(0, -1);
+          if (SHOW) process.stdout.write('\b \b');
+        } else if (ch >= ' ') {
+          buf += ch;
+          // --show echoes, because hiding the input hid the problem too: a
+          // password nothing like the one intended went in and looked the same
+          // as a correct one — silence either way.
+          if (SHOW) process.stdout.write(ch);
+        }
       }
       return false;
     };
@@ -107,7 +117,9 @@ if (process.argv.includes('--stdin')) {
   password = readFileSync(0, 'utf8').trim();
 } else {
   try {
-    password = execFileSync('pbpaste', { encoding: 'utf8' }).trim();
+    // --show means the point is to watch what goes in, so the clipboard is
+    // skipped entirely and the prompt always appears.
+    if (!SHOW) password = execFileSync('pbpaste', { encoding: 'utf8' }).trim();
   } catch { /* no clipboard; the prompt below covers it */ }
 
   const why = isConnectionUrl(password) ? '' : notAPassword(password);
@@ -130,7 +142,7 @@ if (process.argv.includes('--stdin')) {
       for (let attempt = 1; attempt <= 3 && !password; attempt++) {
         password = (await askHidden(
           attempt === 1
-            ? '\n  Paste the password, or the whole connection string (nothing is shown): '
+            ? `\n  Paste the password, or the whole connection string${SHOW ? '' : ' (nothing is shown)'}: `
             : '  Nothing came through. Paste it again: ',
         )).trim();
       }
@@ -195,7 +207,7 @@ if (givenUrl) {
     for (let attempt = 1; attempt <= 3 && !typed; attempt++) {
       typed = (await askHidden(
         attempt === 1
-          ? '  Paste the password itself (nothing is shown): '
+          ? `  Paste the password itself${SHOW ? '' : ' (nothing is shown)'}: `
           : '  Nothing came through. Paste it again: ',
       )).trim();
     }
