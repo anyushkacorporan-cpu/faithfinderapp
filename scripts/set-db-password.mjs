@@ -27,6 +27,11 @@ if (!existsSync(FILE)) {
   process.exit(1);
 }
 
+/** True if this looks like a whole connection string rather than a password. */
+function isConnectionUrl(s) {
+  return /^postgres(ql)?:\/\//.test(s);
+}
+
 /** Why this cannot be a password — or '' if it can. */
 function notAPassword(s) {
   if (!s) return 'it is empty';
@@ -50,30 +55,48 @@ function notAPassword(s) {
  *
  * Nothing is echoed, so it does not end up in the scrollback either.
  */
+// Whatever followed the Enter that ended the last answer. A paste arrives as a
+// single chunk, so a stray line break and the password after it can be the same
+// chunk; discarding the remainder would throw the password away and then ask
+// again for something already given.
+let typedAhead = '';
+
 function askHidden(question) {
   return new Promise((resolve, reject) => {
     const stdin = process.stdin;
     if (!stdin.isTTY) { reject(new Error('not a terminal')); return; }
     process.stdout.write(question);
-    stdin.setRawMode(true);
-    stdin.resume();
-    stdin.setEncoding('utf8');
+
     let buf = '';
-    const done = (value) => {
-      stdin.setRawMode(false);
-      stdin.pause();
-      stdin.removeListener('data', onData);
-      process.stdout.write('\n');
-      resolve(value);
-    };
-    // A paste arrives as one chunk, not one keystroke at a time.
-    const onData = (chunk) => {
-      for (const ch of chunk) {
-        if (ch === '\r' || ch === '\n' || ch === '\u0004') { done(buf); return; }
+    /** Reads a chunk; true once an Enter has been seen. */
+    const consume = (chunk) => {
+      for (let i = 0; i < chunk.length; i++) {
+        const ch = chunk[i];
+        if (ch === '\r' || ch === '\n' || ch === '\u0004') {
+          typedAhead = chunk.slice(i + 1);
+          return true;
+        }
         if (ch === '\u0003') { process.stdout.write('\n'); process.exit(130); }
         if (ch === '\u007f' || ch === '\b') buf = buf.slice(0, -1);
         else if (ch >= ' ') buf += ch;
       }
+      return false;
+    };
+
+    const ahead = typedAhead;
+    typedAhead = '';
+    if (ahead && consume(ahead)) { process.stdout.write('\n'); resolve(buf); return; }
+
+    stdin.setRawMode(true);
+    stdin.resume();
+    stdin.setEncoding('utf8');
+    const onData = (chunk) => {
+      if (!consume(chunk)) return;
+      stdin.setRawMode(false);
+      stdin.pause();
+      stdin.removeListener('data', onData);
+      process.stdout.write('\n');
+      resolve(buf);
     };
     stdin.on('data', onData);
   });
@@ -87,13 +110,25 @@ if (process.argv.includes('--stdin')) {
     password = execFileSync('pbpaste', { encoding: 'utf8' }).trim();
   } catch { /* no clipboard; the prompt below covers it */ }
 
-  const why = notAPassword(password);
+  const why = isConnectionUrl(password) ? '' : notAPassword(password);
   if (why) {
     // Not an error. The clipboard is a convenience, and when it holds something
     // else there is no reason to send anyone back round the loop.
     if (password) console.log(`\n  The clipboard is not the password — ${why}.`);
     try {
-      password = (await askHidden('\n  Paste the password here (it will not be shown): ')).trim();
+      // Asked more than once, because the first ask can be answered before it
+      // is seen. Pasting two commands into the terminal at once leaves the
+      // second line break sitting in the input, and it arrives here as an
+      // immediate empty Enter — the prompt flashes past, the script exits, and
+      // the password gets typed at the shell instead, where it is echoed and
+      // kept in the history. That happened, and it cost a password.
+      for (let attempt = 1; attempt <= 3 && !password; attempt++) {
+        password = (await askHidden(
+          attempt === 1
+            ? '\n  Paste the password, or the whole connection string (nothing is shown): '
+            : '  Nothing came through. Paste it again: ',
+        )).trim();
+      }
     } catch {
       console.error(`
   Nothing to read the password from. Run this straight from Terminal, or pipe
@@ -104,10 +139,13 @@ if (process.argv.includes('--stdin')) {
   }
 }
 
-const why = notAPassword(password);
-if (why) {
-  console.error(`\n  That is not a password — ${why}.\n`);
-  process.exit(1);
+const givenUrl = isConnectionUrl(password);
+if (!givenUrl) {
+  const why = notAPassword(password);
+  if (why) {
+    console.error(`\n  That is not a password — ${why}.\n`);
+    process.exit(1);
+  }
 }
 
 const lines = readFileSync(FILE, 'utf8').split('\n');
@@ -117,22 +155,51 @@ if (idx < 0) {
   process.exit(1);
 }
 
-const value = lines[idx].replace(/^\s*DATABASE_URL\s*=/, '').trim().replace(/^["']|["']$/g, '');
-const m = value.match(/^(postgres(?:ql)?:\/\/)(.*)$/);
+// A whole connection string replaces the existing one. That matters as much as
+// the password: Supabase moves projects between pooler hosts, and a url still
+// naming the old one is refused with the same "password authentication failed"
+// as a wrong password, which sends you round in circles checking the password.
+// Taking the string from Supabase's own Connect dialog settles both at once.
+const existing = lines[idx].replace(/^\s*DATABASE_URL\s*=/, '').trim().replace(/^["']|["']$/g, '');
+const source = givenUrl ? password : existing;
+
+const m = source.match(/^(postgres(?:ql)?:\/\/)(.*)$/);
 if (!m) {
   console.error('\n  The DATABASE_URL line does not start with postgresql://\n');
   process.exit(1);
 }
 
-// Host begins after the LAST @ — the first one may belong to the old password.
+// Host begins after the LAST @ — the first one may belong to the password.
 const rest = m[2];
 const at = rest.lastIndexOf('@');
 if (at < 0) {
-  console.error('\n  The DATABASE_URL line has no @, so it names no server.\n');
+  console.error('\n  That connection string has no @, so it names no server.\n');
   process.exit(1);
 }
-const user = rest.slice(0, at).split(':')[0];
+const creds = rest.slice(0, at);
+const user = creds.slice(0, creds.indexOf(':') < 0 ? creds.length : creds.indexOf(':'));
 const host = rest.slice(at + 1);
+
+if (givenUrl) {
+  // Supabase's dialog hands out the string with the password left as a
+  // placeholder. Pasting it verbatim would store the word, not the secret.
+  const inUrl = creds.slice(creds.indexOf(':') + 1);
+  if (!inUrl || /^\[?YOUR[-_]PASSWORD\]?$/i.test(decodeURIComponent(inUrl))) {
+    console.log('\n  That string still has the placeholder where the password goes.');
+    let typed = '';
+    for (let attempt = 1; attempt <= 3 && !typed; attempt++) {
+      typed = (await askHidden(
+        attempt === 1
+          ? '  Paste the password itself (nothing is shown): '
+          : '  Nothing came through. Paste it again: ',
+      )).trim();
+    }
+    if (!typed) { console.error('\n  No password given.\n'); process.exit(1); }
+    password = typed;
+  } else {
+    password = decodeURIComponent(inUrl);
+  }
+}
 
 // Encoded on the way in, so a password with symbols in it is never the thing
 // that breaks the url.
