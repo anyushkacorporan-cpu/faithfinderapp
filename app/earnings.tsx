@@ -1,6 +1,7 @@
-import { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert } from 'react-native';
-import { router } from 'expo-router';
+import { useCallback, useState } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from 'react-native';
+import { router, useFocusEffect } from 'expo-router';
+import * as WebBrowser from 'expo-web-browser';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -8,6 +9,10 @@ import { useThemeColors, ThemeColors } from '../src/lib/theme';
 import { useTranslation } from '../src/lib/i18n';
 import { useUserEvents, getEarnings } from '../src/lib/eventsStore';
 import { KeyboardScreen, KEYBOARD_SCROLL_PROPS } from '../src/components/KeyboardScreen';
+import {
+  fetchPayoutStatus, startPayoutSetup, describeRequirement,
+  PayoutStatus, NO_PAYOUT_ACCOUNT,
+} from '../src/lib/connectApi';
 
 function formatCurrency(n: number): string {
   return '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -20,14 +25,61 @@ export default function EarningsScreen() {
   const events = useUserEvents();
   const earnings = getEarnings();
   const [activeTab, setActiveTab] = useState('Overview');
+  const [payout, setPayout] = useState<PayoutStatus>(NO_PAYOUT_ACCOUNT);
+  const [payoutLoading, setPayoutLoading] = useState(true);
+  const [payoutNote, setPayoutNote] = useState('');
+  const [opening, setOpening] = useState(false);
 
   const paidEvents = events.filter(e => e.isPaid);
 
+  // Asked of Stripe each time this screen appears, not remembered. Approval
+  // carries on after the form is submitted and can be withdrawn later, so an
+  // answer from the last visit is not an answer.
+  const refreshPayout = useCallback(async () => {
+    setPayoutLoading(true);
+    const { status, error } = await fetchPayoutStatus();
+    setPayout(status);
+    setPayoutNote(error ?? '');
+    setPayoutLoading(false);
+  }, []);
+
+  useFocusEffect(useCallback(() => { void refreshPayout(); }, [refreshPayout]));
+
+  async function handleConnect() {
+    setOpening(true);
+    const { url, error } = await startPayoutSetup();
+    setOpening(false);
+    if (error || !url) {
+      Alert.alert(tx('Could not open Stripe'), error || tx('Please try again.'));
+      return;
+    }
+    // Stripe's form, on Stripe's site, in a browser the app can close. Bank
+    // details are typed there and never pass through here.
+    await WebBrowser.openAuthSessionAsync(url, 'faithfinder://payouts');
+    // Back from Stripe: what matters is what Stripe now says, not that the
+    // browser closed. Someone who abandoned the form halfway closes it too.
+    await refreshPayout();
+  }
+
+  // There is nothing to withdraw, by design.
+  //
+  // Ticket money goes to the organiser's own Stripe account at the moment the
+  // card is charged — it never reaches a FaithFinder balance that could be
+  // withdrawn from. Stripe then pays it to their bank on its own schedule.
+  //
+  // So this explains where the money already is rather than offering to move
+  // it. A button that asked for a transfer we do not perform would be
+  // describing a different app.
   function handleWithdraw() {
-    if (earnings.pendingPayout <= 0) { Alert.alert(tx('No Balance'), tx('You have no available balance to withdraw.')); return; }
+    if (!payout.chargesEnabled) {
+      Alert.alert(
+        tx('Payouts not set up yet'),
+        tx('Set up payouts in the Settings tab. Until then your events cannot sell tickets.'));
+      return;
+    }
     Alert.alert(
-      tx('No payout account yet'),
-      tx('Withdrawals need a connected Stripe account, which is not switched on yet. See the Settings tab.'));
+      tx('Paid out automatically'),
+      tx('Ticket money goes straight to your Stripe account when someone buys, and Stripe transfers it to your bank on its own schedule. There is nothing to request here — check your Stripe dashboard for transfer dates.'));
   }
 
   return (
@@ -135,20 +187,22 @@ export default function EarningsScreen() {
               <Text style={s.balanceLbl}>{t('availableBalance')}</Text>
               <Text style={s.balanceAmt}>${earnings.pendingPayout.toFixed(2)}</Text>
               <TouchableOpacity style={s.withdrawBtn} onPress={handleWithdraw}>
-                <Ionicons name="arrow-up-circle" size={18} color={c.onPrimary} />
-                <Text style={s.withdrawBtnTxt}>{t('requestWithdrawal')}</Text>
+                <Ionicons name="information-circle-outline" size={18} color={c.onPrimary} />
+                <Text style={s.withdrawBtnTxt}>{tx('Where is my money?')}</Text>
               </TouchableOpacity>
             </View>
 
             <Text style={s.sectionTitle}>{t('withdrawalHistory')}</Text>
-            {/* No withdrawals have ever been made — there is no payout system
-                yet. This used to render two invented completed payouts above a
-                $0.00 balance, which is not something to show on a money screen. */}
+            {/* Transfers happen inside Stripe, between Stripe and the
+                organiser's bank, and we are not party to them. Listing them
+                here would mean keeping a second copy of a ledger Stripe
+                already keeps accurately — and the two would disagree the first
+                time a transfer failed. So this points at the real one. */}
             <View style={s.emptyPayouts}>
               <Ionicons name="receipt-outline" size={26} color={c.textMuted} />
-              <Text style={s.emptyPayoutsTitle}>{tx('No withdrawals yet')}</Text>
+              <Text style={s.emptyPayoutsTitle}>{tx('Transfers live in Stripe')}</Text>
               <Text style={s.emptyPayoutsSub}>
-                {tx('Once you connect a payout account and withdraw, your transfers will appear here.')}
+                {tx('Your money goes to your own Stripe account, so every transfer to your bank is listed there with its date and status. Sign in at dashboard.stripe.com.')}
               </Text>
             </View>
           </>
@@ -187,16 +241,68 @@ export default function EarningsScreen() {
               <Text style={s.stripeConnectDesc}>
                 {tx('Ticket money is paid out through Stripe. You enter your bank details on Stripe’s own site, never here, and payouts arrive automatically after each event.')}
               </Text>
-              {/* Honest about not existing yet. This button used to say "you
-                  will be redirected to Stripe" and then redirect nowhere. */}
-              <TouchableOpacity
-                style={[s.stripeConnectBtn, { backgroundColor: c.cardAlt }]}
-                onPress={() => Alert.alert(
-                  tx('Not available yet'),
-                  tx('Connecting a Stripe account is not switched on yet. Nothing can be paid out until it is, and no tickets are being charged in the meantime.'))}>
-                <Ionicons name="time-outline" size={16} color={c.textSecondary} />
-                <Text style={[s.stripeConnectBtnTxt, { color: c.textSecondary }]}>{tx('Coming soon')}</Text>
-              </TouchableOpacity>
+              {/* Three states, and they are not the same thing. An account can
+                  exist, have had its form submitted in full, and still not be
+                  able to take money while Stripe checks an identity — saying
+                  "connected" at that point would promise a payout that cannot
+                  happen. So what is shown is Stripe's answer to the only
+                  question that matters: can this account take a charge. */}
+              {payoutLoading ? (
+                <View style={s.payoutRow}>
+                  <ActivityIndicator size="small" color={c.textMuted} />
+                  <Text style={s.payoutPending}>{tx('Checking with Stripe…')}</Text>
+                </View>
+              ) : payout.chargesEnabled ? (
+                <>
+                  <View style={s.payoutRow}>
+                    <Ionicons name="checkmark-circle" size={18} color="#43e97b" />
+                    <Text style={s.payoutReady}>{tx('Connected — your events can take payments')}</Text>
+                  </View>
+                  {!payout.payoutsEnabled && (
+                    <Text style={s.payoutPending}>
+                      {tx('Stripe is still setting up transfers to your bank. Sales work; the money moves once that finishes.')}
+                    </Text>
+                  )}
+                  <TouchableOpacity
+                    style={[s.stripeConnectBtn, { backgroundColor: c.cardAlt }]}
+                    onPress={handleConnect}
+                    disabled={opening}>
+                    <Ionicons name="open-outline" size={16} color={c.textSecondary} />
+                    <Text style={[s.stripeConnectBtnTxt, { color: c.textSecondary }]}>
+                      {tx('Update your Stripe details')}
+                    </Text>
+                  </TouchableOpacity>
+                </>
+              ) : (
+                <>
+                  {payout.connected && (
+                    <View style={s.payoutRow}>
+                      <Ionicons name="time-outline" size={18} color={c.gold} />
+                      <Text style={s.payoutPending}>
+                        {payout.requirementsDue.length
+                          ? tx('Stripe still needs') + ': ' + payout.requirementsDue.slice(0, 3).map(describeRequirement).join(', ')
+                          : tx('Stripe is reviewing your details. This can take a day or two.')}
+                      </Text>
+                    </View>
+                  )}
+                  <TouchableOpacity
+                    style={s.stripeConnectBtn}
+                    onPress={handleConnect}
+                    disabled={opening}>
+                    {opening
+                      ? <ActivityIndicator size="small" color={c.onPrimary} />
+                      : <Ionicons name="card-outline" size={16} color={c.onPrimary} />}
+                    <Text style={s.stripeConnectBtnTxt}>
+                      {payout.connected ? tx('Finish setting up payouts') : tx('Set up payouts')}
+                    </Text>
+                  </TouchableOpacity>
+                </>
+              )}
+
+              {/* A cached answer, shown as one. Reporting "not connected"
+                  because Stripe was briefly unreachable would send someone
+                  round the whole form again for nothing. */}
+              {!!payoutNote && <Text style={s.payoutStale}>{payoutNote}</Text>}
             </View>
           </>
         )}
@@ -209,6 +315,10 @@ export default function EarningsScreen() {
 }
 
 const makeStyles = (c: ThemeColors) => StyleSheet.create({
+  payoutRow:{flexDirection:'row',alignItems:'center',gap:8,marginBottom:10},
+  payoutReady:{flex:1,fontSize:13,fontWeight:'600',color:c.text},
+  payoutPending:{flex:1,fontSize:13,color:c.textMuted,lineHeight:19},
+  payoutStale:{fontSize:12,color:c.textMuted,marginTop:8,fontStyle:'italic'},
   emptyPayouts:{alignItems:'center',paddingVertical:32,paddingHorizontal:24,backgroundColor:c.card,borderRadius:16,borderWidth:1,borderColor:c.border,gap:8},
   emptyPayoutsTitle:{fontSize:15,fontWeight:'700',color:c.text},
   emptyPayoutsSub:{fontSize:13,color:c.textMuted,textAlign:'center',lineHeight:19},

@@ -92,11 +92,30 @@ Deno.serve(async (req) => {
 
     const { data: event, error: eventErr } = await admin
       .from('events')
-      .select('id, title, date, location, type, ticket_price, platform_fee, currency, is_paid')
+      .select('id, title, date, location, type, ticket_price, platform_fee, currency, is_paid, organizer_id')
       .eq('id', eventId)
       .single();
     if (eventErr || !event) return json({ error: 'That event no longer exists.' }, 404);
     if (!event.is_paid) return json({ error: 'That event is free — no payment needed.' }, 400);
+
+    // Where this organiser's money goes.
+    //
+    // Nothing is charged until there is somewhere for it to land. The
+    // alternative — take the card now and sort the payout out later — means
+    // the platform holding a stranger's money with no instruction for passing
+    // it on, which is both a tax position nobody wants and a promise made to a
+    // buyer on behalf of someone who never agreed to it.
+    const { data: payee } = await admin
+      .from('stripe_accounts')
+      .select('stripe_account_id, charges_enabled')
+      .eq('user_id', event.organizer_id)
+      .maybeSingle();
+
+    if (!payee?.stripe_account_id || !payee.charges_enabled) {
+      return json({
+        error: 'This event cannot take payments yet — the organiser has not finished setting up payouts.',
+      }, 409);
+    }
 
     // The price the organiser set, times how many. Nothing here came from the
     // request except the count, and that is bounded above.
@@ -154,6 +173,20 @@ Deno.serve(async (req) => {
     }
 
     try {
+      // The split, in one place.
+      //
+      // The card is charged `total`. The organiser is owed `subtotal` — the
+      // price they set, nothing more. Everything above that is the platform
+      // fee plus the recovered Stripe cost, and it is what the platform keeps
+      // as the application fee. Stripe then takes its own percentage out of
+      // the platform's share, which is exactly what the recovered cost is for.
+      //
+      // Expressed as a fee retained rather than an amount forwarded, because
+      // then the organiser's figure can never drift: whatever rounding happens
+      // above, they are owed the ticket price times the quantity, and this
+      // subtraction is what guarantees it.
+      const applicationFee = Math.round(total * 100) - Math.round(subtotal * 100);
+
       const intent = await stripe('payment_intents', 'POST', {
         // Stripe counts in the smallest unit, so dollars must become cents
         // exactly once. Rounding here rather than earlier keeps the float
@@ -161,9 +194,15 @@ Deno.serve(async (req) => {
         amount: String(Math.round(total * 100)),
         currency: (event.currency ?? 'USD').toLowerCase(),
         'automatic_payment_methods[enabled]': 'true',
+        // A destination charge: the money moves to the organiser's own Stripe
+        // account, less the fee above. It never sits in a platform balance
+        // waiting to be forwarded by hand.
+        'transfer_data[destination]': payee.stripe_account_id,
+        application_fee_amount: String(applicationFee),
         'metadata[ticket_id]': ticketId,
         'metadata[event_id]': event.id,
         'metadata[buyer_id]': user.id,
+        'metadata[organizer_id]': String(event.organizer_id ?? ''),
       });
 
       await admin.from('tickets')

@@ -191,6 +191,36 @@ if (authMissing.length) {
   ok(`all ${new Set(authStrings).size} have an entry`);
 }
 
+// ── tx('…') strings with no entry ──────────────────────────────────────────
+
+/**
+ * tx() takes an English sentence and looks it up. Unlike t(), a miss is silent
+ * — it returns the English, which renders perfectly and reads as a finished
+ * screen to anyone testing in English.
+ *
+ * The scan above only reads literals sitting inside JSX, so every tx() call in
+ * an Alert, a handler or a prop went unchecked. Sixteen sentences on the
+ * payouts screen passed a clean run that way, all of them about somebody's
+ * money.
+ */
+head("tx('…') strings with no entry");
+const txStrings = new Set();
+for (const f of files) {
+  const src = readFileSync(f, 'utf8');
+  // Single-quoted only, matching how tx() is called everywhere. A template
+  // literal cannot be looked up as a constant anyway.
+  for (const m of src.matchAll(/\btx\(\s*'((?:[^'\\]|\\.)*)'/g)) {
+    txStrings.add(m[1].replace(/\\'/g, "'").replace(/\\\\/g, '\\'));
+  }
+}
+const txMissing = [...txStrings].filter(x => !byEnglish.has(x));
+if (txMissing.length) {
+  bad(`${txMissing.length} of ${txStrings.size} would show in English:`);
+  for (const x of txMissing) console.log(`      ${JSON.stringify(x)}`);
+} else {
+  ok(`all ${txStrings.size} have an entry`);
+}
+
 // ── Keys named in the screens that the table does not have ─────────────────
 
 head("t('…') keys with no entry");
@@ -205,7 +235,7 @@ if (unknownKeys.length) {
   ok(`all ${keyed.size} keys resolve`);
 }
 
-const failures = untranslated.length + missing.length + authMissing.length + unknownKeys.length;
+const failures = untranslated.length + missing.length + authMissing.length + txMissing.length + unknownKeys.length;
 console.log('');
 if (failures) {
   console.log(`\x1b[31m  ${failures} thing(s) would show English in the Spanish app.\x1b[0m\n`);

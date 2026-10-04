@@ -1052,6 +1052,60 @@ const translations: Record<string, Record<Lang, string>> = {
   notInDirectoryYet: {
     English: "This church isn't in our directory yet. You can still submit the claim and we'll review it, but photo editing needs a listing to attach to — we'll add one when we approve it.",
     Español: 'Esta iglesia aún no está en nuestro directorio. Puedes enviar la reclamación y la revisaremos, pero para editar fotos hace falta una ficha a la que asociarlas — la crearemos al aprobarla.' },
+
+  // Payouts. An organiser setting up Stripe is reading about their own money,
+  // which is the worst place to drop someone into a second language.
+  payout01: {
+    English: 'Checking with Stripe…',
+    Español: 'Consultando con Stripe…' },
+  payout02: {
+    English: 'Connected — your events can take payments',
+    Español: 'Conectado: tus eventos ya pueden recibir pagos' },
+  payout03: {
+    English: 'Could not open Stripe',
+    Español: 'No se pudo abrir Stripe' },
+  payout04: {
+    English: 'Finish setting up payouts',
+    Español: 'Termina de configurar los pagos' },
+  payout05: {
+    English: 'Paid out automatically',
+    Español: 'Se paga automáticamente' },
+  payout06: {
+    English: 'Payouts not set up yet',
+    Español: 'Aún no has configurado los pagos' },
+  payout07: {
+    English: 'Set up payouts',
+    Español: 'Configurar pagos' },
+  payout08: {
+    English: 'Set up payouts in the Settings tab. Until then your events cannot sell tickets.',
+    Español: 'Configura los pagos en la pestaña Ajustes. Hasta entonces tus eventos no pueden vender boletos.' },
+  payout09: {
+    English: 'Stripe is reviewing your details. This can take a day or two.',
+    Español: 'Stripe está revisando tus datos. Esto puede tardar uno o dos días.' },
+  payout10: {
+    English: 'Stripe is still setting up transfers to your bank. Sales work; the money moves once that finishes.',
+    Español: 'Stripe aún está configurando las transferencias a tu banco. Las ventas funcionan; el dinero se moverá cuando termine.' },
+  payout11: {
+    English: 'Stripe still needs',
+    Español: 'Stripe todavía necesita' },
+  payout12: {
+    English: 'Ticket money goes straight to your Stripe account when someone buys, and Stripe transfers it to your bank on its own schedule. There is nothing to request here — check your Stripe dashboard for transfer dates.',
+    Español: 'El dinero de los boletos va directo a tu cuenta de Stripe cuando alguien compra, y Stripe lo transfiere a tu banco según su propio calendario. Aquí no hay nada que solicitar: consulta las fechas de transferencia en tu panel de Stripe.' },
+  payout13: {
+    English: 'Transfers live in Stripe',
+    Español: 'Las transferencias están en Stripe' },
+  payout14: {
+    English: 'Update your Stripe details',
+    Español: 'Actualizar tus datos de Stripe' },
+  payout15: {
+    English: 'Where is my money?',
+    Español: '¿Dónde está mi dinero?' },
+  payout16: {
+    English: 'Your money goes to your own Stripe account, so every transfer to your bank is listed there with its date and status. Sign in at dashboard.stripe.com.',
+    Español: 'Tu dinero va a tu propia cuenta de Stripe, así que cada transferencia a tu banco aparece allí con su fecha y estado. Inicia sesión en dashboard.stripe.com.' },
+  payout17: {
+    English: 'Please try again.',
+    Español: 'Inténtalo de nuevo.' },
 };
 
 // Reverse index so a raw English string can be translated directly. This is for
