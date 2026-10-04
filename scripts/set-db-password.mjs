@@ -115,6 +115,11 @@ if (process.argv.includes('--stdin')) {
     // Not an error. The clipboard is a convenience, and when it holds something
     // else there is no reason to send anyone back round the loop.
     if (password) console.log(`\n  The clipboard is not the password — ${why}.`);
+    // Dropped before asking. The loop below runs while this is empty, and
+    // leaving the clipboard's contents in it meant the loop never ran at all:
+    // the prompt never appeared and the junk fell straight through to the
+    // error, which is how this looked to the person using it.
+    password = '';
     try {
       // Asked more than once, because the first ask can be answered before it
       // is seen. Pasting two commands into the terminal at once leaves the
