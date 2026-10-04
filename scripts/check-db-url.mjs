@@ -131,10 +131,61 @@ try {
   console.log('\x1b[31mfailed\x1b[0m');
   if (err.code === '28P01') {
     console.log('\n  The server says the password is wrong.');
-    console.log('  Either a character above is confusing the url, or the password in');
-    console.log('  the file is not the one Supabase generated. Resetting it again and');
-    console.log('  copying with the copy button — not by selecting the text — is the');
-    console.log('  quickest way to rule out a missed character.\n');
+
+    // The same password, by other routes to the same database. Supabase offers
+    // three, and they do not all authenticate through the same machinery: the
+    // session pooler, the transaction pooler, and a direct connection, which
+    // takes the plain `postgres` user rather than postgres.PROJECT.
+    //
+    // This distinguishes the two explanations that otherwise look identical. If
+    // another route accepts the password, the password was right all along and
+    // the pooler is holding stale credentials — which it does for a few minutes
+    // after a reset. If every route refuses it, the password really is not the
+    // one the account has, and nothing in this file can fix that.
+    const ref = (user.split('.')[1] || '').trim();
+    const pw = password;
+    const routes = [];
+    if (/:\d+$/.test(hostPart.split('/')[0]) || hostPart.includes(':')) {
+      const [hostOnly] = hostPart.split('/');
+      const bare = hostOnly.replace(/:\d+$/, '');
+      routes.push({ name: 'transaction pooler (port 6543)', user, host: `${bare}:6543`, db: 'postgres' });
+    }
+    if (ref) {
+      routes.push({ name: 'direct connection', user: 'postgres', host: `db.${ref}.supabase.co:5432`, db: 'postgres' });
+    }
+
+    let worked = null;
+    for (const r of routes) {
+      process.stdout.write(`  Trying the ${r.name} … `);
+      const alt = new pg.Client({
+        connectionString: `postgresql://${r.user}:${encodeURIComponent(pw)}@${r.host}/${r.db}`,
+        ssl: { rejectUnauthorized: false },
+        connectionTimeoutMillis: 10000,
+      });
+      try {
+        await alt.connect();
+        await alt.query('select 1');
+        console.log('\x1b[32mworks\x1b[0m');
+        worked = r;
+        await alt.end().catch(() => {});
+        break;
+      } catch (e) {
+        console.log(e.code === '28P01' ? 'password refused here too' : `no (${e.code || e.message})`);
+        await alt.end().catch(() => {});
+      }
+    }
+
+    if (worked) {
+      console.log(`\n  So the password is correct. The ${worked.name} accepts it and the`);
+      console.log('  one in your file does not, which means that pooler is still holding');
+      console.log('  the old credentials — it does that for a few minutes after a reset.');
+      console.log('  Either wait and run this again, or use the route that works:');
+      console.log(`\n    DATABASE_URL=postgresql://${worked.user}:YOUR-PASSWORD@${worked.host}/${worked.db}\n`);
+    } else {
+      console.log('\n  Every route refuses it, so the password really is not the one this');
+      console.log('  account has. Nothing in this file can fix that — reset it in Supabase');
+      console.log('  once more, or ask Supabase support if a reset will not take.\n');
+    }
   } else if (err.code === 'ENOTFOUND') {
     console.log('\n  The server address could not be found. If the password contains an');
     console.log('  @, the part after it is being read as the address — run --fix.\n');
