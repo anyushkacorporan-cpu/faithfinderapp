@@ -30,8 +30,13 @@ const SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
 // Where Stripe sends the organiser when their form is done or has expired.
 // A deep link rather than a web page, because the journey started in the app
 // and should end there; `scheme` in app.json is what makes this resolve.
-const RETURN_URL = 'faithfinder://payouts?connected=1';
-const REFRESH_URL = 'faithfinder://payouts?refresh=1';
+//
+// It must name a route that exists. These pointed at /payouts, which does not
+// — the payouts screen is a tab inside /earnings — so finishing Stripe's form
+// would have dropped the organiser on an unmatched route, at the end of
+// handing over their bank details, with no way to tell whether it had worked.
+const RETURN_URL = 'faithfinder://earnings?tab=Settings&connected=1';
+const REFRESH_URL = 'faithfinder://earnings?tab=Settings&refresh=1';
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',

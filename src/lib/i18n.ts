@@ -1106,6 +1106,12 @@ const translations: Record<string, Record<Lang, string>> = {
   payout17: {
     English: 'Please try again.',
     Español: 'Inténtalo de nuevo.' },
+  payout18: {
+    English: 'Set up payouts first',
+    Español: 'Primero configura los pagos' },
+  payout19: {
+    English: 'Nobody can buy a ticket until your Stripe account is connected. Tap to set it up — it takes a few minutes.',
+    Español: 'Nadie podrá comprar un boleto hasta que conectes tu cuenta de Stripe. Toca para configurarla: tarda unos minutos.' },
 };
 
 // Reverse index so a raw English string can be translated directly. This is for

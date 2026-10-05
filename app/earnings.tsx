@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from 'react-native';
-import { router, useFocusEffect } from 'expo-router';
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -24,7 +24,12 @@ export default function EarningsScreen() {
   const { t, tx } = useTranslation();
   const events = useUserEvents();
   const earnings = getEarnings();
-  const [activeTab, setActiveTab] = useState('Overview');
+  // Stripe sends people back here with ?tab=Settings, because that is the tab
+  // they left from. Landing on Overview after handing over bank details, with
+  // nothing on screen saying whether it worked, is its own small cruelty.
+  const params = useLocalSearchParams<{ tab?: string }>();
+  const [activeTab, setActiveTab] = useState(
+    params.tab === 'Settings' || params.tab === 'Payouts' ? params.tab : 'Overview');
   const [payout, setPayout] = useState<PayoutStatus>(NO_PAYOUT_ACCOUNT);
   const [payoutLoading, setPayoutLoading] = useState(true);
   const [payoutNote, setPayoutNote] = useState('');
@@ -55,7 +60,7 @@ export default function EarningsScreen() {
     }
     // Stripe's form, on Stripe's site, in a browser the app can close. Bank
     // details are typed there and never pass through here.
-    await WebBrowser.openAuthSessionAsync(url, 'faithfinder://payouts');
+    await WebBrowser.openAuthSessionAsync(url, 'faithfinder://earnings');
     // Back from Stripe: what matters is what Stripe now says, not that the
     // browser closed. Someone who abandoned the form halfway closes it too.
     await refreshPayout();

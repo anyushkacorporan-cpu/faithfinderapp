@@ -75,28 +75,16 @@ create policy stripe_accounts_read_own on stripe_accounts
 -- address the table. No insert, update or delete — see the policy comment.
 grant select on public.stripe_accounts to authenticated;
 
--- ── Can this event take money? ───────────────────────────────────────────────
+-- There is deliberately no event_payouts_ready() here.
 --
--- Asked by the payments function before it charges a card, and by the app
--- before it offers to. Security definer because the buyer must be able to
--- learn that an event cannot be paid for without being able to read the
--- organiser's account row.
-create or replace function event_payouts_ready(p_event_id uuid)
-returns boolean
-language sql
-stable
-security definer
-set search_path = public
-as $$
-  select coalesce(
-    (select sa.charges_enabled
-       from events e
-       join stripe_accounts sa on sa.user_id = e.organizer_id
-      where e.id = p_event_id),
-    false)
-$$;
-
-grant execute on function public.event_payouts_ready(uuid) to authenticated, anon;
-
-comment on function public.event_payouts_ready(uuid) is
-  'Whether this event''s organiser has a Stripe account that can accept charges.';
+-- One was written, to let a buyer's screen ask whether an event could take
+-- money before offering to sell them a ticket. It turned out to have no
+-- caller: the checkout screen asks the server to start a payment before it
+-- shows a card form at all, so an event with no payout account is refused with
+-- a readable sentence and nothing is ever charged.
+--
+-- A security definer function exists to let callers read past their own
+-- permissions. One with no callers is that power granted for nothing, and the
+-- next person to read this file would reasonably assume something depends on
+-- it. The payments function does the check directly, with the service key it
+-- already holds.

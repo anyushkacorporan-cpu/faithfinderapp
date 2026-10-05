@@ -18,6 +18,7 @@ import { suggestAddresses, resolveAddress, newSessionToken, AddressSuggestion } 
 
 import { KeyboardScreen, KEYBOARD_SCROLL_PROPS } from '../src/components/KeyboardScreen';
 import { priceBreakdown, platformFeePerTicket, organizerPayoutPerTicket } from '../src/lib/ticketPricing';
+import { fetchPayoutStatus } from '../src/lib/connectApi';
 import { useConfirm } from '../src/components/Confirm';
 const EVENT_TYPES = ['Conference','Festival','Workshop','Revival','Service','Concert','Retreat','Other'];
 const SPEAKER_COLORS = ['#667eea','#f093fb','#4facfe','#43e97b','#fa709a','#c9a96e'];
@@ -160,6 +161,11 @@ export default function CreateEventScreen() {
 
   // Tickets
   const [isPaid, setIsPaid] = useState(false);
+  // Whether this organiser can actually be paid. Checked when they choose a
+  // paid event rather than when they publish, because the answer takes them
+  // off to Stripe for a few minutes and that is better learned before the
+  // rest of the form is filled in than after.
+  const [payoutsReady, setPayoutsReady] = useState<boolean | null>(null);
   const [ticketPrice, setTicketPrice] = useState('');
   const [capacity, setCapacity] = useState('');
   // Defaults to the organiser's own currency rather than to USD, since that is
@@ -690,12 +696,35 @@ export default function CreateEventScreen() {
                   <Text style={[s.ticketBtnTxt,!isPaid&&{color:c.green}]}>{t('freeEvent')}</Text>
                   <Text style={s.ticketBtnSub}>{t('noPayment')}</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={[s.ticketBtn,isPaid&&s.ticketBtnPaid]} onPress={()=>setIsPaid(true)}>
+                <TouchableOpacity style={[s.ticketBtn,isPaid&&s.ticketBtnPaid]} onPress={()=>{
+                  setIsPaid(true);
+                  if (payoutsReady === null) {
+                    void fetchPayoutStatus().then(({ status }) => setPayoutsReady(status.chargesEnabled));
+                  }
+                }}>
                   <Ionicons name="card-outline" size={20} color={isPaid?c.white:c.placeholder}/>
                   <Text style={[s.ticketBtnTxt,isPaid&&{color:c.onPrimary}]}>{t('paidEvent')}</Text>
                   <Text style={[s.ticketBtnSub,isPaid&&{color:'rgba(255,255,255,0.6)'}]}>{t('setPrice')}</Text>
                 </TouchableOpacity>
               </View>
+
+              {/* Said once, here, rather than discovered by the first person who
+                  tries to buy a ticket. An event with no payout account takes
+                  no money at all — the charge is refused before a card is
+                  touched — so publishing one is publishing an event nobody can
+                  attend. */}
+              {isPaid && payoutsReady === false && (
+                <TouchableOpacity style={s.payoutWarn} onPress={() => router.push('/earnings?tab=Settings')}>
+                  <Ionicons name="alert-circle" size={18} color={c.gold} />
+                  <View style={{flex:1}}>
+                    <Text style={s.payoutWarnTitle}>{tx('Set up payouts first')}</Text>
+                    <Text style={s.payoutWarnSub}>
+                      {tx('Nobody can buy a ticket until your Stripe account is connected. Tap to set it up — it takes a few minutes.')}
+                    </Text>
+                  </View>
+                  <Ionicons name="chevron-forward" size={16} color={c.textMuted} />
+                </TouchableOpacity>
+              )}
 
               {isPaid&&(
                 <>
@@ -1001,6 +1030,9 @@ const makeStyles = (c: ThemeColors) => StyleSheet.create({
   speakerName:{fontSize:14,fontWeight:'700',color:c.text},
   speakerRole:{fontSize:12,color:c.textMuted},
   ticketRow:{flexDirection:'row',gap:10,marginBottom:16},
+  payoutWarn:{flexDirection:'row',alignItems:'center',gap:10,backgroundColor:c.cardAlt,borderWidth:1,borderColor:c.gold,borderRadius:12,padding:14,marginBottom:16},
+  payoutWarnTitle:{fontSize:14,fontWeight:'700',color:c.text,marginBottom:2},
+  payoutWarnSub:{fontSize:12,color:c.textMuted,lineHeight:17},
   ticketBtn:{flex:1,alignItems:'center',gap:4,borderWidth:1.5,borderColor:c.border,borderRadius:14,paddingVertical:16},
   ticketBtnFree:{borderColor:c.green,backgroundColor:'#e8f5e9'},
   ticketBtnPaid:{borderColor:c.primary,backgroundColor:c.primary},
