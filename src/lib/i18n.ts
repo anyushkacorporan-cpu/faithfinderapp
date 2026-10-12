@@ -1291,6 +1291,76 @@ const translations: Record<string, Record<Lang, string>> = {
   slide34: {
     English: 'Matthew 18:20',
     Español: 'Mateo 18:20' },
+
+  // The seven cards, as finally written. The copy lives in onboardingSlides.ts
+  // and reaches the screen through tx(), so every line of it needs an entry.
+  // Scripture is Reina-Valera, not a translation of the English.
+  card01: {
+    English: "You've been invited into something special. An app rooted in faith.",
+    Español: 'Has sido invitado a algo especial. Una app arraigada en la fe.' },
+  card02: {
+    English: 'Why we built this',
+    Español: 'Por qué la creamos' },
+  card03: {
+    English: "No believer should be doing life alone. That's why FaithFinder was built. We have more than 235,000 churches across all fifty states for you to search, whether you're looking for a church to finally call home or you're in town for the weekend and want somewhere to worship. All of it is here to help you find a house of God and for you to be in community.",
+    Español: 'Ningún creyente debería vivir la vida en soledad. Por eso nació FaithFinder. Tenemos más de 235,000 iglesias en los cincuenta estados para que busques, ya sea que estés buscando una iglesia a la que por fin llamar hogar o estés de paso el fin de semana y quieras un lugar donde adorar. Todo esto está aquí para ayudarte a encontrar una casa de Dios y para que estés en comunidad.' },
+  card04: {
+    English: 'Build friendships with other believers',
+    Español: 'Forma amistades con otros creyentes' },
+  card05: {
+    English: "FaithFinder is for everyone who wants to grow. Connect with one another. Encourage one another. Be kind and loving to one another. But most importantly, help one another. Elders and babes in Christ. However long we've been walking with God, let's lift each other.",
+    Español: 'FaithFinder es para todo el que quiera crecer. Conéctense unos con otros. Anímense unos a otros. Sean amables y amorosos unos con otros. Pero sobre todo, ayúdense unos a otros. Ancianos y niños en Cristo. Sea cual sea el tiempo que llevemos caminando con Dios, levantémonos unos a otros.' },
+  card06: {
+    English: 'As iron sharpens iron, so one person sharpens another.',
+    Español: 'Hierro con hierro se aguza; y así el hombre aguza el rostro de su amigo.' },
+  card07: {
+    English: 'Proverbs 27:17',
+    Español: 'Proverbios 27:17' },
+  card08: {
+    English: 'This is more than churches',
+    Español: 'Esto es más que iglesias' },
+  card09: {
+    English: 'We have events too!',
+    Español: '¡También tenemos eventos!' },
+  card10: {
+    English: 'Join worship nights and fellowships happening near you. Meet new people. Stay connected with other believers. Have something to look forward to when the weekend comes. And if you want to create an event yourself, we are here to support you.',
+    Español: 'Únete a noches de adoración y encuentros cerca de ti. Conoce gente nueva. Mantente conectado con otros creyentes. Ten algo que esperar con ilusión cuando llegue el fin de semana. Y si quieres crear un evento tú mismo, aquí estamos para apoyarte.' },
+  card11: {
+    English: 'Be bold and share your faith',
+    Español: 'Sé valiente y comparte tu fe' },
+  card12: {
+    English: 'Someone needs to hear your story.',
+    Español: 'Alguien necesita escuchar tu historia.' },
+  card13: {
+    English: 'Post your testimony. Share the scripture that carried you through. Send encouragement to someone who needs it today. You never know who is reading.',
+    Español: 'Publica tu testimonio. Comparte el versículo que te sostuvo. Envía ánimo a alguien que hoy lo necesita. Nunca sabes quién te está leyendo.' },
+  card14: {
+    English: 'A holy and safe place',
+    Español: 'Un lugar santo y seguro' },
+  card15: {
+    English: 'Let your heart be in good standing here.',
+    Español: 'Que tu corazón esté en buena posición aquí.' },
+  card16: {
+    English: 'This app was built for good intentions only, and every post should reflect Christ. No bullying, no blasphemy, no foul language, nothing inappropriate, nothing that divides. Let this be a place that honours Him.',
+    Español: 'Esta app fue creada solo para buenas intenciones, y cada publicación debe reflejar a Cristo. Nada de acoso, nada de blasfemia, nada de lenguaje grosero, nada inapropiado, nada que divida. Que este sea un lugar que lo honre a Él.' },
+  card17: {
+    English: 'Stand firm, walk boldly, be the salt.',
+    Español: 'Mantente firme, camina con valentía, sé la sal.' },
+  card18: {
+    English: 'I pray this app blesses you. I pray you find a church. I pray you find your community. But most importantly, I pray that you come to know God, whether this app helped you or whether you found Him another way.\n\nPlease keep in mind that your relationship with God comes first. This app was never made to replace the time you need with Him. It is only here to be resourceful.',
+    Español: 'Oro para que esta app te bendiga. Oro para que encuentres una iglesia. Oro para que encuentres tu comunidad. Pero sobre todo, oro para que llegues a conocer a Dios, ya sea que esta app te haya ayudado o que lo hayas encontrado de otra manera.\n\nPor favor ten presente que tu relación con Dios va primero. Esta app nunca fue hecha para reemplazar el tiempo que necesitas con Él. Solo está aquí para servirte de ayuda.' },
+  card19: {
+    English: 'Blessings to all from your sister of Christ, Annie.',
+    Español: 'Bendiciones a todos de parte de su hermana en Cristo, Annie.' },
+  card20: {
+    English: 'Creator of FaithFinder',
+    Español: 'Creadora de FaithFinder' },
+  card21: {
+    English: 'You are the salt of the earth.',
+    Español: 'Vosotros sois la sal de la tierra.' },
+  card22: {
+    English: 'Matthew 5:13',
+    Español: 'Mateo 5:13' },
 };
 
 // Reverse index so a raw English string can be translated directly. This is for

@@ -9,6 +9,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { COLORS } from '../src/lib/constants';
 import { useTranslation } from '../src/lib/i18n';
 import { SLIDES, Slide } from '../src/lib/onboardingSlides';
+import { getUser } from '../src/lib/userStore';
 import { markOnboardingSeen, hasSeenOnboarding, hydrated } from '../src/lib/onboarding';
 
 /**
@@ -34,6 +35,12 @@ export default function Onboarding() {
   const isReplay = replay === '1';
   const { width } = useWindowDimensions();
   const scroller = useRef<ScrollView>(null);
+
+  // A church account is addressed by the church's name, a personal one by a
+  // first name. "Friend" only if the account somehow has neither, which is
+  // better than greeting somebody by an empty space.
+  const u = getUser();
+  const name = (u.accountType === 'church' ? u.churchName : u.firstName)?.trim() || tx('Friend');
   const [page, setPage] = useState(0);
 
   const [checked, setChecked] = useState(false);
@@ -89,7 +96,7 @@ export default function Onboarding() {
         scrollEventThrottle={16}
       >
         {SLIDES.map(slide => (
-          <SlideView key={slide.title} slide={slide} width={width} tx={tx} />
+          <SlideView key={slide.title || 'welcome'} slide={slide} width={width} tx={tx} name={name} />
         ))}
       </ScrollView>
 
@@ -104,7 +111,7 @@ export default function Onboarding() {
 
           <View style={s.progress}>
             {SLIDES.map((slide, i) => (
-              <View key={slide.title} style={[s.seg, i === page && s.segOn]} />
+              <View key={slide.title || 'welcome'} style={[s.seg, i === page && s.segOn]} />
             ))}
           </View>
 
@@ -125,28 +132,51 @@ export default function Onboarding() {
   );
 }
 
-function SlideView({ slide, width, tx }: { slide: Slide; width: number; tx: (s: string) => string }) {
+function SlideView({ slide, width, tx, name }: {
+  slide: Slide; width: number; tx: (s: string) => string; name: string;
+}) {
   // Dark at both ends and lighter through the middle: the top has to carry the
   // wordmark and the bottom a button, while the photograph stays visible where
   // nothing sits on it.
   const scrim = ['rgba(0,0,0,0.55)', 'rgba(0,0,0,0.25)', 'rgba(0,0,0,0.8)'] as const;
 
   const content = (
-    <LinearGradient colors={scrim} locations={[0, 0.35, 1]} style={[s.slide, { width }]}>
+    <LinearGradient colors={scrim} locations={[0, 0.35, 1]} style={{ width, flex: 1 }}>
+      {/* Each card scrolls on its own. "Why we built this" and the closing
+          letter are long, and on a small phone they would otherwise be cut off
+          at whatever line the screen ends on, with nothing to say so. Vertical
+          inside horizontal is fine: the gestures do not fight. */}
+      <ScrollView
+        contentContainerStyle={s.slide}
+        showsVerticalScrollIndicator={false}
+        bounces={false}
+      >
       <View style={s.card}>
         {!!slide.eyebrow && <Text style={s.eyebrow}>{tx(slide.eyebrow)}</Text>}
-        <Text style={s.title}>{tx(slide.title)}</Text>
-        <View style={s.rule} />
-        {!!slide.body && <Text style={s.body}>{tx(slide.body)}</Text>}
 
-        {!!slide.points?.length && (
-          <View style={s.points}>
-            {slide.points.map(point => (
-              <View key={point} style={s.point}>
-                <Text style={s.bullet}>•</Text>
-                <Text style={s.pointTxt}>{tx(point)}</Text>
-              </View>
-            ))}
+        {/* The last card opens like a letter, addressed to them. */}
+        {slide.salutation && <Text style={s.salutation}>{name},</Text>}
+
+        {/* An empty title means the person's own name belongs there. A church
+            name can run long, so it steps down a size at a time rather than
+            wrapping to four lines of 38pt serif. */}
+        <Text style={[s.title, !slide.title && nameSize(name)]}>
+          {slide.title ? tx(slide.title) : name}
+        </Text>
+
+        <View style={s.rule} />
+
+        {!!slide.lead && <Text style={s.lead}>{tx(slide.lead)}</Text>}
+
+        {/* A blank line in the copy is a paragraph break, not a line break. */}
+        {!!slide.body && tx(slide.body).split('\n\n').map((para, i) => (
+          <Text key={i} style={[s.body, i > 0 && s.bodyNext]}>{para}</Text>
+        ))}
+
+        {!!slide.signoff && (
+          <View style={s.signoff}>
+            <Text style={s.blessing}>{tx(slide.signoff.blessing)}</Text>
+            <Text style={s.role}>{tx(slide.signoff.role)}</Text>
           </View>
         )}
 
@@ -157,6 +187,7 @@ function SlideView({ slide, width, tx }: { slide: Slide; width: number; tx: (s: 
           </View>
         )}
       </View>
+      </ScrollView>
     </LinearGradient>
   );
 
@@ -176,11 +207,26 @@ function SlideView({ slide, width, tx }: { slide: Slide; width: number; tx: (s: 
 
 const GOLD = COLORS.gold;
 
+/**
+ * Smaller type for a longer name.
+ *
+ * "Maria" and "First United Methodist Church of Glen Cove" go in the same
+ * slot. At one size the second wraps to four lines and swamps the card, so it
+ * steps down instead. Three steps is enough: past that it is not the type size
+ * that is wrong, it is the length, and shrinking further only makes it
+ * unreadable as well as long.
+ */
+function nameSize(name: string) {
+  if (name.length > 34) return { fontSize: 24, lineHeight: 32 };
+  if (name.length > 20) return { fontSize: 30, lineHeight: 38 };
+  return null;
+}
+
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: '#0b0908' },
   hold: { flex: 1, backgroundColor: '#0b0908' },
 
-  slide: { flex: 1, justifyContent: 'center', paddingHorizontal: 30, paddingTop: 96, paddingBottom: 132 },
+  slide: { flexGrow: 1, justifyContent: 'center', paddingHorizontal: 30, paddingTop: 108, paddingBottom: 140 },
   card: { alignItems: 'center' },
 
   eyebrow: {
@@ -195,6 +241,21 @@ const s = StyleSheet.create({
   rule: { width: 64, height: 2, backgroundColor: GOLD, marginTop: 16, marginBottom: 20 },
   body: {
     fontSize: 17, lineHeight: 28, color: 'rgba(255,255,255,0.88)', textAlign: 'center',
+  },
+  bodyNext: { marginTop: 14 },
+  // Bold, white, clearly under the title rather than competing with it.
+  lead: {
+    fontSize: 19, fontWeight: '700', color: '#fff', textAlign: 'center', marginBottom: 14,
+  },
+  salutation: {
+    fontFamily: 'PlayfairDisplay_400Regular_Italic', fontSize: 20,
+    color: 'rgba(255,255,255,0.92)', marginBottom: 10,
+  },
+  signoff: { marginTop: 22, alignItems: 'center' },
+  blessing: { fontSize: 16, color: '#fff', textAlign: 'center', fontWeight: '600', lineHeight: 24 },
+  role: {
+    fontFamily: 'PlayfairDisplay_400Regular_Italic', fontSize: 14,
+    color: GOLD, marginTop: 4,
   },
 
   points: { alignSelf: 'stretch', gap: 14, marginTop: 6 },

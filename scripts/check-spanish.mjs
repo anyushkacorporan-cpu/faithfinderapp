@@ -286,13 +286,24 @@ try {
   const slidesSrc = readFileSync('src/lib/onboardingSlides.ts', 'utf8');
   const body = slidesSrc.split('export const SLIDES')[1] ?? '';
   const found = [];
-  for (const m of body.matchAll(/(?:eyebrow|title|body|text|ref):\s*(['"])((?:[^\\]|\\.)*?)\1/g)) {
-    found.push(m[2]);
+  // Every field that holds a sentence. An empty title is the first card, where
+  // the person's own name goes in its place, so there is nothing to translate.
+  for (const m of body.matchAll(/(?:eyebrow|title|lead|body|text|ref|blessing|role):\s*(['"])((?:[^\\]|\\.)*?)\1/g)) {
+    if (m[2]) found.push(m[2]);
   }
   for (const list of body.matchAll(/points:\s*\[([\s\S]*?)\]/g)) {
     for (const m of list[1].matchAll(/(['"])((?:[^\\]|\\.)*?)\1/g)) found.push(m[2]);
   }
-  const all = [...new Set(found.map(x => x.replace(/\\'/g, "'").replace(/\\"/g, '"')))];
+  // The table above is evaluated, so its strings hold real newlines; this file
+  // is read as text, so its \n is still two characters. Unescape to match, or a
+  // paragraph break is enough to report a translated sentence as missing.
+  const unescape = x => x
+    .replace(/\\n/g, '\n')
+    .replace(/\\t/g, '\t')
+    .replace(/\\'/g, "'")
+    .replace(/\\"/g, '"')
+    .replace(/\\\\/g, '\\');
+  const all = [...new Set(found.map(unescape))];
   slideTotal = all.length;
   slideMissing = all.filter(x => !byEnglish.has(x));
 } catch {
