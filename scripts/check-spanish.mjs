@@ -205,13 +205,54 @@ if (authMissing.length) {
  */
 head("tx('…') strings with no entry");
 const txStrings = new Set();
-for (const f of files) {
-  const src = readFileSync(f, 'utf8');
-  // Single-quoted only, matching how tx() is called everywhere. A template
-  // literal cannot be looked up as a constant anyway.
-  for (const m of src.matchAll(/\btx\(\s*'((?:[^'\\]|\\.)*)'/g)) {
-    txStrings.add(m[1].replace(/\\'/g, "'").replace(/\\\\/g, '\\'));
+
+/**
+ * Every single-quoted literal inside a tx(...) call.
+ *
+ * Not just the one straight after the bracket, which is what this matched
+ * before: `tx(isReplay ? 'Done' : 'Get started')` is two sentences the app can
+ * show, and that form slipped past untranslated while the check reported a
+ * clean run. So the argument list is read to its closing bracket and every
+ * literal in it collected.
+ *
+ * Template literals are skipped deliberately — a string assembled at runtime
+ * cannot be looked up as a constant, and flagging them would only teach people
+ * to ignore this.
+ */
+function txLiterals(src) {
+  const out = [];
+  const re = /\btx\(/g;
+  let m;
+  while ((m = re.exec(src)) !== null) {
+    let i = m.index + m[0].length;
+    let depth = 1;
+    while (i < src.length && depth > 0) {
+      const ch = src[i];
+      if (ch === '(') { depth++; i++; continue; }
+      if (ch === ')') { depth--; i++; continue; }
+      if (ch === "'" || ch === '"' || ch === '`') {
+        const quote = ch;
+        let j = i + 1, lit = '';
+        while (j < src.length && src[j] !== quote) {
+          if (src[j] === '\\') { lit += src[j + 1] ?? ''; j += 2; continue; }
+          lit += src[j];
+          j++;
+        }
+        // Only the arguments tx() itself receives. A literal inside a nested
+        // call — the '' in tx(label.replace(/ \*$/, '')) — is that function's
+        // business, not a sentence anyone sees.
+        if (quote === "'" && depth === 1 && lit) out.push(lit);
+        i = j + 1;
+        continue;
+      }
+      i++;
+    }
   }
+  return out;
+}
+
+for (const f of files) {
+  for (const lit of txLiterals(readFileSync(f, 'utf8'))) txStrings.add(lit);
 }
 const txMissing = [...txStrings].filter(x => !byEnglish.has(x));
 if (txMissing.length) {

@@ -54,7 +54,7 @@ export default function SignupScreen() {
 
     if (!hasDatabase()) {
       setUser(local);
-      router.replace(accountType === 'church' ? '/church-setup' : '/(tabs)');
+      router.replace(accountType === 'church' ? '/church-setup' : '/onboarding');
       return;
     }
 
@@ -83,7 +83,7 @@ export default function SignupScreen() {
     if (accountType === 'church') {
       router.push('/church-setup');
     } else {
-      router.replace('/(tabs)');
+      router.replace('/onboarding');
     }
   }
 

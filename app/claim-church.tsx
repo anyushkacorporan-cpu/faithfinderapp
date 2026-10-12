@@ -157,7 +157,7 @@ export default function ClaimChurchScreen() {
             <Ionicons name="time-outline" size={14} color={COLORS.gold} />
             <Text style={s.pendingBadgeTxt}>{t('verificationPending')}</Text>
           </View>
-          <TouchableOpacity style={s.primaryBtn} onPress={() => router.replace('/(tabs)')}>
+          <TouchableOpacity style={s.primaryBtn} onPress={() => router.replace('/onboarding')}>
             <Text style={s.primaryBtnTxt}>{t('goToMyProfile')}</Text>
           </TouchableOpacity>
         </View>

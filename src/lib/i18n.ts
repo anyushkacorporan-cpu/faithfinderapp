@@ -1158,6 +1158,9 @@ const translations: Record<string, Record<Lang, string>> = {
   onb14: {
     English: 'How FaithFinder works',
     Español: 'Cómo funciona FaithFinder' },
+  onb15: {
+    English: 'Get started',
+    Español: 'Comenzar' },
 };
 
 // Reverse index so a raw English string can be translated directly. This is for

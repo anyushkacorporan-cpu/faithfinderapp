@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity, StyleSheet,
   useWindowDimensions, NativeSyntheticEvent, NativeScrollEvent,
@@ -9,19 +9,22 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Logo from '../src/components/Logo';
 import { COLORS } from '../src/lib/constants';
 import { useTranslation } from '../src/lib/i18n';
-import { markOnboardingSeen } from '../src/lib/onboarding';
+import { markOnboardingSeen, hasSeenOnboarding, hydrated } from '../src/lib/onboarding';
 
 /**
- * What someone sees before they are asked for an email address.
+ * What someone sees once their account exists, before the app itself.
  *
- * The app opened straight onto the sign-in form. Somebody arriving from the App
- * Store met a password box, a Bible verse and no answer to "what is this" —
- * which is a lot to ask of a stranger before they have been told what they are
- * joining. These four cards are that answer, and they are shown once.
+ * Shown after account creation rather than before sign-in. By this point they
+ * have decided to join; what they have not been told is what is here. The same
+ * four cards for a person and for a church — a pastor is also someone looking
+ * for a service, and splitting them would mean deciding on their behalf which
+ * of the two they are.
  *
- * Deliberately not skippable-by-default: Skip is there, in the corner, for
- * people who already know. But the default path reads all four, because the
- * last one is the only place a pastor is ever told the app is for them too.
+ * Skip is in the corner throughout, because somebody who wants to be in the app
+ * should be allowed into the app.
+ *
+ * Shown once. Every route in is an end-of-signup route, and the flag is set on
+ * the way out, so a later claim or registration passes straight through.
  */
 
 type Slide = {
@@ -41,6 +44,22 @@ export default function Onboarding() {
   const { width } = useWindowDimensions();
   const scroller = useRef<ScrollView>(null);
   const [page, setPage] = useState(0);
+
+  // Claiming or registering a church is also reachable long after signing up,
+  // and both end here. Somebody who has already seen this passes through
+  // without a flicker rather than being shown an introduction to an app they
+  // are already using.
+  const [checked, setChecked] = useState(false);
+  useEffect(() => {
+    if (isReplay) { setChecked(true); return; }
+    let live = true;
+    void hydrated.then(() => {
+      if (!live) return;
+      if (hasSeenOnboarding()) router.replace('/(tabs)');
+      else setChecked(true);
+    });
+    return () => { live = false; };
+  }, [isReplay]);
 
   const slides: Slide[] = [
     {
@@ -76,30 +95,36 @@ export default function Onboarding() {
   function next() {
     if (last) {
       if (isReplay) { router.back(); return; }
-      done('/signup');
+      finish();
       return;
     }
     scroller.current?.scrollTo({ x: (page + 1) * width, animated: true });
   }
 
   /**
-   * Remembered before leaving, so this never appears twice.
+   * Into the app, and remembered so this never appears twice.
    *
-   * Not awaited: the write is to the device and a slow one must not hold up
-   * the tap. If it fails, the worst outcome is seeing this again, which is a
+   * The write is not awaited: it is to the device, and a slow one must not hold
+   * up the tap. If it fails the worst outcome is seeing this again, which is a
    * far smaller wrong than a button that does nothing.
+   *
+   * `replace`, not `push`: there is nothing behind this worth going back to,
+   * and a back gesture out of the app's first screen into a finished signup is
+   * not a journey anyone wants.
    */
-  function done(to: '/signup' | '/login') {
+  function finish() {
     void markOnboardingSeen();
-    router.replace(to);
+    router.replace('/(tabs)');
   }
+
+  if (!checked) return <View style={s.root} />;
 
   return (
     <SafeAreaView style={s.root} edges={['top', 'bottom']}>
       <View style={s.topBar}>
         <Logo size="small" tint={COLORS.navy} />
         <TouchableOpacity
-          onPress={() => (isReplay ? router.back() : done('/login'))}
+          onPress={() => (isReplay ? router.back() : finish())}
           hitSlop={10}>
           <Text style={s.skip}>{tx(isReplay ? 'Done' : 'Skip')}</Text>
         </TouchableOpacity>
@@ -134,18 +159,9 @@ export default function Onboarding() {
       <View style={s.actions}>
         <TouchableOpacity style={s.primaryBtn} onPress={next}>
           <Text style={s.primaryTxt}>
-            {last ? tx(isReplay ? 'Done' : 'Create an account') : tx('Next')}
+            {last ? tx(isReplay ? 'Done' : 'Get started') : tx('Next')}
           </Text>
         </TouchableOpacity>
-
-        {/* Only on the last card. Offering "I already have an account" on card
-            one invites people to leave before being told anything, which is
-            the situation this screen exists to fix. */}
-        {last && !isReplay && (
-          <TouchableOpacity onPress={() => done('/login')} hitSlop={8}>
-            <Text style={s.secondaryTxt}>{tx('I already have an account')}</Text>
-          </TouchableOpacity>
-        )}
       </View>
     </SafeAreaView>
   );
