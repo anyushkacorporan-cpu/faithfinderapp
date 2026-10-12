@@ -429,7 +429,6 @@ export default function ChurchDetailScreen() {
           <>
             <View style={s.divider} />
             <View style={s.section}>
-              <Text style={s.sectionTitle}>{t('information')}</Text>
               <View style={s.infoCard}>
                 <View style={s.infoRow}>
                   <View style={s.infoIconWrap}><Ionicons name="location-outline" size={18} color={c.text} /></View>
@@ -816,7 +815,7 @@ const makeStyles = (c: ThemeColors) => StyleSheet.create({
   seeReviewsTxt:{fontSize:13,color:c.gold,fontWeight:'700'},
   descBox:{paddingHorizontal:16,marginBottom:12},
   descTxt:{fontSize:14,color:c.textSecondary,lineHeight:22},
-  tabsRow:{flexDirection:'row',borderTopWidth:1,borderBottomWidth:1,borderColor:c.border,marginTop:8},
+  tabsRow:{flexDirection:'row',borderBottomWidth:1,borderColor:c.border,marginTop:8},
   tab:{flex:1,paddingVertical:13,alignItems:'center',borderBottomWidth:2,borderBottomColor:'transparent'},
   tabActive:{borderBottomColor:c.navy},
   tabTxt:{fontSize:14,fontWeight:'600',color:c.textMuted},
