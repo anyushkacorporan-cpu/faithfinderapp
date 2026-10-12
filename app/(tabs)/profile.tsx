@@ -400,9 +400,6 @@ export default function ProfileScreen() {
   
             {/* Information Card */}
             <View style={s.section}>
-              <View style={s.sectionHdr}>
-                <Text style={s.sectionTitle}>{t('information')}</Text>
-              </View>
               <View style={s.infoCard}>
   
                 {/* Address */}
@@ -894,7 +891,7 @@ function OwnPostActions({ post, onClose }: { post: Post | null; onClose: () => v
 const makeStyles = (c: ThemeColors) => StyleSheet.create({
   // Copied from church-detail's tabsRow/tab/tabActive so a church's own profile
   // and its public page share one visual language.
-  churchTabsRow:{flexDirection:'row',borderTopWidth:1,borderBottomWidth:1,borderColor:c.border,marginTop:8},
+  churchTabsRow:{flexDirection:'row',borderBottomWidth:1,borderColor:c.border,marginTop:8},
   churchTab:{flex:1,paddingVertical:13,alignItems:'center',borderBottomWidth:2,borderBottomColor:'transparent'},
   churchTabActive:{borderBottomColor:c.navy},
   churchTabTxt:{fontSize:14,fontWeight:'600',color:c.textMuted},
