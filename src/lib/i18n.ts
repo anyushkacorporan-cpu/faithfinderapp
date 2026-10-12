@@ -64,6 +64,7 @@ const translations: Record<string, Record<Lang, string>> = {
   noOneFound: { English: 'No one found by that name.', Español: 'No se encontró a nadie con ese nombre.' },
   privacyPolicy: { English: 'Privacy Policy', Español: 'Política de Privacidad' },
   aboutApp: { English: 'About FaithFinder', Español: 'Acerca de FaithFinder' },
+  howItWorks: { English: 'How FaithFinder works', Español: 'Cómo funciona FaithFinder' },
   signOut: { English: 'Sign Out', Español: 'Cerrar Sesión' },
   details: { English: 'Details', Español: 'Detalles' },
   nearbyBadge: { English: 'NEARBY', Español: 'CERCA' },

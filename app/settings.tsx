@@ -30,6 +30,10 @@ const ROWS = [
   { icon: 'shield-outline',              key: 'privacySecurity',         route: '/settings-privacy' },
   { icon: 'ban-outline',                 key: 'blockedUsers',            route: '/settings-blocked' },
   { icon: 'moon-outline',                key: 'appearance',              route: '/settings-appearance' },
+  // Next to Help, because it answers the same kind of question, and at this
+  // level rather than two screens inside About: an introduction nobody can
+  // find again is one that was shown once and lost.
+  { icon: 'sparkles-outline',            key: 'howItWorks',              route: '/onboarding?replay=1' },
   { icon: 'help-circle-outline',         key: 'helpSupport',             route: '/settings-help' },
   { icon: 'information-circle-outline',  key: 'aboutApp',                route: '/settings-about' },
   { icon: 'log-out-outline',             key: 'signOut',                 route: null },
@@ -44,7 +48,7 @@ export default function SettingsScreen() {
     createEvent: '#c9a96e', myEvents: '#667eea', earnings: c.green,
     notificationPreferences: c.gold, locationSettings: c.green,
     privacySecurity: c.navy, blockedUsers: c.red, appearance: '#9b59b6',
-    helpSupport: '#e67e22', aboutApp: c.textMuted, signOut: c.red,
+    howItWorks: c.gold, helpSupport: '#e67e22', aboutApp: c.textMuted, signOut: c.red,
   } as Record<string, string>)[key] || c.textMuted;
 
   return (
