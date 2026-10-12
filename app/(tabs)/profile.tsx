@@ -348,10 +348,13 @@ export default function ProfileScreen() {
               <View style={s.churchNames}>
                 <Text style={s.churchName}>{user.churchName || 'Your Church'}</Text>
                 {!!user.denomination && <Text style={s.churchDenom}>{user.denomination}</Text>}
-                {appSettings.privacy.showLocation && (
+                {/* A pin on its own says a place exists and then does not name
+                    it. The setting decides whether a location may be shown;
+                    having one decides whether there is anything to show. */}
+                {appSettings.privacy.showLocation && !!(user.address || user.location) && (
                 <View style={s.locationRow}>
                   <Ionicons name="location-outline" size={13} color={c.textMuted} />
-                  <Text style={s.locationTxt} numberOfLines={1}>{user.address || user.location || ''}</Text>
+                  <Text style={s.locationTxt} numberOfLines={1}>{user.address || user.location}</Text>
                 </View>
                 )}
               </View>
@@ -364,7 +367,7 @@ export default function ProfileScreen() {
             <Text style={s.ratingTxt}>{t('noReviewsYet')}</Text>
           </View>
 
-          <View style={s.divider} />
+          <View style={s.dividerTight} />
 
           {/* About | Posts — the same two tabs, in the same order and with the
               same styling, as the public church page. A church looking at its own
@@ -398,8 +401,27 @@ export default function ProfileScreen() {
               </>
             )}
   
-            {/* Information Card */}
+            {/* Information Card.
+
+                Five rows of "Not added yet" is a tall box that says nothing
+                five times. A church that has filled none of this in is better
+                served by being asked once, with somewhere to go. The moment any
+                one field has a value the real card returns, because then the
+                empty rows are a checklist rather than a wall. */}
             <View style={s.section}>
+              {!user.address && !user.phone && !user.website && !user.churchEmail && !user.serviceTimes ? (
+              <TouchableOpacity
+                style={s.infoEmptyCard}
+                onPress={() => router.push('/edit-church-profile')}
+                activeOpacity={0.85}
+              >
+                <Ionicons name="add-circle-outline" size={26} color={c.gold} />
+                <Text style={s.infoEmptyTitle}>{tx("Add your church's info")}</Text>
+                <Text style={s.infoEmptySub}>
+                  {tx('Address, phone, website and service times — so people can find you and know when to come.')}
+                </Text>
+              </TouchableOpacity>
+              ) : (
               <View style={s.infoCard}>
   
                 {/* Address */}
@@ -407,7 +429,9 @@ export default function ProfileScreen() {
                   <View style={s.infoIconWrap}><Ionicons name="location-outline" size={18} color={user.address ? c.text : c.placeholder} /></View>
                   <View style={s.infoContent}>
                     <Text style={s.infoLabel}>{t('address')}</Text>
-                    {!!user.address && <Text style={s.infoValue}>{user.address}</Text>}
+                    {user.address
+                      ? <Text style={s.infoValue}>{user.address}</Text>
+                      : <Text style={s.infoEmpty}>{tx('Not added yet')}</Text>}
                   </View>
                   {!!user.address && (
                     <TouchableOpacity style={s.infoBadge} onPress={handleDirections}>
@@ -422,7 +446,9 @@ export default function ProfileScreen() {
                   <View style={s.infoIconWrap}><Ionicons name="call-outline" size={18} color={user.phone ? c.text : c.placeholder} /></View>
                   <View style={s.infoContent}>
                     <Text style={s.infoLabel}>{t('phone')}</Text>
-                    {!!user.phone && <Text style={[s.infoValue, s.tappable]}>{user.phone}</Text>}
+                    {user.phone
+                      ? <Text style={[s.infoValue, s.tappable]}>{user.phone}</Text>
+                      : <Text style={s.infoEmpty}>{tx('Not added yet')}</Text>}
                   </View>
                   {!!user.phone && <View style={s.callBadge}><Text style={s.callBadgeTxt}>{t('call')}</Text></View>}
                 </TouchableOpacity>
@@ -433,7 +459,9 @@ export default function ProfileScreen() {
                   <View style={s.infoIconWrap}><Ionicons name="globe-outline" size={18} color={user.website ? c.text : c.placeholder} /></View>
                   <View style={s.infoContent}>
                     <Text style={s.infoLabel}>{t('website')}</Text>
-                    {!!user.website && <Text style={[s.infoValue, s.goldTxt]} numberOfLines={1}>{user.website.replace(/^https?:\/\//,'').replace(/\/$/,'')}</Text>}
+                    {user.website
+                      ? <Text style={[s.infoValue, s.goldTxt]} numberOfLines={1}>{user.website.replace(/^https?:\/\//,'').replace(/\/$/,'')}</Text>
+                      : <Text style={s.infoEmpty}>{tx('Not added yet')}</Text>}
                   </View>
                   {!!user.website && <View style={s.visitBadge}><Text style={s.visitBadgeTxt}>{t('visit')}</Text></View>}
                 </TouchableOpacity>
@@ -444,7 +472,9 @@ export default function ProfileScreen() {
                   <View style={s.infoIconWrap}><Ionicons name="mail-outline" size={18} color={user.churchEmail ? c.text : c.placeholder} /></View>
                   <View style={s.infoContent}>
                     <Text style={s.infoLabel}>{t('email')}</Text>
-                    {!!user.churchEmail && <Text style={[s.infoValue, s.tappable]}>{user.churchEmail}</Text>}
+                    {user.churchEmail
+                      ? <Text style={[s.infoValue, s.tappable]}>{user.churchEmail}</Text>
+                      : <Text style={s.infoEmpty}>{tx('Not added yet')}</Text>}
                   </View>
                   {!!user.churchEmail && <View style={s.callBadge}><Text style={s.callBadgeTxt}>{t('email')}</Text></View>}
                 </TouchableOpacity>
@@ -455,6 +485,7 @@ export default function ProfileScreen() {
                   <View style={s.infoIconWrap}><Ionicons name="time-outline" size={18} color={user.serviceTimes ? c.text : c.placeholder} /></View>
                   <View style={s.infoContent}>
                     <Text style={s.infoLabel}>{t('serviceTimes')}</Text>
+                    {!user.serviceTimes && <Text style={s.infoEmpty}>{tx('Not added yet')}</Text>}
                     {!!user.serviceTimes && user.serviceTimes.split('\n').map((line, i, rows) => {
                       const [timePart, notePart] = line.split(' | ');
                       return (
@@ -468,6 +499,7 @@ export default function ProfileScreen() {
                 </View>
   
               </View>
+              )}
             </View>
   
             {/* Ministries & Amenities */}
@@ -891,7 +923,7 @@ function OwnPostActions({ post, onClose }: { post: Post | null; onClose: () => v
 const makeStyles = (c: ThemeColors) => StyleSheet.create({
   // Copied from church-detail's tabsRow/tab/tabActive so a church's own profile
   // and its public page share one visual language.
-  churchTabsRow:{flexDirection:'row',borderBottomWidth:1,borderColor:c.border,marginTop:8},
+  churchTabsRow:{flexDirection:'row',borderBottomWidth:1,borderColor:c.border,marginTop:4},
   churchTab:{flex:1,paddingVertical:13,alignItems:'center',borderBottomWidth:2,borderBottomColor:'transparent'},
   churchTabActive:{borderBottomColor:c.navy},
   churchTabTxt:{fontSize:14,fontWeight:'600',color:c.textMuted},
@@ -944,6 +976,9 @@ const makeStyles = (c: ThemeColors) => StyleSheet.create({
   writeReviewBtn:{marginLeft:'auto'},
   writeReviewTxt:{fontSize:13,color:c.gold,fontWeight:'700'},
   divider:{height:1,backgroundColor:c.border,marginHorizontal:16,marginVertical:16},
+  // The one rule between the rating line and the tabs, which sit close together
+  // on purpose: 16 above and 8 below left a gap that read as a missing section.
+  dividerTight:{height:1,backgroundColor:c.border,marginHorizontal:16,marginTop:4,marginBottom:0},
   // Section
   section:{paddingHorizontal:16,marginBottom:4},
   // The lift sits on the wrapper, not the Image: a view that clips its content
@@ -961,6 +996,12 @@ const makeStyles = (c: ThemeColors) => StyleSheet.create({
   infoContent:{flex:1},
   infoLabel:{fontSize:11,color:c.textMuted,fontWeight:'600',textTransform:'uppercase',letterSpacing:0.4,marginBottom:2},
   infoValue:{fontSize:14,color:c.text,fontWeight:'500'},
+  // Lighter and italic, so an unfilled field reads as waiting rather than as
+  // a value that happens to be the words "not added yet".
+  infoEmpty:{fontSize:14,color:c.placeholder,fontStyle:'italic'},
+  infoEmptyCard:{borderWidth:1,borderColor:c.border,borderRadius:16,paddingVertical:26,paddingHorizontal:20,alignItems:'center',gap:6},
+  infoEmptyTitle:{fontSize:15,fontWeight:'700',color:c.text},
+  infoEmptySub:{fontSize:13,color:c.textMuted,textAlign:'center',lineHeight:19},
   tappable:{color:c.text,fontWeight:'600'},
   goldTxt:{color:c.gold},
   muted:{color:c.textMuted,fontSize:13},

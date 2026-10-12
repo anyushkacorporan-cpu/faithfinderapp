@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Modal, TextInput, Image, Alert } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -7,6 +7,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { useThemeColors, ThemeColors } from '../src/lib/theme';
 import { useTranslation } from '../src/lib/i18n';
 import { useUser, setUser, getUser } from '../src/lib/userStore';
+import { suggestAddresses, resolveAddress, newSessionToken, AddressSuggestion } from '../src/lib/addressAutocomplete';
 import { useToast } from '../src/components/Toast';
 import {
   fetchMyChurch, fetchChurchPhotos, addChurchPhotos, removeChurchPhoto,
@@ -73,6 +74,54 @@ export default function EditChurchProfileScreen() {
   const { showToast } = useToast();
   const [churchName, setChurchName] = useState(user.churchName || '');
   const [address, setAddress] = useState(user.address || '');
+
+  // Address autocomplete, the same way create-event does it — same helper, same
+  // debounce, same session token. Google bills a token-carrying session once
+  // rather than per keystroke, and the token is kept from the first character
+  // through to the selection, which is what closes it.
+  const [addrSuggestions, setAddrSuggestions] = useState<AddressSuggestion[]>([]);
+  const [addrLoading, setAddrLoading] = useState(false);
+  const addrSession = useRef<string | null>(null);
+  const addrTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Rising number, so a slow answer to an earlier query cannot land on top of
+  // the suggestions for a later one.
+  const addrSeq = useRef(0);
+
+  function onAddressChange(text: string) {
+    setAddress(text);
+    if (addrTimer.current) clearTimeout(addrTimer.current);
+    if (text.trim().length < 3) { setAddrSuggestions([]); setAddrLoading(false); return; }
+    if (!addrSession.current) addrSession.current = newSessionToken();
+    setAddrLoading(true);
+    addrTimer.current = setTimeout(async () => {
+      const seq = ++addrSeq.current;
+      const results = await suggestAddresses(text, addrSession.current!);
+      if (seq !== addrSeq.current) return; // a newer query has since been sent
+      setAddrSuggestions(results);
+      setAddrLoading(false);
+    }, 350);
+  }
+
+  async function onPickAddress(sug: AddressSuggestion) {
+    setAddrSuggestions([]);
+    setAddrLoading(false);
+    if (addrTimer.current) clearTimeout(addrTimer.current);
+    // Shown immediately, so the field never sits on the half-typed text while
+    // the details call is in flight.
+    setAddress([sug.main, sug.secondary].filter(Boolean).join(', '));
+    const token = addrSession.current || newSessionToken();
+    const resolved = await resolveAddress(sug.placeId, token);
+    // Selecting closes the session either way; the next edit opens a new one.
+    addrSession.current = null;
+    if (!resolved) return;
+    // One field here, not four: this form has no separate city, state or zip,
+    // so the parts are joined back into the single line it stores.
+    const full = [resolved.street, resolved.city, [resolved.state, resolved.zip].filter(Boolean).join(' ')]
+      .map(part => (part || '').trim())
+      .filter(Boolean)
+      .join(', ');
+    if (full) setAddress(full);
+  }
   const [phone, setPhone] = useState(user.phone || '');
   const [website, setWebsite] = useState(user.website || '');
   const [churchEmail, setChurchEmail] = useState(user.churchEmail || '');
@@ -405,8 +454,27 @@ export default function EditChurchProfileScreen() {
             <Text style={s.label}>{t('address')}</Text>
             <View style={s.inputWrap}>
               <Ionicons name="location-outline" size={18} color={c.textMuted} style={s.icon} />
-              <TextInput style={[s.input, s.inputWithIcon]} placeholder="123 Faith St, Glen Cove, NY 11542" placeholderTextColor={c.placeholder} value={address} onChangeText={setAddress} />
+              <TextInput style={[s.input, s.inputWithIcon]} placeholder="123 Faith St, Glen Cove, NY 11542" placeholderTextColor={c.placeholder} value={address} onChangeText={onAddressChange} autoCorrect={false} />
             </View>
+            {/* Additive: the field above is still a plain text input, so nothing
+                here can stop a church entering an address Google has never
+                heard of. */}
+            {addrLoading && addrSuggestions.length === 0 && (
+              <Text style={s.addrHint}>{tx('Looking up addresses...')}</Text>
+            )}
+            {addrSuggestions.length > 0 && (
+              <View style={s.addrList}>
+                {addrSuggestions.map(sug => (
+                  <TouchableOpacity key={sug.placeId} style={s.addrRow} onPress={() => onPickAddress(sug)}>
+                    <Ionicons name="location-outline" size={15} color={c.textMuted} />
+                    <View style={{flex:1,minWidth:0}}>
+                      <Text style={s.addrMain} numberOfLines={1}>{sug.main}</Text>
+                      {!!sug.secondary && <Text style={s.addrSecondary} numberOfLines={1}>{sug.secondary}</Text>}
+                    </View>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
           </View>
 
           <View style={s.fieldWrap}>
@@ -606,6 +674,13 @@ const makeStyles = (c: ThemeColors) => StyleSheet.create({
   sectionTitle:{fontSize:13,fontWeight:'700',color:c.textMuted,textTransform:'uppercase',letterSpacing:0.5,marginBottom:14,marginTop:8},
   fieldWrap:{marginBottom:16},
   label:{fontSize:13,fontWeight:'600',color:c.textSecondary,marginBottom:8},
+  // Copied from create-event's address dropdown so the suggestion list looks
+  // the same wherever an address is typed.
+  addrHint:{fontSize:12,color:c.textMuted,marginTop:6,marginLeft:2},
+  addrList:{marginTop:6,borderWidth:1,borderColor:c.border,borderRadius:12,backgroundColor:c.card,overflow:'hidden'},
+  addrRow:{flexDirection:'row',alignItems:'center',gap:10,paddingHorizontal:12,paddingVertical:11,borderBottomWidth:StyleSheet.hairlineWidth,borderBottomColor:c.rowBorder},
+  addrMain:{fontSize:14,color:c.text,fontWeight:'500'},
+  addrSecondary:{fontSize:12,color:c.textMuted,marginTop:1},
   inputWrap:{position:'relative'},
   icon:{position:'absolute',left:14,top:15,zIndex:1},
   input:{borderWidth:1.5,borderColor:c.border,borderRadius:14,paddingHorizontal:16,paddingVertical:14,fontSize:15,color:c.text,backgroundColor:c.card},

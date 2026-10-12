@@ -1161,6 +1161,27 @@ const translations: Record<string, Record<Lang, string>> = {
   onb15: {
     English: 'Get started',
     Español: 'Comenzar' },
+
+  // The church profile's unfilled fields.
+  chp01: {
+    English: 'Not added yet',
+    Español: 'Aún no agregado' },
+  chp02: {
+    English: "Add your church's info",
+    Español: 'Agrega la información de tu iglesia' },
+  chp03: {
+    English: 'Address, phone, website and service times — so people can find you and know when to come.',
+    Español: 'Dirección, teléfono, sitio web y horarios de culto, para que la gente pueda encontrarte y saber cuándo venir.' },
+
+  // Two sentences that had been showing in English all along. They are written
+  // with apostrophes, so they are written with double quotes, which is the one
+  // shape the translation check could not see until now.
+  hid01: {
+    English: "Thanks for telling us. You won't see this post again.",
+    Español: 'Gracias por avisarnos. No volverás a ver esta publicación.' },
+  near01: {
+    English: "Couldn't load churches near you. Showing all churches instead.",
+    Español: 'No se pudieron cargar las iglesias cercanas. Mostrando todas las iglesias.' },
 };
 
 // Reverse index so a raw English string can be translated directly. This is for

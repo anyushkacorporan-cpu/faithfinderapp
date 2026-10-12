@@ -241,7 +241,13 @@ function txLiterals(src) {
         // Only the arguments tx() itself receives. A literal inside a nested
         // call — the '' in tx(label.replace(/ \*$/, '')) — is that function's
         // business, not a sentence anyone sees.
-        if (quote === "'" && depth === 1 && lit) out.push(lit);
+        //
+        // Both quote styles. This took single quotes only, "matching how tx()
+        // is called everywhere", which held until a sentence contained an
+        // apostrophe: tx("Add your church's info") is a sentence like any
+        // other, and it went unchecked for being written the only way it
+        // comfortably could be.
+        if ((quote === "'" || quote === '"') && depth === 1 && lit) out.push(lit);
         i = j + 1;
         continue;
       }
