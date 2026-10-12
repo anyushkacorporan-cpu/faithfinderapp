@@ -3,7 +3,7 @@ import {
   View, Text, ScrollView, TouchableOpacity, StyleSheet,
   useWindowDimensions, NativeSyntheticEvent, NativeScrollEvent,
 } from 'react-native';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Logo from '../src/components/Logo';
@@ -32,6 +32,12 @@ type Slide = {
 
 export default function Onboarding() {
   const { tx } = useTranslation();
+  // Reached from Settings rather than on first launch. The cards are the same;
+  // what changes is where the end of them goes — someone replaying this already
+  // has an account and should land back where they came from, not at a sign-up
+  // form.
+  const { replay } = useLocalSearchParams<{ replay?: string }>();
+  const isReplay = replay === '1';
   const { width } = useWindowDimensions();
   const scroller = useRef<ScrollView>(null);
   const [page, setPage] = useState(0);
@@ -68,7 +74,11 @@ export default function Onboarding() {
   }
 
   function next() {
-    if (last) { void done('/signup'); return; }
+    if (last) {
+      if (isReplay) { router.back(); return; }
+      done('/signup');
+      return;
+    }
     scroller.current?.scrollTo({ x: (page + 1) * width, animated: true });
   }
 
@@ -88,8 +98,10 @@ export default function Onboarding() {
     <SafeAreaView style={s.root} edges={['top', 'bottom']}>
       <View style={s.topBar}>
         <Logo size="small" tint={COLORS.navy} />
-        <TouchableOpacity onPress={() => done('/login')} hitSlop={10}>
-          <Text style={s.skip}>{tx('Skip')}</Text>
+        <TouchableOpacity
+          onPress={() => (isReplay ? router.back() : done('/login'))}
+          hitSlop={10}>
+          <Text style={s.skip}>{tx(isReplay ? 'Done' : 'Skip')}</Text>
         </TouchableOpacity>
       </View>
 
@@ -121,13 +133,15 @@ export default function Onboarding() {
 
       <View style={s.actions}>
         <TouchableOpacity style={s.primaryBtn} onPress={next}>
-          <Text style={s.primaryTxt}>{last ? tx('Create an account') : tx('Next')}</Text>
+          <Text style={s.primaryTxt}>
+            {last ? tx(isReplay ? 'Done' : 'Create an account') : tx('Next')}
+          </Text>
         </TouchableOpacity>
 
         {/* Only on the last card. Offering "I already have an account" on card
             one invites people to leave before being told anything, which is
             the situation this screen exists to fix. */}
-        {last && (
+        {last && !isReplay && (
           <TouchableOpacity onPress={() => done('/login')} hitSlop={8}>
             <Text style={s.secondaryTxt}>{tx('I already have an account')}</Text>
           </TouchableOpacity>
