@@ -1112,6 +1112,46 @@ const translations: Record<string, Record<Lang, string>> = {
   payout19: {
     English: 'Nobody can buy a ticket until your Stripe account is connected. Tap to set it up — it takes a few minutes.',
     Español: 'Nadie podrá comprar un boleto hasta que conectes tu cuenta de Stripe. Toca para configurarla: tarda unos minutos.' },
+
+  // The introduction, shown once before anyone is asked for an email. The first
+  // words of the app in either language, so they are written rather than
+  // translated word for word.
+  onb01: {
+    English: 'Find a church near you',
+    Español: 'Encuentra una iglesia cerca de ti' },
+  onb02: {
+    English: 'More than 235,000 churches across all fifty states. Search by city, by denomination, or simply by what is closest to where you are standing.',
+    Español: 'Más de 235,000 iglesias en los cincuenta estados. Busca por ciudad, por denominación o sencillamente por lo más cercano a donde estás.' },
+  onb03: {
+    English: 'Know what is happening',
+    Español: 'Entérate de lo que pasa' },
+  onb04: {
+    English: 'Services, bible studies, concerts, youth nights. See what is on near you and register in a couple of taps.',
+    Español: 'Cultos, estudios bíblicos, conciertos, noches juveniles. Mira lo que hay cerca y regístrate con un par de toques.' },
+  onb05: {
+    English: 'Stay connected',
+    Español: 'Mantente conectado' },
+  onb06: {
+    English: 'Share what is on your heart, connect with people from your church, and keep up with your community between Sundays.',
+    Español: 'Comparte lo que llevas en el corazón, conecta con personas de tu iglesia y sigue a tu comunidad entre domingo y domingo.' },
+  onb07: {
+    English: 'Are you a church?',
+    Español: '¿Eres una iglesia?' },
+  onb08: {
+    English: 'Claim your listing to add photos, keep your details right, post events and sell tickets. Ticket money goes straight to your own account.',
+    Español: 'Reclama tu ficha para añadir fotos, mantener tus datos al día, publicar eventos y vender boletos. El dinero de los boletos va directo a tu propia cuenta.' },
+  onb09: {
+    English: 'Skip',
+    Español: 'Saltar' },
+  onb10: {
+    English: 'Next',
+    Español: 'Siguiente' },
+  onb11: {
+    English: 'Create an account',
+    Español: 'Crear una cuenta' },
+  onb12: {
+    English: 'I already have an account',
+    Español: 'Ya tengo una cuenta' },
 };
 
 // Reverse index so a raw English string can be translated directly. This is for
