@@ -1183,6 +1183,114 @@ const translations: Record<string, Record<Lang, string>> = {
   near01: {
     English: "Couldn't load churches near you. Showing all churches instead.",
     Español: 'No se pudieron cargar las iglesias cercanas. Mostrando todas las iglesias.' },
+
+  // The introduction's six cards. The copy lives in onboardingSlides.ts and
+  // reaches the screen through tx(), so every line of it needs an entry here.
+  // Scripture is Reina-Valera rather than a translation of the English — a
+  // verse somebody has known since childhood should arrive in the words they
+  // know it in.
+  slide01: {
+    English: 'WELCOME',
+    Español: 'BIENVENIDO' },
+  slide02: {
+    English: 'Friend',
+    Español: 'Amigo' },
+  slide03: {
+    English: "You've been invited into something special. A community rooted in faith.",
+    Español: 'Has sido invitado a algo especial. Una comunidad arraigada en la fe.' },
+  slide04: {
+    English: 'What FaithFinder stands for.',
+    Español: 'Lo que representa FaithFinder.' },
+  slide05: {
+    English: 'Faith — rooted in Jesus Christ above all',
+    Español: 'Fe: arraigada en Jesucristo por encima de todo' },
+  slide06: {
+    English: 'Community — real believers, real connection',
+    Español: 'Comunidad: creyentes reales, conexiones reales' },
+  slide07: {
+    English: 'Growth — encouraging one another every day',
+    Español: 'Crecimiento: animándonos unos a otros cada día' },
+  slide08: {
+    English: 'Not forsaking the assembling of ourselves together.',
+    Español: 'No dejando de congregarnos.' },
+  slide09: {
+    English: 'Hebrews 10:25',
+    Español: 'Hebreos 10:25' },
+  slide10: {
+    English: 'Build friendships with believers',
+    Español: 'Forma amistades con creyentes' },
+  slide11: {
+    English: 'Meet Christians from around the world',
+    Español: 'Conoce cristianos de todo el mundo' },
+  slide12: {
+    English: 'Find your people in your city',
+    Español: 'Encuentra a los tuyos en tu ciudad' },
+  slide13: {
+    English: 'Grow together in community and prayer',
+    Español: 'Crezcan juntos en comunidad y oración' },
+  slide14: {
+    English: 'Share your faith journey',
+    Español: 'Comparte tu camino de fe' },
+  slide15: {
+    English: 'Post testimonies and scriptures',
+    Español: 'Publica testimonios y versículos' },
+  slide16: {
+    English: 'Send encouragement to others',
+    Español: 'Anima a otros' },
+  slide17: {
+    English: 'Pray together, grow together',
+    Español: 'Oren juntos, crezcan juntos' },
+  slide18: {
+    English: 'Let your light shine before others, that they may see your good deeds.',
+    Español: 'Así alumbre vuestra luz delante de los hombres, para que vean vuestras buenas obras.' },
+  slide19: {
+    English: 'Matthew 5:16',
+    Español: 'Mateo 5:16' },
+  slide20: {
+    English: 'A holy and safe space.',
+    Español: 'Un espacio santo y seguro.' },
+  slide21: {
+    English: 'This app is built for good intentions only. Every post should reflect Christ.',
+    Español: 'Esta app está hecha solo para buenas intenciones. Cada publicación debe reflejar a Cristo.' },
+  slide22: {
+    English: 'No bullying',
+    Español: 'Nada de acoso' },
+  slide23: {
+    English: 'No blasphemy',
+    Español: 'Nada de blasfemia' },
+  slide24: {
+    English: 'No foul language',
+    Español: 'Nada de lenguaje grosero' },
+  slide25: {
+    English: 'No inappropriate content',
+    Español: 'Nada de contenido inapropiado' },
+  slide26: {
+    English: 'No hate or division',
+    Español: 'Nada de odio ni división' },
+  slide27: {
+    English: 'Connect for Christ only',
+    Español: 'Conéctate solo para Cristo' },
+  slide28: {
+    English: 'Love is patient, love is kind. It does not envy, it does not boast, it is not proud.',
+    Español: 'El amor es sufrido, es benigno; el amor no tiene envidia, no es jactancioso, no se envanece.' },
+  slide29: {
+    English: '1 Corinthians 13:4',
+    Español: '1 Corintios 13:4' },
+  slide30: {
+    English: 'More than 235,000 churches across all fifty states',
+    Español: 'Más de 235,000 iglesias en los cincuenta estados' },
+  slide31: {
+    English: 'Search by city, denomination, or what is closest',
+    Español: 'Busca por ciudad, denominación o por lo más cercano' },
+  slide32: {
+    English: 'See services and events, and save the ones you love',
+    Español: 'Mira cultos y eventos, y guarda los que más te gusten' },
+  slide33: {
+    English: 'For where two or three gather in my name, there am I with them.',
+    Español: 'Porque donde están dos o tres congregados en mi nombre, allí estoy yo en medio de ellos.' },
+  slide34: {
+    English: 'Matthew 18:20',
+    Español: 'Mateo 18:20' },
 };
 
 // Reverse index so a raw English string can be translated directly. This is for

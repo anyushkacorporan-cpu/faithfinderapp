@@ -268,6 +268,46 @@ if (txMissing.length) {
   ok(`all ${txStrings.size} have an entry`);
 }
 
+// ── Copy that lives in a data file ─────────────────────────────────────────
+
+/**
+ * src/lib/onboardingSlides.ts holds the introduction's words, apart from the
+ * screen that draws them. Good for editing, invisible to every check above:
+ * the screen calls tx(slide.title), and a variable is not a literal, so
+ * thirty-five sentences passed a clean run untranslated.
+ *
+ * So the file is read for what it is — titles, bodies, bullet points, verses
+ * and their references — and each checked against the table.
+ */
+head('the introduction, in src/lib/onboardingSlides.ts');
+let slideMissing = [];
+let slideTotal = 0;
+try {
+  const slidesSrc = readFileSync('src/lib/onboardingSlides.ts', 'utf8');
+  const body = slidesSrc.split('export const SLIDES')[1] ?? '';
+  const found = [];
+  for (const m of body.matchAll(/(?:eyebrow|title|body|text|ref):\s*(['"])((?:[^\\]|\\.)*?)\1/g)) {
+    found.push(m[2]);
+  }
+  for (const list of body.matchAll(/points:\s*\[([\s\S]*?)\]/g)) {
+    for (const m of list[1].matchAll(/(['"])((?:[^\\]|\\.)*?)\1/g)) found.push(m[2]);
+  }
+  const all = [...new Set(found.map(x => x.replace(/\\'/g, "'").replace(/\\"/g, '"')))];
+  slideTotal = all.length;
+  slideMissing = all.filter(x => !byEnglish.has(x));
+} catch {
+  // The file is allowed not to exist; only its contents are checked.
+}
+
+if (slideMissing.length) {
+  bad(`${slideMissing.length} of ${slideTotal} would show in English:`);
+  for (const x of slideMissing) console.log(`      ${JSON.stringify(x)}`);
+} else if (slideTotal) {
+  ok(`all ${slideTotal} have an entry`);
+} else {
+  ok('no slide copy found');
+}
+
 // ── Keys named in the screens that the table does not have ─────────────────
 
 head("t('…') keys with no entry");
@@ -282,7 +322,7 @@ if (unknownKeys.length) {
   ok(`all ${keyed.size} keys resolve`);
 }
 
-const failures = untranslated.length + missing.length + authMissing.length + txMissing.length + unknownKeys.length;
+const failures = untranslated.length + missing.length + authMissing.length + txMissing.length + slideMissing.length + unknownKeys.length;
 console.log('');
 if (failures) {
   console.log(`\x1b[31m  ${failures} thing(s) would show English in the Spanish app.\x1b[0m\n`);
