@@ -1,5 +1,5 @@
 /**
- * Builds web/privacy.html from app/privacy.tsx.
+ * Builds docs/privacy.html from app/privacy.tsx.
  *
  * App Store Connect needs a public URL for the privacy policy, and reviewers
  * read it alongside the in-app screen. Keeping two hand-written copies is how
@@ -8,16 +8,55 @@
  * and re-running this is the only way to change either.
  *
  *   node scripts/build-privacy-page.mjs
+ *
+ * TWO THINGS CHANGED UNDER IT
+ *
+ * The screen was translated after this was written. Its paragraphs stopped
+ * being English and became t('privacyP1') calls, and this went on matching
+ * them: it wrote `{t('legalLastUpdated')}` onto the public privacy policy as
+ * visible text, reported "11 sections" and exited zero. So the keys are now
+ * resolved against the English side of the translation table, and a key that
+ * does not resolve stops the run rather than being published.
+ *
+ * And the output moved from web/ to docs/, because GitHub Pages serves a
+ * public repository's docs folder for nothing — which is what makes the URL
+ * App Store Connect wants exist at all, with no domain and no host to pay for.
  */
-import { readFileSync, writeFileSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 
 const src = readFileSync('app/privacy.tsx', 'utf8');
+
+/**
+ * key -> English, from the translation table.
+ *
+ * Read with a regex rather than imported, because i18n.ts is TypeScript and
+ * this is a plain node script. The shape it matches is the one the whole file
+ * uses: `key: { English: '…', Español: '…' }`.
+ */
+const i18n = readFileSync('src/lib/i18n.ts', 'utf8');
+const english = new Map();
+for (const m of i18n.matchAll(/(\w+):\s*\{\s*English:\s*(['"`])((?:[^\\]|\\.)*?)\2/g)) {
+  english.set(m[1], m[3].replace(/\\'/g, "'").replace(/\\"/g, '"').replace(/\\`/g, '`'));
+}
+if (english.size < 100) {
+  console.error(`Only ${english.size} translations parsed from src/lib/i18n.ts — the shape of that file has changed.`);
+  process.exit(1);
+}
+
+const unresolved = [];
+/** `{t('key')}` -> the English behind it. */
+function resolveKeys(text) {
+  return text.replace(/\{\s*t\(\s*['"](\w+)['"]\s*\)\s*\}/g, (_, key) => {
+    if (!english.has(key)) { unresolved.push(key); return ''; }
+    return english.get(key);
+  });
+}
 
 const blocks = [];
 const re = /<Text style=\{s\.(h2|p|updated)\}>([\s\S]*?)<\/Text>/g;
 let m;
 while ((m = re.exec(src)) !== null) {
-  const text = m[2]
+  const text = resolveKeys(m[2])
     .replace(/\{'([^']*)'\}/g, '$1')   // {'…'} escapes in JSX
     .replace(/\{"([^"]*)"\}/g, '$1')
     .replace(/\s+/g, ' ')
@@ -26,6 +65,25 @@ while ((m = re.exec(src)) !== null) {
 }
 if (!blocks.length) {
   console.error('No policy copy found — did the markup in app/privacy.tsx change?');
+  process.exit(1);
+}
+
+// Refusing rather than publishing a gap. A privacy policy missing the section
+// about what other people can see is a worse outcome than a failed build.
+if (unresolved.length) {
+  console.error(`\n  These keys are in app/privacy.tsx but not in the translation table:`);
+  for (const k of [...new Set(unresolved)]) console.error(`    ${k}`);
+  console.error(`\n  Nothing written.\n`);
+  process.exit(1);
+}
+
+// Any JSX left behind means a shape this does not understand, and it would be
+// published as text. The old version did exactly that.
+const leaked = blocks.filter(b => /[{}]/.test(b.text));
+if (leaked.length) {
+  console.error(`\n  Markup survived into the output, which would be published as text:`);
+  for (const b of leaked) console.error(`    ${JSON.stringify(b.text.slice(0, 70))}`);
+  console.error(`\n  Nothing written.\n`);
   process.exit(1);
 }
 
@@ -86,5 +144,6 @@ ${body}
 </html>
 `;
 
-writeFileSync('web/privacy.html', html);
-console.log(`web/privacy.html written — ${blocks.filter(b => b.kind === 'h2').length} sections, ${html.length} bytes`);
+mkdirSync('docs', { recursive: true });
+writeFileSync('docs/privacy.html', html);
+console.log(`docs/privacy.html written — ${blocks.filter(b => b.kind === 'h2').length} sections, ${html.length} bytes`);

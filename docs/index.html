@@ -4,36 +4,64 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>FaithFinder — Find a church near you</title>
-<meta name="description" content="A directory of 235,000 churches across the United States, with events, ticketing and a community feed.">
-<link rel="stylesheet" href="style.css">
+<meta name="description" content="A directory of more than 235,000 churches across the United States, with events, tickets and a community feed.">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:opsz,wght@9..40,400;9..40,600&display=swap">
+<style>
+  :root { --ground:#faf9f6; --ink:#1a1a2e; --ink-2:#4a4a56; --gold:#c9a96e; --rule:#e9e5dd; --panel:#fffdfa; }
+  @media (prefers-color-scheme: dark) {
+    :root { --ground:#0f0f13; --ink:#f4f2ee; --ink-2:#b4b4bf; --rule:#26262e; --gold:#d4b47e; --panel:#15151b; }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--ground); color: var(--ink);
+    font-family: "DM Sans", ui-sans-serif, -apple-system, "Segoe UI", Roboto, sans-serif;
+    font-size: 16px; line-height: 1.65; -webkit-font-smoothing: antialiased;
+  }
+  main { max-width: 44rem; margin: 0 auto; padding: 56px 22px 96px; }
+  .mark { font-size: 26px; color: var(--gold); line-height: 1; margin-bottom: 10px; }
+  h1 {
+    font-family: "Playfair Display", Georgia, serif; font-weight: 700;
+    font-size: clamp(30px, 6vw, 40px); line-height: 1.15; margin: 0 0 10px;
+  }
+  .lede { font-size: 17px; color: var(--ink-2); margin: 0 0 38px; }
+  h2 {
+    font-family: "Playfair Display", Georgia, serif; font-weight: 600;
+    font-size: 20px; margin: 38px 0 14px; padding-top: 22px;
+    border-top: 1px solid var(--rule);
+  }
+  p { margin: 0 0 14px; color: var(--ink-2); }
+  a { color: var(--gold); }
+  .grid { display: grid; gap: 12px; }
+  @media (min-width: 38rem) { .grid { grid-template-columns: 1fr 1fr; } }
+  .card { background: var(--panel); border: 1px solid var(--rule); border-radius: 14px; padding: 16px 18px; }
+  .card h3 { font-family: "Playfair Display", Georgia, serif; font-weight: 600; font-size: 16px; margin: 0 0 4px; }
+  .card p { margin: 0; font-size: 14px; }
+  footer { margin-top: 52px; padding-top: 22px; border-top: 1px solid var(--rule); font-size: 13px; color: var(--ink-2); }
+  footer a { margin-right: 18px; }
+</style>
 </head>
 <body>
-<header class="site"><div class="wrap">
-  <div class="logo">F</div><div class="brand">FaithFinder</div>
-  <nav class="site"><a href="privacy.html">Privacy</a><a href="support.html">Support</a></nav>
-</div></header>
-
-<main class="wrap">
+<main>
+  <div class="mark">&#8224;</div>
   <h1>Find a church near you.</h1>
-  <p class="lede">A directory of more than 235,000 churches across all 50 states — searchable by city, denomination and distance, with events, tickets and a community feed.</p>
+  <p class="lede">A directory of more than 235,000 churches across all fifty states — searchable by city, denomination and distance, with events, tickets and a community feed.</p>
 
-  <div class="grid two">
+  <div class="grid">
     <div class="card"><h3>235,000+ churches</h3><p>Every state covered, with addresses, denominations and contact details.</p></div>
-    <div class="card"><h3>Search near you</h3><p>Find churches by city or by distance from where you are.</p></div>
-    <div class="card"><h3>Events and tickets</h3><p>Churches can post events and sell tickets; members can register in a couple of taps.</p></div>
-    <div class="card"><h3>A community feed</h3><p>Share posts, connect with people, and follow what your church is doing.</p></div>
-    <div class="card"><h3>Claim your church</h3><p>Pastors and staff can claim their listing, add photos and keep the details right.</p></div>
-    <div class="card"><h3>English and Spanish</h3><p>The whole app, both languages, switchable any time.</p></div>
+    <div class="card"><h3>Search near you</h3><p>Find churches by city, or by distance from where you are.</p></div>
+    <div class="card"><h3>Events and tickets</h3><p>Churches post events and sell tickets; members register in a couple of taps.</p></div>
+    <div class="card"><h3>A community feed</h3><p>Share posts, connect with people, follow what your church is doing.</p></div>
+    <div class="card"><h3>Claim your church</h3><p>Pastors and staff claim their listing, add photos, and keep the details right.</p></div>
+    <div class="card"><h3>English and Español</h3><p>The whole app, both languages, switchable any time.</p></div>
   </div>
 
   <h2>Coming to the App Store</h2>
-  <p>FaithFinder is in development for iPhone. For questions or to be told when it launches, see <a href="support.html">Support</a>.</p>
-</main>
+  <p>FaithFinder is in development for iPhone. For questions, or to hear when it launches, see <a href="support.html">Support</a>.</p>
 
-<footer class="site"><div class="wrap">
-  <div>© 2026 FaithFinder</div>
-  <div><a href="privacy.html">Privacy Policy</a></div>
-  <div><a href="support.html">Support</a></div>
-</div></footer>
+  <footer>
+    <a href="privacy.html">Privacy Policy</a><a href="support.html">Support</a>
+    <div style="margin-top:10px">&copy; 2026 FaithFinder</div>
+  </footer>
+</main>
 </body>
 </html>
