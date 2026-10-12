@@ -20,7 +20,22 @@ import { load, save } from './persist';
  * is new, and it would have silently skipped them.
  */
 
-const KEY = 'faithfinder_onboarding_seen_v1';
+/**
+ * v2, and the bump is the fix.
+ *
+ * The guard described above did not only skip the introduction — it wrote the
+ * skip down. `save(KEY, true)` ran on every device that had a stored user, so
+ * phones were permanently marked as having seen a screen they had never been
+ * shown. Deleting the guard stopped new devices being marked; it could not
+ * unmark the ones already written to, which is why the slides still did not
+ * appear after creating an account.
+ *
+ * A new key is the smallest honest repair: the old value is left where it is,
+ * nothing has to be migrated or cleared, and every device answers the question
+ * again from scratch. Only the ends of account creation lead here, so answering
+ * again costs nothing to anyone who is not creating an account.
+ */
+const KEY = 'faithfinder_onboarding_seen_v2';
 
 let seen = false;
 
