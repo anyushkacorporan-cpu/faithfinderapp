@@ -55,3 +55,6 @@ app-example
 # source_id so a re-fetch is cheaper than a stale copy in the history.
 churches-*.json
 data/churches-US-*.json
+
+# editor backup files
+*~
