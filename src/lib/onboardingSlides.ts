@@ -16,7 +16,7 @@ import type { ImageSourcePropType } from 'react-native';
  *
  * Until one is set the slide draws its gradient instead, which is a finished
  * look rather than a hole — so the order they arrive in does not matter and
- * nothing has to wait for all six.
+ * nothing has to wait for the rest.
  */
 
 export type Slide = {

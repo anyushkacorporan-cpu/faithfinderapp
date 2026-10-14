@@ -18,7 +18,7 @@ import { markOnboardingSeen, hasSeenOnboarding, hydrated } from '../src/lib/onbo
  * Full-bleed, dark, serif: the look the design asked for. A photograph behind
  * each card where one has been supplied, and a gradient in the same key where
  * one has not — so a missing image reads as a choice rather than as a gap, and
- * the six do not have to arrive together.
+ * the photographs do not have to arrive together.
  *
  * Every route in is an end-of-signup route, and the flag is set on the way out,
  * so a claim or a registration months later passes straight through. Settings →
@@ -105,7 +105,15 @@ export default function Onboarding() {
       <SafeAreaView style={s.topBar} edges={['top']} pointerEvents="box-none">
         <View style={s.topRow}>
           <View style={s.brand}>
-            <Text style={s.cross}>✝</Text>
+            {/* Drawn, not typed. A cross typed as a character is a glyph the
+                font decides how to render, and on some devices it arrives
+                looking like an emoji. Two gold bars are the same mark the
+                app's own Logo draws, at the same proportions, and they look
+                the same on every phone. */}
+            <View style={s.cross}>
+              <View style={s.crossV} />
+              <View style={s.crossH} />
+            </View>
             <Text style={s.brandTxt}>FaithFinder</Text>
           </View>
 
@@ -236,8 +244,8 @@ const s = StyleSheet.create({
     fontFamily: 'PlayfairDisplay_700Bold', fontSize: 38, lineHeight: 46,
     color: '#fff', textAlign: 'center',
   },
-  // The short gold rule under every title, which is what makes the six read as
-  // one set rather than six screens.
+  // The short gold rule under every title, which is what makes the seven read
+  // as one set rather than seven screens.
   rule: { width: 64, height: 2, backgroundColor: GOLD, marginTop: 16, marginBottom: 20 },
   body: {
     fontSize: 17, lineHeight: 28, color: 'rgba(255,255,255,0.88)', textAlign: 'center',
@@ -258,11 +266,6 @@ const s = StyleSheet.create({
     color: GOLD, marginTop: 4,
   },
 
-  points: { alignSelf: 'stretch', gap: 14, marginTop: 6 },
-  point: { flexDirection: 'row', gap: 12, paddingRight: 8 },
-  bullet: { color: GOLD, fontSize: 15, lineHeight: 26 },
-  pointTxt: { flex: 1, fontSize: 17, lineHeight: 26, color: 'rgba(255,255,255,0.92)' },
-
   verseWrap: { marginTop: 28, alignItems: 'center' },
   verse: {
     fontFamily: 'PlayfairDisplay_400Regular_Italic', fontSize: 15, lineHeight: 24,
@@ -276,7 +279,9 @@ const s = StyleSheet.create({
     paddingHorizontal: 18, paddingTop: 6,
   },
   brand: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  cross: { color: GOLD, fontSize: 19 },
+  cross: { width: 12, height: 18, alignItems: 'center', justifyContent: 'center' },
+  crossV: { position: 'absolute', width: 2, height: 18, backgroundColor: GOLD },
+  crossH: { position: 'absolute', top: 5, width: 12, height: 2, backgroundColor: GOLD },
   brandTxt: { fontFamily: 'PlayfairDisplay_700Bold', fontSize: 17, color: '#fff' },
 
   progress: { flex: 1, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 5 },
