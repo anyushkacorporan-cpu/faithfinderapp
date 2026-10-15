@@ -67,20 +67,27 @@
     text-transform: uppercase; color: var(--gold-lit);
   }
 
-  /* Apple's own badge is for apps that are actually in the store, and its logo
-     is theirs to place, so this says the same thing in words instead. When
-     Four Circle is live, Apple hands over the real badge to put here. */
+  /* Shaped like the badge Apple issues, because that shape is what everybody
+     reads as "this is an iPhone app". It is not that badge: Apple only hands
+     the real one out for apps that are in the store, and it does not make a
+     "coming soon" version. Swap it for the official one on launch day, which
+     is the whole of the change: same corner, same size. */
   .badge {
-    border: 1px solid var(--rule); border-radius: 11px;
-    background: rgba(10,7,4,0.5);
-    padding: 7px 14px; text-align: left;
-    font-size: 0.6rem; letter-spacing: 0.12em; text-transform: uppercase;
-    color: var(--ink-2); line-height: 1.5; white-space: nowrap;
+    display: flex; align-items: center; gap: 9px;
+    border: 1px solid rgba(255,255,255,0.22); border-radius: 10px;
+    background: rgba(8,6,4,0.72);
+    backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    padding: 7px 14px 8px 12px;
+    text-align: left; white-space: nowrap;
   }
-  .badge b {
-    display: block; font-family: var(--display); font-weight: 700;
-    font-size: 0.92rem; letter-spacing: 0.01em; text-transform: none;
-    color: var(--ink);
+  .badge svg { flex: none; width: 21px; height: 21px; fill: #fff; }
+  .badge .lines { display: flex; flex-direction: column; line-height: 1.15; }
+  .badge .small {
+    font-size: 0.56rem; font-weight: 500; letter-spacing: 0.04em;
+    color: rgba(255,255,255,0.82);
+  }
+  .badge .store {
+    font-size: 1.02rem; font-weight: 600; letter-spacing: -0.005em; color: #fff;
   }
 
   /* ===== the middle =================================================== */
@@ -185,7 +192,10 @@
 
 <header class="top">
   <div class="name">Four Circle</div>
-  <div class="badge">Coming soon on<b>App Store</b></div>
+  <div class="badge">
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701"/></svg>
+    <span class="lines"><span class="small">Coming Soon on</span><span class="store">App Store</span></span>
+  </div>
 </header>
 
 <main>
