@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Four Circle</title>
-<meta name="description" content="Four Circle is coming soon to the App Store. An invitation is coming. Leave your email to receive yours first.">
+<meta name="description" content="Four Circle is coming soon to the App Store. An invitation is coming.">
 <meta name="theme-color" content="#120d08">
 
 <!-- Opening the link from an Instagram bio shows this card, so it is written
@@ -115,8 +115,10 @@
     h1 { color: transparent; }
   }
 
-  .tag { font-size: 1.02rem; color: var(--ink-2); margin: 0 0 30px; max-width: 26rem; }
-  .tag b { display: block; color: var(--ink); font-weight: 600; font-size: 1.1rem; }
+  .tag {
+    font-size: 1.12rem; font-weight: 600; color: var(--ink);
+    margin: 0 0 26px; max-width: 26rem;
+  }
 
   /* ===== the box ====================================================== */
 
@@ -202,11 +204,11 @@
   <h1>Coming Soon</h1>
 
   <div id="box">
-    <p class="tag"><b>An invitation is coming.</b>Leave your email to receive yours first.</p>
+    <p class="tag">An invitation is coming.</p>
 
     <form id="form" novalidate>
       <label class="visually-hidden" for="email">Your email address</label>
-      <input type="email" id="email" name="email" placeholder="Please enter your email address"
+      <input type="email" id="email" name="email" placeholder="Notify me of release"
              autocomplete="email" inputmode="email" required>
       <button type="submit" id="go">Notify Me</button>
     </form>
