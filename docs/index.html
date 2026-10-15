@@ -3,14 +3,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>FaithFinder</title>
-<meta name="description" content="FaithFinder is coming in 2026. Leave your email and we will tell you the day it opens.">
+<title>Four Circle</title>
+<meta name="description" content="Four Circle is coming in 2026. Leave your email and we will tell you the day it opens.">
 <meta name="theme-color" content="#120d08">
 
 <!-- Opening the link from an Instagram bio shows this card, so it is written
      for that and not for a search result. -->
 <meta property="og:type" content="website">
-<meta property="og:title" content="FaithFinder">
+<meta property="og:title" content="Four Circle">
 <meta property="og:description" content="Coming soon, 2026. Be the first to know.">
 <meta property="og:image" content="hero.jpg">
 <meta name="twitter:card" content="summary_large_image">
@@ -63,14 +63,6 @@
     text-align: center;
     padding: 46px 22px 30px;
   }
-
-  /* The cross, drawn rather than typed, for the same reason it is drawn in the
-     app: a cross as a character is a glyph the font chooses, and some phones
-     hand back a colour emoji instead of a mark. */
-  .cross { position: relative; width: 20px; height: 30px; margin: 0 auto 18px; }
-  .cross::before, .cross::after { content: ""; position: absolute; background: var(--gold); }
-  .cross::before { left: 9px; top: 0; width: 2px; height: 30px; }
-  .cross::after { left: 0; top: 8px; width: 20px; height: 2px; }
 
   h1 {
     font-family: var(--display); font-weight: 700;
@@ -147,8 +139,7 @@
 <body>
 
 <main>
-  <div class="cross" aria-hidden="true"></div>
-  <h1>FaithFinder</h1>
+  <h1>Four Circle</h1>
   <p class="soon">Coming soon 2026</p>
 
   <div id="box">
@@ -232,7 +223,7 @@
       box.innerHTML =
         '<div class="tick" aria-hidden="true"><span></span></div>' +
         '<h2>You are on the list.</h2>' +
-        '<p>We will email you the day FaithFinder opens.</p>';
+        '<p>We will email you the day Four Circle opens.</p>';
       box.focus();
     }).catch(function () {
       go.disabled = false;
