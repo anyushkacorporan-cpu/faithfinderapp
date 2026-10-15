@@ -64,19 +64,23 @@
     padding: 46px 22px 30px;
   }
 
+  /* The name sits above the headline rather than being it: the bold line is
+     the one that says what is happening. Both are inside the h1, so the
+     document still has one heading and it still begins with the name. */
   h1 {
     font-family: var(--display); font-weight: 700;
-    font-size: clamp(2.6rem, 13vw, 4rem); line-height: 1.05;
-    letter-spacing: 0.005em; margin: 0 0 16px;
+    font-size: clamp(2.1rem, 10vw, 3.1rem); line-height: 1.08;
+    letter-spacing: 0.005em; margin: 0 0 10px; max-width: 14em;
+  }
+  h1 .name {
+    display: block; font-weight: 600;
+    font-size: clamp(1.05rem, 4.6vw, 1.3rem); line-height: 1.2;
+    letter-spacing: 0.16em; text-transform: uppercase;
+    color: var(--gold-lit); margin: 0 0 20px;
   }
 
-  .soon {
-    font-size: 0.78rem; font-weight: 700; letter-spacing: 0.22em;
-    text-transform: uppercase; color: var(--gold-lit);
-    margin: 0 0 6px; max-width: 18rem;
-  }
   .year {
-    font-size: 0.78rem; font-weight: 600; letter-spacing: 0.22em;
+    font-size: 0.8rem; font-weight: 600; letter-spacing: 0.24em;
     color: rgba(246,242,234,0.55);
     margin: 0 0 46px;
   }
@@ -144,8 +148,7 @@
 <body>
 
 <main>
-  <h1>Four Circle</h1>
-  <p class="soon">Coming soon to the App Store</p>
+  <h1><span class="name">Four Circle</span>Coming soon to the App Store</h1>
   <p class="year">2026</p>
 
   <div id="box">
