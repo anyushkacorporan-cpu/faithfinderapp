@@ -3,65 +3,417 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>FaithFinder — Find a church near you</title>
-<meta name="description" content="A directory of more than 235,000 churches across the United States, with events, tickets and a community feed.">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:opsz,wght@9..40,400;9..40,600&display=swap">
+<title>FaithFinder</title>
+<meta name="description" content="A directory of more than 235,000 churches across all fifty states, with events, tickets and a community feed. Coming to iPhone. Leave your email and we will tell you the day it launches.">
+<meta name="theme-color" content="#120d08">
+
+<!-- Opening the link from an Instagram bio shows this card, so it is written
+     for that and not for a search result. -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="FaithFinder is coming">
+<meta property="og:description" content="More than 235,000 churches across all fifty states. Events, tickets and a community of believers. Leave your email and we will tell you the day it launches.">
+<meta property="og:image" content="hero.jpg">
+<meta name="twitter:card" content="summary_large_image">
+
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,400&family=DM+Sans:opsz,wght@9..40,400;9..40,600;9..40,700&display=swap">
 <style>
-  :root { --ground:#faf9f6; --ink:#1a1a2e; --ink-2:#4a4a56; --gold:#c9a96e; --rule:#e9e5dd; --panel:#fffdfa; }
-  @media (prefers-color-scheme: dark) {
-    :root { --ground:#0f0f13; --ink:#f4f2ee; --ink-2:#b4b4bf; --rule:#26262e; --gold:#d4b47e; --panel:#15151b; }
+  :root {
+    --gold: #c9a96e;
+    --gold-lit: #e3c88f;
+    --ground: #120d08;
+    --panel: #1b150f;
+    --rule: rgba(201,169,110,0.22);
+    --ink: #f6f2ea;
+    --ink-2: rgba(246,242,234,0.72);
+    --display: "Playfair Display", Georgia, "Times New Roman", serif;
+    --text: "DM Sans", ui-sans-serif, -apple-system, "Segoe UI", Roboto, sans-serif;
   }
+
   * { box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+
   body {
-    margin: 0; background: var(--ground); color: var(--ink);
-    font-family: "DM Sans", ui-sans-serif, -apple-system, "Segoe UI", Roboto, sans-serif;
-    font-size: 16px; line-height: 1.65; -webkit-font-smoothing: antialiased;
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--text);
+    font-size: 16px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
   }
-  main { max-width: 44rem; margin: 0 auto; padding: 56px 22px 96px; }
-  .mark { font-size: 26px; color: var(--gold); line-height: 1; margin-bottom: 10px; }
+
+  .wrap { max-width: 40rem; margin: 0 auto; padding: 0 20px; }
+
+  /* The cross, drawn rather than typed, for the same reason it is drawn in the
+     app: a cross as a character is a glyph the font chooses, and some phones
+     hand back a colour emoji instead of a mark. */
+  .cross { position: relative; display: inline-block; width: 13px; height: 19px; vertical-align: -3px; }
+  .cross::before, .cross::after { content: ""; position: absolute; background: var(--gold); }
+  .cross::before { left: 5.5px; top: 0; width: 2px; height: 19px; }
+  .cross::after { left: 0; top: 5px; width: 13px; height: 2px; }
+
+  .brand { display: flex; align-items: center; gap: 9px; }
+  .brand b { font-family: var(--display); font-weight: 700; font-size: 1.05rem; letter-spacing: 0.01em; }
+
+  /* ===== the hero ===================================================== */
+
+  .hero {
+    position: relative;
+    min-height: 100svh;
+    display: flex;
+    flex-direction: column;
+    padding: 22px 0 40px;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: "";
+    position: absolute; inset: 0;
+    background: #2a1c10 url("hero.jpg") center / cover no-repeat;
+  }
+  /* Darkest at the top and bottom, where the wordmark and the form sit, and
+     lighter through the middle so the photograph is still a photograph. */
+  .hero::after {
+    content: "";
+    position: absolute; inset: 0;
+    background: linear-gradient(
+      to bottom,
+      rgba(10,7,4,0.78) 0%,
+      rgba(10,7,4,0.40) 32%,
+      rgba(10,7,4,0.86) 72%,
+      var(--ground) 100%);
+  }
+  .hero > * { position: relative; z-index: 1; }
+
+  .hero-body { flex: 1; display: flex; flex-direction: column; justify-content: center; padding: 44px 0 10px; }
+
+  .eyebrow {
+    font-size: 0.74rem; font-weight: 700; letter-spacing: 0.22em;
+    text-transform: uppercase; color: var(--gold-lit); margin: 0 0 14px;
+  }
   h1 {
-    font-family: "Playfair Display", Georgia, serif; font-weight: 700;
-    font-size: clamp(30px, 6vw, 40px); line-height: 1.15; margin: 0 0 10px;
+    font-family: var(--display); font-weight: 700;
+    font-size: clamp(2.3rem, 11vw, 3.6rem); line-height: 1.06;
+    margin: 0 0 18px; text-wrap: balance;
   }
-  .lede { font-size: 17px; color: var(--ink-2); margin: 0 0 38px; }
-  h2 {
-    font-family: "Playfair Display", Georgia, serif; font-weight: 600;
-    font-size: 20px; margin: 38px 0 14px; padding-top: 22px;
+  .lede { font-size: 1.07rem; color: var(--ink-2); margin: 0 0 30px; max-width: 32rem; }
+  .lede strong { color: var(--ink); font-weight: 600; }
+
+  /* ===== the form ===================================================== */
+
+  .signup {
+    background: rgba(18,13,8,0.72);
+    border: 1px solid var(--rule);
+    border-radius: 18px;
+    padding: 20px 18px 18px;
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+  }
+  .signup h2 {
+    font-family: var(--display); font-weight: 600; font-size: 1.22rem;
+    margin: 0 0 4px; line-height: 1.25;
+  }
+  .signup .sub { font-size: 0.93rem; color: var(--ink-2); margin: 0 0 16px; }
+
+  fieldset { border: 0; margin: 0 0 12px; padding: 0; }
+  legend { font-size: 0.8rem; color: var(--ink-2); padding: 0 0 8px; }
+  .choice { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .choice input { position: absolute; opacity: 0; pointer-events: none; }
+  .choice label {
+    display: block; text-align: center; cursor: pointer;
+    padding: 11px 8px; border-radius: 11px;
+    border: 1px solid var(--rule); background: rgba(255,255,255,0.03);
+    font-size: 0.9rem; font-weight: 600; color: var(--ink-2);
+    transition: background .15s, color .15s, border-color .15s;
+  }
+  .choice input:checked + label {
+    background: rgba(201,169,110,0.16); border-color: var(--gold); color: var(--ink);
+  }
+  .choice input:focus-visible + label { outline: 2px solid var(--gold-lit); outline-offset: 2px; }
+
+  .row { display: grid; gap: 8px; }
+  @media (min-width: 30rem) { .row { grid-template-columns: 1fr auto; } }
+
+  input[type="email"] {
+    width: 100%; font: inherit; font-size: 1rem; color: var(--ink);
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--rule); border-radius: 11px;
+    padding: 13px 14px;
+  }
+  input[type="email"]::placeholder { color: rgba(246,242,234,0.42); }
+  input[type="email"]:focus { outline: 2px solid var(--gold-lit); outline-offset: 1px; border-color: transparent; }
+
+  button {
+    font: inherit; font-weight: 700; font-size: 0.98rem; cursor: pointer;
+    color: #1a1208; background: var(--gold);
+    border: 0; border-radius: 11px; padding: 13px 20px;
+    transition: background .15s, transform .08s;
+  }
+  button:hover { background: var(--gold-lit); }
+  button:active { transform: translateY(1px); }
+  button[disabled] { opacity: 0.6; cursor: default; transform: none; }
+
+  .note { font-size: 0.8rem; color: rgba(246,242,234,0.55); margin: 11px 0 0; }
+
+  .msg { margin: 12px 0 0; font-size: 0.92rem; }
+  .msg.bad { color: #ffb4a2; }
+
+  /* Replaces the form once it has been sent, rather than sitting under it, so
+     there is no second box inviting a second go. */
+  .done { text-align: center; padding: 6px 4px 2px; }
+  .done .tick {
+    width: 46px; height: 46px; margin: 0 auto 12px; border-radius: 50%;
+    border: 1.5px solid var(--gold); display: grid; place-items: center;
+  }
+  .done .tick span {
+    display: block; width: 15px; height: 8px; margin-top: -4px;
+    border-left: 2px solid var(--gold); border-bottom: 2px solid var(--gold);
+    transform: rotate(-45deg);
+  }
+  .done h2 { font-family: var(--display); font-size: 1.3rem; margin: 0 0 6px; }
+  .done p { color: var(--ink-2); font-size: 0.95rem; margin: 0 0 6px; }
+
+  /* ===== below the fold =============================================== */
+
+  .stats {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 10px; margin: 46px 0 0; text-align: center;
+  }
+  .stats div { border: 1px solid var(--rule); border-radius: 13px; padding: 15px 8px; background: var(--panel); }
+  .stats b { display: block; font-family: var(--display); font-size: clamp(1.15rem, 5.2vw, 1.6rem); color: var(--gold-lit); }
+  .stats span { font-size: 0.74rem; color: var(--ink-2); letter-spacing: 0.03em; }
+
+  section { padding: 54px 0 0; }
+  h2.head {
+    font-family: var(--display); font-weight: 600;
+    font-size: clamp(1.5rem, 6vw, 1.9rem); line-height: 1.2; margin: 0 0 8px;
+  }
+  .sub-head { color: var(--ink-2); margin: 0 0 24px; }
+
+  .cards { display: grid; gap: 11px; }
+  @media (min-width: 34rem) { .cards { grid-template-columns: 1fr 1fr; } }
+  .card { background: var(--panel); border: 1px solid var(--rule); border-radius: 14px; padding: 16px 17px; }
+  .card h3 { font-family: var(--display); font-weight: 600; font-size: 1.02rem; margin: 0 0 5px; }
+  .card p { margin: 0; font-size: 0.9rem; color: var(--ink-2); line-height: 1.55; }
+
+  blockquote {
+    margin: 0; padding: 26px 22px; border-radius: 16px;
+    background: var(--panel); border: 1px solid var(--rule);
+  }
+  blockquote p {
+    font-family: var(--display); font-style: italic; font-size: 1.18rem;
+    line-height: 1.5; margin: 0 0 14px; color: var(--ink);
+  }
+  blockquote cite { font-style: normal; font-size: 0.86rem; color: var(--gold-lit); }
+  blockquote cite span { display: block; color: var(--ink-2); }
+
+  .back { text-align: center; padding: 50px 0 0; }
+  .back a {
+    display: inline-block; color: var(--gold); text-decoration: none;
+    font-weight: 600; border: 1px solid var(--rule); border-radius: 999px;
+    padding: 12px 26px;
+  }
+  .back a:hover { background: rgba(201,169,110,0.1); }
+
+  footer {
+    margin-top: 56px; padding: 24px 0 40px;
     border-top: 1px solid var(--rule);
+    font-size: 0.82rem; color: var(--ink-2);
   }
-  p { margin: 0 0 14px; color: var(--ink-2); }
-  a { color: var(--gold); }
-  .grid { display: grid; gap: 12px; }
-  @media (min-width: 38rem) { .grid { grid-template-columns: 1fr 1fr; } }
-  .card { background: var(--panel); border: 1px solid var(--rule); border-radius: 14px; padding: 16px 18px; }
-  .card h3 { font-family: "Playfair Display", Georgia, serif; font-weight: 600; font-size: 16px; margin: 0 0 4px; }
-  .card p { margin: 0; font-size: 14px; }
-  footer { margin-top: 52px; padding-top: 22px; border-top: 1px solid var(--rule); font-size: 13px; color: var(--ink-2); }
-  footer a { margin-right: 18px; }
+  footer a { color: var(--gold); margin-right: 18px; }
+  footer .small { margin-top: 10px; display: block; color: rgba(246,242,234,0.45); }
+
+  .visually-hidden {
+    position: absolute; width: 1px; height: 1px; overflow: hidden;
+    clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap;
+  }
 </style>
 </head>
 <body>
-<main>
-  <div class="mark">&#8224;</div>
-  <h1>Find a church near you.</h1>
-  <p class="lede">A directory of more than 235,000 churches across all fifty states — searchable by city, denomination and distance, with events, tickets and a community feed.</p>
 
-  <div class="grid">
-    <div class="card"><h3>235,000+ churches</h3><p>Every state covered, with addresses, denominations and contact details.</p></div>
-    <div class="card"><h3>Search near you</h3><p>Find churches by city, or by distance from where you are.</p></div>
-    <div class="card"><h3>Events and tickets</h3><p>Churches post events and sell tickets; members register in a couple of taps.</p></div>
-    <div class="card"><h3>A community feed</h3><p>Share posts, connect with people, follow what your church is doing.</p></div>
-    <div class="card"><h3>Claim your church</h3><p>Pastors and staff claim their listing, add photos, and keep the details right.</p></div>
-    <div class="card"><h3>English and Español</h3><p>The whole app, both languages, switchable any time.</p></div>
+<header class="hero">
+  <div class="wrap brand"><span class="cross" aria-hidden="true"></span><b>FaithFinder</b></div>
+
+  <div class="wrap hero-body">
+    <p class="eyebrow">Coming soon to iPhone</p>
+    <h1>No believer should be doing life alone.</h1>
+    <p class="lede">
+      <strong>More than 235,000 churches</strong> across all fifty states, with events,
+      tickets and a community of believers. Whether you are looking for a church to
+      finally call home, or you are in town for the weekend and want somewhere to
+      worship, it is being built so you can find it.
+    </p>
+
+    <div class="signup" id="signup">
+      <h2>Be the first to know</h2>
+      <p class="sub">Leave your email and we will tell you the day FaithFinder opens, so you can create your account before anybody else.</p>
+
+      <form id="form" novalidate>
+        <fieldset>
+          <legend>Which one is you?</legend>
+          <div class="choice">
+            <input type="radio" name="role" id="role-member" value="member" checked>
+            <label for="role-member">I want a church</label>
+            <input type="radio" name="role" id="role-church" value="church">
+            <label for="role-church">I am a church</label>
+          </div>
+        </fieldset>
+
+        <div class="row">
+          <label class="visually-hidden" for="email">Your email address</label>
+          <input type="email" id="email" name="email" placeholder="you@email.com"
+                 autocomplete="email" inputmode="email" required>
+          <button type="submit" id="go">Tell me first</button>
+        </div>
+
+        <p class="note">One email, on launch day. Nothing else, and never passed on.</p>
+        <p class="msg" id="msg" role="status" aria-live="polite"></p>
+      </form>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <div class="stats">
+    <div><b>235,147</b><span>churches</span></div>
+    <div><b>50</b><span>states</span></div>
+    <div><b>2</b><span>languages</span></div>
   </div>
 
-  <h2>Coming to the App Store</h2>
-  <p>FaithFinder is in development for iPhone. For questions, or to hear when it launches, see <a href="support.html">Support</a>.</p>
+  <section>
+    <h2 class="head">What you will find inside</h2>
+    <p class="sub-head">Built for the believer looking for somewhere to worship, and for the church that wants to be found.</p>
+
+    <div class="cards">
+      <div class="card">
+        <h3>Search near you</h3>
+        <p>By city, by denomination, or simply by what is closest to where you are standing right now.</p>
+      </div>
+      <div class="card">
+        <h3>Events and tickets</h3>
+        <p>Worship nights, bible studies, fellowships and concerts. Register in a couple of taps.</p>
+      </div>
+      <div class="card">
+        <h3>A community feed</h3>
+        <p>Share your testimony, post the scripture that carried you, and encourage somebody who needs it today.</p>
+      </div>
+      <div class="card">
+        <h3>Claim your church</h3>
+        <p>Pastors and staff take over their listing, add photos, fix the details and post what is happening.</p>
+      </div>
+      <div class="card">
+        <h3>Money goes to you</h3>
+        <p>Ticket sales pay out to the church's own account, not into somebody else's and back out again.</p>
+      </div>
+      <div class="card">
+        <h3>English and Español</h3>
+        <p>The whole app in both languages, switchable at any time, scripture included.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <blockquote>
+      <p>I pray this app blesses you. I pray you find a church. I pray you find your community. But most importantly, I pray that you come to know God.</p>
+      <cite>Annie<span>Creator of FaithFinder</span></cite>
+    </blockquote>
+  </section>
+
+  <div class="back">
+    <a href="#signup">Tell me when it launches</a>
+  </div>
 
   <footer>
     <a href="privacy.html">Privacy Policy</a><a href="support.html">Support</a>
-    <div style="margin-top:10px">&copy; 2026 FaithFinder</div>
+    <span class="small">&copy; 2026 FaithFinder. Coming to iPhone.</span>
   </footer>
+
 </main>
+
+<script>
+(function () {
+  'use strict';
+
+  // The publishable key, which is meant to be public: it identifies the
+  // project and nothing more. What it is allowed to do is decided in the
+  // database, and there it is allowed to call one function, join_waitlist,
+  // which takes an address and returns nothing about anybody else. It cannot
+  // read this list or any other table. See supabase/27_waitlist.sql.
+  var API = 'https://mmhpfiabbpzaizkjozjq.supabase.co/rest/v1/rpc/join_waitlist';
+  var KEY = 'sb_publishable_sVF7I5TRILs0rhDGRgTl3Q_eerLcV_6';
+
+  var form = document.getElementById('form');
+  var email = document.getElementById('email');
+  var go = document.getElementById('go');
+  var msg = document.getElementById('msg');
+  var box = document.getElementById('signup');
+
+  function say(text, bad) {
+    msg.textContent = text;
+    msg.className = bad ? 'msg bad' : 'msg';
+  }
+
+  // Where the visit came from, so the list says which link worked. Only the
+  // site, never the full address: the rest of a referrer can carry a search
+  // somebody typed, and that is not ours to keep.
+  function source() {
+    var q = new URLSearchParams(location.search).get('from');
+    if (q) return q.slice(0, 40);
+    try {
+      if (document.referrer) return new URL(document.referrer).hostname;
+    } catch (e) { /* a referrer that will not parse tells us nothing */ }
+    return 'site';
+  }
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+
+    var address = email.value.trim();
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]{2,}$/.test(address)) {
+      say('Please check that email address.', true);
+      email.focus();
+      return;
+    }
+
+    go.disabled = true;
+    go.textContent = 'Sending';
+    say('');
+
+    var role = (document.querySelector('input[name="role"]:checked') || {}).value || 'member';
+
+    fetch(API, {
+      method: 'POST',
+      headers: { 'apikey': KEY, 'Authorization': 'Bearer ' + KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ p_email: address, p_role: role, p_source: source() })
+    }).then(function (res) {
+      if (!res.ok) throw new Error('http ' + res.status);
+
+      // The form is replaced rather than cleared, so the page cannot be left
+      // looking as though nothing happened.
+      // role and tabindex before the content, not after: a live region has to
+      // exist before what it is announcing goes into it, and a div is not
+      // focusable until it is told it can be.
+      box.setAttribute('role', 'status');
+      box.setAttribute('tabindex', '-1');
+      box.innerHTML =
+        '<div class="done">' +
+          '<div class="tick" aria-hidden="true"><span></span></div>' +
+          '<h2>You are on the list.</h2>' +
+          '<p>We will email ' + address.replace(/[<&>]/g, '') + ' the day FaithFinder opens.</p>' +
+          '<p>Until then, God bless you.</p>' +
+        '</div>';
+      box.focus();
+    }).catch(function () {
+      go.disabled = false;
+      go.textContent = 'Tell me first';
+      say('That did not send. Please try again in a moment.', true);
+    });
+  });
+})();
+</script>
+
 </body>
 </html>
