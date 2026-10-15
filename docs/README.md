@@ -15,8 +15,11 @@ screen is not enough; App Store Connect wants a URL it can open.
 ## index.html, and the launch list
 
 The app is not in the store yet, so this page is a "coming soon" that does not
-waste the visit: it says what FaithFinder is, and it takes an email address so
-the people who came early can be told the day it opens.
+waste the visit: the name, the year, and a box to leave an email address in, so
+the people who came early can be told the day it opens. It is deliberately one
+screen with nothing under it. Somebody arriving from a bio link gives it two
+seconds, and everything that is not the email box is competing with the email
+box.
 
 The form posts to one Supabase function, `join_waitlist`, defined in
 `supabase/27_waitlist.sql` with the reasoning behind its shape. The key in the
@@ -31,12 +34,11 @@ reports that it could not send.
 **Reading the list** happens in the Supabase dashboard, whose SQL editor runs as
 the owner and is not subject to row-level security:
 
-    select created_at::date, role, source, email
+    select created_at::date, source, email
     from waitlist order by created_at;
 
-`role` is which of the two apps they are waiting for, `member` or `church`, and
-`source` is where the link was, so a launch email can be written to each group
-and the next link can go wherever the last one worked.
+`source` is where the link was, so the next link can go wherever the last one
+worked.
 
 To tag a link yourself, add `?from=`:
 
@@ -51,6 +53,9 @@ stranger sees after tapping a link in a bio, and it is the only one that has to
 look like the app does. It uses the same serif, the same gold and the same
 photograph as the introduction inside the app, so the screenshots in a post and
 the page the post links to are recognisably one thing.
+
+The photograph is fixed rather than scrolling, and the page is sized to the
+screen, so on a phone it behaves like a poster rather than like a document.
 
 `hero.jpg` is `assets/images/onboarding/01-welcome.jpg` resized to 1100px and
 saved at quality 66, because the app version is sized for a phone screen and

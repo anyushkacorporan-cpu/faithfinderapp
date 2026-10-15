@@ -23,7 +23,7 @@
 -- route; the list is read in the Supabase dashboard, whose SQL editor runs as
 -- the owner and is not subject to RLS:
 --
---     select created_at::date, role, email from waitlist order by created_at;
+--     select created_at::date, source, email from waitlist order by created_at;
 --
 -- WHAT IS STILL EXPOSED, HONESTLY
 --
@@ -44,11 +44,6 @@ create table if not exists waitlist (
   -- unique constraint enough: without it Annie@x.com and annie@x.com are two
   -- rows and one person gets two launch emails.
   email       text not null unique,
-
-  -- Which of the two apps they are waiting for. A person looking for a church
-  -- and a church wanting to claim its listing are both on this list, and they
-  -- do not want the same email at launch, so the difference is worth a column.
-  role        text not null default 'member' check (role in ('member', 'church')),
 
   -- Where the link was. Instagram today; a flyer, a bulletin or a second page
   -- later. Set by the page, so it says which link worked rather than guessing.
@@ -86,7 +81,6 @@ revoke all on public.waitlist from anon, authenticated;
  */
 create or replace function join_waitlist(
   p_email  text,
-  p_role   text default 'member',
   p_source text default null
 )
 returns boolean
@@ -96,7 +90,6 @@ set search_path = public
 as $$
 declare
   clean text;
-  kind  text;
   src   text;
 begin
   clean := lower(btrim(coalesce(p_email, '')));
@@ -108,14 +101,13 @@ begin
     raise exception 'Please check that email address.' using errcode = '22023';
   end if;
 
-  -- Decided here rather than trusted: the caller is a public web page, and
-  -- anything other than the two known values becomes the safe one instead of
-  -- failing the check constraint in front of somebody who typed nothing wrong.
-  kind := case when p_role = 'church' then 'church' else 'member' end;
-  src  := nullif(left(btrim(coalesce(p_source, '')), 40), '');
+  -- Clamped rather than trusted: the caller is a public web page, so this is
+  -- a label somebody can put anything in, and it is only ever read by a human
+  -- looking at which link worked.
+  src := nullif(left(btrim(coalesce(p_source, '')), 40), '');
 
-  insert into waitlist (email, role, source)
-  values (clean, kind, src)
+  insert into waitlist (email, source)
+  values (clean, src)
   on conflict (email) do nothing;
 
   return true;
@@ -125,4 +117,4 @@ $$;
 -- The page is public and has no session, so anon is the role that calls this.
 -- authenticated too, because somebody signed into the app on another device is
 -- still allowed to put an address in a form.
-grant execute on function join_waitlist(text, text, text) to anon, authenticated;
+grant execute on function join_waitlist(text, text) to anon, authenticated;
