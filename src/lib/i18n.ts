@@ -234,8 +234,8 @@ const translations: Record<string, Record<Lang, string>> = {
     English: '12. Contact Us',
     Español: '12. Contáctanos' },
   termsP12: {
-    English: 'Questions about these Terms can be sent to support@faithfinderapp.com.',
-    Español: 'Las preguntas sobre estos Términos pueden enviarse a support@faithfinderapp.com.' },
+    English: 'Questions about these Terms can be sent to support@fourcircle.app.',
+    Español: 'Las preguntas sobre estos Términos pueden enviarse a support@fourcircle.app.' },
   privacyTitle: {
     English: 'Privacy Policy',
     Español: 'Política de Privacidad' },
@@ -309,8 +309,8 @@ const translations: Record<string, Record<Lang, string>> = {
     English: '11. Contact Us',
     Español: '11. Contáctanos' },
   privacyP11: {
-    English: 'Questions about this Privacy Policy can be sent to support@faithfinderapp.com.',
-    Español: 'Las preguntas sobre esta Política de Privacidad pueden enviarse a support@faithfinderapp.com.' },
+    English: 'Questions about this Privacy Policy can be sent to support@fourcircle.app.',
+    Español: 'Las preguntas sobre esta Política de Privacidad pueden enviarse a support@fourcircle.app.' },
   sampleEventCannotRegister: {
     English: 'This is a sample event and cannot be registered for.',
     Español: 'Este es un evento de muestra y no se puede registrar.' },

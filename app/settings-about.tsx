@@ -35,7 +35,7 @@ export default function AboutScreen() {
             // one explanation of what the app is, and it is shown once, at the
             // moment someone is least interested in reading it.
             {icon:'sparkles-outline', color:c.gold, label:'How FaithFinder works', action:() => router.push('/onboarding?replay=1')},
-            {icon:'globe-outline', color:'#667eea', label:'Website', action:() => Linking.openURL('https://faithfinderapp.com')},
+            {icon:'globe-outline', color:'#667eea', label:'Website', action:() => Linking.openURL('https://fourcircle.app')},
             {icon:'logo-instagram', color:'#e91e63', label:'Instagram', action:() => Linking.openURL('https://instagram.com/faithfinderapp')},
             {icon:'document-text-outline', color:c.navy, label:'Terms of Service', action:() => router.push('/terms')},
             {icon:'shield-outline', color:c.green, label:'Privacy Policy', action:() => router.push('/privacy')},

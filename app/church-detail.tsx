@@ -222,7 +222,7 @@ export default function ChurchDetailScreen() {
       const result = await Share.share({
         title: church.name,
         message: 'Check out ' + church.name + ' on FaithFinder!\n📍 ' + church.address + (church.phone ? '\n📞 ' + church.phone : '') + (church.website ? '\n🌐 ' + church.website : ''),
-        url: church.website || 'https://faithfinderapp.com',
+        url: church.website || 'https://fourcircle.app',
       });
     } catch (e) {}
   }

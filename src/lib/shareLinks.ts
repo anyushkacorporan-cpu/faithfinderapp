@@ -9,10 +9,11 @@
  * then automatically landing on the right church/event after install. That
  * requires the app to be published, a verified domain with Apple App Site
  * Association / Android Asset Links files, and a link-routing backend
- * (e.g. Branch.io, or a custom server). None of that exists yet, so we do
- * not claim to support it. Once the app is live and a domain is ready, swap
- * FAITHFINDER_SCHEME-based links below for https://faithfinderapp.com/... 
- * Universal Links and wire a redirect service.
+ * (e.g. Branch.io, or a custom server). The domain now exists
+ * (fourcircle.app), so what is left is the app being published and the
+ * association file being served from it. Once that is true, swap the
+ * FAITHFINDER_SCHEME links below for https://fourcircle.app/... Universal
+ * Links and wire a redirect service.
  */
 
 const FAITHFINDER_SCHEME = 'faithfinder';

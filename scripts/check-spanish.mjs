@@ -74,13 +74,13 @@ if (untranslated.length) {
  * Not everything in quotes is copy.
  *
  * Brand names, example addresses and real contact details must survive
- * untranslated — "support@faithfinderapp.com" in Spanish is still
- * support@faithfinderapp.com. Anything listed here is deliberate, so a new
+ * untranslated — "support@fourcircle.app" in Spanish is still
+ * support@fourcircle.app. Anything listed here is deliberate, so a new
  * untranslated string cannot hide behind a blanket rule.
  */
 const LEAVE_IN_ENGLISH = new Set([
   'FaithFinder', 'FaithFinder App',
-  'support@faithfinderapp.com',
+  'support@fourcircle.app',
   'you@example.com', 'pastor@yourchurch.org', 'info@yourchurch.org',
   'www.yourchurch.org',
   'New York', 'NY', 'Bronx, NY',
