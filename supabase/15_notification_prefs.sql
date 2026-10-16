@@ -1,5 +1,5 @@
 -- ============================================================================
--- FaithFinder — notification preferences the database can see
+-- Four Circle — notification preferences the database can see
 --
 -- Settings → Notification Preferences has eight switches, and every one of them
 -- saved its position correctly and changed nothing else. Notifications are made

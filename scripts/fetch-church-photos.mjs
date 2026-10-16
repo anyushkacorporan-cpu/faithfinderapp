@@ -51,7 +51,7 @@ if (!churches.length) {
 }
 console.log(`\n  ${churches.length.toLocaleString()} churches across ${files.length} file(s)`);
 
-const UA = { 'User-Agent': 'FaithFinder/1.0 (church directory; photo lookup)' };
+const UA = { 'User-Agent': 'FourCircle/1.0 (church directory; photo lookup)' };
 
 // Commons serves any file by name through Special:FilePath, which redirects to
 // the real image and will resize on the way. 800px is plenty for a card and

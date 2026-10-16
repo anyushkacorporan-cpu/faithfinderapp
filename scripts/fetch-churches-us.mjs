@@ -55,7 +55,7 @@ const MIRRORS = [
 ];
 const HEADERS = {
   'Content-Type': 'application/x-www-form-urlencoded',
-  'User-Agent': 'FaithFinder/1.0 (church directory; one-time state import)',
+  'User-Agent': 'FourCircle/1.0 (church directory; one-time state import)',
   Accept: 'application/json',
 };
 

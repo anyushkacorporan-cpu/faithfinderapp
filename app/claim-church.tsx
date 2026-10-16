@@ -127,7 +127,7 @@ export default function ClaimChurchScreen() {
             <Ionicons name="checkmark-circle" size={48} color={COLORS.gold} />
           </LinearGradient>
           <Text style={s.submittedTitle}>{t('verificationSubmitted')}</Text>
-          <Text style={s.submittedSub}>{t('thankYouClaiming')}<Text style={{fontWeight:'700',color:COLORS.navy}}>{selectedChurch?.name}</Text>. FaithFinder will review your submission within 3–5 business days.</Text>
+          <Text style={s.submittedSub}>{t('thankYouClaiming')}<Text style={{fontWeight:'700',color:COLORS.navy}}>{selectedChurch?.name}</Text>. Four Circle will review your submission within 3–5 business days.</Text>
           <View style={s.submittedCard}>
             <View style={s.submittedRow}>
               <Ionicons name="time-outline" size={20} color={COLORS.gold} />

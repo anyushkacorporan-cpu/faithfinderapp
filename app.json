@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "FaithFinder",
-    "slug": "FaithFinderApp",
+    "name": "Four Circle",
+    "slug": "four-circle",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -37,14 +37,14 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "FaithFinder uses your photos so you can set a profile or cover photo and add pictures to your posts and events.",
-          "cameraPermission": "FaithFinder uses your camera so you can take a photo for your profile or a post."
+          "photosPermission": "Four Circle uses your photos so you can set a profile or cover photo and add pictures to your posts and events.",
+          "cameraPermission": "Four Circle uses your camera so you can take a photo for your profile or a post."
         }
       ],
       [
         "expo-location",
         {
-          "locationWhenInUsePermission": "FaithFinder uses your location to show churches and events near you."
+          "locationWhenInUsePermission": "Four Circle uses your location to show churches and events near you."
         }
       ]
     ],

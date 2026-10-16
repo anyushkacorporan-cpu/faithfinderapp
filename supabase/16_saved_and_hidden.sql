@@ -1,5 +1,5 @@
 -- ============================================================================
--- FaithFinder — saved events and hidden posts, on the account
+-- Four Circle — saved events and hidden posts, on the account
 --
 -- Both lived only on the phone. Saving an event and then signing in on another
 -- device lost the list; hiding a post you would rather not see again hid it on

@@ -1,5 +1,5 @@
 -- ============================================================================
--- FaithFinder — repair the like counter
+-- Four Circle — repair the like counter
 --
 -- sync_like_count() serves two tables: post_likes, which has post_id, and
 -- comment_likes, which has comment_id. It began by reading

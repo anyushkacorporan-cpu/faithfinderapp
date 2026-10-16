@@ -1,5 +1,5 @@
 -- ============================================================================
--- FaithFinder — explicit Data API grants
+-- Four Circle — explicit Data API grants
 --
 -- From 30 October, Supabase stops granting Data API access to new tables in
 -- the public schema. A table created without grants is simply unreachable

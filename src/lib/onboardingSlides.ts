@@ -56,7 +56,7 @@ export const SLIDES: Slide[] = [
   },
   {
     title: 'Why we built this',
-    body: 'No believer should be doing life alone. That\'s why FaithFinder was built. We have more than 235,000 churches across all fifty states for you to search, whether you\'re looking for a church to finally call home or you\'re in town for the weekend and want somewhere to worship. All of it is here to help you find a house of God and for you to be in community.',
+    body: 'No believer should be doing life alone. That\'s why Four Circle was built. We have more than 235,000 churches across all fifty states for you to search, whether you\'re looking for a church to finally call home or you\'re in town for the weekend and want somewhere to worship. All of it is here to help you find a house of God and for you to be in community.',
     verse: {
       text: 'For where two or three gather in my name, there am I with them.',
       ref: 'Matthew 18:20',
@@ -66,7 +66,7 @@ export const SLIDES: Slide[] = [
   },
   {
     title: 'Build friendships with other believers',
-    body: 'FaithFinder is for everyone who wants to grow. Connect with one another. Encourage one another. Be kind and loving to one another. But most importantly, help one another. Elders and babes in Christ. However long we\'ve been walking with God, let\'s lift each other.',
+    body: 'Four Circle is for everyone who wants to grow. Connect with one another. Encourage one another. Be kind and loving to one another. But most importantly, help one another. Elders and babes in Christ. However long we\'ve been walking with God, let\'s lift each other.',
     verse: {
       text: 'As iron sharpens iron, so one person sharpens another.',
       ref: 'Proverbs 27:17',
@@ -114,7 +114,7 @@ export const SLIDES: Slide[] = [
     body: 'I pray this app blesses you. I pray you find a church. I pray you find your community. But most importantly, I pray that you come to know God, whether this app helped you or whether you found Him another way.\n\nPlease keep in mind that your relationship with God comes first. This app was never made to replace the time you need with Him. It is only here to be resourceful.',
     signoff: {
       blessing: 'Blessings to all from your sister of Christ, Annie.',
-      role: 'Creator of FaithFinder',
+      role: 'Creator of Four Circle',
     },
     verse: {
       text: 'You are the salt of the earth.',

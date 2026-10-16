@@ -51,7 +51,7 @@ console.log(`Fetching churches for ${arg} …`);
 // the fair-use expectation, not a workaround.
 const HEADERS = {
   'Content-Type': 'application/x-www-form-urlencoded',
-  'User-Agent': 'FaithFinder/1.0 (church directory; one-time data survey)',
+  'User-Agent': 'FourCircle/1.0 (church directory; one-time data survey)',
   Accept: 'application/json',
 };
 

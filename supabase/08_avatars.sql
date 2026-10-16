@@ -1,5 +1,5 @@
 -- ============================================================================
--- FaithFinder — profile and cover photos
+-- Four Circle — profile and cover photos
 --
 -- Picked photos are paths inside the app's own sandbox on one phone. A post
 -- carrying one as its author photo renders an avatar for its author and a

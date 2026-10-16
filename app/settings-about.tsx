@@ -27,14 +27,14 @@ export default function AboutScreen() {
         </View>
         <View style={s.missionBox}>
           <Text style={s.missionTitle}>{t('ourMission')}</Text>
-          <Text style={s.missionTxt}>FaithFinder exists to help believers find their spiritual home. We connect people with churches, faith communities, and events that align with their values and beliefs. Whether you're new to an area or searching for a church home, FaithFinder makes it easy to discover, connect, and grow in faith.</Text>
+          <Text style={s.missionTxt}>Four Circle exists to help believers find their spiritual home. We connect people with churches, faith communities, and events that align with their values and beliefs. Whether you're new to an area or searching for a church home, Four Circle makes it easy to discover, connect, and grow in faith.</Text>
         </View>
         <View style={s.card}>
           {[
             // A real feature, not only a way to test it: the introduction is the
             // one explanation of what the app is, and it is shown once, at the
             // moment someone is least interested in reading it.
-            {icon:'sparkles-outline', color:c.gold, label:'How FaithFinder works', action:() => router.push('/onboarding?replay=1')},
+            {icon:'sparkles-outline', color:c.gold, label:'How Four Circle works', action:() => router.push('/onboarding?replay=1')},
             {icon:'globe-outline', color:'#667eea', label:'Website', action:() => Linking.openURL('https://fourcircle.app')},
             {icon:'logo-instagram', color:'#e91e63', label:'Instagram', action:() => Linking.openURL('https://instagram.com/faithfinderapp')},
             {icon:'document-text-outline', color:c.navy, label:'Terms of Service', action:() => router.push('/terms')},

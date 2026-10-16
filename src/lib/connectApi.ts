@@ -6,7 +6,7 @@ import { supabase } from './supabase';
  * Everything here needs the Stripe secret key, so nothing here talks to Stripe
  * — it talks to the `connect` edge function, which does.
  *
- * The account belongs to the organiser, not to FaithFinder. They sign up with
+ * The account belongs to the organiser, not to Four Circle. They sign up with
  * Stripe directly, ticket money lands in their account rather than ours, and
  * Stripe handles their tax forms. We take a fee from each sale and never hold
  * the rest.

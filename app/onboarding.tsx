@@ -22,7 +22,7 @@ import { markOnboardingSeen, hasSeenOnboarding, hydrated } from '../src/lib/onbo
  *
  * Every route in is an end-of-signup route, and the flag is set on the way out,
  * so a claim or a registration months later passes straight through. Settings →
- * How FaithFinder works replays it with ?replay=1.
+ * How Four Circle works replays it with ?replay=1.
  *
  * The words live in src/lib/onboardingSlides.ts, away from the markup, because
  * they are the part most likely to change and nobody should have to read a
@@ -114,7 +114,7 @@ export default function Onboarding() {
               <View style={s.crossV} />
               <View style={s.crossH} />
             </View>
-            <Text style={s.brandTxt}>FaithFinder</Text>
+            <Text style={s.brandTxt}>Four Circle</Text>
           </View>
 
           <View style={s.progress}>

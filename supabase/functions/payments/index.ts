@@ -1,5 +1,5 @@
 /**
- * FaithFinder — card payments.
+ * Four Circle — card payments.
  *
  * Runs on Supabase, not in the app, because creating a charge needs the Stripe
  * secret key and anything shipped in a bundle can be read out of it.

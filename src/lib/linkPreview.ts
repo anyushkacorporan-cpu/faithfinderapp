@@ -83,7 +83,7 @@ export async function fetchLinkPreview(url: string): Promise<LinkPreviewData | n
     if (yt) return yt;
   }
   try {
-    const res = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0 (compatible; FaithFinderBot/1.0)' } });
+    const res = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0 (compatible; FourCircleBot/1.0)' } });
     const html = await res.text();
 
     const title = extractMeta(html, 'og:title') || (html.match(/<title>([^<]+)<\/title>/i)?.[1]);

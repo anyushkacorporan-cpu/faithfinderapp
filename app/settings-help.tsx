@@ -14,8 +14,8 @@ export default function HelpSupportScreen() {
     { icon:'help-circle-outline', color:c.gold, labelKey:'faq', action: () => Alert.alert(tx('FAQ'), tx('Our FAQ page is coming soon. In the meantime, reach out to Contact Support below with any questions!')) },
     { icon:'chatbubble-outline', color:c.green, labelKey:'contactSupport', action: () => Linking.openURL('mailto:support@fourcircle.app') },
     { icon:'bug-outline', color:c.red, labelKey:'reportBug', action: () => Linking.openURL('mailto:support@fourcircle.app?subject=Bug Report') },
-    { icon:'star-outline', color:'#f39c12', labelKey:'rateApp', action: () => Alert.alert(tx('Rate Us'), 'FaithFinder isn\\\'t live on the App Store yet — thank you for being an early supporter! We\\\'ll let you know as soon as you can leave a review.') },
-    { icon:'share-social-outline', color:'#9b59b6', labelKey:'shareApp', action: () => Share.share({message:'Check out FaithFinder — find your church community! https://fourcircle.app'}).catch(()=>{}) },
+    { icon:'star-outline', color:'#f39c12', labelKey:'rateApp', action: () => Alert.alert(tx('Rate Us'), 'Four Circle isn\\\'t live on the App Store yet — thank you for being an early supporter! We\\\'ll let you know as soon as you can leave a review.') },
+    { icon:'share-social-outline', color:'#9b59b6', labelKey:'shareApp', action: () => Share.share({message:'Check out Four Circle — find your church community! https://fourcircle.app'}).catch(()=>{}) },
     { icon:'document-text-outline', color:c.navy, labelKey:'termsOfService', action: () => router.push('/terms') },
     { icon:'shield-outline', color:'#7f8c8d', labelKey:'privacyPolicy', action: () => router.push('/privacy') },
   ];

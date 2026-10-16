@@ -1,5 +1,5 @@
 -- ============================================================================
--- FaithFinder — DEVELOPMENT ONLY: confirm new accounts automatically
+-- Four Circle — DEVELOPMENT ONLY: confirm new accounts automatically
 --
 -- REMOVE THIS BEFORE LAUNCH. Instructions at the bottom.
 --

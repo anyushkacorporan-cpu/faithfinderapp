@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Rebuild FaithFinder-Features.pdf, the two-page features overview.
+Rebuild Four-Circle-Features.pdf, the two-page features overview.
 
 Kept as a script for the same reason build-privacy-page.mjs is: a document
 about what the app does goes stale the moment the app changes, and a stale one
@@ -82,7 +82,7 @@ story = []
 
 # ── Masthead ───────────────────────────────────────────────────────────────
 story.append(Table(
-    [[Paragraph('<font color="#c9a96e">&#8224;</font>&nbsp;&nbsp;FaithFinder', MAST)],
+    [[Paragraph('<font color="#c9a96e">&#8224;</font>&nbsp;&nbsp;Four Circle', MAST)],
      [Paragraph('Find your church home.', MTAG)]],
     colWidths=[6.9*inch],
     style=TableStyle([
@@ -183,14 +183,14 @@ story.append(Paragraph(
 story.append(Spacer(1, 22))
 story.append(rule())
 story.append(Spacer(1, 7))
-story.append(Paragraph('FaithFinder &nbsp;·&nbsp; iOS &nbsp;·&nbsp; '
+story.append(Paragraph('Four Circle &nbsp;·&nbsp; iOS &nbsp;·&nbsp; '
                        'Prepared September 2026', FOOT))
 
-doc = SimpleDocTemplate('/home/user/faithfinderapp/FaithFinder-Features.pdf',
+doc = SimpleDocTemplate('/home/user/faithfinderapp/Four-Circle-Features.pdf',
                         pagesize=LETTER,
                         leftMargin=0.8*inch, rightMargin=0.8*inch,
                         topMargin=0.62*inch, bottomMargin=0.62*inch,
-                        title='FaithFinder — Features',
-                        author='FaithFinder')
+                        title='Four Circle — Features',
+                        author='Four Circle')
 doc.build(story)
 print('built')

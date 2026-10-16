@@ -222,7 +222,7 @@ export const EVENT_DETAILS: Record<string, any> = {
     ],
     audience: 'Women of all ages and backgrounds',
     notes: [
-      { icon: 'wifi-outline', label: 'Live Stream', value: 'Available on FaithFinder App' },
+      { icon: 'wifi-outline', label: 'Live Stream', value: 'Available on Four Circle App' },
       { icon: 'car-outline', label: 'Parking', value: 'Free parking available on site' },
       { icon: 'shirt-outline', label: 'Dress Code', value: 'Smart casual' },
     ],

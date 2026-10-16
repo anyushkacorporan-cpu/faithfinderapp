@@ -221,7 +221,7 @@ export default function ChurchDetailScreen() {
     try {
       const result = await Share.share({
         title: church.name,
-        message: 'Check out ' + church.name + ' on FaithFinder!\n📍 ' + church.address + (church.phone ? '\n📞 ' + church.phone : '') + (church.website ? '\n🌐 ' + church.website : ''),
+        message: 'Check out ' + church.name + ' on Four Circle!\n📍 ' + church.address + (church.phone ? '\n📞 ' + church.phone : '') + (church.website ? '\n🌐 ' + church.website : ''),
         url: church.website || 'https://fourcircle.app',
       });
     } catch (e) {}
@@ -664,7 +664,7 @@ export default function ChurchDetailScreen() {
                     <Text style={s.quotedDesc} numberOfLines={2}>{church.description}</Text>
                   )}
                   <View style={s.quotedFooter}>
-                    <Text style={s.quotedLink}>{t('viewChurchOnFaithFinder')}</Text>
+                    <Text style={s.quotedLink}>{t('viewChurchOnFourCircle')}</Text>
                   </View>
                 </View>
               </View>
@@ -673,7 +673,7 @@ export default function ChurchDetailScreen() {
             {/* Divider */}
             <View style={s.shareOrRow}>
               <View style={s.shareOrLine} />
-              <Text style={s.shareOrTxt}>{tx('or share outside FaithFinder')}</Text>
+              <Text style={s.shareOrTxt}>{tx('or share outside Four Circle')}</Text>
               <View style={s.shareOrLine} />
             </View>
 
@@ -696,7 +696,7 @@ export default function ChurchDetailScreen() {
                     if (opt.label === 'Messages') {
                       Linking.openURL('sms:&body=' + encodeURIComponent(shareText)).catch(() => {});
                     } else if (opt.label === 'Email') {
-                      Linking.openURL('mailto:?subject=' + encodeURIComponent('Check out ' + church.name + ' on FaithFinder') + '&body=' + encodeURIComponent(shareText)).catch(() => {});
+                      Linking.openURL('mailto:?subject=' + encodeURIComponent('Check out ' + church.name + ' on Four Circle') + '&body=' + encodeURIComponent(shareText)).catch(() => {});
                     } else {
                       Share.share({
                         title: church.name,

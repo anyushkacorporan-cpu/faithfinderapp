@@ -1,5 +1,5 @@
 -- ============================================================================
--- FaithFinder — make searching the directory use its indexes
+-- Four Circle — make searching the directory use its indexes
 --
 -- THE SYMPTOM
 --

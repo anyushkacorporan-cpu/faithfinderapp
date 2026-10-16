@@ -27,7 +27,7 @@ Password**, which is a separate 16-character credential.
 
 1. **Turn on 2-Step Verification** — Google Account → Security. App passwords
    do not exist as an option until this is on.
-2. Google Account → Security → **App passwords** → name it "FaithFinder" →
+2. Google Account → Security → **App passwords** → name it "Four Circle" →
    **Create**. Google shows 16 characters once. Copy them.
 3. Supabase → **Project Settings → Authentication → SMTP Settings** →
    **Enable Custom SMTP**:
@@ -39,7 +39,7 @@ Password**, which is a separate 16-character credential.
    | Username      | your full Gmail address      |
    | Password      | the 16-character App Password (spaces removed) |
    | Sender email  | your Gmail address           |
-   | Sender name   | `FaithFinder`                |
+   | Sender name   | `Four Circle`                |
 
    Save.
 
@@ -89,7 +89,7 @@ Dashboard → **Project Settings → Authentication → SMTP Settings** →
 | Username      | `resend`                               |
 | Password      | your Resend API key                    |
 | Sender email  | `no-reply@yourdomain.com`              |
-| Sender name   | `FaithFinder`                          |
+| Sender name   | `Four Circle`                          |
 
 Save.
 

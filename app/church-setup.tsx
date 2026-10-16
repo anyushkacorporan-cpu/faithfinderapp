@@ -47,7 +47,7 @@ export default function ChurchSetupScreen() {
                 <Text style={s.optionDesc}>{t('churchAlreadyListed')}</Text>
                 <View style={s.optionTag}>
                   <Ionicons name="checkmark-circle" size={13} color={COLORS.green} />
-                  <Text style={s.optionTagTxt}>{t('alreadyInFaithFinder')}</Text>
+                  <Text style={s.optionTagTxt}>{t('alreadyInFourCircle')}</Text>
                 </View>
               </View>
             </View>
@@ -84,7 +84,7 @@ export default function ChurchSetupScreen() {
         {/* Info */}
         <View style={s.infoBox}>
           <Ionicons name="shield-checkmark-outline" size={16} color={COLORS.gold} />
-          <Text style={s.infoTxt}>{tx('All church accounts go through a verification process. FaithFinder reviews submissions within 3–5 business days.')}</Text>
+          <Text style={s.infoTxt}>{tx('All church accounts go through a verification process. Four Circle reviews submissions within 3–5 business days.')}</Text>
         </View>
 
       </View>

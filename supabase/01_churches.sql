@@ -1,5 +1,5 @@
 -- ============================================================================
--- FaithFinder — church directory
+-- Four Circle — church directory
 --
 -- Run this once in the Supabase SQL editor (Dashboard → SQL Editor → New query).
 -- It is safe to run more than once.

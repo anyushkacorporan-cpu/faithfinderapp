@@ -100,7 +100,7 @@ const html = `<!doctype html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Privacy Policy — FaithFinder</title>
+<title>Privacy Policy — Four Circle</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:opsz,wght@9..40,400;9..40,600&display=swap">
 <style>
   :root { --ground:#faf9f6; --ink:#1a1a2e; --ink-2:#4a4a56; --gold:#c9a96e; --rule:#e9e5dd; }
@@ -136,9 +136,9 @@ const html = `<!doctype html>
 <main>
   <div class="mark">&#8224;</div>
   <h1>Privacy Policy</h1>
-  <p class="app">FaithFinder</p>
+  <p class="app">Four Circle</p>
 ${body}
-  <footer>This page mirrors the Privacy Policy shown inside the FaithFinder app under Settings &rarr; About.</footer>
+  <footer>This page mirrors the Privacy Policy shown inside the Four Circle app under Settings &rarr; About.</footer>
 </main>
 </body>
 </html>

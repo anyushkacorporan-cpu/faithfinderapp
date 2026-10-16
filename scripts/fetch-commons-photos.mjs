@@ -55,7 +55,7 @@ if (!churches.length) {
 }
 console.log(`\n  ${churches.length.toLocaleString()} churches across ${files.length} file(s)`);
 
-const UA = { 'User-Agent': 'FaithFinder/1.0 (church directory; photo lookup)' };
+const UA = { 'User-Agent': 'FourCircle/1.0 (church directory; photo lookup)' };
 const API = 'https://commons.wikimedia.org/w/api.php';
 
 function commonsUrl(filename) {

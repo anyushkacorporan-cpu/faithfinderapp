@@ -1,5 +1,5 @@
 -- ============================================================================
--- FaithFinder — organisers get paid directly
+-- Four Circle — organisers get paid directly
 --
 -- Ticket money currently lands in the platform's Stripe account and stops
 -- there. There is no payout system, so the Payouts tab shows a balance nobody

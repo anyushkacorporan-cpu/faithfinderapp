@@ -68,7 +68,7 @@ export function PostShareSheet({ post, onClose }: { post: Post | null; onClose: 
     firedRef.current = true;
     pendingRef.current = null;
     clearTimers();
-    Share.share({ message, title: tx('Check this out on FaithFinder') })
+    Share.share({ message, title: tx('Check this out on Four Circle') })
       .catch((err: any) => {
         // Never fail silently — a dead-looking button is what sent us here.
         showToast(t('share'), String(err?.message || err), 'error');

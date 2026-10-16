@@ -79,7 +79,7 @@ if (untranslated.length) {
  * untranslated string cannot hide behind a blanket rule.
  */
 const LEAVE_IN_ENGLISH = new Set([
-  'FaithFinder', 'FaithFinder App',
+  'Four Circle', 'Four Circle App',
   'support@fourcircle.app',
   'you@example.com', 'pastor@yourchurch.org', 'info@yourchurch.org',
   'www.yourchurch.org',

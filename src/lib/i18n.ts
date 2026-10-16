@@ -57,14 +57,14 @@ const translations: Record<string, Record<Lang, string>> = {
   contactSupport: { English: 'Contact Support', Español: 'Contactar Soporte' },
   reportBug: { English: 'Report a Bug', Español: 'Reportar un Error' },
   rateApp: { English: 'Rate the App', Español: 'Calificar la App' },
-  shareApp: { English: 'Share FaithFinder', Español: 'Compartir FaithFinder' },
+  shareApp: { English: 'Share Four Circle', Español: 'Compartir Four Circle' },
   termsOfService: { English: 'Terms of Service', Español: 'Términos de Servicio' },
   findConnections: { English: 'Search for someone by name', Español: 'Busca a alguien por su nombre' },
   searchResults: { English: 'Search results', Español: 'Resultados' },
   noOneFound: { English: 'No one found by that name.', Español: 'No se encontró a nadie con ese nombre.' },
   privacyPolicy: { English: 'Privacy Policy', Español: 'Política de Privacidad' },
-  aboutApp: { English: 'About FaithFinder', Español: 'Acerca de FaithFinder' },
-  howItWorks: { English: 'How FaithFinder works', Español: 'Cómo funciona FaithFinder' },
+  aboutApp: { English: 'About Four Circle', Español: 'Acerca de Four Circle' },
+  howItWorks: { English: 'How Four Circle works', Español: 'Cómo funciona Four Circle' },
   signOut: { English: 'Sign Out', Español: 'Cerrar Sesión' },
   details: { English: 'Details', Español: 'Detalles' },
   nearbyBadge: { English: 'NEARBY', Español: 'CERCA' },
@@ -124,9 +124,9 @@ const translations: Record<string, Record<Lang, string>> = {
   notifLikesDesc: { English: 'When someone likes your post', Español: 'Cuando alguien le da me gusta a tu publicación' },
   notifComments: { English: 'Comments', Español: 'Comentarios' },
   notifCommentsDesc: { English: 'When someone comments on your post', Español: 'Cuando alguien comenta tu publicación' },
-  controlLocationUsage: { English: 'Control how FaithFinder uses your location. Changes save automatically.', Español: 'Controla cómo FaithFinder usa tu ubicación. Los cambios se guardan automáticamente.' },
+  controlLocationUsage: { English: 'Control how Four Circle uses your location. Changes save automatically.', Español: 'Controla cómo Four Circle usa tu ubicación. Los cambios se guardan automáticamente.' },
   enableLocation: { English: 'Enable Location', Español: 'Habilitar Ubicación' },
-  allowLocationAccess: { English: 'Allow FaithFinder to access your location', Español: 'Permitir que FaithFinder acceda a tu ubicación' },
+  allowLocationAccess: { English: 'Allow Four Circle to access your location', Español: 'Permitir que Four Circle acceda a tu ubicación' },
   showChurchesNear: { English: 'Show churches near your location', Español: 'Mostrar iglesias cerca de tu ubicación' },
   nearbyEventsLabel: { English: 'Nearby Events', Español: 'Eventos Cercanos' },
   showEventsNear: { English: 'Show events happening near you', Español: 'Mostrar eventos que suceden cerca de ti' },
@@ -146,8 +146,8 @@ const translations: Record<string, Record<Lang, string>> = {
     English: 'Fill in your church information. All fields marked * are required.',
     Español: 'Completa la información de tu iglesia. Todos los campos marcados con * son obligatorios.' },
   churchVerificationNote: {
-    English: 'All church accounts go through a verification process. FaithFinder reviews submissions within 3–5 business days.',
-    Español: 'Todas las cuentas de iglesia pasan por un proceso de verificación. FaithFinder revisa las solicitudes en un plazo de 3 a 5 días hábiles.' },
+    English: 'All church accounts go through a verification process. Four Circle reviews submissions within 3–5 business days.',
+    Español: 'Todas las cuentas de iglesia pasan por un proceso de verificación. Four Circle revisa las solicitudes en un plazo de 3 a 5 días hábiles.' },
   eventNotAvailableToRegister: {
     English: 'This event is not available to register for. It may be a sample event, or it may not have finished uploading.',
     Español: 'Este evento no está disponible para registrarse. Puede ser un evento de muestra o puede que aún no haya terminado de subirse.' },
@@ -168,11 +168,11 @@ const translations: Record<string, Record<Lang, string>> = {
     English: '1. Acceptance of Terms',
     Español: '1. Aceptación de los Términos' },
   termsP1: {
-    English: 'By creating an account or using FaithFinder ("the App"), you agree to these Terms of Service. If you do not agree, please do not use the App.',
-    Español: 'Al crear una cuenta o usar FaithFinder ("la App"), aceptas estos Términos de Servicio. Si no estás de acuerdo, por favor no uses la App.' },
+    English: 'By creating an account or using Four Circle ("the App"), you agree to these Terms of Service. If you do not agree, please do not use the App.',
+    Español: 'Al crear una cuenta o usar Four Circle ("la App"), aceptas estos Términos de Servicio. Si no estás de acuerdo, por favor no uses la App.' },
   termsH2: {
-    English: '2. Who Can Use FaithFinder',
-    Español: '2. Quién Puede Usar FaithFinder' },
+    English: '2. Who Can Use Four Circle',
+    Español: '2. Quién Puede Usar Four Circle' },
   termsP2: {
     English: 'You must be at least 13 years old to create an account. Church accounts must be created by an authorized representative of that church or ministry.',
     Español: 'Debes tener al menos 13 años para crear una cuenta. Las cuentas de iglesia deben ser creadas por un representante autorizado de esa iglesia o ministerio.' },
@@ -186,26 +186,26 @@ const translations: Record<string, Record<Lang, string>> = {
     English: '4. User Content',
     Español: '4. Contenido del Usuario' },
   termsP4: {
-    English: 'You retain ownership of content you post (including text, photos, and comments). By posting, you grant FaithFinder a license to display that content within the App. You are solely responsible for what you post and agree not to post content that is unlawful, harassing, hateful, or that infringes on others\' rights.',
-    Español: 'Conservas la propiedad del contenido que publicas (incluidos textos, fotos y comentarios). Al publicar, otorgas a FaithFinder una licencia para mostrar ese contenido dentro de la App. Eres el único responsable de lo que publicas y aceptas no publicar contenido ilegal, acosador, de odio o que infrinja los derechos de otros.' },
+    English: 'You retain ownership of content you post (including text, photos, and comments). By posting, you grant Four Circle a license to display that content within the App. You are solely responsible for what you post and agree not to post content that is unlawful, harassing, hateful, or that infringes on others\' rights.',
+    Español: 'Conservas la propiedad del contenido que publicas (incluidos textos, fotos y comentarios). Al publicar, otorgas a Four Circle una licencia para mostrar ese contenido dentro de la App. Eres el único responsable de lo que publicas y aceptas no publicar contenido ilegal, acosador, de odio o que infrinja los derechos de otros.' },
   termsH5: {
     English: '5. Community Conduct',
     Español: '5. Conducta en la Comunidad' },
   termsP5: {
-    English: 'FaithFinder is a community built on respect and faith. We do not tolerate harassment, hate speech, spam, or impersonation. Reported content will be reviewed, and accounts that violate these standards may be suspended or removed.',
-    Español: 'FaithFinder es una comunidad basada en el respeto y la fe. No toleramos el acoso, el discurso de odio, el spam ni la suplantación de identidad. El contenido reportado será revisado, y las cuentas que violen estas normas podrán ser suspendidas o eliminadas.' },
+    English: 'Four Circle is a community built on respect and faith. We do not tolerate harassment, hate speech, spam, or impersonation. Reported content will be reviewed, and accounts that violate these standards may be suspended or removed.',
+    Español: 'Four Circle es una comunidad basada en el respeto y la fe. No toleramos el acoso, el discurso de odio, el spam ni la suplantación de identidad. El contenido reportado será revisado, y las cuentas que violen estas normas podrán ser suspendidas o eliminadas.' },
   termsH6: {
     English: '6. Events & Payments',
     Español: '6. Eventos y Pagos' },
   termsP6: {
-    English: 'FaithFinder facilitates event registration and ticket purchases through Stripe. A service fee (currently 5% of the ticket price, capped at $5 per ticket) and a card processing fee apply to paid ticket transactions. Both are added at checkout and paid by the buyer, and both are shown separately before payment. Free events carry no fees. Service and processing fees are not refundable on a refunded ticket. Refunds, cancellations, and event changes are managed by the event organizer (church or individual host), not by FaithFinder. We are not responsible for events hosted by third parties.',
-    Español: 'FaithFinder facilita el registro a eventos y la compra de boletos a través de Stripe. Se aplica una tarifa de servicio (actualmente el 5% del precio del boleto, con un máximo de $5 por boleto) y una tarifa de procesamiento de tarjeta a las transacciones de boletos pagados. Ambas se agregan al finalizar la compra, las paga el comprador y se muestran por separado antes del pago. Los eventos gratuitos no tienen tarifas. Las tarifas de servicio y de procesamiento no son reembolsables cuando se reembolsa un boleto. Los reembolsos, las cancelaciones y los cambios de evento los gestiona el organizador del evento (la iglesia o el anfitrión individual), no FaithFinder. No somos responsables de los eventos organizados por terceros.' },
+    English: 'Four Circle facilitates event registration and ticket purchases through Stripe. A service fee (currently 5% of the ticket price, capped at $5 per ticket) and a card processing fee apply to paid ticket transactions. Both are added at checkout and paid by the buyer, and both are shown separately before payment. Free events carry no fees. Service and processing fees are not refundable on a refunded ticket. Refunds, cancellations, and event changes are managed by the event organizer (church or individual host), not by Four Circle. We are not responsible for events hosted by third parties.',
+    Español: 'Four Circle facilita el registro a eventos y la compra de boletos a través de Stripe. Se aplica una tarifa de servicio (actualmente el 5% del precio del boleto, con un máximo de $5 por boleto) y una tarifa de procesamiento de tarjeta a las transacciones de boletos pagados. Ambas se agregan al finalizar la compra, las paga el comprador y se muestran por separado antes del pago. Los eventos gratuitos no tienen tarifas. Las tarifas de servicio y de procesamiento no son reembolsables cuando se reembolsa un boleto. Los reembolsos, las cancelaciones y los cambios de evento los gestiona el organizador del evento (la iglesia o el anfitrión individual), no Four Circle. No somos responsables de los eventos organizados por terceros.' },
   termsH7: {
     English: '7. Church Profiles',
     Español: '7. Perfiles de Iglesias' },
   termsP7: {
-    English: 'Church accounts are responsible for the accuracy of their listing, service times, and event information. FaithFinder does not verify denominational claims or doctrine and is not responsible for the content or conduct of any listed church.',
-    Español: 'Las cuentas de iglesia son responsables de la exactitud de su ficha, sus horarios de servicio y la información de sus eventos. FaithFinder no verifica las afirmaciones denominacionales ni la doctrina, y no es responsable del contenido ni de la conducta de ninguna iglesia listada.' },
+    English: 'Church accounts are responsible for the accuracy of their listing, service times, and event information. Four Circle does not verify denominational claims or doctrine and is not responsible for the content or conduct of any listed church.',
+    Español: 'Las cuentas de iglesia son responsables de la exactitud de su ficha, sus horarios de servicio y la información de sus eventos. Four Circle no verifica las afirmaciones denominacionales ni la doctrina, y no es responsable del contenido ni de la conducta de ninguna iglesia listada.' },
   termsH8: {
     English: '8. Location Information',
     Español: '8. Información de Ubicación' },
@@ -222,8 +222,8 @@ const translations: Record<string, Record<Lang, string>> = {
     English: '10. Disclaimer',
     Español: '10. Descargo de Responsabilidad' },
   termsP10: {
-    English: 'FaithFinder is provided "as is." We do not guarantee the accuracy of church listings, event details, or user-submitted content. We are not liable for interactions, transactions, or relationships formed through the App.',
-    Español: 'FaithFinder se ofrece "tal cual". No garantizamos la exactitud de las fichas de iglesias, los detalles de los eventos ni el contenido enviado por los usuarios. No somos responsables de las interacciones, transacciones o relaciones que surjan a través de la App.' },
+    English: 'Four Circle is provided "as is." We do not guarantee the accuracy of church listings, event details, or user-submitted content. We are not liable for interactions, transactions, or relationships formed through the App.',
+    Español: 'Four Circle se ofrece "tal cual". No garantizamos la exactitud de las fichas de iglesias, los detalles de los eventos ni el contenido enviado por los usuarios. No somos responsables de las interacciones, transacciones o relaciones que surjan a través de la App.' },
   termsH11: {
     English: '11. Changes to These Terms',
     Español: '11. Cambios a Estos Términos' },
@@ -255,8 +255,8 @@ const translations: Record<string, Record<Lang, string>> = {
     English: '3. Payment Information',
     Español: '3. Información de Pago' },
   privacyP3: {
-    English: 'When you purchase event tickets, payment is processed securely through Stripe. FaithFinder does not store your full credit card number. Stripe\'s own privacy practices govern how your payment data is handled; see stripe.com/privacy for details.',
-    Español: 'Cuando compras boletos para eventos, el pago se procesa de forma segura a través de Stripe. FaithFinder no almacena el número completo de tu tarjeta de crédito. Las propias prácticas de privacidad de Stripe rigen cómo se maneja tu información de pago; consulta stripe.com/privacy para más detalles.' },
+    English: 'When you purchase event tickets, payment is processed securely through Stripe. Four Circle does not store your full credit card number. Stripe\'s own privacy practices govern how your payment data is handled; see stripe.com/privacy for details.',
+    Español: 'Cuando compras boletos para eventos, el pago se procesa de forma segura a través de Stripe. Four Circle no almacena el número completo de tu tarjeta de crédito. Las propias prácticas de privacidad de Stripe rigen cómo se maneja tu información de pago; consulta stripe.com/privacy para más detalles.' },
   privacyH4: {
     English: '4. How We Use Your Information',
     Español: '4. Cómo Usamos Tu Información' },
@@ -297,8 +297,8 @@ const translations: Record<string, Record<Lang, string>> = {
     English: '9. Children\'s Privacy',
     Español: '9. Privacidad de los Menores' },
   privacyP9: {
-    English: 'FaithFinder is not intended for children under 13. We do not knowingly collect information from children under 13.',
-    Español: 'FaithFinder no está dirigida a menores de 13 años. No recopilamos a sabiendas información de menores de 13 años.' },
+    English: 'Four Circle is not intended for children under 13. We do not knowingly collect information from children under 13.',
+    Español: 'Four Circle no está dirigida a menores de 13 años. No recopilamos a sabiendas información de menores de 13 años.' },
   privacyH10: {
     English: '10. Changes to This Policy',
     Español: '10. Cambios a Esta Política' },
@@ -350,7 +350,7 @@ const translations: Record<string, Record<Lang, string>> = {
   notifVerification: { English: 'Verification Updates', Español: 'Actualizaciones de Verificación' },
   notifVerificationDesc: { English: 'Church verification status', Español: 'Estado de verificación de la iglesia' },
   notifAnnouncements: { English: 'App Announcements', Español: 'Anuncios de la App' },
-  notifAnnouncementsDesc: { English: 'News and updates from FaithFinder', Español: 'Noticias y actualizaciones de FaithFinder' },
+  notifAnnouncementsDesc: { English: 'News and updates from Four Circle', Español: 'Noticias y actualizaciones de Four Circle' },
   gettingStartedGuide: { English: 'Getting Started Guide', Español: 'Guía de Introducción' },
   emailSupport: { English: 'Email Support', Español: 'Correo de Soporte' },
   ourMission: { English: 'Our Mission', Español: 'Nuestra Misión' },
@@ -472,7 +472,7 @@ const translations: Record<string, Record<Lang, string>> = {
 
   // Auth: login / forgot password
   welcome: { English: 'Welcome', Español: 'Bienvenido' },
-  signInSubtitle: { English: 'Sign in to your FaithFinder account', Español: 'Inicia sesión en tu cuenta de FaithFinder' },
+  signInSubtitle: { English: 'Sign in to your Four Circle account', Español: 'Inicia sesión en tu cuenta de Four Circle' },
   password: { English: 'Password', Español: 'Contraseña' },
   enterYourPassword: { English: 'Enter your password', Español: 'Ingresa tu contraseña' },
   forgotPassword: { English: 'Forgot password?', Español: '¿Olvidaste tu contraseña?' },
@@ -544,7 +544,7 @@ const translations: Record<string, Record<Lang, string>> = {
   // Church setup / claim / register
   setUpYourChurch: { English: 'Set Up Your Church', Español: 'Configura Tu Iglesia' },
   claimYourChurch: { English: 'Claim Your Church', Español: 'Reclama Tu Iglesia' },
-  alreadyInFaithFinder: { English: 'Already in FaithFinder', Español: 'Ya está en FaithFinder' },
+  alreadyInFourCircle: { English: 'Already in Four Circle', Español: 'Ya está en Four Circle' },
   registerNewChurch: { English: 'Register New Church', Español: 'Registrar Nueva Iglesia' },
   getListedVerified: { English: 'Get listed & verified', Español: 'Aparece en la lista y verifícate' },
   findYourChurch: { English: 'Find Your Church', Español: 'Encuentra Tu Iglesia' },
@@ -584,7 +584,7 @@ const translations: Record<string, Record<Lang, string>> = {
   whyReporting: { English: 'Why are you reporting this post?', Español: '¿Por qué reportas esta publicación?' },
   sharePost: { English: 'Share Post', Español: 'Compartir Publicación' },
   repost: { English: 'Repost', Español: 'Republicar' },
-  shareToFeed: { English: 'Share to your FaithFinder feed', Español: 'Comparte en tu feed de FaithFinder' },
+  shareToFeed: { English: 'Share to your Four Circle feed', Español: 'Comparte en tu feed de Four Circle' },
   sendVia: { English: 'Send via Messages, Mail & more', Español: 'Enviar por Mensajes, Correo y más' },
   fetchingPreview: { English: 'Fetching link preview...', Español: 'Obteniendo vista previa del enlace...' },
 
@@ -618,7 +618,7 @@ const translations: Record<string, Record<Lang, string>> = {
   applyFilters: { English: 'Apply Filters', Español: 'Aplicar Filtros' },
   ministriesAmenities: { English: 'Ministries & Amenities', Español: 'Ministerios y Comodidades' },
   scripturesTestimonies: { English: 'Scriptures, testimonies, and reflections you share will appear here', Español: 'Las escrituras, testimonios y reflexiones que compartas aparecerán aquí' },
-  churchNotListedYet: { English: "Your church isn't on FaithFinder yet. Add it to our directory.", Español: 'Tu iglesia aún no está en FaithFinder. Añádela a nuestro directorio.' },
+  churchNotListedYet: { English: "Your church isn't on Four Circle yet. Add it to our directory.", Español: 'Tu iglesia aún no está en Four Circle. Añádela a nuestro directorio.' },
   fullProfileUnlocked: { English: 'Full church profile unlocked with verified badge', Español: 'Perfil completo de iglesia desbloqueado con insignia verificada' },
   confirmClaimChurch: { English: 'Please confirm this is the church you want to claim.', Español: 'Confirma que esta es la iglesia que deseas reclamar.' },
   provideOneOfFollowing: { English: 'Provide one of the following to verify your affiliation', Español: 'Proporciona uno de los siguientes para verificar tu afiliación' },
@@ -645,7 +645,7 @@ const translations: Record<string, Record<Lang, string>> = {
   dx1: { English: 'Reported', Español: 'Reportado' },
   dx2: { English: 'Thank you for letting us know. Our team will review this post.', Español: 'Gracias por avisarnos. Nuestro equipo revisará esta publicación.' },
   dx3: { English: 'Are you sure you want to delete this post? This cannot be undone.', Español: '¿Seguro que quieres eliminar esta publicación? Esto no se puede deshacer.' },
-  dx4: { English: 'Check this out on FaithFinder', Español: 'Mira esto en FaithFinder' },
+  dx4: { English: 'Check this out on Four Circle', Español: 'Mira esto en Four Circle' },
   dx5: { English: 'Add Photo', Español: 'Añadir Foto' },
   dx6: { English: 'Delete Photo?', Español: '¿Eliminar Foto?' },
   dx7: { English: 'No address set', Español: 'Sin dirección' },
@@ -694,13 +694,13 @@ const translations: Record<string, Record<Lang, string>> = {
   dx140: { English: 'This is a sample event and cannot be registered for.', Español: 'Este es un evento de muestra y no se puede registrar.' },
   soldOut: { English: 'Sold out', Español: 'Agotado' },
   found: { English: 'found', Español: 'encontrados' },
-  viewEventOnFaithFinder: { English: 'View event on FaithFinder →', Español: 'Ver evento en FaithFinder →' },
-  viewChurchOnFaithFinder: { English: 'View church on FaithFinder →', Español: 'Ver iglesia en FaithFinder →' },
+  viewEventOnFourCircle: { English: 'View event on Four Circle →', Español: 'Ver evento en Four Circle →' },
+  viewChurchOnFourCircle: { English: 'View church on Four Circle →', Español: 'Ver iglesia en Four Circle →' },
   googleReviews: { English: 'Google reviews', Español: 'reseñas de Google' },
   discoverBanner: { English: 'Believers from all 50 states · Join the conversation', Español: 'Creyentes de los 50 estados · Únete a la conversación' },
   capacity: { English: 'Capacity', Español: 'Capacidad' },
   churchNotListedAddIt: { English: 'My church isn\u2019t listed — Add it', Español: 'Mi iglesia no aparece — Añadirla' },
-  churchAlreadyListed: { English: 'Your church is already listed on FaithFinder. Claim it as the official account.', Español: 'Tu iglesia ya aparece en FaithFinder. Reclámala como la cuenta oficial.' },
+  churchAlreadyListed: { English: 'Your church is already listed on Four Circle. Claim it as the official account.', Español: 'Tu iglesia ya aparece en Four Circle. Reclámala como la cuenta oficial.' },
   photoRemovedFromGallery: { English: 'This photo will be removed from your Faith Gallery.', Español: 'Esta foto se quitará de tu Galería de Fe.' },
   photoRemovedFromGalleryAndPost: { English: 'This photo will be removed from your Faith Gallery and from the Community post it was shared in.', Español: 'Esta foto se quitará de tu Galería de Fe y de la publicación de Comunidad donde se compartió.' },
   dx46: { English: 'Please select at least one person.', Español: 'Selecciona al menos una persona.' },
@@ -804,7 +804,7 @@ const translations: Record<string, Record<Lang, string>> = {
   esx2: { English: 'A post can have up to', Español: 'Una publicación puede tener hasta' },
   esx3: { English: 'Add more', Español: 'Añadir más' },
   esx4: { English: 'Add photos', Español: 'Añadir fotos' },
-  esx5: { English: 'Apple Pay and cards are handled securely by Stripe. Your card details are never stored by FaithFinder.', Español: 'Apple Pay y las tarjetas se procesan de forma segura con Stripe. FaithFinder nunca guarda los datos de tu tarjeta.' },
+  esx5: { English: 'Apple Pay and cards are handled securely by Stripe. Your card details are never stored by Four Circle.', Español: 'Apple Pay y las tarjetas se procesan de forma segura con Stripe. Four Circle nunca guarda los datos de tu tarjeta.' },
   esx6: { English: 'At least 8 characters', Español: 'Al menos 8 caracteres' },
   esx7: { English: 'Block', Español: 'Bloquear' },
   esx8: { English: 'Blocked', Español: 'Bloqueado' },
@@ -822,7 +822,7 @@ const translations: Record<string, Record<Lang, string>> = {
   esx20: { English: 'Edit comment', Español: 'Editar comentario' },
   esx21: { English: 'Enter your current password', Español: 'Ingresa tu contraseña actual' },
   esx22: { English: 'Enter your current password.', Español: 'Ingresa tu contraseña actual.' },
-  esx23: { English: 'FaithFinder needs location access to find churches near you. You can allow it in your phone settings.', Español: 'FaithFinder necesita acceso a tu ubicación para encontrar iglesias cerca de ti. Puedes permitirlo en los ajustes de tu teléfono.' },
+  esx23: { English: 'Four Circle needs location access to find churches near you. You can allow it in your phone settings.', Español: 'Four Circle necesita acceso a tu ubicación para encontrar iglesias cerca de ti. Puedes permitirlo en los ajustes de tu teléfono.' },
   esx24: { English: 'Hide passwords', Español: 'Ocultar contraseñas' },
   esx25: { English: 'It now sits at the top.', Español: 'Ahora aparece arriba.' },
   esx26: { English: 'Looking up addresses...', Español: 'Buscando direcciones...' },
@@ -883,14 +883,14 @@ const translations: Record<string, Record<Lang, string>> = {
   esx81: { English: 'Unpinned', Español: 'Ya no está fijado' },
   esx82: { English: 'Update the password you sign in with', Español: 'Actualiza la contraseña con la que inicias sesión' },
   esx83: { English: 'Use your new password next time you sign in.', Español: 'Usa tu contraseña nueva la próxima vez que inicies sesión.' },
-  esx84: { English: 'When you block someone, their posts and comments disappear from FaithFinder. They will show up here so you can undo it.', Español: 'Cuando bloqueas a alguien, sus publicaciones y comentarios desaparecen de FaithFinder. Aparecerán aquí para que puedas deshacerlo.' },
+  esx84: { English: 'When you block someone, their posts and comments disappear from Four Circle. They will show up here so you can undo it.', Español: 'Cuando bloqueas a alguien, sus publicaciones y comentarios desaparecen de Four Circle. Aparecerán aquí para que puedas deshacerlo.' },
   esx85: { English: 'Write something or add a photo.', Español: 'Escribe algo o añade una foto.' },
   esx86: { English: 'You are signed in from your email link. Pick a new password to finish.', Español: 'Iniciaste sesión desde el enlace de tu correo. Elige una contraseña nueva para terminar.' },
   esx87: { English: 'You are signed in with your new password.', Español: 'Iniciaste sesión con tu contraseña nueva.' },
   esx88: { English: 'You have no connections yet. Connect with people, or search for someone by name.', Español: 'Aún no tienes conexiones. Conecta con personas o busca a alguien por su nombre.' },
   esx89: { English: 'You stay signed in on this device. Other devices will need the new password.', Español: 'Sigues con la sesión iniciada en este dispositivo. Los demás dispositivos necesitarán la contraseña nueva.' },
   esx90: { English: 'You will no longer see posts from', Español: 'Ya no verás publicaciones de' },
-  esx91: { English: 'You will no longer see their posts or comments anywhere in FaithFinder. You can undo this in Settings.', Español: 'Ya no verás sus publicaciones ni comentarios en ninguna parte de FaithFinder. Puedes deshacerlo en Ajustes.' },
+  esx91: { English: 'You will no longer see their posts or comments anywhere in Four Circle. You can undo this in Settings.', Español: 'Ya no verás sus publicaciones ni comentarios en ninguna parte de Four Circle. Puedes deshacerlo en Ajustes.' },
   esx92: { English: 'You will now see posts from', Español: 'Ahora verás publicaciones de' },
   esx93: { English: 'You will stop seeing their posts in For You.', Español: 'Dejarás de ver sus publicaciones en Para Ti.' },
   esx94: { English: 'Your comment has been updated.', Español: 'Tu comentario se ha actualizado.' },
@@ -956,17 +956,17 @@ const translations: Record<string, Record<Lang, string>> = {
     English: '"Connecting believers, one church at a time."',
     Español: '"Conectando creyentes, una iglesia a la vez."' },
   aboutMission: {
-    English: "FaithFinder exists to help believers find their spiritual home. We connect people with churches, faith communities, and events that align with their values and beliefs. Whether you're new to an area or searching for a church home, FaithFinder makes it easy to discover, connect, and grow in faith.",
-    Español: 'FaithFinder existe para ayudar a los creyentes a encontrar su hogar espiritual. Conectamos a las personas con iglesias, comunidades de fe y eventos que se alinean con sus valores y creencias. Ya sea que seas nuevo en la zona o estés buscando una iglesia donde congregarte, FaithFinder facilita descubrir, conectar y crecer en la fe.' },
+    English: "Four Circle exists to help believers find their spiritual home. We connect people with churches, faith communities, and events that align with their values and beliefs. Whether you're new to an area or searching for a church home, Four Circle makes it easy to discover, connect, and grow in faith.",
+    Español: 'Four Circle existe para ayudar a los creyentes a encontrar su hogar espiritual. Conectamos a las personas con iglesias, comunidades de fe y eventos que se alinean con sus valores y creencias. Ya sea que seas nuevo en la zona o estés buscando una iglesia donde congregarte, Four Circle facilita descubrir, conectar y crecer en la fe.' },
   aboutCopyright: {
-    English: '© 2026 FaithFinder App. All rights reserved.',
-    Español: '© 2026 FaithFinder App. Todos los derechos reservados.' },
+    English: '© 2026 Four Circle App. All rights reserved.',
+    Español: '© 2026 Four Circle App. Todos los derechos reservados.' },
   claimReviewNotice: {
-    English: "FaithFinder reviews all church claims within 3–5 business days. You'll receive an email and app notification when approved.",
-    Español: 'FaithFinder revisa todas las reclamaciones de iglesias en un plazo de 3 a 5 días hábiles. Recibirás un correo electrónico y una notificación en la aplicación cuando se apruebe.' },
+    English: "Four Circle reviews all church claims within 3–5 business days. You'll receive an email and app notification when approved.",
+    Español: 'Four Circle revisa todas las reclamaciones de iglesias en un plazo de 3 a 5 días hábiles. Recibirás un correo electrónico y una notificación en la aplicación cuando se apruebe.' },
   registerReviewNotice: {
-    English: 'FaithFinder reviews all new church submissions within 3–5 business days. Your church will appear in search results once approved.',
-    Español: 'FaithFinder revisa todas las nuevas solicitudes de iglesias en un plazo de 3 a 5 días hábiles. Tu iglesia aparecerá en los resultados de búsqueda una vez aprobada.' },
+    English: 'Four Circle reviews all new church submissions within 3–5 business days. Your church will appear in search results once approved.',
+    Español: 'Four Circle revisa todas las nuevas solicitudes de iglesias en un plazo de 3 a 5 días hábiles. Tu iglesia aparecerá en los resultados de búsqueda una vez aprobada.' },
   quickEditNote: {
     English: "Note: this quick-edit updates the core event details. Venue, speakers, and agenda aren't editable here yet.",
     Español: 'Nota: esta edición rápida actualiza los detalles principales del evento. El lugar, los oradores y la agenda aún no se pueden editar aquí.' },
@@ -976,7 +976,7 @@ const translations: Record<string, Record<Lang, string>> = {
   // append it. The asterisk means "required" in both languages; it is
   // punctuation, not copy, and keeping it out means "Church Name" is one
   // entry serving both the label and anything else that names the field.
-  ux1: { English: 'or share outside FaithFinder', Español: 'o comparte fuera de FaithFinder' },
+  ux1: { English: 'or share outside Four Circle', Español: 'o comparte fuera de Four Circle' },
   ux2: { English: 'All Regions', Español: 'Todas las regiones' },
   ux3: { English: '(optional but recommended)', Español: '(opcional pero recomendado)' },
   ux4: { English: '(optional)', Español: '(opcional)' },
@@ -1127,8 +1127,8 @@ const translations: Record<string, Record<Lang, string>> = {
     English: 'Done',
     Español: 'Listo' },
   onb14: {
-    English: 'How FaithFinder works',
-    Español: 'Cómo funciona FaithFinder' },
+    English: 'How Four Circle works',
+    Español: 'Cómo funciona Four Circle' },
   onb15: {
     English: 'Get started',
     Español: 'Comenzar' },
@@ -1170,14 +1170,14 @@ const translations: Record<string, Record<Lang, string>> = {
     English: 'Why we built this',
     Español: 'Por qué la creamos' },
   card03: {
-    English: "No believer should be doing life alone. That's why FaithFinder was built. We have more than 235,000 churches across all fifty states for you to search, whether you're looking for a church to finally call home or you're in town for the weekend and want somewhere to worship. All of it is here to help you find a house of God and for you to be in community.",
-    Español: 'Ningún creyente debería vivir la vida en soledad. Por eso nació FaithFinder. Tenemos más de 235,000 iglesias en los cincuenta estados para que busques, ya sea que estés buscando una iglesia a la que por fin llamar hogar o estés de paso el fin de semana y quieras un lugar donde adorar. Todo esto está aquí para ayudarte a encontrar una casa de Dios y para que estés en comunidad.' },
+    English: "No believer should be doing life alone. That's why Four Circle was built. We have more than 235,000 churches across all fifty states for you to search, whether you're looking for a church to finally call home or you're in town for the weekend and want somewhere to worship. All of it is here to help you find a house of God and for you to be in community.",
+    Español: 'Ningún creyente debería vivir la vida en soledad. Por eso nació Four Circle. Tenemos más de 235,000 iglesias en los cincuenta estados para que busques, ya sea que estés buscando una iglesia a la que por fin llamar hogar o estés de paso el fin de semana y quieras un lugar donde adorar. Todo esto está aquí para ayudarte a encontrar una casa de Dios y para que estés en comunidad.' },
   card04: {
     English: 'Build friendships with other believers',
     Español: 'Forma amistades con otros creyentes' },
   card05: {
-    English: "FaithFinder is for everyone who wants to grow. Connect with one another. Encourage one another. Be kind and loving to one another. But most importantly, help one another. Elders and babes in Christ. However long we've been walking with God, let's lift each other.",
-    Español: 'FaithFinder es para todo el que quiera crecer. Conéctense unos con otros. Anímense unos a otros. Sean amables y amorosos unos con otros. Pero sobre todo, ayúdense unos a otros. Ancianos y niños en Cristo. Sea cual sea el tiempo que llevemos caminando con Dios, levantémonos unos a otros.' },
+    English: "Four Circle is for everyone who wants to grow. Connect with one another. Encourage one another. Be kind and loving to one another. But most importantly, help one another. Elders and babes in Christ. However long we've been walking with God, let's lift each other.",
+    Español: 'Four Circle es para todo el que quiera crecer. Conéctense unos con otros. Anímense unos a otros. Sean amables y amorosos unos con otros. Pero sobre todo, ayúdense unos a otros. Ancianos y niños en Cristo. Sea cual sea el tiempo que llevemos caminando con Dios, levantémonos unos a otros.' },
   card06: {
     English: 'As iron sharpens iron, so one person sharpens another.',
     Español: 'Hierro con hierro se aguza; y así el hombre aguza el rostro de su amigo.' },
@@ -1221,8 +1221,8 @@ const translations: Record<string, Record<Lang, string>> = {
     English: 'Blessings to all from your sister of Christ, Annie.',
     Español: 'Bendiciones a todos de parte de su hermana en Cristo, Annie.' },
   card20: {
-    English: 'Creator of FaithFinder',
-    Español: 'Creadora de FaithFinder' },
+    English: 'Creator of Four Circle',
+    Español: 'Creadora de Four Circle' },
   card21: {
     English: 'You are the salt of the earth.',
     Español: 'Vosotros sois la sal de la tierra.' },

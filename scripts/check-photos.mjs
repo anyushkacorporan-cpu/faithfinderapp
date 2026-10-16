@@ -52,7 +52,7 @@ if (qids.length) {
     try {
       const r = await fetch(
         'https://www.wikidata.org/w/api.php?action=wbgetentities&format=json&props=claims&ids=' + batch.join('|'),
-        { headers: { 'User-Agent': 'FaithFinder/1.0 (church directory; one-time data survey)' } },
+        { headers: { 'User-Agent': 'FourCircle/1.0 (church directory; one-time data survey)' } },
       );
       const j = await r.json();
       for (const [qid, ent] of Object.entries(j.entities || {})) {

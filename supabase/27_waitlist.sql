@@ -1,5 +1,5 @@
 -- ============================================================================
--- FaithFinder — the launch list
+-- Four Circle — the launch list
 --
 -- The app is not in the App Store yet, and the Instagram account is starting
 -- before it is. A link in a bio needs somewhere to land, and "coming soon" on

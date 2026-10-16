@@ -1,9 +1,9 @@
 /**
- * Deep linking + share text helpers for FaithFinder.
+ * Deep linking + share text helpers for Four Circle.
  *
  * CURRENT STATE: links use the app's custom URL scheme (faithfinder://...).
  * This works TODAY when the app is already installed (tapping the link on a
- * device that has FaithFinder opens directly to that church/event).
+ * device that has Four Circle opens directly to that church/event).
  *
  * NOT YET AVAILABLE: "deferred deep linking" - opening the App Store first,
  * then automatically landing on the right church/event after install. That
@@ -32,7 +32,7 @@ export function buildChurchShareText(opts: {
   churchId: string;
 }): string {
   const link = getChurchDeepLink(opts.churchId);
-  const parts = [`Check out ${opts.name} on FaithFinder!`];
+  const parts = [`Check out ${opts.name} on Four Circle!`];
   if (opts.description) parts.push(opts.description);
   parts.push(link);
   return parts.join('\n\n');
@@ -49,7 +49,7 @@ export function buildEventShareText(opts: {
   const whenWhere = [opts.date, opts.location].filter(Boolean).join(' at ');
   const parts = [`${opts.title}${whenWhere ? ' — ' + whenWhere : ''}`];
   if (opts.description) parts.push(opts.description);
-  parts.push('Join me on FaithFinder!');
+  parts.push('Join me on Four Circle!');
   parts.push(link);
   return parts.join('\n\n');
 }
@@ -81,7 +81,7 @@ export function buildPostShareText(post: {
     churchShareData?: { id?: string; placeId?: string; name?: string; address?: string };
   };
 } | null | undefined): string {
-  if (!post) return 'Check this out on FaithFinder!';
+  if (!post) return 'Check this out on Four Circle!';
 
   // A repost shows the original post's card, so share the original.
   const source = post.repostOf ?? post;
@@ -110,22 +110,22 @@ export function buildPostShareText(post: {
   // The caption on a repost belongs to the reposter, not the original author.
   const originalBody = (source.content || '').trim();
   if (originalBody) {
-    return author ? `${author}: ${originalBody}\n\nSeen on FaithFinder` : originalBody;
+    return author ? `${author}: ${originalBody}\n\nSeen on Four Circle` : originalBody;
   }
   const caption = (post.repostComment || '').trim();
   if (caption) {
     const reposter = (post.authorName || '').trim();
-    return reposter ? `${reposter}: ${caption}\n\nSeen on FaithFinder` : caption;
+    return reposter ? `${reposter}: ${caption}\n\nSeen on Four Circle` : caption;
   }
 
-  if (post.linkUrl) return `${post.linkUrl}\n\nSeen on FaithFinder`;
+  if (post.linkUrl) return `${post.linkUrl}\n\nSeen on Four Circle`;
   if (source.image) {
     return author
-      ? `${author} shared a photo on FaithFinder`
-      : 'Check out this photo on FaithFinder!';
+      ? `${author} shared a photo on Four Circle`
+      : 'Check out this photo on Four Circle!';
   }
 
   return author
-    ? `Check out ${author}'s post on FaithFinder!`
-    : 'Check this out on FaithFinder!';
+    ? `Check out ${author}'s post on Four Circle!`
+    : 'Check this out on Four Circle!';
 }

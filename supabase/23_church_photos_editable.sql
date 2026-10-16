@@ -1,5 +1,5 @@
 -- ============================================================================
--- FaithFinder — a claimed church manages its own photos
+-- Four Circle — a claimed church manages its own photos
 --
 -- WHAT WAS MISSING
 --

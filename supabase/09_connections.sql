@@ -1,5 +1,5 @@
 -- ============================================================================
--- FaithFinder — connections
+-- Four Circle — connections
 --
 -- Following someone lived on the phone, so the "For You" feed was built from a
 -- list nobody else could see, connection counts were per-device, and posts set

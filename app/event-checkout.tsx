@@ -165,7 +165,7 @@ export default function EventCheckoutScreen() {
     }
 
     const init = await initPaymentSheet({
-      merchantDisplayName: 'FaithFinder',
+      merchantDisplayName: 'Four Circle',
       paymentIntentClientSecret: payment.clientSecret,
       defaultBillingDetails: { email: email.trim() },
       // Apple Pay and cards both come from Stripe's own sheet, which handles
@@ -322,8 +322,8 @@ export default function EventCheckoutScreen() {
             <View style={s.termsBox}>
               <Text style={s.termsTxt}>
                 {isFree
-                  ? "By registering you agree to FaithFinder's Terms of Service and Privacy Policy. Registration is free and may be cancelled by the organizer."
-                  : "By purchasing tickets you agree to FaithFinder's Terms of Service and Privacy Policy. All sales are final. Tickets are non-refundable unless the event is cancelled or rescheduled."
+                  ? "By registering you agree to Four Circle's Terms of Service and Privacy Policy. Registration is free and may be cancelled by the organizer."
+                  : "By purchasing tickets you agree to Four Circle's Terms of Service and Privacy Policy. All sales are final. Tickets are non-refundable unless the event is cancelled or rescheduled."
                 }
               </Text>
             </View>
@@ -349,7 +349,7 @@ export default function EventCheckoutScreen() {
               <View style={s.payNote}>
                 <Ionicons name="lock-closed-outline" size={16} color={c.textSecondary} />
                 <Text style={s.payNoteTxt}>
-                  {tx('Apple Pay and cards are handled securely by Stripe. Your card details are never stored by FaithFinder.')}
+                  {tx('Apple Pay and cards are handled securely by Stripe. Your card details are never stored by Four Circle.')}
                 </Text>
               </View>
             </View>

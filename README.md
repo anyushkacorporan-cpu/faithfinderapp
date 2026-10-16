@@ -16,7 +16,7 @@ This is an [Expo](https://expo.dev) project created with [`create-expo-app`](htt
    npx expo start
    ```
 
-FaithFinder is iOS only. Android and web were removed from app.json — see
+Four Circle is iOS only. Android and web were removed from app.json — see
 DEV_BUILD.md for how to get the app onto a phone or the simulator.
 
 Open it in a

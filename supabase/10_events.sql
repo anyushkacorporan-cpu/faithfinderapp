@@ -1,5 +1,5 @@
 -- ============================================================================
--- FaithFinder — events and tickets
+-- Four Circle — events and tickets
 --
 -- Both were kept on the phone. An event created by a church existed only on
 -- the organiser's device, so nobody could attend one; a ticket existed only on

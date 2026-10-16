@@ -17,7 +17,7 @@ export default function Logo({ size = 'medium', tint }: { size?: 'small' | 'medi
         <View style={[s.crossV, { height: crossH, backgroundColor: c.gold }]} />
         <View style={[s.crossH, { width: crossW, top: barH, backgroundColor: c.gold }]} />
       </View>
-      <Text style={[s.txt, { fontSize, color: textColor }]}>FaithFinder App</Text>
+      <Text style={[s.txt, { fontSize, color: textColor }]}>Four Circle App</Text>
     </View>
   );
 }

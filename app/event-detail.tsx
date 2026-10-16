@@ -68,7 +68,7 @@ export default function EventDetailScreen() {
   async function handleExternalShare() {
     Share.share({
       title: (fullEvent?.title || params.title),
-      message: 'Check out ' + (fullEvent?.title || params.title) + ' on FaithFinder! ' + (fullEvent?.date || params.date) + ' at ' + (fullEvent?.location || params.location),
+      message: 'Check out ' + (fullEvent?.title || params.title) + ' on Four Circle! ' + (fullEvent?.date || params.date) + ' at ' + (fullEvent?.location || params.location),
     });
   }
 
@@ -168,7 +168,7 @@ export default function EventDetailScreen() {
     // Two channels, because the list mixes two kinds of person. Anyone with an
     // account gets the invitation in their notifications, where it can be
     // tapped through to the event. The share sheet still opens afterwards: it
-    // is the only thing that reaches someone who is not on FaithFinder yet,
+    // is the only thing that reaches someone who is not on Four Circle yet,
     // and it is how you invite the people who were never in this list at all.
     void sendEventInvites(params.id || '', title, chosen.map(p => p.id));
 
@@ -177,7 +177,7 @@ export default function EventDetailScreen() {
     setInviteSearch('');
     setTimeout(() => {
       Share.share({
-        message: `I'd love for you to join me at ${title} on FaithFinder.`
+        message: `I'd love for you to join me at ${title} on Four Circle.`
           + (names.length ? `\n\nFor: ${names.join(', ')}` : ''),
       }).catch(() => {});
     }, 350);
@@ -213,7 +213,7 @@ export default function EventDetailScreen() {
       const cal = calendars.find((c: any) => c.allowsModifications) || calendars[0];
       if (!cal) { Alert.alert(tx('No calendar found')); return; }
       await Cal.createEventAsync(cal.id, {
-        title: (fullEvent?.title || params.title) || 'FaithFinder Event',
+        title: (fullEvent?.title || params.title) || 'Four Circle Event',
         notes: params.description || '',
         location: (fullEvent?.location || params.location) || '',
         startDate: new Date(),
@@ -576,7 +576,7 @@ export default function EventDetailScreen() {
                       <Text style={{fontSize:12,color:c.textMuted,flex:1}} numberOfLines={1}>{(fullEvent?.location || params.location)}</Text>
                     </View>
                     <View style={{borderTopWidth:1,borderTopColor:c.border,paddingTop:8}}>
-                      <Text style={{fontSize:12,color:c.gold,fontWeight:'700'}}>{t('viewEventOnFaithFinder')}</Text>
+                      <Text style={{fontSize:12,color:c.gold,fontWeight:'700'}}>{t('viewEventOnFourCircle')}</Text>
                     </View>
                   </View>
                 </View>
@@ -584,7 +584,7 @@ export default function EventDetailScreen() {
 
               <View style={{flexDirection:'row',alignItems:'center',gap:12,paddingHorizontal:16,marginVertical:16}}>
                 <View style={{flex:1,height:1,backgroundColor:c.border}}/>
-                <Text style={{fontSize:12,color:c.textMuted}}>{tx('or share outside FaithFinder')}</Text>
+                <Text style={{fontSize:12,color:c.textMuted}}>{tx('or share outside Four Circle')}</Text>
                 <View style={{flex:1,height:1,backgroundColor:c.border}}/>
               </View>
 
@@ -690,7 +690,7 @@ export default function EventDetailScreen() {
                       <Text style={{fontSize:12,color:c.textMuted,flex:1}} numberOfLines={1}>{(fullEvent?.location || params.location)}</Text>
                     </View>
                     <View style={{borderTopWidth:1,borderTopColor:c.border,paddingTop:8}}>
-                      <Text style={{fontSize:12,color:c.gold,fontWeight:'700'}}>{t('viewEventOnFaithFinder')}</Text>
+                      <Text style={{fontSize:12,color:c.gold,fontWeight:'700'}}>{t('viewEventOnFourCircle')}</Text>
                     </View>
                   </View>
                 </View>
@@ -698,7 +698,7 @@ export default function EventDetailScreen() {
 
               <View style={{flexDirection:'row',alignItems:'center',gap:12,paddingHorizontal:16,marginVertical:16}}>
                 <View style={{flex:1,height:1,backgroundColor:c.border}}/>
-                <Text style={{fontSize:12,color:c.textMuted}}>{tx('or share outside FaithFinder')}</Text>
+                <Text style={{fontSize:12,color:c.textMuted}}>{tx('or share outside Four Circle')}</Text>
                 <View style={{flex:1,height:1,backgroundColor:c.border}}/>
               </View>
 

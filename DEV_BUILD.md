@@ -51,7 +51,7 @@ a QR code at the end to install it.
 npx expo start --dev-client
 ```
 
-Then open the FaithFinder app on the phone or simulator rather than Expo Go.
+Then open the Four Circle app on the phone or simulator rather than Expo Go.
 Metro, fast refresh and the terminal logs all work exactly as before.
 
 ## When to rebuild
