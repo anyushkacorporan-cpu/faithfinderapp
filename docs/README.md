@@ -1,11 +1,44 @@
 # The public pages
 
-Four files served from this folder by GitHub Pages, free, from a public
-repository, with no domain and no host to pay for. Turn it on at
-Settings → Pages → Source: deploy from a branch → main → /docs. The address is
-then:
+Served from this folder by GitHub Pages, free, from a public repository. Turn
+it on at Settings → Pages → Source: deploy from a branch → main → /docs, then
+put `fourcircle.app` in the custom domain box and tick Enforce HTTPS.
 
-    https://anyushkacorporan-cpu.github.io/faithfinderapp/
+`CNAME` is what makes the domain stick. It holds one line, the bare domain with
+no scheme and no trailing slash, and GitHub reads it on every deploy. Delete it
+and the site falls back to the github.io address.
+
+## DNS, at Cloudflare
+
+The domain is registered at Cloudflare, so the records live in its dashboard.
+Four A records and four AAAA records on the apex, all pointing at GitHub Pages,
+plus `www` as a CNAME to `anyushkacorporan-cpu.github.io`:
+
+    A     @     185.199.108.153
+    A     @     185.199.109.153
+    A     @     185.199.110.153
+    A     @     185.199.111.153
+    AAAA  @     2606:50c0:8000::153
+    AAAA  @     2606:50c0:8001::153
+    AAAA  @     2606:50c0:8002::153
+    AAAA  @     2606:50c0:8003::153
+    CNAME www   anyushkacorporan-cpu.github.io
+
+**Every one of them DNS only, the grey cloud, not the orange one.** Proxied
+records stop GitHub seeing the real request, which stops it issuing the
+certificate, and the site answers with a redirect loop instead of a page. This
+is the single most common way a custom domain sits broken for a day.
+
+**No other A or AAAA record on the apex.** GitHub refuses to issue a
+certificate if something else is answering there too.
+
+## .app is HTTPS or nothing
+
+`.app` is on the browser HSTS preload list, which means every browser refuses
+plain HTTP for it before it ever asks the network. There is no insecure
+fallback to look at while the certificate is being issued: until GitHub has
+one, the site does not load at all. That takes anywhere from a few minutes to
+about an hour after the DNS resolves, and looking broken during it is normal.
 
 `index.html` is the one to put in the Instagram bio. The other two are there
 because the App Store will not take a submission without them: a privacy policy
@@ -42,7 +75,7 @@ worked.
 
 To tag a link yourself, add `?from=`:
 
-    https://anyushkacorporan-cpu.github.io/faithfinderapp/?from=instagram-bio
+    https://fourcircle.app/?from=instagram-bio
 
 ## Why this page looks different from the other two
 
