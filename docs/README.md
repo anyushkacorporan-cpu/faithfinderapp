@@ -2,7 +2,7 @@
 
 Served from this folder by GitHub Pages, free, from a public repository. Turn
 it on at Settings → Pages → Source: deploy from a branch → main → /docs, then
-put `fourcircle.app` in the custom domain box and tick Enforce HTTPS.
+put `fourcircles.app` in the custom domain box and tick Enforce HTTPS.
 
 `CNAME` is what makes the domain stick. It holds one line, the bare domain with
 no scheme and no trailing slash, and GitHub reads it on every deploy. Delete it
@@ -75,7 +75,7 @@ worked.
 
 To tag a link yourself, add `?from=`:
 
-    https://fourcircle.app/?from=instagram-bio
+    https://fourcircles.app/?from=instagram-bio
 
 ## Why this page looks different from the other two
 
