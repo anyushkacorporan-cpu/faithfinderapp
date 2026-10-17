@@ -265,6 +265,7 @@
   // which takes an address and returns nothing about anybody else. It cannot
   // read this list or any other table. See supabase/27_waitlist.sql.
   var API = 'https://mmhpfiabbpzaizkjozjq.supabase.co/rest/v1/rpc/join_waitlist';
+  var WELCOME = 'https://mmhpfiabbpzaizkjozjq.supabase.co/functions/v1/waitlist-welcome';
   var KEY = 'sb_publishable_sVF7I5TRILs0rhDGRgTl3Q_eerLcV_6';
 
   var form = document.getElementById('form');
@@ -323,6 +324,24 @@
         '<p>We\'ll email you the day the Four Circle app opens.</p>';
       document.querySelector('main').classList.add('sent');
       box.focus();
+
+      // Asked for, never waited on, and allowed to fail.
+      //
+      // The address is already saved by the time this runs, and saving it is
+      // the part that cannot be done again later. So the welcome email is a
+      // separate request whose failure is swallowed: if the function is not
+      // deployed, or Resend is down, or the key is wrong, the person is still
+      // on the list and the page still says so. keepalive, because they may
+      // well close the tab a second after reading the confirmation and the
+      // browser would otherwise cancel this on the way out.
+      try {
+        fetch(WELCOME, {
+          method: 'POST',
+          headers: { 'apikey': KEY, 'Authorization': 'Bearer ' + KEY, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: address }),
+          keepalive: true
+        }).catch(function () { /* the list is what mattered */ });
+      } catch (e) { /* ditto */ }
     }).catch(function () {
       go.disabled = false;
       go.textContent = 'Notify Me';

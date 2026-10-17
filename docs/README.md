@@ -64,6 +64,32 @@ read the list it writes to.
 **That migration has to be run before the form works.** Until it is, the button
 reports that it could not send.
 
+## The welcome email
+
+A second, separate thing, and deliberately so. `supabase/28_waitlist_welcome.sql`
+and `supabase/functions/waitlist-welcome/` send one email per address, once
+ever, the moment somebody signs up. The page asks for it and does not wait for
+an answer, so none of this is load bearing: with the function undeployed or
+Resend refusing, addresses are still saved and the page still confirms. Only
+the email is lost, and an email can be sent later. An address cannot be
+recovered later, which is why it is the half that stands alone.
+
+To turn it on:
+
+1. Make a Resend account and add `fourcircle.app` as a domain. Resend gives
+   three DNS records; add them at Cloudflare, **DNS only, grey cloud**, next to
+   the records already there. They are what let the mail be from the domain
+   rather than merely claim to be.
+2. Create an API key in Resend and give it to Supabase, never to a file here:
+   `supabase secrets set RESEND_API_KEY=...`
+3. Run `supabase/28_waitlist_welcome.sql` in the SQL editor.
+4. `supabase functions deploy waitlist-welcome`
+
+Until step 4 the page carries on exactly as it does now.
+
+Who has been written to is a column: `welcomed_at`. Null means they have not
+been, which is also how to find anybody who signed up while this was off.
+
 **Reading the list** happens in the Supabase dashboard, whose SQL editor runs as
 the owner and is not subject to row-level security:
 
