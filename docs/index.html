@@ -166,6 +166,12 @@
      the browser repays that by drawing its own focus rectangle around it: a
      hard-edged box nobody designed, with the text pressed against the bottom
      of it. The announcement is still made; only the browser's box goes. */
+  /* The success state is its own screen. "Coming Soon" and the line under it
+     exist to get somebody as far as the box; once they are through it, both
+     are just things standing in front of the only sentence that still
+     matters, so they go. */
+  main.sent h1, main.sent .what { display: none; }
+
   .done {
     outline: none;
     padding: 4px 0 2px;
@@ -314,7 +320,8 @@
       box.innerHTML =
         '<div class="tick" aria-hidden="true"><span></span></div>' +
         '<h2>You\'re on the list.</h2>' +
-        '<p>We\'ll email you the day Four Circle opens.</p>';
+        '<p>We\'ll email you the day the Four Circle app opens.</p>';
+      document.querySelector('main').classList.add('sent');
       box.focus();
     }).catch(function () {
       go.disabled = false;
