@@ -159,18 +159,42 @@
   .msg.bad { color: #ffb4a2; }
 
   /* Replaces the form once it has been sent, rather than sitting under it, so
-     the page cannot be left looking as though nothing happened. */
+     the page cannot be left looking as though nothing happened.
+
+     outline: none is the whole point of this rule. The element is given a
+     tabindex and focused so a screen reader reads the confirmation out, and
+     the browser repays that by drawing its own focus rectangle around it: a
+     hard-edged box nobody designed, with the text pressed against the bottom
+     of it. The announcement is still made; only the browser's box goes. */
+  .done {
+    outline: none;
+    padding: 4px 0 2px;
+    animation: rise .5s cubic-bezier(.2, .7, .3, 1) both;
+  }
   .done .tick {
-    width: 46px; height: 46px; margin: 0 auto 14px; border-radius: 50%;
-    border: 1.5px solid var(--gold); display: grid; place-items: center;
+    width: 54px; height: 54px; margin: 0 auto 20px; border-radius: 50%;
+    border: 1px solid rgba(201,169,110,0.5);
+    background: rgba(201,169,110,0.12);
+    display: grid; place-items: center;
   }
   .done .tick span {
-    display: block; width: 15px; height: 8px; margin-top: -4px;
-    border-left: 2px solid var(--gold); border-bottom: 2px solid var(--gold);
+    display: block; width: 17px; height: 9px; margin-top: -5px;
+    border-left: 2px solid var(--gold-lit); border-bottom: 2px solid var(--gold-lit);
     transform: rotate(-45deg);
   }
-  .done h2 { font-family: var(--display); font-weight: 600; font-size: 1.3rem; margin: 0 0 6px; }
-  .done p { color: var(--ink-2); margin: 0; }
+  .done h2 {
+    font-family: var(--display); font-weight: 600; color: #fff;
+    font-size: clamp(1.4rem, 6vw, 1.7rem); line-height: 1.25; margin: 0 0 12px;
+  }
+  .done p { color: var(--ink-2); margin: 0; font-size: 1rem; line-height: 1.5; }
+
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: none; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .done { animation: none; }
+  }
 
   /* ===== the bottom =================================================== */
 
