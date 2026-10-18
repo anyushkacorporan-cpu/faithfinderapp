@@ -60,6 +60,23 @@ const FROM = 'Four Circle <hello@fourcircle.app>';
 const REPLY_TO = 'support@fourcircle.app';
 const SUBJECT = "You're on the list";
 
+/**
+ * Where an unsubscribe goes.
+ *
+ * A mailto rather than a link to a page, because a page needs an endpoint
+ * that can remove somebody, and an endpoint that removes somebody on request
+ * needs a signed token or it is a way for a stranger to unsubscribe anyone
+ * whose address they can guess. That is a real thing to build and this list
+ * is small, so for now the address does the job: it is a working opt-out,
+ * which is what the law asks for, and it lands in the same inbox as
+ * everything else.
+ *
+ * It also goes in a List-Unsubscribe header, which is what makes Gmail and
+ * Apple Mail draw their own Unsubscribe button at the top of the message.
+ * Most people use that and never read the footer.
+ */
+const UNSUBSCRIBE = 'support@fourcircle.app';
+
 const CORS = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -90,11 +107,11 @@ before anybody else.
 
 Until then, God bless you.
 
-Annie
-Creator of Four Circle
+From the Four Circle app
 
 You are getting this because you asked to be told when Four Circle opens.
-Reply to this email if you would rather not be.`;
+To stop receiving them, email ${UNSUBSCRIBE} with "unsubscribe" as the
+subject and you will be taken off the list.`;
 
 /**
  * Deliberately plain HTML. Inline styles, one column, no images and no web
@@ -110,11 +127,10 @@ const HTML = `<!doctype html>
     <div style="width:56px;height:2px;background:#c9a96e;margin:18px 0 20px;"></div>
     <p style="margin:0 0 16px;color:#4a4a56;">Four Circle is coming to the App Store, and you will be among the first to know. We will email you the day it opens, so you can create your account before anybody else.</p>
     <p style="margin:0 0 24px;color:#4a4a56;">Until then, God bless you.</p>
-    <p style="margin:0;font-weight:600;">Annie</p>
-    <p style="margin:2px 0 0;font-family:Georgia,serif;font-style:italic;font-size:14px;color:#a98c54;">Creator of Four Circle</p>
+    <p style="margin:0;font-family:Georgia,serif;font-style:italic;font-size:15px;color:#a98c54;">From the Four Circle app</p>
     <p style="margin:26px 0 0;padding-top:18px;border-top:1px solid #e9e5dd;font-size:12px;color:#8a8a94;">
       You are getting this because you asked to be told when Four Circle opens.
-      Reply to this email if you would rather not be.
+      <a href="mailto:${UNSUBSCRIBE}?subject=unsubscribe" style="color:#8a8a94;">Unsubscribe</a>.
     </p>
   </div>
 </body></html>`;
@@ -150,6 +166,12 @@ Deno.serve(async (req: Request) => {
         subject: SUBJECT,
         text: TEXT,
         html: HTML,
+        // What draws the Unsubscribe button Gmail and Apple Mail put at the
+        // top of a message, above anything we control. Worth more than the
+        // footer link, because it is the one most people actually use, and a
+        // list with a visible way off it is a list that gets marked as spam
+        // less often.
+        headers: { 'List-Unsubscribe': `<mailto:${UNSUBSCRIBE}?subject=unsubscribe>` },
       }),
     });
 
