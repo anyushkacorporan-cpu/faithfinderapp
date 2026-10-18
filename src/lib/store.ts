@@ -48,7 +48,7 @@ function subscribe(fn: () => void) {
  */
 function notify() { [...listeners].forEach(fn => fn()); }
 
-const KEY = 'faithfinder_saved_churches_v1';
+const KEY = 'fourcircle_saved_churches_v1';
 
 /**
  * Unsaves the server has not accepted yet.
@@ -62,7 +62,7 @@ const KEY = 'faithfinder_saved_churches_v1';
  * written down across restarts until it does. Without persisting it, closing
  * the app is enough to forget the intent and let the church return.
  */
-const PENDING_KEY = 'faithfinder_unsaved_churches_pending_v1';
+const PENDING_KEY = 'fourcircle_unsaved_churches_pending_v1';
 let pendingRemovals: string[] = [];
 function persistPending() { save(PENDING_KEY, pendingRemovals); }
 const hydratedPending = load<string[]>(PENDING_KEY, v => { pendingRemovals = v || []; });

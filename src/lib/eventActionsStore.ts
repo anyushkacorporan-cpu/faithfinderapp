@@ -18,7 +18,7 @@ function notify() { [...listeners].forEach(fn => fn()); }
 
 // Both lists live under one key: they are always read and written together,
 // so a single record keeps them consistent and halves the storage round-trips.
-const STORAGE_KEY = 'faithfinder_event_actions_v1';
+const STORAGE_KEY = 'fourcircle_event_actions_v1';
 type Persisted = { saved: string[]; attending: string[] };
 function persist() { save(STORAGE_KEY, { saved: savedEvents, attending: attendingEvents }); }
 const hydrated = load<Persisted>(STORAGE_KEY, v => {

@@ -60,7 +60,7 @@ export default function EarningsScreen() {
     }
     // Stripe's form, on Stripe's site, in a browser the app can close. Bank
     // details are typed there and never pass through here.
-    await WebBrowser.openAuthSessionAsync(url, 'faithfinder://earnings');
+    await WebBrowser.openAuthSessionAsync(url, 'fourcircle://earnings');
     // Back from Stripe: what matters is what Stripe now says, not that the
     // browser closed. Someone who abandoned the form halfway closes it too.
     await refreshPayout();

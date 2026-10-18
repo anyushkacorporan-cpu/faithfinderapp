@@ -117,9 +117,9 @@ reached". It just looks broken, which for most people is the same thing.
 
 Supabase → Authentication → **URL Configuration**:
 
-- **Site URL**: `faithfinder://`
+- **Site URL**: `fourcircle://`
 - **Redirect URLs**, add both:
-  - `faithfinder://*` — published builds
+  - `fourcircle://*` — published builds
   - `exp://192.168.1.66:8081` — Expo Go while developing (your LAN address
     changes; add whatever `npx expo start` prints)
 

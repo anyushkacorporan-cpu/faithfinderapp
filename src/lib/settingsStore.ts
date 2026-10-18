@@ -3,7 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { pushNotificationPrefs } from './notificationsApi';
 import { pushPrivacyPrefs } from './privacyApi';
 
-const SETTINGS_KEY = 'faithfinder_settings_v1';
+const SETTINGS_KEY = 'fourcircle_settings_v1';
 
 export type NotificationPrefs = {
   likes: boolean; comments: boolean; shares: boolean;

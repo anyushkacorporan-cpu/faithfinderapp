@@ -32,14 +32,14 @@ import { syncSavedChurchesFromServer } from './store';
  * local data.
  */
 
-const MIGRATED_KEY = 'faithfinder_profile_migrated_v1';
+const MIGRATED_KEY = 'fourcircle_profile_migrated_v1';
 
 let migrated: Record<string, boolean> = {};
 load<Record<string, boolean>>(MIGRATED_KEY, v => { migrated = v || {}; });
 
 // Accounts whose profile edits have not reached the server yet. Kept on the
 // device so a push lost to a dead connection is still owed after a restart.
-const PENDING_KEY = 'faithfinder_profile_push_pending_v1';
+const PENDING_KEY = 'fourcircle_profile_push_pending_v1';
 
 let pendingPush: Record<string, boolean> = {};
 load<Record<string, boolean>>(PENDING_KEY, v => { pendingPush = v || {}; });

@@ -21,8 +21,8 @@ import { load, save } from './persist';
 
 type Entry<T> = { value: T; at: number };
 
-const PHOTO_KEY = 'faithfinder_places_photos_v1';
-const NEARBY_KEY = 'faithfinder_places_nearby_v1';
+const PHOTO_KEY = 'fourcircle_places_photos_v1';
+const NEARBY_KEY = 'fourcircle_places_nearby_v1';
 
 /** A photo reference for a place. Stable for a long time. */
 const PHOTO_TTL = 30 * 24 * 60 * 60 * 1000;   // 30 days

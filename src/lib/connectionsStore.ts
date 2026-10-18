@@ -44,7 +44,7 @@ const listeners: Listener[] = [];
  */
 function notify() { [...listeners].forEach(l => l()); }
 
-const STORAGE_KEY = 'faithfinder_connections_v1';
+const STORAGE_KEY = 'fourcircle_connections_v1';
 function persist() { save(STORAGE_KEY, connections); }
 load<typeof connections>(STORAGE_KEY, v => { connections = v; notify(); });
 

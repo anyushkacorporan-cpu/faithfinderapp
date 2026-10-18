@@ -129,7 +129,7 @@ if ((counts.REQUEST_DENIED || 0) > 5) {
   if (googleSaid) console.log(`  Google said: \x1b[1m${googleSaid}\x1b[0m\n`);
   console.log('  Three things cause this, most likely first:\n');
   console.log('    1. The key is restricted to iOS apps.');
-  console.log('       This project\'s key is limited to the bundle ids com.faithfinder');
+  console.log('       This project\'s key is limited to the bundle ids com.fourcircle');
   console.log('       and host.exp.Exponent, which a script on a Mac cannot present.');
   console.log('       Make a SECOND key for server use rather than loosening this one:');
   console.log('       Cloud Console -> APIs & Services -> Credentials -> Create key,');

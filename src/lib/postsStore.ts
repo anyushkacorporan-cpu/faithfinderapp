@@ -9,7 +9,7 @@ import { getConnections } from './connectionsStore';
 import { submitReport } from './moderationApi';
 import * as api from './postsApi';
 
-const POSTS_KEY = 'faithfinder_posts_v1';
+const POSTS_KEY = 'fourcircle_posts_v1';
 
 export type Reply = {
   id: string;

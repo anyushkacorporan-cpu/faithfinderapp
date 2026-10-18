@@ -38,7 +38,7 @@ const listeners: Array<() => void> = [];
  */
 function notify() { [...listeners].forEach(fn => fn()); }
 
-const STORAGE_KEY = 'faithfinder_tickets_v1';
+const STORAGE_KEY = 'fourcircle_tickets_v1';
 function persist() { save(STORAGE_KEY, tickets); }
 load<typeof tickets>(STORAGE_KEY, v => { tickets = v; notify(); });
 

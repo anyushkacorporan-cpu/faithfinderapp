@@ -18,7 +18,7 @@ export type TranslateResult = {
  * collision would mislabel one post's language, which is not worth a byte more
  * to prevent.
  */
-const DETECT_KEY = 'faithfinder_lang_detect_v1';
+const DETECT_KEY = 'fourcircle_lang_detect_v1';
 const MAX_ENTRIES = 500;
 
 let detected: Record<string, string> = {};

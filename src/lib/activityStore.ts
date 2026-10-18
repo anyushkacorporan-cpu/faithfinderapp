@@ -25,7 +25,7 @@ const listeners: Array<() => void> = [];
  */
 function notify() { [...listeners].forEach(fn => fn()); }
 
-const STORAGE_KEY = 'faithfinder_activity_v1';
+const STORAGE_KEY = 'fourcircle_activity_v1';
 function persist() { save(STORAGE_KEY, activity); }
 load<typeof activity>(STORAGE_KEY, v => { activity = v; notify(); });
 

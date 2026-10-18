@@ -32,7 +32,7 @@ export const GOOGLE_API_KEY = process.env.EXPO_PUBLIC_GOOGLE_API_KEY || '';
  * own id keeps the meaning right in a real build.
  */
 export function googleHeaders(extra?: Record<string, string>): Record<string, string> {
-  return { 'X-Ios-Bundle-Identifier': 'com.faithfinder', ...extra };
+  return { 'X-Ios-Bundle-Identifier': 'com.fourcircle', ...extra };
 }
 
 /** Whether Google-backed features can work in this build. */

@@ -93,7 +93,7 @@ export async function deleteAccountAndData(): Promise<string | null> {
   // since been removed, should not survive a delete either.
   try {
     const keys = await AsyncStorage.getAllKeys();
-    const ours = keys.filter(k => k.startsWith('faithfinder_') && k !== 'faithfinder_settings_v1');
+    const ours = keys.filter(k => k.startsWith('fourcircle_') && k !== 'fourcircle_settings_v1');
     if (ours.length) await AsyncStorage.multiRemove(ours);
   } catch {
     // Storage being unreadable must not leave the user stuck on this screen;

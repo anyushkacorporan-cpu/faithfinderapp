@@ -35,7 +35,7 @@ import { load, save } from './persist';
  * again from scratch. Only the ends of account creation lead here, so answering
  * again costs nothing to anyone who is not creating an account.
  */
-const KEY = 'faithfinder_onboarding_seen_v2';
+const KEY = 'fourcircle_onboarding_seen_v2';
 
 let seen = false;
 

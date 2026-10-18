@@ -5,12 +5,12 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "faithfinder",
+    "scheme": "fourcircle",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.faithfinder",
+      "bundleIdentifier": "com.fourcircle",
       "buildNumber": "1"
     },
     "plugins": [
@@ -31,7 +31,7 @@
       [
         "@stripe/stripe-react-native",
         {
-          "merchantIdentifier": "merchant.com.faithfinder"
+          "merchantIdentifier": "merchant.com.fourcircle"
         }
       ],
       [

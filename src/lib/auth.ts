@@ -152,7 +152,7 @@ function timedOut(r: unknown): r is TimedOut {
  * Where an emailed link should send someone back to.
  *
  * Built from the running app rather than hard-coded, because the answer
- * differs by build: `exp://…/--/path` under Expo Go, `faithfinder://path` in a
+ * differs by build: `exp://…/--/path` under Expo Go, `fourcircle://path` in a
  * real build. A fixed value works in exactly one of those and fails silently
  * in the other. Each value returned here must also be listed under
  * Authentication → URL Configuration → Redirect URLs, or Supabase ignores it

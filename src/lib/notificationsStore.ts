@@ -69,7 +69,7 @@ const listeners: Array<() => void> = [];
  */
 function notify() { [...listeners].forEach(fn => fn()); }
 
-const STORAGE_KEY = 'faithfinder_notifications_v1';
+const STORAGE_KEY = 'fourcircle_notifications_v1';
 function persist() { save(STORAGE_KEY, notifications); }
 load<typeof notifications>(STORAGE_KEY, v => { notifications = v; notify(); });
 

@@ -5,7 +5,7 @@ import * as api from './eventsApi';
 import { getUser } from './userStore';
 import { platformFeePerTicket, organizerPayoutPerTicket } from './ticketPricing';
 
-const EVENTS_KEY = 'faithfinder_events_v1';
+const EVENTS_KEY = 'fourcircle_events_v1';
 
 export type AgendaItem = { time: string; activity: string };
 export type Speaker = { name: string; role: string; initials: string; color: string };

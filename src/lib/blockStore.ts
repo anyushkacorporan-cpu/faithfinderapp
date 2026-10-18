@@ -36,7 +36,7 @@ const listeners: Array<() => void> = [];
  */
 function notify() { [...listeners].forEach(fn => fn()); }
 
-const STORAGE_KEY = 'faithfinder_blocked_v1';
+const STORAGE_KEY = 'fourcircle_blocked_v1';
 function persist() { save(STORAGE_KEY, blocked); }
 load<BlockedUser[]>(STORAGE_KEY, v => { blocked = v; notify(); });
 

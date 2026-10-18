@@ -1,7 +1,7 @@
 /**
  * Deep linking + share text helpers for Four Circle.
  *
- * CURRENT STATE: links use the app's custom URL scheme (faithfinder://...).
+ * CURRENT STATE: links use the app's custom URL scheme (fourcircle://...).
  * This works TODAY when the app is already installed (tapping the link on a
  * device that has Four Circle opens directly to that church/event).
  *
@@ -12,18 +12,18 @@
  * (e.g. Branch.io, or a custom server). The domain now exists
  * (fourcircle.app), so what is left is the app being published and the
  * association file being served from it. Once that is true, swap the
- * FAITHFINDER_SCHEME links below for https://fourcircle.app/... Universal
+ * FOURCIRCLE_SCHEME links below for https://fourcircle.app/... Universal
  * Links and wire a redirect service.
  */
 
-const FAITHFINDER_SCHEME = 'faithfinder';
+const FOURCIRCLE_SCHEME = 'fourcircle';
 
 export function getChurchDeepLink(churchId: string): string {
-  return `${FAITHFINDER_SCHEME}://church/${encodeURIComponent(churchId)}`;
+  return `${FOURCIRCLE_SCHEME}://church/${encodeURIComponent(churchId)}`;
 }
 
 export function getEventDeepLink(eventId: string): string {
-  return `${FAITHFINDER_SCHEME}://event/${encodeURIComponent(eventId)}`;
+  return `${FOURCIRCLE_SCHEME}://event/${encodeURIComponent(eventId)}`;
 }
 
 export function buildChurchShareText(opts: {

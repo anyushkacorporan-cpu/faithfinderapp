@@ -23,7 +23,7 @@ export const STRIPE_PUBLISHABLE_KEY =
  * Stripe's sheet simply does not offer Apple Pay without it.
  */
 export const STRIPE_MERCHANT_ID =
-  process.env.EXPO_PUBLIC_APPLE_MERCHANT_ID || 'merchant.com.faithfinder';
+  process.env.EXPO_PUBLIC_APPLE_MERCHANT_ID || 'merchant.com.fourcircle';
 
 /** Whether payments can be taken at all in this build. */
 export function hasStripe(): boolean {

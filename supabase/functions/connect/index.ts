@@ -35,8 +35,8 @@ const SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
 // — the payouts screen is a tab inside /earnings — so finishing Stripe's form
 // would have dropped the organiser on an unmatched route, at the end of
 // handing over their bank details, with no way to tell whether it had worked.
-const RETURN_URL = 'faithfinder://earnings?tab=Settings&connected=1';
-const REFRESH_URL = 'faithfinder://earnings?tab=Settings&refresh=1';
+const RETURN_URL = 'fourcircle://earnings?tab=Settings&connected=1';
+const REFRESH_URL = 'fourcircle://earnings?tab=Settings&refresh=1';
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',

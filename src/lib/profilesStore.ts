@@ -55,7 +55,7 @@ const listeners: Array<() => void> = [];
  */
 function notify() { [...listeners].forEach(fn => fn()); }
 
-const STORAGE_KEY = 'faithfinder_profiles_v1';
+const STORAGE_KEY = 'fourcircle_profiles_v1';
 function persist() { save(STORAGE_KEY, profiles); }
 load<Record<string, ProfileSnapshot>>(STORAGE_KEY, v => { profiles = v || {}; notify(); });
 

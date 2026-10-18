@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { newId } from './ids';
 
-const USER_KEY = 'faithfinder_user_v1';
+const USER_KEY = 'fourcircle_user_v1';
 
 /**
  * The signed-in user's profile. Everything is optional: the object starts
