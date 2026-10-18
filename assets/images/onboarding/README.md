@@ -1,6 +1,6 @@
 # Onboarding backgrounds
 
-Six photographs, one behind each card. Drop a file in here and point the slide
+Seven photographs, one behind each card. Drop a file in here and point the slide
 at it in `src/lib/onboardingSlides.ts`:
 
     image: require('../../assets/images/onboarding/welcome.jpg'),
@@ -12,7 +12,7 @@ rather than a hole — so they can arrive one at a time and in any order.
 every current iPhone. Smaller will stretch and look soft.
 
 **Weight.** JPEG, quality around 70, under about 400 KB each. These ship inside
-the app, so six large files are six megabytes everyone downloads.
+the app, so seven large files are seven megabytes everyone downloads.
 
 **What reads well.** Text sits over the middle of the image with a dark scrim
 above and below it. Pictures with a quiet centre work; a busy one fights the

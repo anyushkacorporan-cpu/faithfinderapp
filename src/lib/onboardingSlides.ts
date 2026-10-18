@@ -89,7 +89,7 @@ export const SLIDES: Slide[] = [
       text: 'Let your light shine before others, that they may see your good deeds.',
       ref: 'Matthew 5:16',
     },
-    // Waiting on 05-share.jpg — the "King of Kings" flag.
+    image: require('../../assets/images/onboarding/05-share.jpg'),
     gradient: ['#4a5a6e', '#1a2230'],
   },
   {
@@ -111,7 +111,7 @@ export const SLIDES: Slide[] = [
       text: 'You are the salt of the earth.',
       ref: 'Matthew 5:13',
     },
-    // Waiting on 07-letter.jpg — the open bible against the sky.
+    image: require('../../assets/images/onboarding/07-letter.jpg'),
     gradient: ['#1f2a36', '#0a0d11'],
   },
 ];
