@@ -111,7 +111,7 @@ export const SLIDES: Slide[] = [
     // The letter. Addressed to them by name, signed by Annie.
     salutation: true,
     title: 'Stand firm, walk boldly, be the salt.',
-    body: 'I pray this app blesses you. I pray you find a church. I pray you find your community. But most importantly, I pray that you come to know God, whether this app helped you or whether you found Him another way.\n\nPlease keep in mind that your relationship with God comes first. This app was never made to replace the time you need with Him. It is only here to be resourceful.',
+    body: 'I pray this app blesses you. I pray you find a church. I pray you find your community. But most importantly, I pray that you come to know God, whether this app helped you or whether you found Him another way.\n\nPlease keep in mind that your relationship with God comes first. This app was never made to replace the time you need with Him. It is only here to be resourceful.\n\nNow go. Find your church, find your people, and let God do the rest.',
     signoff: {
       blessing: 'Blessings to all from your sister of Christ, Annie.',
       role: 'Creator of Four Circle',

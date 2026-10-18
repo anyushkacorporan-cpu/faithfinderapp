@@ -1215,8 +1215,8 @@ const translations: Record<string, Record<Lang, string>> = {
     English: 'Stand firm, walk boldly, be the salt.',
     Español: 'Mantente firme, camina con valentía, sé la sal.' },
   card18: {
-    English: 'I pray this app blesses you. I pray you find a church. I pray you find your community. But most importantly, I pray that you come to know God, whether this app helped you or whether you found Him another way.\n\nPlease keep in mind that your relationship with God comes first. This app was never made to replace the time you need with Him. It is only here to be resourceful.',
-    Español: 'Oro para que esta app te bendiga. Oro para que encuentres una iglesia. Oro para que encuentres tu comunidad. Pero sobre todo, oro para que llegues a conocer a Dios, ya sea que esta app te haya ayudado o que lo hayas encontrado de otra manera.\n\nPor favor ten presente que tu relación con Dios va primero. Esta app nunca fue hecha para reemplazar el tiempo que necesitas con Él. Solo está aquí para servirte de ayuda.' },
+    English: 'I pray this app blesses you. I pray you find a church. I pray you find your community. But most importantly, I pray that you come to know God, whether this app helped you or whether you found Him another way.\n\nPlease keep in mind that your relationship with God comes first. This app was never made to replace the time you need with Him. It is only here to be resourceful.\n\nNow go. Find your church, find your people, and let God do the rest.',
+    Español: 'Oro para que esta app te bendiga. Oro para que encuentres una iglesia. Oro para que encuentres tu comunidad. Pero sobre todo, oro para que llegues a conocer a Dios, ya sea que esta app te haya ayudado o que lo hayas encontrado de otra manera.\n\nPor favor ten presente que tu relación con Dios va primero. Esta app nunca fue hecha para reemplazar el tiempo que necesitas con Él. Solo está aquí para servirte de ayuda.\n\nAhora ve. Encuentra tu iglesia, encuentra a tu gente, y deja que Dios haga el resto.' },
   card19: {
     English: 'Blessings to all from your sister of Christ, Annie.',
     Español: 'Bendiciones a todos de parte de su hermana en Cristo, Annie.' },
