@@ -148,25 +148,29 @@ function SlideView({ slide, width, tx, name }: {
   // nothing sits on it.
   const scrim = ['rgba(0,0,0,0.55)', 'rgba(0,0,0,0.25)', 'rgba(0,0,0,0.8)'] as const;
 
+  // Translate first, then drop the name in: the placeholder travels through
+  // the Spanish as well, and Spanish puts it at the end rather than after
+  // the greeting.
+  const heading = tx(slide.title).replace('{name}', name);
+  const headingHasName = slide.title.includes('{name}');
+
   const content = (
     <LinearGradient colors={scrim} locations={[0, 0.35, 1]} style={{ width, flex: 1 }}>
-      {/* Each card scrolls on its own. "Why we built this" and the closing
-          letter are long, and on a small phone they would otherwise be cut off
-          at whatever line the screen ends on, with nothing to say so. Vertical
-          inside horizontal is fine: the gestures do not fight. */}
+      {/* Each card scrolls on its own. "Why we built this" is long, and on a
+          small phone it would otherwise be cut off at whatever line the screen
+          ends on, with nothing to say so. Vertical inside horizontal is fine:
+          the gestures do not fight. */}
       <ScrollView
         contentContainerStyle={s.slide}
         showsVerticalScrollIndicator={false}
         bounces={false}
       >
       <View style={s.card}>
-        {!!slide.eyebrow && <Text style={s.eyebrow}>{tx(slide.eyebrow)}</Text>}
-
-        {/* An empty title means the person's own name belongs there. A church
-            name can run long, so it steps down a size at a time rather than
-            wrapping to four lines of 38pt serif. */}
-        <Text style={[s.title, !slide.title && nameSize(name)]}>
-          {slide.title ? tx(slide.title) : name}
+        {/* Only the greeting carries a name, and a long one would otherwise
+            wrap to four lines of 38pt serif, so that line alone steps down a
+            size at a time. The written titles are set to fit as they are. */}
+        <Text style={[s.title, headingHasName && nameSize(heading)]}>
+          {heading}
         </Text>
 
         <View style={s.rule} />
@@ -227,9 +231,6 @@ const s = StyleSheet.create({
   slide: { flexGrow: 1, justifyContent: 'center', paddingHorizontal: 30, paddingTop: 108, paddingBottom: 140 },
   card: { alignItems: 'center' },
 
-  eyebrow: {
-    fontSize: 15, letterSpacing: 4, color: GOLD, fontWeight: '600', marginBottom: 10,
-  },
   title: {
     fontFamily: 'PlayfairDisplay_700Bold', fontSize: 38, lineHeight: 46,
     color: '#fff', textAlign: 'center',

@@ -1248,8 +1248,8 @@ const translations: Record<string, Record<Lang, string>> = {
     English: '1 Corinthians 13:4',
     Español: '1 Corintios 13:4' },
   card31: {
-    English: 'WELCOME',
-    Español: 'BIENVENIDO' },
+    English: 'Welcome {name}',
+    Español: 'Te damos la bienvenida, {name}' },
   card32: {
     English: 'Friend',
     Español: 'Amigo' },

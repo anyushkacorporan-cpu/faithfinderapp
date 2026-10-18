@@ -20,9 +20,7 @@ import type { ImageSourcePropType } from 'react-native';
  */
 
 export type Slide = {
-  /** Small gold capitals above the title. */
-  eyebrow?: string;
-  /** Empty on the first card, where the person's own name takes its place. */
+  /** {name} in a title is replaced with the person's own first name. */
   title: string;
   /** Bold, between the title and the paragraph. Smaller than the title. */
   lead?: string;
@@ -43,9 +41,7 @@ export type Slide = {
  */
 export const SLIDES: Slide[] = [
   {
-    eyebrow: 'WELCOME',
-    // The title is the person's own name, filled in by the screen.
-    title: '',
+    title: 'Welcome {name}',
     body: "You've been invited into something special. An app rooted in faith.",
     image: require('../../assets/images/onboarding/01-welcome.jpg'),
     gradient: ['#3a2416', '#140c07'],
