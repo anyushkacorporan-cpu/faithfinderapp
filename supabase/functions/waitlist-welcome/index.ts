@@ -23,8 +23,38 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.58.0';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
-const SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
 const RESEND_KEY = Deno.env.get('RESEND_API_KEY') ?? '';
+
+/**
+ * The key that gets past row-level security, under either name.
+ *
+ * SUPABASE_SERVICE_ROLE_KEY is the one every example still uses and the
+ * dashboard now marks deprecated: projects issuing keys through JWT signing
+ * get SUPABASE_SECRET_KEYS instead, a JSON dictionary, and the old variable
+ * can be empty. Empty is the worst case to debug, because the client builds
+ * fine, the request goes out unauthenticated, claim_welcome refuses it, and
+ * the function returns its usual cheerful 200 having sent nothing.
+ *
+ * So: the old name if it has anything in it, otherwise the first string in
+ * the new dictionary. Reading values rather than a named field on purpose,
+ * because the field names in that dictionary are not ours to assume.
+ */
+function serviceKey(): string {
+  const legacy = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+  if (legacy) return legacy;
+  try {
+    const raw = Deno.env.get('SUPABASE_SECRET_KEYS');
+    if (!raw) return '';
+    const parsed = JSON.parse(raw);
+    if (typeof parsed === 'string') return parsed;
+    const found = Object.values(parsed).find(v => typeof v === 'string' && v);
+    return typeof found === 'string' ? found : '';
+  } catch {
+    return '';
+  }
+}
+
+const SERVICE_KEY = serviceKey();
 
 const FROM = 'Four Circle <hello@fourcircle.app>';
 const REPLY_TO = 'support@fourcircle.app';
@@ -93,6 +123,9 @@ Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS });
 
   try {
+    if (!SERVICE_KEY) console.error('no service key: set SUPABASE_SECRET_KEYS or SUPABASE_SERVICE_ROLE_KEY');
+    if (!RESEND_KEY) console.error('no RESEND_API_KEY');
+
     const { email } = await req.json().catch(() => ({ email: '' }));
     const address = String(email ?? '').trim().toLowerCase();
     if (!address) return ok();
