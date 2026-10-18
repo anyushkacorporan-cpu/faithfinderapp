@@ -74,6 +74,14 @@ Resend refusing, addresses are still saved and the page still confirms. Only
 the email is lost, and an email can be sent later. An address cannot be
 recovered later, which is why it is the half that stands alone.
 
+`unsubscribe.html` is the other half of it: the link in the email carries a
+random token belonging to that one row, and the page hands it to
+`unsubscribe_waitlist()`, which deletes the row. It deletes rather than flags
+because a flag means every query that reads this table has to remember the
+flag, and the one that will not remember it is the one written in a hurry on
+launch day. `select * from waitlist` stays honestly equal to the list of
+people to write to.
+
 To turn it on:
 
 1. Make a Resend account and add `fourcircle.app` as a domain. Resend gives
@@ -82,8 +90,11 @@ To turn it on:
    rather than merely claim to be.
 2. Create an API key in Resend and give it to Supabase, never to a file here:
    `supabase secrets set RESEND_API_KEY=...`
-3. Run `supabase/28_waitlist_welcome.sql` in the SQL editor.
-4. `supabase functions deploy waitlist-welcome`
+3. Run `supabase/28_waitlist_welcome.sql` and `supabase/29_waitlist_unsubscribe.sql`
+   in the SQL editor.
+4. Deploy `waitlist-welcome`, either with `supabase functions deploy
+   waitlist-welcome` or by pasting it into the dashboard's function editor,
+   which needs no CLI.
 
 Until step 4 the page carries on exactly as it does now.
 

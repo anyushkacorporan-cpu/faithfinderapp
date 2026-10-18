@@ -61,21 +61,21 @@ const REPLY_TO = 'support@fourcircle.app';
 const SUBJECT = "You're on the list";
 
 /**
- * Where an unsubscribe goes.
+ * One click, and they are off.
  *
- * A mailto rather than a link to a page, because a page needs an endpoint
- * that can remove somebody, and an endpoint that removes somebody on request
- * needs a signed token or it is a way for a stranger to unsubscribe anyone
- * whose address they can guess. That is a real thing to build and this list
- * is small, so for now the address does the job: it is a working opt-out,
- * which is what the law asks for, and it lands in the same inbox as
- * everything else.
+ * This was a mailto, which opened a half written message the reader then had
+ * to send and somebody then had to act on by hand. It asked for effort at the
+ * moment a person had decided they wanted less to do with us, and the easier
+ * button beside it is the one marked spam, which costs the domain far more
+ * than one subscriber does.
  *
- * It also goes in a List-Unsubscribe header, which is what makes Gmail and
- * Apple Mail draw their own Unsubscribe button at the top of the message.
- * Most people use that and never read the footer.
+ * The token in the link is a random uuid belonging to that row, handed out
+ * only inside the email sent to that address (29_waitlist_unsubscribe.sql).
+ * A link carrying the address instead would be a link anybody could type.
  */
-const UNSUBSCRIBE = 'support@fourcircle.app';
+function unsubscribeUrl(token: string) {
+  return `https://fourcircle.app/unsubscribe.html?t=${encodeURIComponent(token)}`;
+}
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
@@ -99,7 +99,7 @@ function ok() {
 }
 
 /** Plain text first. Some people read it, and every spam filter does. */
-const TEXT = `You're on the list.
+const TEXT = (url: string) => `You're on the list.
 
 Four Circle is coming to the App Store, and you will be among the first to
 know. We will email you the day it opens, so you can create your account
@@ -110,8 +110,8 @@ Until then, God bless you.
 From the Four Circle app
 
 You are getting this because you asked to be told when Four Circle opens.
-To stop receiving them, email ${UNSUBSCRIBE} with "unsubscribe" as the
-subject and you will be taken off the list.`;
+To stop, open this link and you are off the list straight away:
+${url}`;
 
 /**
  * Deliberately plain HTML. Inline styles, one column, no images and no web
@@ -119,7 +119,7 @@ subject and you will be taken off the list.`;
  * and the ones that disagree least are the ones asked to do least. The gold
  * rule and the serif are the only things carried over from the site.
  */
-const HTML = `<!doctype html>
+const HTML = (url: string) => `<!doctype html>
 <html><body style="margin:0;padding:24px;background:#faf9f6;">
   <div style="max-width:480px;margin:0 auto;background:#fffdfa;border:1px solid #e9e5dd;border-radius:14px;padding:32px 28px;font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#1a1a2e;font-size:16px;line-height:1.6;">
     <div style="font-size:12px;letter-spacing:3px;text-transform:uppercase;color:#a98c54;font-weight:700;">Four Circle</div>
@@ -130,7 +130,7 @@ const HTML = `<!doctype html>
     <p style="margin:0;font-family:Georgia,serif;font-style:italic;font-size:15px;color:#a98c54;">From the Four Circle app</p>
     <p style="margin:26px 0 0;padding-top:18px;border-top:1px solid #e9e5dd;font-size:12px;color:#8a8a94;">
       You are getting this because you asked to be told when Four Circle opens.
-      <a href="mailto:${UNSUBSCRIBE}?subject=unsubscribe" style="color:#8a8a94;">Unsubscribe</a>.
+      <a href="${url}" style="color:#8a8a94;">Unsubscribe</a>.
     </p>
   </div>
 </body></html>`;
@@ -153,6 +153,16 @@ Deno.serve(async (req: Request) => {
     const { data: claimed, error } = await db.rpc('claim_welcome', { p_email: address });
     if (error || claimed !== true) return ok();
 
+    // After the claim, so a row that was never going to be written to is not
+    // asked about either. No token means no way off the list, and an email
+    // nobody can leave is worse than no email, so this one does not go.
+    const { data: token } = await db.rpc('waitlist_token', { p_email: address });
+    if (!token) {
+      console.error('no unsubscribe token for a claimed address');
+      return ok();
+    }
+    const url = unsubscribeUrl(String(token));
+
     const res = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
@@ -164,14 +174,23 @@ Deno.serve(async (req: Request) => {
         to: [address],
         reply_to: REPLY_TO,
         subject: SUBJECT,
-        text: TEXT,
-        html: HTML,
+        text: TEXT(url),
+        html: HTML(url),
         // What draws the Unsubscribe button Gmail and Apple Mail put at the
         // top of a message, above anything we control. Worth more than the
         // footer link, because it is the one most people actually use, and a
         // list with a visible way off it is a list that gets marked as spam
         // less often.
-        headers: { 'List-Unsubscribe': `<mailto:${UNSUBSCRIBE}?subject=unsubscribe>` },
+        // The button Gmail and Apple Mail draw above anything we control.
+        //
+        // Deliberately without List-Unsubscribe-Post. That header promises the
+        // url answers a POST and lets the mail client unsubscribe without
+        // opening anything, which is nicer, and which this url cannot do:
+        // GitHub Pages serves files and answers GET. Claiming otherwise means
+        // the client posts, gets a refusal, and tells the person the
+        // unsubscribe failed when in fact it was never tried. Without it the
+        // button opens the page, which removes them and says so.
+        headers: { 'List-Unsubscribe': `<${url}>` },
       }),
     });
 

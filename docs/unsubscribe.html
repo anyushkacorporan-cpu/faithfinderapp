@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Four Circle</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#120d08">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:opsz,wght@9..40,400;9..40,600&display=swap">
+<style>
+  :root {
+    --gold: #c9a96e; --gold-lit: #e8d3a4; --ground: #120d08;
+    --rule: rgba(201,169,110,0.3); --ink: #f6f2ea; --ink-2: rgba(246,242,234,0.76);
+    --display: "Playfair Display", Georgia, serif;
+    --text: "DM Sans", ui-sans-serif, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100svh; display: flex;
+    align-items: center; justify-content: center; text-align: center;
+    padding: 30px 22px;
+    background: #2a1c10 url("hero.jpg") center / cover no-repeat fixed;
+    color: var(--ink); font-family: var(--text); font-size: 16px; line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  body::before {
+    content: ""; position: fixed; inset: 0;
+    background: linear-gradient(to bottom, rgba(10,7,4,0.84) 0%, rgba(10,7,4,0.6) 50%, rgba(10,7,4,0.9) 100%);
+  }
+  main { position: relative; max-width: 26rem; }
+  .name {
+    font-size: 0.74rem; font-weight: 700; letter-spacing: 0.2em;
+    text-transform: uppercase; color: var(--gold-lit); margin: 0 0 22px;
+  }
+  h1 {
+    font-family: var(--display); font-weight: 700;
+    font-size: clamp(1.8rem, 8vw, 2.4rem); line-height: 1.15; margin: 0 0 14px;
+  }
+  p { color: var(--ink-2); margin: 0 0 8px; }
+  a { color: var(--gold-lit); }
+  .rule { width: 56px; height: 2px; background: var(--gold); margin: 20px auto; }
+</style>
+</head>
+<body>
+<main id="box">
+  <p class="name">Four Circle</p>
+  <h1 id="head">One moment.</h1>
+  <p id="body">Taking you off the list.</p>
+</main>
+
+<script>
+(function () {
+  'use strict';
+
+  // The same publishable key the rest of the site uses. What it can do here is
+  // call one function, which needs a token nobody has but the person holding
+  // the email it was sent in. See supabase/29_waitlist_unsubscribe.sql.
+  var API = 'https://mmhpfiabbpzaizkjozjq.supabase.co/rest/v1/rpc/unsubscribe_waitlist';
+  var KEY = 'sb_publishable_sVF7I5TRILs0rhDGRgTl3Q_eerLcV_6';
+
+  var head = document.getElementById('head');
+  var body = document.getElementById('body');
+
+  function say(h, b) {
+    head.textContent = h;
+    body.innerHTML = b;
+  }
+
+  var token = new URLSearchParams(location.search).get('t') || '';
+  if (!/^[0-9a-f-]{36}$/i.test(token)) {
+    say('That link is incomplete.', 'Some mail apps cut long links in half. Open the email and tap the link again, or reply to it and we will take you off by hand.');
+    return;
+  }
+
+  fetch(API, {
+    method: 'POST',
+    headers: { 'apikey': KEY, 'Authorization': 'Bearer ' + KEY, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ p_token: token })
+  }).then(function (res) {
+    if (!res.ok) throw new Error('http ' + res.status);
+    // true and false both mean the same thing to the person reading: they are
+    // not on this list. False is simply a token already spent, which happens
+    // when a mail client follows the link once on its own before they do.
+    say("You're off the list.", 'You will not hear from Four Circle again. If that was a mistake, you can sign up again at <a href="/">fourcircle.app</a>.');
+  }).catch(function () {
+    say('That did not go through.', 'Please try the link again in a moment, or reply to the email and we will take you off by hand.');
+  });
+})();
+</script>
+</body>
+</html>
