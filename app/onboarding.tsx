@@ -201,11 +201,14 @@ export default function Onboarding() {
  * both and the two answers are spelled the way each language spells itself.
  */
 function LanguageGate({ onPick }: { onPick: (lang: Lang) => void }) {
-  const first = SLIDES[0];
-  const scrim = ['rgba(0,0,0,0.55)', 'rgba(0,0,0,0.3)', 'rgba(0,0,0,0.85)'] as const;
+  // Its own photograph rather than the first card's, and the question sits low
+  // on it: the dove is white, in the middle of the frame, and white serif over
+  // a white bird is the one place this type cannot be read. Low on the frame
+  // it has the dark end of the scrim behind it and the dove has the light.
+  const scrim = ['rgba(0,0,0,0.5)', 'rgba(0,0,0,0.3)', 'rgba(0,0,0,0.92)'] as const;
 
   const body = (
-    <LinearGradient colors={scrim} locations={[0, 0.35, 1]} style={{ flex: 1 }}>
+    <LinearGradient colors={scrim} locations={[0, 0.45, 1]} style={{ flex: 1 }}>
       <SafeAreaView style={{ flex: 1 }} edges={['top', 'bottom']}>
         <View style={s.topRow}>
           <View style={s.brand}>
@@ -241,13 +244,13 @@ function LanguageGate({ onPick }: { onPick: (lang: Lang) => void }) {
   return (
     <View style={s.root}>
       <StatusBar barStyle="light-content" />
-      {first.image ? (
-        <ImageBackground source={first.image} style={{ flex: 1 }} resizeMode="cover">
-          {body}
-        </ImageBackground>
-      ) : (
-        <LinearGradient colors={first.gradient} style={{ flex: 1 }}>{body}</LinearGradient>
-      )}
+      <ImageBackground
+        source={require('../assets/images/onboarding/00-language.jpg')}
+        style={{ flex: 1 }}
+        resizeMode="cover"
+      >
+        {body}
+      </ImageBackground>
     </View>
   );
 }
@@ -390,7 +393,7 @@ const s = StyleSheet.create({
   navTxt: { color: 'rgba(255,255,255,0.72)', fontSize: 14, fontWeight: '600' },
   skipTxt: { color: '#fff', fontSize: 14, fontWeight: '600' },
 
-  gate: { flex: 1, justifyContent: 'center', paddingHorizontal: 30, paddingBottom: 50 },
+  gate: { flex: 1, justifyContent: 'flex-end', paddingHorizontal: 30, paddingBottom: 54 },
   gateTitle: {
     fontFamily: 'PlayfairDisplay_700Bold', fontSize: 34, lineHeight: 42,
     color: '#fff', textAlign: 'center',
