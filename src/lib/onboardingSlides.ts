@@ -58,7 +58,7 @@ export const SLIDES: Slide[] = [
   },
   {
     title: 'Build friendships with other believers',
-    body: 'Four Circle is for everyone who wants to grow. Connect with one another. Encourage one another. Be kind and loving to one another. But most importantly, help one another. Elders and babes in Christ. However long we\'ve been walking with God, let\'s lift each other.',
+    body: 'Four Circle is for everyone who wants to grow. Connect with one another. Encourage one another. Be kind and loving to one another. But most importantly, help one another. However long we\'ve been walking with God, let\'s lift each other.',
     verse: {
       text: 'As iron sharpens iron, so one person sharpens another.',
       ref: 'Proverbs 27:17',
@@ -91,7 +91,7 @@ export const SLIDES: Slide[] = [
   {
     title: 'A holy and safe place',
     lead: 'Let your heart be in good standing here.',
-    body: 'This app was built for good intentions only, and every post should reflect Christ. No bullying, no blasphemy, no foul language, nothing inappropriate, nothing that divides. Let this be a place that honours Him.',
+    body: 'This app was built for good intentions only, and every post should reflect Christ. Let this be a place that honours Him.',
     verse: {
       text: 'Love is patient, love is kind. It does not envy, it does not boast, it is not proud.',
       ref: '1 Corinthians 13:4',

@@ -64,7 +64,7 @@ export default function Onboarding() {
   }
 
   function next() {
-    if (last) { leave(); return; }
+    if (last) return;
     scroller.current?.scrollTo({ x: (page + 1) * width, animated: true });
   }
 
@@ -122,41 +122,51 @@ export default function Onboarding() {
             <Text style={s.brandTxt}>Four Circle</Text>
           </View>
 
-          {/* Only ever what is possible from here: no Back on the first
-              card, and on the last neither Next nor Skip, where the button
-              below is the one thing left to do. */}
-          <View style={s.nav}>
+          {/* Skip is the only one that leaves the screen, so it sits up
+              here on its own, away from the two that only move between
+              cards. On the last card there is nothing left to skip. */}
+          {!last && (
+            <TouchableOpacity onPress={leave} hitSlop={12}>
+              <Text style={s.skipTxt}>{tx(isReplay ? 'Done' : 'Skip')}</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      </SafeAreaView>
+
+      <SafeAreaView style={s.bottomBar} edges={['bottom']} pointerEvents="box-none">
+        <View style={s.bottomRow}>
+          {/* Both ends are the same fixed width, so the dots stay centred on
+              the screen instead of sliding when a word comes or goes. */}
+          <View style={s.end}>
             {page > 0 && (
               <TouchableOpacity onPress={back} hitSlop={12}>
                 <Text style={s.navTxt}>{tx('Back')}</Text>
               </TouchableOpacity>
             )}
+          </View>
+
+          <View style={s.progress}>
+            {SLIDES.map((slide, i) => (
+              <View key={slide.title} style={[s.seg, i === page && s.segOn]} />
+            ))}
+          </View>
+
+          <View style={[s.end, s.endRight]}>
             {!last && (
               <TouchableOpacity onPress={next} hitSlop={12}>
                 <Text style={s.navTxt}>{tx('Next')}</Text>
               </TouchableOpacity>
             )}
-            {!last && (
-              <TouchableOpacity onPress={leave} hitSlop={12}>
-                <Text style={s.skipTxt}>{tx(isReplay ? 'Done' : 'Skip')}</Text>
-              </TouchableOpacity>
-            )}
           </View>
         </View>
-      </SafeAreaView>
 
-      <SafeAreaView style={s.bottomBar} edges={['bottom']} pointerEvents="box-none">
-        <View style={s.progress}>
-          {SLIDES.map((slide, i) => (
-            <View key={slide.title || 'welcome'} style={[s.seg, i === page && s.segOn]} />
-          ))}
-        </View>
-
-        <TouchableOpacity style={s.cta} onPress={next} activeOpacity={0.85}>
-          <Text style={s.ctaTxt}>
-            {last ? tx(isReplay ? 'Done' : 'Get started') : tx('Continue')}
-          </Text>
-        </TouchableOpacity>
+        {/* The one button in the whole flow, on the one card where there is
+            something to do other than read on. */}
+        {last && (
+          <TouchableOpacity style={s.cta} onPress={leave} activeOpacity={0.85}>
+            <Text style={s.ctaTxt}>{tx(isReplay ? 'Done' : 'Get started')}</Text>
+          </TouchableOpacity>
+        )}
       </SafeAreaView>
     </View>
   );
@@ -288,19 +298,24 @@ const s = StyleSheet.create({
   brandTxt: { fontFamily: 'PlayfairDisplay_700Bold', fontSize: 17, color: '#fff' },
 
   progress: {
-    flexDirection: 'row', justifyContent: 'center', alignItems: 'center',
-    gap: 5, marginBottom: 18,
+    flex: 1, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 5,
   },
   // The current step is a bar and the rest are dots, which says where you are
   // and how far is left in one glance.
   seg: { width: 6, height: 6, borderRadius: 3, backgroundColor: 'rgba(255,255,255,0.4)' },
   segOn: { width: 26, backgroundColor: GOLD },
 
-  // Words, not buttons. Skip is the brighter of the three because it is the
-  // one that leaves; Back and Next only move within what is already open.
-  nav: { flexDirection: 'row', alignItems: 'center', gap: 18 },
+  // Words, not buttons. Skip is the brighter because it is the one that
+  // leaves the screen; Back and Next only move between cards.
   navTxt: { color: 'rgba(255,255,255,0.72)', fontSize: 14, fontWeight: '600' },
   skipTxt: { color: '#fff', fontSize: 14, fontWeight: '600' },
+
+  bottomRow: {
+    flexDirection: 'row', alignItems: 'center',
+    paddingHorizontal: 24, paddingBottom: 16,
+  },
+  end: { width: 56 },
+  endRight: { alignItems: 'flex-end' },
 
   bottomBar: { position: 'absolute', left: 0, right: 0, bottom: 0 },
   cta: {

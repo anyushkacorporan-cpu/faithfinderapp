@@ -1176,8 +1176,8 @@ const translations: Record<string, Record<Lang, string>> = {
     English: 'Build friendships with other believers',
     Español: 'Forma amistades con otros creyentes' },
   card05: {
-    English: "Four Circle is for everyone who wants to grow. Connect with one another. Encourage one another. Be kind and loving to one another. But most importantly, help one another. Elders and babes in Christ. However long we've been walking with God, let's lift each other.",
-    Español: 'Four Circle es para todo el que quiera crecer. Conéctense unos con otros. Anímense unos a otros. Sean amables y amorosos unos con otros. Pero sobre todo, ayúdense unos a otros. Ancianos y niños en Cristo. Sea cual sea el tiempo que llevemos caminando con Dios, levantémonos unos a otros.' },
+    English: "Four Circle is for everyone who wants to grow. Connect with one another. Encourage one another. Be kind and loving to one another. But most importantly, help one another. However long we've been walking with God, let's lift each other.",
+    Español: 'Four Circle es para todo el que quiera crecer. Conéctense unos con otros. Anímense unos a otros. Sean amables y amorosos unos con otros. Pero sobre todo, ayúdense unos a otros. Sea cual sea el tiempo que llevemos caminando con Dios, levantémonos unos a otros.' },
   card06: {
     English: 'As iron sharpens iron, so one person sharpens another.',
     Español: 'Hierro con hierro se aguza; y así el hombre aguza el rostro de su amigo.' },
@@ -1209,8 +1209,8 @@ const translations: Record<string, Record<Lang, string>> = {
     English: 'Let your heart be in good standing here.',
     Español: 'Que tu corazón esté en buena posición aquí.' },
   card16: {
-    English: 'This app was built for good intentions only, and every post should reflect Christ. No bullying, no blasphemy, no foul language, nothing inappropriate, nothing that divides. Let this be a place that honours Him.',
-    Español: 'Esta app fue creada solo para buenas intenciones, y cada publicación debe reflejar a Cristo. Nada de acoso, nada de blasfemia, nada de lenguaje grosero, nada inapropiado, nada que divida. Que este sea un lugar que lo honre a Él.' },
+    English: 'This app was built for good intentions only, and every post should reflect Christ. Let this be a place that honours Him.',
+    Español: 'Esta app fue creada solo para buenas intenciones, y cada publicación debe reflejar a Cristo. Que este sea un lugar que lo honre a Él.' },
   card17: {
     English: 'Stand firm, walk boldly, be the salt.',
     Español: 'Mantente firme, camina con valentía, sé la sal.' },
