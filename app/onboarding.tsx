@@ -162,9 +162,6 @@ function SlideView({ slide, width, tx, name }: {
       <View style={s.card}>
         {!!slide.eyebrow && <Text style={s.eyebrow}>{tx(slide.eyebrow)}</Text>}
 
-        {/* The last card opens like a letter, addressed to them. */}
-        {slide.salutation && <Text style={s.salutation}>{name},</Text>}
-
         {/* An empty title means the person's own name belongs there. A church
             name can run long, so it steps down a size at a time rather than
             wrapping to four lines of 38pt serif. */}
@@ -180,13 +177,6 @@ function SlideView({ slide, width, tx, name }: {
         {!!slide.body && tx(slide.body).split('\n\n').map((para, i) => (
           <Text key={i} style={[s.body, i > 0 && s.bodyNext]}>{para}</Text>
         ))}
-
-        {!!slide.signoff && (
-          <View style={s.signoff}>
-            <Text style={s.blessing}>{tx(slide.signoff.blessing)}</Text>
-            <Text style={s.role}>{tx(slide.signoff.role)}</Text>
-          </View>
-        )}
 
         {!!slide.verse && (
           <View style={s.verseWrap}>
@@ -254,16 +244,6 @@ const s = StyleSheet.create({
   // Bold, white, clearly under the title rather than competing with it.
   lead: {
     fontSize: 19, fontWeight: '700', color: '#fff', textAlign: 'center', marginBottom: 14,
-  },
-  salutation: {
-    fontFamily: 'PlayfairDisplay_400Regular_Italic', fontSize: 20,
-    color: 'rgba(255,255,255,0.92)', marginBottom: 10,
-  },
-  signoff: { marginTop: 22, alignItems: 'center' },
-  blessing: { fontSize: 16, color: '#fff', textAlign: 'center', fontWeight: '600', lineHeight: 24 },
-  role: {
-    fontFamily: 'PlayfairDisplay_400Regular_Italic', fontSize: 14,
-    color: GOLD, marginTop: 4,
   },
 
   verseWrap: { marginTop: 28, alignItems: 'center' },

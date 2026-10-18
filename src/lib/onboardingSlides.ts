@@ -28,10 +28,6 @@ export type Slide = {
   lead?: string;
   /** The paragraph. A blank line splits it in two. */
   body?: string;
-  /** Their name, addressed at the top like the opening of a letter. */
-  salutation?: boolean;
-  /** How the letter closes. The last card only. */
-  signoff?: { blessing: string; role: string };
   /** Italic, with the reference under it in gold. */
   verse?: { text: string; ref: string };
   /** Photograph behind the card. Falls back to the gradient below. */
@@ -108,14 +104,9 @@ export const SLIDES: Slide[] = [
     gradient: ['#2e2821', '#0e0c0a'],
   },
   {
-    // The letter. Addressed to them by name, signed by Annie.
-    salutation: true,
+    // The send-off. One line, then the verse, then the button into the app.
     title: 'Stand firm, walk boldly, be the salt.',
-    body: 'I pray this app blesses you. I pray you find a church. I pray you find your community. But most importantly, I pray that you come to know God, whether this app helped you or whether you found Him another way.\n\nPlease keep in mind that your relationship with God comes first. This app was never made to replace the time you need with Him. It is only here to be resourceful.\n\nNow go. Find your church, find your people, and let God do the rest.',
-    signoff: {
-      blessing: 'Blessings to all from your sister of Christ, Annie.',
-      role: 'Creator of Four Circle',
-    },
+    body: 'Now go. Find your church, find your people, and let God do the rest.',
     verse: {
       text: 'You are the salt of the earth.',
       ref: 'Matthew 5:13',
