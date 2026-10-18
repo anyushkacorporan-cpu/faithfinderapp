@@ -116,24 +116,40 @@ ${url}`;
 /**
  * Deliberately plain HTML. Inline styles, one column, no images and no web
  * fonts: an email is read in two dozen clients that each disagree about CSS,
- * and the ones that disagree least are the ones asked to do least. The gold
- * rule and the serif are the only things carried over from the site.
+ * and the ones that disagree least are the ones asked to do least.
+ *
+ * ABOUT DARK MODE
+ *
+ * The cream version of this arrived looking black, because Gmail in dark mode
+ * inverts a light email rather than asking. color-scheme and
+ * supported-color-schemes are how a message says it was designed for light
+ * and would rather be left alone; Apple Mail honours that and Gmail usually
+ * does. Some clients invert regardless and there is no header that stops
+ * them, so this is written to survive it: plain white, real contrast, and no
+ * thin decorative lines that disappear when the colours flip.
  */
 const HTML = (url: string) => `<!doctype html>
-<html><body style="margin:0;padding:24px;background:#faf9f6;">
-  <div style="max-width:480px;margin:0 auto;background:#fffdfa;border:1px solid #e9e5dd;border-radius:14px;padding:32px 28px;font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#1a1a2e;font-size:16px;line-height:1.6;">
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="color-scheme" content="light">
+<meta name="supported-color-schemes" content="light">
+<style>:root { color-scheme: light; supported-color-schemes: light; }</style>
+</head>
+<body style="margin:0;padding:0;background:#ffffff;color-scheme:light;">
+  <div style="max-width:480px;margin:0 auto;padding:36px 26px;background:#ffffff;font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#1a1a2e;font-size:16px;line-height:1.6;">
     <div style="font-size:12px;letter-spacing:3px;text-transform:uppercase;color:#a98c54;font-weight:700;">Four Circle</div>
-    <h1 style="font-family:Georgia,'Times New Roman',serif;font-weight:700;font-size:26px;line-height:1.2;margin:14px 0 0;">You're on the list.</h1>
-    <div style="width:56px;height:2px;background:#c9a96e;margin:18px 0 20px;"></div>
-    <p style="margin:0 0 16px;color:#4a4a56;">Four Circle is coming to the App Store, and you will be among the first to know. We will email you the day it opens, so you can create your account before anybody else.</p>
-    <p style="margin:0 0 24px;color:#4a4a56;">Until then, God bless you.</p>
+    <h1 style="font-family:Georgia,'Times New Roman',serif;font-weight:700;font-size:26px;line-height:1.25;margin:16px 0 20px;color:#1a1a2e;">You're on the list.</h1>
+    <p style="margin:0 0 16px;color:#3c3c48;">Four Circle is coming to the App Store, and you will be among the first to know. We will email you the day it opens, so you can create your account before anybody else.</p>
+    <p style="margin:0 0 24px;color:#3c3c48;">Until then, God bless you.</p>
     <p style="margin:0;font-family:Georgia,serif;font-style:italic;font-size:15px;color:#a98c54;">From the Four Circle app</p>
-    <p style="margin:26px 0 0;padding-top:18px;border-top:1px solid #e9e5dd;font-size:12px;color:#8a8a94;">
+    <p style="margin:30px 0 0;font-size:12px;line-height:1.6;color:#71717c;">
       You are getting this because you asked to be told when Four Circle opens.
-      <a href="${url}" style="color:#8a8a94;">Unsubscribe</a>.
+      <a href="${url}" style="color:#71717c;">Unsubscribe</a>.
     </p>
   </div>
-</body></html>`;
+</body>
+</html>`;
 
 Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS });
