@@ -68,6 +68,11 @@ export default function Onboarding() {
     scroller.current?.scrollTo({ x: (page + 1) * width, animated: true });
   }
 
+  function back() {
+    if (page === 0) return;
+    scroller.current?.scrollTo({ x: (page - 1) * width, animated: true });
+  }
+
   /**
    * Out, and remembered so this never appears twice.
    *
@@ -117,19 +122,36 @@ export default function Onboarding() {
             <Text style={s.brandTxt}>Four Circle</Text>
           </View>
 
-          <View style={s.progress}>
-            {SLIDES.map((slide, i) => (
-              <View key={slide.title || 'welcome'} style={[s.seg, i === page && s.segOn]} />
-            ))}
+          {/* Only ever what is possible from here: no Back on the first
+              card, and on the last neither Next nor Skip, where the button
+              below is the one thing left to do. */}
+          <View style={s.nav}>
+            {page > 0 && (
+              <TouchableOpacity onPress={back} hitSlop={12}>
+                <Text style={s.navTxt}>{tx('Back')}</Text>
+              </TouchableOpacity>
+            )}
+            {!last && (
+              <TouchableOpacity onPress={next} hitSlop={12}>
+                <Text style={s.navTxt}>{tx('Next')}</Text>
+              </TouchableOpacity>
+            )}
+            {!last && (
+              <TouchableOpacity onPress={leave} hitSlop={12}>
+                <Text style={s.skipTxt}>{tx(isReplay ? 'Done' : 'Skip')}</Text>
+              </TouchableOpacity>
+            )}
           </View>
-
-          <TouchableOpacity style={s.skip} onPress={leave} hitSlop={8}>
-            <Text style={s.skipTxt}>{tx(isReplay ? 'Done' : 'Skip')}</Text>
-          </TouchableOpacity>
         </View>
       </SafeAreaView>
 
       <SafeAreaView style={s.bottomBar} edges={['bottom']} pointerEvents="box-none">
+        <View style={s.progress}>
+          {SLIDES.map((slide, i) => (
+            <View key={slide.title || 'welcome'} style={[s.seg, i === page && s.segOn]} />
+          ))}
+        </View>
+
         <TouchableOpacity style={s.cta} onPress={next} activeOpacity={0.85}>
           <Text style={s.ctaTxt}>
             {last ? tx(isReplay ? 'Done' : 'Get started') : tx('Continue')}
@@ -256,8 +278,8 @@ const s = StyleSheet.create({
 
   topBar: { position: 'absolute', top: 0, left: 0, right: 0 },
   topRow: {
-    flexDirection: 'row', alignItems: 'center', gap: 10,
-    paddingHorizontal: 18, paddingTop: 6,
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    gap: 10, paddingHorizontal: 18, paddingTop: 6,
   },
   brand: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   cross: { width: 12, height: 18, alignItems: 'center', justifyContent: 'center' },
@@ -265,16 +287,19 @@ const s = StyleSheet.create({
   crossH: { position: 'absolute', top: 5, width: 12, height: 2, backgroundColor: GOLD },
   brandTxt: { fontFamily: 'PlayfairDisplay_700Bold', fontSize: 17, color: '#fff' },
 
-  progress: { flex: 1, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 5 },
+  progress: {
+    flexDirection: 'row', justifyContent: 'center', alignItems: 'center',
+    gap: 5, marginBottom: 18,
+  },
   // The current step is a bar and the rest are dots, which says where you are
   // and how far is left in one glance.
   seg: { width: 6, height: 6, borderRadius: 3, backgroundColor: 'rgba(255,255,255,0.4)' },
   segOn: { width: 26, backgroundColor: GOLD },
 
-  skip: {
-    paddingHorizontal: 14, paddingVertical: 7, borderRadius: 999,
-    backgroundColor: 'rgba(255,255,255,0.16)',
-  },
+  // Words, not buttons. Skip is the brighter of the three because it is the
+  // one that leaves; Back and Next only move within what is already open.
+  nav: { flexDirection: 'row', alignItems: 'center', gap: 18 },
+  navTxt: { color: 'rgba(255,255,255,0.72)', fontSize: 14, fontWeight: '600' },
   skipTxt: { color: '#fff', fontSize: 14, fontWeight: '600' },
 
   bottomBar: { position: 'absolute', left: 0, right: 0, bottom: 0 },
