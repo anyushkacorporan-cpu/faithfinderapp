@@ -85,6 +85,11 @@ const LEAVE_IN_ENGLISH = new Set([
   'www.yourchurch.org',
   'New York', 'NY', 'Bronx, NY',
   'Version 1.0.0',
+  // The language question, asked before there is a language to ask it in.
+  // Both lines show at once on purpose, so neither can be translated: the
+  // Spanish one is already Spanish and the English one has to stay English
+  // for the person who cannot read the other.
+  'What language do you speak?', '¿Qué idioma hablas?',
 ]);
 
 const skip = /^[\s\d\W]*$/;

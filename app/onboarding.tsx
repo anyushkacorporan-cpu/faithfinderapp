@@ -7,7 +7,8 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { COLORS } from '../src/lib/constants';
-import { useTranslation } from '../src/lib/i18n';
+import { useTranslation, Lang } from '../src/lib/i18n';
+import { updateAppearancePrefs } from '../src/lib/settingsStore';
 import { SLIDES, Slide } from '../src/lib/onboardingSlides';
 import { getUser } from '../src/lib/userStore';
 import { markOnboardingSeen, hasSeenOnboarding, hydrated } from '../src/lib/onboarding';
@@ -42,6 +43,11 @@ export default function Onboarding() {
   const u = getUser();
   const name = (u.accountType === 'church' ? u.churchName : u.firstName)?.trim() || tx('Friend');
   const [page, setPage] = useState(0);
+
+  // The language question comes before the cards. Somebody replaying this
+  // from settings has already answered it, in settings, so they skip straight
+  // to the slides.
+  const [asked, setAsked] = useState(isReplay);
 
   const [checked, setChecked] = useState(false);
   useEffect(() => {
@@ -87,6 +93,14 @@ export default function Onboarding() {
   }
 
   if (!checked) return <View style={s.hold} />;
+
+  if (!asked) {
+    return (
+      <LanguageGate
+        onPick={lang => { updateAppearancePrefs({ language: lang }); setAsked(true); }}
+      />
+    );
+  }
 
   return (
     <View style={s.root}>
@@ -168,6 +182,72 @@ export default function Onboarding() {
           </TouchableOpacity>
         )}
       </SafeAreaView>
+    </View>
+  );
+}
+
+/**
+ * What language do you speak, asked before anything is said in either.
+ *
+ * The seven cards are the first paragraphs of the app, and they are written
+ * rather than translated. Getting the language wrong means somebody reads all
+ * seven in a language they do not speak and never finds out the app had their
+ * own. The device's own setting is a decent guess, and a guess is exactly what
+ * it is: a shared phone, a hand-me-down, a person who set the thing up in the
+ * language of the shop.
+ *
+ * Both lines show at once and neither goes through the translation table.
+ * There is no answer yet to ask the question in, so the question is asked in
+ * both and the two answers are spelled the way each language spells itself.
+ */
+function LanguageGate({ onPick }: { onPick: (lang: Lang) => void }) {
+  const first = SLIDES[0];
+  const scrim = ['rgba(0,0,0,0.55)', 'rgba(0,0,0,0.3)', 'rgba(0,0,0,0.85)'] as const;
+
+  const body = (
+    <LinearGradient colors={scrim} locations={[0, 0.35, 1]} style={{ flex: 1 }}>
+      <SafeAreaView style={{ flex: 1 }} edges={['top', 'bottom']}>
+        <View style={s.topRow}>
+          <View style={s.brand}>
+            <View style={s.cross}>
+              <View style={s.crossV} />
+              <View style={s.crossH} />
+            </View>
+            <Text style={s.brandTxt}>Four Circle</Text>
+          </View>
+        </View>
+
+        <View style={s.gate}>
+          <Text style={s.gateTitle}>What language do you speak?</Text>
+          <Text style={s.gateTitleAlt}>¿Qué idioma hablas?</Text>
+
+          <View style={s.gateChoices}>
+            {(['English', 'Español'] as const).map(lang => (
+              <TouchableOpacity
+                key={lang}
+                style={s.gateBtn}
+                onPress={() => onPick(lang)}
+                activeOpacity={0.85}
+              >
+                <Text style={s.gateBtnTxt}>{lang}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+      </SafeAreaView>
+    </LinearGradient>
+  );
+
+  return (
+    <View style={s.root}>
+      <StatusBar barStyle="light-content" />
+      {first.image ? (
+        <ImageBackground source={first.image} style={{ flex: 1 }} resizeMode="cover">
+          {body}
+        </ImageBackground>
+      ) : (
+        <LinearGradient colors={first.gradient} style={{ flex: 1 }}>{body}</LinearGradient>
+      )}
     </View>
   );
 }
@@ -309,6 +389,22 @@ const s = StyleSheet.create({
   // leaves the screen; Back and Next only move between cards.
   navTxt: { color: 'rgba(255,255,255,0.72)', fontSize: 14, fontWeight: '600' },
   skipTxt: { color: '#fff', fontSize: 14, fontWeight: '600' },
+
+  gate: { flex: 1, justifyContent: 'center', paddingHorizontal: 30, paddingBottom: 50 },
+  gateTitle: {
+    fontFamily: 'PlayfairDisplay_700Bold', fontSize: 34, lineHeight: 42,
+    color: '#fff', textAlign: 'center',
+  },
+  gateTitleAlt: {
+    fontFamily: 'PlayfairDisplay_400Regular_Italic', fontSize: 20, lineHeight: 28,
+    color: 'rgba(255,255,255,0.74)', textAlign: 'center', marginTop: 8,
+  },
+  gateChoices: { marginTop: 42, gap: 12 },
+  gateBtn: {
+    borderRadius: 14, paddingVertical: 17, alignItems: 'center',
+    borderWidth: 1, borderColor: GOLD, backgroundColor: 'rgba(0,0,0,0.28)',
+  },
+  gateBtnTxt: { color: '#fff', fontSize: 16, fontWeight: '700' },
 
   bottomRow: {
     flexDirection: 'row', alignItems: 'center',
