@@ -131,10 +131,24 @@ screen, so on a phone it behaves like a poster rather than like a document.
 saved at quality 66, because the app version is sized for a phone screen and
 this one is sized for a phone connection.
 
-## privacy.html is generated, not written
+## privacy.html and support.html say nothing about the app
 
-    node scripts/build-privacy-page.mjs
+Both used to. The privacy policy listed GPS, posts, connections and ticket
+payments; the support page explained how to claim a church and how refunds
+work. The front page is a teaser that gives away almost nothing, and then the
+footer handed the whole product to anyone who tapped it.
 
-It is built from `app/privacy.tsx` so the web policy and the one inside the app
-cannot drift apart, which is the whole reason the script exists. Edit the app
-screen and re-run it; do not edit the html.
+So the two pages here now cover only what the site itself does, which is take
+an email address:
+
+- `privacy.html` - what happens to that address, and how to get off the list.
+- `support.html` - the contact address, and how to unsubscribe.
+
+The app versions are kept in `legal/`, which GitHub Pages does not serve. See
+`legal/README.md` for publishing them at App Store submission.
+
+`legal/app-privacy.html` is generated from `app/privacy.tsx` by
+`scripts/build-privacy-page.mjs`, so the policy on the web and the one inside
+the app cannot drift apart. Edit the app screen and re-run it; do not edit the
+html. It writes to `legal/` unless given `--publish`, so running it can no
+longer overwrite the notice on the live site.

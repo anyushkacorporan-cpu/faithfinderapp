@@ -21,6 +21,21 @@
  * And the output moved from web/ to docs/, because GitHub Pages serves a
  * public repository's docs folder for nothing — which is what makes the URL
  * App Store Connect wants exist at all, with no domain and no host to pay for.
+ *
+ * WHY IT NO LONGER WRITES docs/privacy.html
+ *
+ * Before launch, fourcircle.app is a coming-soon page, and this policy
+ * describes every feature the app has: GPS, posts, connections, ticket
+ * payments. Published, it gives away the whole product to anyone who taps
+ * the footer. So docs/privacy.html is now a short hand-written notice about
+ * the waitlist email and nothing else, and this script stays out of its way.
+ *
+ * It writes legal/app-privacy.html, which GitHub Pages does not serve. At
+ * submission, run it with --publish: that writes docs/app-privacy.html, a
+ * public URL for App Store Connect, without touching the waitlist notice.
+ *
+ *   node scripts/build-privacy-page.mjs              # legal/, unpublished
+ *   node scripts/build-privacy-page.mjs --publish    # docs/, public
  */
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 
@@ -115,7 +130,6 @@ const html = `<!doctype html>
     -webkit-font-smoothing: antialiased;
   }
   main { max-width: 44rem; margin: 0 auto; padding: 56px 22px 96px; }
-  .mark { font-size: 26px; color: var(--gold); line-height: 1; margin-bottom: 10px; }
   h1 {
     font-family: "Playfair Display", Georgia, serif; font-weight: 700;
     font-size: clamp(30px, 6vw, 40px); line-height: 1.15; margin: 0 0 6px;
@@ -134,7 +148,6 @@ const html = `<!doctype html>
 </head>
 <body>
 <main>
-  <div class="mark">&#8224;</div>
   <h1>Privacy Policy</h1>
   <p class="app">Four Circle</p>
 ${body}
@@ -144,6 +157,13 @@ ${body}
 </html>
 `;
 
-mkdirSync('docs', { recursive: true });
-writeFileSync('docs/privacy.html', html);
-console.log(`docs/privacy.html written — ${blocks.filter(b => b.kind === 'h2').length} sections, ${html.length} bytes`);
+const publish = process.argv.includes('--publish');
+const dir = publish ? 'docs' : 'legal';
+const out = `${dir}/app-privacy.html`;
+
+mkdirSync(dir, { recursive: true });
+writeFileSync(out, html);
+console.log(`${out} written — ${blocks.filter(b => b.kind === 'h2').length} sections, ${html.length} bytes`);
+if (!publish) {
+  console.log('Not published. GitHub Pages serves docs/ only; re-run with --publish at submission.');
+}
