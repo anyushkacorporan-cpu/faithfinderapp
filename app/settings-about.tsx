@@ -36,7 +36,7 @@ export default function AboutScreen() {
             // moment someone is least interested in reading it.
             {icon:'sparkles-outline', color:c.gold, label:'How Four Circle works', action:() => router.push('/onboarding?replay=1')},
             {icon:'globe-outline', color:'#667eea', label:'Website', action:() => Linking.openURL('https://fourcircle.app')},
-            {icon:'logo-instagram', color:'#e91e63', label:'Instagram', action:() => Linking.openURL('https://instagram.com/faithfinderapp')},
+            {icon:'logo-instagram', color:'#e91e63', label:'Instagram', action:() => Linking.openURL('https://instagram.com/fourcircle.app')},
             {icon:'document-text-outline', color:c.navy, label:'Terms of Service', action:() => router.push('/terms')},
             {icon:'shield-outline', color:c.green, label:'Privacy Policy', action:() => router.push('/privacy')},
           ].map((item,i,arr) => (
