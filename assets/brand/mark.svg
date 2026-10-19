@@ -1,6 +1,22 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="35 18 30 60" width="30" height="60" role="img" aria-label="Four Circle">
-  <g fill="#D5B03A">
-    <rect x="46.7" y="18" width="6.6" height="60" rx="3.3"/>
-    <rect x="35" y="35.1" width="30" height="6.6" rx="3.3"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="28 10 44 76" width="44" height="76" role="img" aria-label="Four Circle">
+  <defs>
+    <filter id="fc-glow" x="-60%" y="-30%" width="220%" height="160%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="4.4" result="wide" />
+      <feFlood flood-color="#EAC150" result="wideColour" />
+      <feComposite in="wideColour" in2="wide" operator="in" result="haloWide" />
+      <feGaussianBlur in="SourceAlpha" stdDeviation="1.4" result="tight" />
+      <feFlood flood-color="#F3D474" result="tightColour" />
+      <feComposite in="tightColour" in2="tight" operator="in" result="haloTight" />
+      <feMerge>
+        <feMergeNode in="haloWide" />
+        <feMergeNode in="haloWide" />
+        <feMergeNode in="haloTight" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+  </defs>
+  <g fill="#D5B03A" filter="url(#fc-glow)">
+    <rect x="46.7" y="18" width="6.6" height="60" rx="3.3" />
+    <rect x="35" y="35.1" width="30" height="6.6" rx="3.3" />
   </g>
 </svg>
