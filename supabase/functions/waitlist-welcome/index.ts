@@ -101,16 +101,15 @@ function ok() {
 /** Plain text first. Some people read it, and every spam filter does. */
 const TEXT = (url: string) => `You're on the list.
 
-Four Circle is coming to the App Store, and you will be among the first to
-know. We will email you the day it opens, so you can create your account
-before anybody else.
+Thank you for being here before it begins. Four Circle is coming to the App
+Store, and we will write to you the day it opens.
 
 Until then, God bless you.
 
 From the Four Circle app
 
-You are getting this because you asked to be told when Four Circle opens.
-To stop, open this link and you are off the list straight away:
+We will write once more, the day Four Circle opens. If you would rather we
+did not, open this link and you are off the list straight away:
 ${url}`;
 
 /**
@@ -140,12 +139,12 @@ const HTML = (url: string) => `<!doctype html>
   <div style="max-width:480px;margin:0 auto;padding:36px 26px;background:#ffffff;font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#1a1a2e;font-size:16px;line-height:1.6;">
     <div style="font-size:12px;letter-spacing:3px;text-transform:uppercase;color:#a98c54;font-weight:700;">Four Circle</div>
     <h1 style="font-family:Georgia,'Times New Roman',serif;font-weight:700;font-size:26px;line-height:1.25;margin:16px 0 20px;color:#1a1a2e;">You're on the list.</h1>
-    <p style="margin:0 0 16px;color:#3c3c48;">Four Circle is coming to the App Store, and you will be among the first to know. We will email you the day it opens, so you can create your account before anybody else.</p>
+    <p style="margin:0 0 16px;color:#3c3c48;">Thank you for being here before it begins. Four Circle is coming to the App Store, and we will write to you the day it opens.</p>
     <p style="margin:0 0 24px;color:#3c3c48;">Until then, God bless you.</p>
     <p style="margin:0;font-family:Georgia,serif;font-style:italic;font-size:15px;color:#a98c54;">From the Four Circle app</p>
     <p style="margin:30px 0 0;font-size:12px;line-height:1.6;color:#71717c;">
-      You are getting this because you asked to be told when Four Circle opens.
-      <a href="${url}" style="color:#71717c;">Unsubscribe</a>.
+      We will write once more, the day Four Circle opens. If you would rather we did not,
+      <a href="${url}" style="color:#71717c;">unsubscribe</a>.
     </p>
   </div>
 </body>
