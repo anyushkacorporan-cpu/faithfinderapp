@@ -116,8 +116,7 @@ From Four Circle
 Instagram: @fourcircle.app
 https://instagram.com/fourcircle.app
 
-We only write about Four Circle. If you would rather we did not, open this link
-and you are off the list straight away:
+Unsubscribe with one click if you no longer want these emails:
 ${url}`;
 
 /**
@@ -155,8 +154,7 @@ const HTML = (url: string) => `<!doctype html>
       <a href="https://instagram.com/fourcircle.app" style="color:#a98c54;font-weight:600;text-decoration:none;"><img src="https://fourcircle.app/instagram.png" width="22" height="22" alt="Instagram" style="vertical-align:middle;border:0;">&nbsp;&nbsp;@fourcircle.app</a>
     </p>
     <p style="margin:26px 0 0;font-size:12px;line-height:1.6;color:#71717c;">
-      We only write about Four Circle. If you would rather we did not,
-      <a href="${url}" style="color:#71717c;">unsubscribe</a>.
+      <a href="${url}" style="color:#71717c;">Unsubscribe</a> with one click if you no longer want these emails.
     </p>
   </div>
 </body>
