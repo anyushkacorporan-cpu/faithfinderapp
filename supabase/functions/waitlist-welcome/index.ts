@@ -106,7 +106,7 @@ Store, and we will write to you the day it opens.
 
 Until then, God bless you.
 
-From the Four Circle app
+From Four Circle
 
 We will write once more, the day Four Circle opens. If you would rather we
 did not, open this link and you are off the list straight away:
@@ -141,7 +141,7 @@ const HTML = (url: string) => `<!doctype html>
     <h1 style="font-family:Georgia,'Times New Roman',serif;font-weight:700;font-size:26px;line-height:1.25;margin:16px 0 20px;color:#1a1a2e;">You're on the list.</h1>
     <p style="margin:0 0 16px;color:#3c3c48;">Thank you for being here before it begins. Four Circle is coming to the App Store, and we will write to you the day it opens.</p>
     <p style="margin:0 0 24px;color:#3c3c48;">Until then, God bless you.</p>
-    <p style="margin:0;font-family:Georgia,serif;font-style:italic;font-size:15px;color:#a98c54;">From the Four Circle app</p>
+    <p style="margin:0;font-family:Georgia,serif;font-style:italic;font-size:15px;color:#a98c54;">From Four Circle</p>
     <p style="margin:30px 0 0;font-size:12px;line-height:1.6;color:#71717c;">
       We will write once more, the day Four Circle opens. If you would rather we did not,
       <a href="${url}" style="color:#71717c;">unsubscribe</a>.
