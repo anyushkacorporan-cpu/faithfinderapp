@@ -19,6 +19,7 @@ export type EventStatus = 'upcoming' | 'active' | 'past' | 'draft';
  * own money, and must keep meaning that no matter who is looking at it.
  */
 export type Currency = 'USD' | 'CAD';
+export type RefundPolicy = 'flexible' | 'standard' | 'none';
 
 /** What the symbol alone cannot say, since both countries write it '$'. */
 export function formatPrice(amount: number, currency: Currency = 'USD'): string {
@@ -43,6 +44,8 @@ export type AppEvent = {
   type: string;
   price: string;
   isPaid: boolean;
+  /** 'flexible' | 'standard' | 'none'. What the organiser promised. */
+  refundPolicy: RefundPolicy;
   ticketPrice: number;
   platformFee: number;
   creatorPayout: number;
@@ -112,6 +115,7 @@ const INITIAL_EVENTS: AppEvent[] = SEED_EVENTS.map((e: any, idx: number) => {
     type: e.type,
     price: e.price,
     isPaid,
+    refundPolicy: (e as any).refundPolicy ?? 'standard',
     ticketPrice,
     platformFee: 0,
     creatorPayout: 0,

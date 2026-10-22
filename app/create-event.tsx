@@ -10,7 +10,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from 'expo-linear-gradient';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useThemeColors, ThemeColors } from '../src/lib/theme';
-import { addEvent, formatPrice, Currency } from '../src/lib/eventsStore';
+import { addEvent, formatPrice, Currency, RefundPolicy } from '../src/lib/eventsStore';
 import { getUser } from '../src/lib/userStore';
 import { useTranslation } from '../src/lib/i18n';
 import { suggestAddresses, resolveAddress, newSessionToken, AddressSuggestion } from '../src/lib/addressAutocomplete';
@@ -165,6 +165,10 @@ export default function CreateEventScreen() {
   // off to Stripe for a few minutes and that is better learned before the
   // rest of the form is filled in than after.
   const [payoutsReady, setPayoutsReady] = useState<boolean | null>(null);
+  // Standard by default: the middle of the three, and the one a buyer is
+  // least surprised by. A default of 'none' would make every organiser who
+  // never looked at this field the strictest kind.
+  const [refundPolicy, setRefundPolicy] = useState<RefundPolicy>('standard');
   const [ticketPrice, setTicketPrice] = useState('');
   const [capacity, setCapacity] = useState('');
   // USD only, per the ticketing terms. This used to default to the organiser's
@@ -284,6 +288,7 @@ export default function CreateEventScreen() {
       zip:zip.trim(),
       type:eventType,
       price:isPaid?formatPrice(price, currency):'Free',
+      refundPolicy: isPaid ? refundPolicy : 'none',
       isPaid,
       ticketPrice:price,
       bannerImage:bannerImage||undefined,
@@ -711,6 +716,35 @@ export default function CreateEventScreen() {
                   no money at all — the charge is refused before a card is
                   touched — so publishing one is publishing an event nobody can
                   attend. */}
+              {isPaid && (
+                <LField label={t('refundPolicyLabel')} hint={t('refundPolicyHint')}>
+                  <View style={{gap:8}}>
+                    {([
+                      {id:'flexible', label:'Flexible', sub:'Full ticket refund up to 7 days before'},
+                      {id:'standard', label:'Standard', sub:'Full ticket refund up to 48 hours before'},
+                      {id:'none',     label:'No refunds', sub:'Except if you cancel or change the event'},
+                    ] as {id:RefundPolicy;label:string;sub:string}[]).map(opt => (
+                      <TouchableOpacity
+                        key={opt.id}
+                        style={[s.policyRow, refundPolicy===opt.id && s.policyRowOn]}
+                        activeOpacity={0.7}
+                        onPress={() => setRefundPolicy(opt.id)}
+                      >
+                        <Ionicons
+                          name={refundPolicy===opt.id ? 'radio-button-on' : 'radio-button-off'}
+                          size={20}
+                          color={refundPolicy===opt.id ? c.gold : c.placeholder}
+                        />
+                        <View style={{flex:1}}>
+                          <Text style={[s.policyLbl, refundPolicy===opt.id && {color:c.gold}]}>{tx(opt.label)}</Text>
+                          <Text style={s.policySub}>{tx(opt.sub)}</Text>
+                        </View>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </LField>
+              )}
+
               {isPaid && payoutsReady === false && (
                 <TouchableOpacity style={s.payoutWarn} onPress={() => router.push('/earnings?tab=Settings')}>
                   <Ionicons name="alert-circle" size={18} color={c.gold} />
@@ -1022,6 +1056,10 @@ const makeStyles = (c: ThemeColors) => StyleSheet.create({
   ticketBtnPaid:{borderColor:c.primary,backgroundColor:c.primary},
   ticketBtnTxt:{fontSize:14,fontWeight:'700',color:c.textMuted},
   ticketBtnSub:{fontSize:11,color:c.textMuted},
+  policyRow:{flexDirection:'row',alignItems:'center',gap:10,paddingVertical:11,paddingHorizontal:12,borderRadius:12,borderWidth:1,borderColor:c.border,backgroundColor:c.card},
+  policyRowOn:{borderColor:c.gold},
+  policyLbl:{fontSize:14,fontWeight:'700',color:c.text},
+  policySub:{fontSize:12,color:c.textSecondary,marginTop:1},
   currencyBtn:{flex:1,alignItems:'center',paddingVertical:11,borderRadius:12,borderWidth:1,borderColor:c.border,backgroundColor:c.card},
   currencyBtnOn:{backgroundColor:c.navy,borderColor:c.navy},
   currencyTxt:{fontSize:14,fontWeight:'700',color:c.textSecondary},

@@ -583,6 +583,22 @@ const translations: Record<string, Record<Lang, string>> = {
   reportPost: { English: 'Report Post', Español: 'Reportar Publicación' },
   whyReporting: { English: 'Why are you reporting this post?', Español: '¿Por qué reportas esta publicación?' },
   plusFees: { English: '+ fees', Español: '+ tarifas' },
+  refundPolicyLabel: { English: 'Refund policy *', Español: 'Política de reembolso *' },
+  refundPolicyHint: {
+    English: 'Shown to buyers before they pay. You can make it more generous later, but not stricter.',
+    Español: 'Se muestra a los compradores antes de pagar. Después puedes hacerla más generosa, pero no más estricta.' },
+  policyFlexible: { English: 'Flexible', Español: 'Flexible' },
+  policyFlexibleSub: {
+    English: 'Full ticket refund up to 7 days before',
+    Español: 'Reembolso completo del boleto hasta 7 días antes' },
+  policyStandard: { English: 'Standard', Español: 'Estándar' },
+  policyStandardSub: {
+    English: 'Full ticket refund up to 48 hours before',
+    Español: 'Reembolso completo del boleto hasta 48 horas antes' },
+  policyNone: { English: 'No refunds', Español: 'Sin reembolsos' },
+  policyNoneSub: {
+    English: 'Except if you cancel or change the event',
+    Español: 'Salvo si cancelas o cambias el evento' },
   reportEvent: { English: 'Report Event', Español: 'Reportar Evento' },
   whyReportingEvent: { English: 'Why are you reporting this event?', Español: '¿Por qué reportas este evento?' },
   sharePost: { English: 'Share Post', Español: 'Compartir Publicación' },

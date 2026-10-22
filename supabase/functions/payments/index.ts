@@ -83,6 +83,151 @@ async function tagTransfer(
   }
 }
 
+/**
+ * Give a ticket's money back.
+ *
+ * TWO SHAPES, AND WHY THEY ARE NOT ONE
+ *
+ * A cancelled event returns everything the buyer paid — ticket, platform fee
+ * and the card processing fee. Every other approved refund returns the ticket
+ * price alone and the two fees are kept. The terms say so, and the reason is
+ * that a cancelled event is our failure to deliver while a change of mind is
+ * not, and the work of taking the payment was done either way.
+ *
+ * `full` is Stripe's easy case: refund the whole charge with
+ * reverse_transfer, and the entire transfer comes back — which is exactly the
+ * ticket price, because that is all the transfer ever was. refund_application
+ * _fee gives up our own fee at the same time, which is what "including both
+ * fees" means from our side.
+ *
+ * `ticket_only` cannot use reverse_transfer at all. On a partial refund
+ * Stripe reverses a share of the transfer proportional to the refund, so
+ * refunding $20 of a $22.15 charge would claw back about $18.06 from an
+ * organiser who was paid $20, leaving them $1.94 ahead and us short. So the
+ * refund and the reversal are made separately, and the reversal names the
+ * ticket price exactly.
+ *
+ * WHAT STRIPE KEEPS EITHER WAY
+ *
+ * Its processing fee. A refunded charge does not return it, so a cancelled
+ * event costs FourCircle that fee per ticket — about 95c on a $20 ticket.
+ * That is the price of the promise in the terms, and it is deliberate.
+ *
+ * WHEN THE REVERSAL FAILS
+ *
+ * The buyer has already been refunded and that is not undone. An organiser
+ * whose balance is empty — because they paid themselves out, which they can
+ * still do — leaves us holding it, so the amount goes in organizer_owed and
+ * comes off a later payout. The refund succeeds; the debt is recorded.
+ */
+async function refundTicket(
+  admin: ReturnType<typeof createClient>,
+  ticket: Record<string, unknown>,
+  kind: 'full' | 'ticket_only',
+  eventName: string,
+): Promise<{ ok: true; refunded: number; owed: number } | { ok: false; error: string }> {
+  const intentId = String(ticket.payment_intent_id ?? '');
+  if (!intentId) return { ok: false, error: 'That ticket has no payment to refund.' };
+  if (ticket.status === 'refunded') return { ok: true, refunded: 0, owed: 0 };
+  if (ticket.status !== 'paid') return { ok: false, error: 'That ticket was never paid.' };
+
+  const eventId = String(ticket.event_id ?? '');
+  const meta = {
+    'metadata[event_id]': eventId,
+    'metadata[event_name]': eventName.slice(0, 500),
+  };
+
+  const ticketPrice = +(Number(ticket.price_per_ticket ?? 0) * Number(ticket.quantity ?? 1)).toFixed(2);
+  const everything = Number(ticket.total_paid ?? 0);
+  const amount = kind === 'full' ? everything : ticketPrice;
+  if (!(amount > 0)) return { ok: false, error: 'Nothing to refund.' };
+
+  let owed = 0;
+
+  if (kind === 'full') {
+    await stripe('refunds', 'POST', {
+      payment_intent: intentId,
+      amount: String(Math.round(amount * 100)),
+      reverse_transfer: 'true',
+      refund_application_fee: 'true',
+      ...meta,
+    });
+  } else {
+    // Order matters. The buyer is refunded first and unconditionally; the
+    // reversal is the part allowed to fail.
+    await stripe('refunds', 'POST', {
+      payment_intent: intentId,
+      amount: String(Math.round(amount * 100)),
+      ...meta,
+    });
+
+    try {
+      const intent = await stripe(`payment_intents/${intentId}?expand[]=latest_charge`, 'GET');
+      const charge = intent.latest_charge as Record<string, unknown> | null;
+      const transferId = typeof charge?.transfer === 'string' ? charge.transfer : '';
+      if (!transferId) throw new Error('no transfer on that charge');
+
+      await stripe(`transfers/${transferId}/reversals`, 'POST', {
+        amount: String(Math.round(ticketPrice * 100)),
+        ...meta,
+      });
+    } catch (err) {
+      owed = ticketPrice;
+      console.error('reversal failed, recording a debt', eventId, String((err as Error).message));
+      await admin.from('organizer_owed').insert({
+        organizer_id: ticket.organizer_id ?? null,
+        event_id: eventId,
+        ticket_id: ticket.id,
+        amount: ticketPrice,
+        reason: 'refund_shortfall',
+        note: String((err as Error).message).slice(0, 500),
+      });
+    }
+  }
+
+  await admin.from('tickets').update({
+    status: 'refunded',
+    refunded_amount: amount,
+    refunded_at: new Date().toISOString(),
+  }).eq('id', ticket.id);
+
+  // The seat goes back on sale unless the whole event is off.
+  if (kind === 'ticket_only') {
+    await admin.rpc('release_seats', {
+      p_event_id: eventId,
+      p_quantity: Number(ticket.quantity ?? 1),
+    });
+  }
+
+  return { ok: true, refunded: amount, owed };
+}
+
+/**
+ * Whether the policy on this ticket allows a refund right now.
+ *
+ * Returns true only for the clear cases. An organiser may approve anything at
+ * any time — the terms say so — so this is what makes a refund *required*,
+ * not what makes one possible. The difference matters at escalation: it is
+ * the test FourCircle applies when deciding against an organiser who said no.
+ */
+function policyAllows(
+  policy: string,
+  eventDateIso: string | null,
+  lifecycle: string,
+): boolean {
+  if (lifecycle === 'cancelled') return true;
+  if (policy === 'none') return false;
+  if (!eventDateIso) return false;
+
+  const start = Date.parse(eventDateIso);
+  if (!Number.isFinite(start)) return false;
+
+  const hoursLeft = (start - Date.now()) / 36e5;
+  if (policy === 'flexible') return hoursLeft >= 24 * 7;
+  if (policy === 'standard') return hoursLeft >= 48;
+  return false;
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS });
 
@@ -125,11 +270,14 @@ Deno.serve(async (req) => {
 
     const { data: event, error: eventErr } = await admin
       .from('events')
-      .select('id, title, date, location, type, ticket_price, platform_fee, currency, is_paid, organizer_id')
+      .select('id, title, date, location, type, ticket_price, platform_fee, currency, is_paid, organizer_id, refund_policy, lifecycle')
       .eq('id', eventId)
       .single();
     if (eventErr || !event) return json({ error: 'That event no longer exists.' }, 404);
     if (!event.is_paid) return json({ error: 'That event is free — no payment needed.' }, 400);
+    if (event.lifecycle === 'cancelled') {
+      return json({ error: 'That event has been cancelled.' }, 409);
+    }
 
     // Where this organiser's money goes.
     //
@@ -210,6 +358,10 @@ Deno.serve(async (req) => {
       currency: event.currency ?? 'USD',
       ticket_codes: codes,
       status: 'pending',
+      // The promise that was on the screen when they paid. An organiser may
+      // loosen it later and that should reach the people who already bought,
+      // but the ticket records what they actually relied on.
+      refund_policy: event.refund_policy ?? 'standard',
     });
 
     if (holdErr) {
@@ -312,6 +464,226 @@ Deno.serve(async (req) => {
     await admin.from('tickets').delete().eq('id', ticketId);
     await admin.rpc('release_seats', { p_event_id: ticket.event_id, p_quantity: ticket.quantity });
     return json({ error: `Payment did not complete (${intent.status}).` }, 402);
+  }
+
+  // ── An attendee asks for their money back ────────────────────────────────
+  if (action === 'refund_request') {
+    const ticketId = String(body.ticketId ?? '');
+    const reason = String(body.reason ?? '').slice(0, 1000);
+    if (!ticketId) return json({ error: 'Missing ticket.' }, 400);
+
+    const { data: ticket } = await admin
+      .from('tickets')
+      .select('id, buyer_id, event_id, status, refund_policy')
+      .eq('id', ticketId)
+      .single();
+
+    if (!ticket) return json({ error: 'That ticket no longer exists.' }, 404);
+    if (ticket.buyer_id !== user.id) return json({ error: 'That is not your ticket.' }, 403);
+    if (ticket.status !== 'paid') return json({ error: 'That ticket cannot be refunded.' }, 409);
+
+    // Whether the policy on this ticket makes the refund required rather than
+    // merely possible. Returned, not enforced: an organiser may approve
+    // anything at any time, and this is the test FourCircle applies if the
+    // request is escalated against one who said no.
+    const { data: eventRow } = await admin
+      .from('events')
+      .select('date, lifecycle')
+      .eq('id', ticket.event_id)
+      .single();
+    const policyRequires = policyAllows(
+      String(ticket.refund_policy ?? 'standard'),
+      eventRow?.date ? String(eventRow.date) : null,
+      String(eventRow?.lifecycle ?? 'scheduled'),
+    );
+
+    // Five business days, computed in the database so the clock and the
+    // payout dates in Phase 4 agree about what a business day is.
+    const { data: respondBy } = await admin.rpc('add_business_days', {
+      from_ts: new Date().toISOString(), days: 5,
+    });
+
+    const { error: insErr } = await admin.from('refund_requests').insert({
+      ticket_id: ticketId,
+      event_id: ticket.event_id,
+      requester_id: user.id,
+      reason,
+      respond_by: respondBy,
+    });
+    // The unique constraint on ticket_id is what makes asking twice harmless.
+    if (insErr) {
+      return json({ error: 'You have already asked for a refund on that ticket.' }, 409);
+    }
+
+    return json({ ok: true, respondBy, policyRequires });
+  }
+
+  // ── The organiser answers ────────────────────────────────────────────────
+  if (action === 'refund_decide') {
+    const requestId = String(body.requestId ?? '');
+    const approve = body.approve === true;
+    const declineReason = String(body.declineReason ?? '').slice(0, 1000);
+    if (!requestId) return json({ error: 'Missing request.' }, 400);
+
+    const { data: request } = await admin
+      .from('refund_requests')
+      .select('id, ticket_id, event_id, status')
+      .eq('id', requestId)
+      .single();
+    if (!request) return json({ error: 'That request no longer exists.' }, 404);
+    if (request.status !== 'requested') {
+      return json({ error: 'That request has already been answered.' }, 409);
+    }
+
+    const { data: event } = await admin
+      .from('events')
+      .select('id, title, organizer_id, lifecycle')
+      .eq('id', request.event_id)
+      .single();
+
+    // The organiser decides, or the owner does when it has been escalated.
+    const isOrganiser = event?.organizer_id === user.id;
+    const { data: amAdmin } = await asCaller.rpc('is_admin');
+    if (!isOrganiser && amAdmin !== true) {
+      return json({ error: 'That is not your event.' }, 403);
+    }
+
+    if (!approve) {
+      // A decline without a reason is not a decline anybody can escalate
+      // against, so the terms require one and so does this.
+      if (!declineReason) return json({ error: 'Give a reason for declining.' }, 400);
+      await admin.from('refund_requests').update({
+        status: 'declined',
+        decline_reason: declineReason,
+        decided_by: user.id,
+        decided_at: new Date().toISOString(),
+        settled_by_platform: amAdmin === true && !isOrganiser,
+      }).eq('id', requestId);
+      return json({ ok: true, status: 'declined' });
+    }
+
+    const { data: ticket } = await admin
+      .from('tickets')
+      .select('id, event_id, status, quantity, price_per_ticket, total_paid, payment_intent_id')
+      .eq('id', request.ticket_id)
+      .single();
+    if (!ticket) return json({ error: 'That ticket no longer exists.' }, 404);
+
+    // An approved request on a cancelled event returns everything; any other
+    // approval returns the ticket price. The organiser does not get to choose
+    // which, because the fees are not theirs to give back.
+    const kind = event?.lifecycle === 'cancelled' ? 'full' : 'ticket_only';
+    const result = await refundTicket(
+      admin,
+      { ...ticket, organizer_id: event?.organizer_id },
+      kind,
+      String(event?.title ?? ''),
+    );
+    if (!result.ok) return json({ error: result.error }, 502);
+
+    await admin.from('refund_requests').update({
+      status: 'refunded',
+      decided_by: user.id,
+      decided_at: new Date().toISOString(),
+      settled_by_platform: amAdmin === true && !isOrganiser,
+    }).eq('id', requestId);
+
+    return json({ ok: true, status: 'refunded', refunded: result.refunded, owed: result.owed });
+  }
+
+  // ── The attendee escalates ───────────────────────────────────────────────
+  // Allowed when the organiser declined, or when five business days went by
+  // without an answer. It does not decide anything: it puts the request in
+  // front of FourCircle, which answers through refund_decide.
+  if (action === 'refund_escalate') {
+    const requestId = String(body.requestId ?? '');
+    if (!requestId) return json({ error: 'Missing request.' }, 400);
+
+    const { data: request } = await admin
+      .from('refund_requests')
+      .select('id, requester_id, status, respond_by, escalated_at')
+      .eq('id', requestId)
+      .single();
+    if (!request) return json({ error: 'That request no longer exists.' }, 404);
+    if (request.requester_id !== user.id) return json({ error: 'That is not your request.' }, 403);
+    if (request.escalated_at) return json({ ok: true, alreadyEscalated: true });
+
+    const overdue = Date.parse(String(request.respond_by)) < Date.now();
+    if (request.status !== 'declined' && !(request.status === 'requested' && overdue)) {
+      return json({
+        error: 'The organiser still has time to answer. You can escalate after that.',
+      }, 409);
+    }
+
+    await admin.from('refund_requests')
+      .update({ escalated_at: new Date().toISOString() })
+      .eq('id', requestId);
+
+    return json({ ok: true });
+  }
+
+  // ── The organiser calls the event off ────────────────────────────────────
+  // Every attendee is refunded everything, without being asked, because that
+  // is what the terms promise and because an automatic refund is the only
+  // kind that reaches somebody who has stopped opening the app.
+  if (action === 'event_cancel') {
+    const eventId = String(body.eventId ?? '');
+    const note = String(body.note ?? '').slice(0, 1000);
+    if (!eventId) return json({ error: 'Missing event.' }, 400);
+
+    const { data: event } = await admin
+      .from('events')
+      .select('id, title, organizer_id, lifecycle')
+      .eq('id', eventId)
+      .single();
+    if (!event) return json({ error: 'That event no longer exists.' }, 404);
+
+    const { data: amAdmin } = await asCaller.rpc('is_admin');
+    if (event.organizer_id !== user.id && amAdmin !== true) {
+      return json({ error: 'That is not your event.' }, 403);
+    }
+    if (event.lifecycle === 'cancelled') return json({ ok: true, alreadyCancelled: true });
+
+    await admin.from('events').update({
+      lifecycle: 'cancelled',
+      lifecycle_changed_at: new Date().toISOString(),
+      lifecycle_note: note || null,
+    }).eq('id', eventId);
+
+    const { data: tickets } = await admin
+      .from('tickets')
+      .select('id, buyer_id, event_id, status, quantity, price_per_ticket, total_paid, payment_intent_id')
+      .eq('event_id', eventId)
+      .eq('status', 'paid');
+
+    let refunded = 0, failed = 0, owed = 0;
+    for (const ticket of tickets ?? []) {
+      // One at a time, and a failure does not stop the rest: twenty buyers
+      // refunded and one error is a better outcome than one error and twenty
+      // people still out of pocket.
+      const result = await refundTicket(
+        admin, { ...ticket, organizer_id: event.organizer_id }, 'full', String(event.title ?? ''),
+      );
+      if (result.ok) {
+        refunded += 1;
+        owed += result.owed;
+        await admin.from('notifications').insert({
+          user_id: ticket.buyer_id,
+          type: 'event_cancelled',
+          // No actor: the sentence is written on the screen, and `body` is
+          // the organiser's own words where they left any.
+          body: note || '',
+          event_id: eventId,
+        }).then(({ error }) => {
+          if (error) console.error('cancel notice failed', ticket.buyer_id, error.message);
+        });
+      } else {
+        failed += 1;
+        console.error('cancel refund failed', ticket.id, result.error);
+      }
+    }
+
+    return json({ ok: true, refunded, failed, owed: +owed.toFixed(2) });
   }
 
   return json({ error: 'Unknown action.' }, 400);

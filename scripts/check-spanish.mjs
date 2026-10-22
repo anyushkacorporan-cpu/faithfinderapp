@@ -60,7 +60,7 @@ ok(`${entries.length} entries parsed from src/lib/i18n.ts`);
 // A declared entry whose Spanish is the same as its English is usually a gap,
 // but sometimes the word genuinely does not change. Only the unexpected ones
 // are worth a line.
-const SAME_IN_BOTH = new Set(['Total', 'Spam', 'Festival', 'Instagram', 'OK']);
+const SAME_IN_BOTH = new Set(['Total', 'Spam', 'Festival', 'Instagram', 'OK', 'Flexible']);
 const untranslated = entries.filter(e => e.en === e.es && !SAME_IN_BOTH.has(e.en));
 if (untranslated.length) {
   for (const e of untranslated) bad(`${e.key} has no Spanish: ${JSON.stringify(e.en)}`);

@@ -53,6 +53,10 @@ function compose(r: Row): { title: string; icon: string; color: string } {
       return { title: `${who} added a new event`, icon: 'calendar', color: '#1f3a5f' };
     case 'invite':
       return { title: `${who} invited you to an event`, icon: 'person-add', color: '#9b59b6' };
+    // No actor either, and the one notice in this list that costs somebody
+    // their plans. `body` is the organiser's own words where they left any.
+    case 'event_cancelled':
+      return { title: 'An event you booked was cancelled', icon: 'close-circle', color: '#e74c6f' };
     // The only kind with no actor: it is the review answering, not a person
     // doing something. `body` carries the answer rather than a sentence, so
     // that the sentence can be written here.
