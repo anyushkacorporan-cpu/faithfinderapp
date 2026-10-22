@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Four Circle",
+    "name": "FourCircle",
     "slug": "four-circle",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -37,14 +37,14 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "Four Circle uses your photos so you can set a profile or cover photo and add pictures to your posts and events.",
-          "cameraPermission": "Four Circle uses your camera so you can take a photo for your profile or a post."
+          "photosPermission": "FourCircle uses your photos so you can set a profile or cover photo and add pictures to your posts and events.",
+          "cameraPermission": "FourCircle uses your camera so you can take a photo for your profile or a post."
         }
       ],
       [
         "expo-location",
         {
-          "locationWhenInUsePermission": "Four Circle uses your location to show churches and events near you."
+          "locationWhenInUsePermission": "FourCircle uses your location to show churches and events near you."
         }
       ]
     ],

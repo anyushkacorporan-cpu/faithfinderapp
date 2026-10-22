@@ -542,7 +542,7 @@ export default function EventsScreen() {
 
               <View style={{flexDirection:'row',alignItems:'center',gap:12,paddingHorizontal:16,marginVertical:16}}>
                 <View style={{flex:1,height:1,backgroundColor:c.border}}/>
-                <Text style={{fontSize:12,color:c.textMuted}}>{tx('or share outside Four Circle')}</Text>
+                <Text style={{fontSize:12,color:c.textMuted}}>{tx('or share outside FourCircle')}</Text>
                 <View style={{flex:1,height:1,backgroundColor:c.border}}/>
               </View>
 
@@ -574,7 +574,7 @@ export default function EventsScreen() {
                   if (!ev) return;
                   setShareEvent(null);
                   setTimeout(() => {
-                    require('react-native').Share.share({ title: ev.title, message: ev.title + ' — ' + ev.date + ' at ' + ev.location + '. Find it on Four Circle!' });
+                    require('react-native').Share.share({ title: ev.title, message: ev.title + ' — ' + ev.date + ' at ' + ev.location + '. Find it on FourCircle!' });
                   }, 400);
                 }}>
                   <View style={{width:54,height:54,borderRadius:16,backgroundColor:'#f5eefb',alignItems:'center',justifyContent:'center'}}>

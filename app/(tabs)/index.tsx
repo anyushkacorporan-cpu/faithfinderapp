@@ -441,7 +441,7 @@ export default function ChurchesScreen() {
               {nearbyNote === 'off'
                 ? tx('Nearby churches are turned off. Turn on location in Settings to see churches around you.')
                 : nearbyNote === 'denied'
-                ? tx('Four Circle needs location access to find churches near you. You can allow it in your phone settings.')
+                ? tx('FourCircle needs location access to find churches near you. You can allow it in your phone settings.')
                 : nearbyNote === 'none'
                 ? tx('No churches found within 30 miles. Showing all churches instead.')
                 : tx("Couldn't load churches near you. Showing all churches instead.")}

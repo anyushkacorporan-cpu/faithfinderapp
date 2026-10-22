@@ -1,5 +1,5 @@
 -- ============================================================================
--- Four Circle — more than one photo per post
+-- FourCircle — more than one photo per post
 --
 -- A post carried a single `image`. Posts written before this column existed
 -- keep it, and the app reads whichever it finds, so nothing has to be

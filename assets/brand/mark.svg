@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="28 10 44 76" width="44" height="76" role="img" aria-label="Four Circle">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="28 10 44 76" width="44" height="76" role="img" aria-label="FourCircle">
   <defs>
     <filter id="fc-glow" x="-60%" y="-30%" width="220%" height="160%">
       <feGaussianBlur in="SourceAlpha" stdDeviation="4.4" result="wide" />

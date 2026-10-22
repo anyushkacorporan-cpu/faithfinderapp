@@ -1,5 +1,5 @@
 -- ============================================================================
--- Four Circle — posts
+-- FourCircle — posts
 --
 -- Until now every post lived in AsyncStorage on the phone that wrote it. The
 -- community feed was therefore not a community: you saw your own posts and the

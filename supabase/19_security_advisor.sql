@@ -1,5 +1,5 @@
 -- ============================================================================
--- Four Circle — the Supabase Security Advisor errors
+-- FourCircle — the Supabase Security Advisor errors
 --
 -- Three flagged. Two are worth acting on, one cannot be acted on at all, and
 -- none of them is currently leaking anything. Taken in turn, because "fix the

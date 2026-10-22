@@ -74,7 +74,7 @@ export default function RegisterChurchScreen() {
           </LinearGradient>
           <Text style={s.successTitle}>{t('churchSubmitted')}</Text>
           <Text style={s.successSub}>
-            <Text style={{fontWeight:'700',color:COLORS.navy}}>{churchName}</Text> has been submitted for review. Four Circle will add it to the directory within 3–5 business days.
+            <Text style={{fontWeight:'700',color:COLORS.navy}}>{churchName}</Text> has been submitted for review. FourCircle will add it to the directory within 3–5 business days.
           </Text>
           <View style={s.successCard}>
             {[

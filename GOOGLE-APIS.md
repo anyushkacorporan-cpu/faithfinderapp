@@ -1,6 +1,6 @@
 # The Google APIs, what they cost, and how to leave
 
-Four Circle calls three Google APIs, all with one key held in
+FourCircle calls three Google APIs, all with one key held in
 `EXPO_PUBLIC_GOOGLE_API_KEY`:
 
 | API | What it does here | Where |

@@ -1,5 +1,5 @@
 -- ============================================================================
--- Four Circle — the two functions with an unpinned search_path
+-- FourCircle — the two functions with an unpinned search_path
 --
 -- The Security Advisor's warning list is long, and almost none of it is ours:
 -- PostGIS installs its own machinery into the public schema and gets counted.

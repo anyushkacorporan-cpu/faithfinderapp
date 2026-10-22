@@ -34,7 +34,7 @@ export default function BlockedUsersScreen() {
             </View>
             <Text style={s.emptyTitle}>{tx('No one is blocked')}</Text>
             <Text style={s.emptySub}>
-              {tx('When you block someone, their posts and comments disappear from Four Circle. They will show up here so you can undo it.')}
+              {tx('When you block someone, their posts and comments disappear from FourCircle. They will show up here so you can undo it.')}
             </Text>
           </View>
         ) : (

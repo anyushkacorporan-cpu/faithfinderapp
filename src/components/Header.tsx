@@ -51,7 +51,7 @@ export function HeaderIcons({ overlay = false }: { overlay?: boolean } = {}) {
 
 /**
  * A slim, right-aligned row carrying HeaderIcons. Replaces the old wordmark bar:
- * same controls, no repeated "Four Circle App" on every tab.
+ * same controls, no repeated "FourCircle" on every tab.
  */
 /**
  * The app's top bar: a slot on the left, the bell and gear on the right.

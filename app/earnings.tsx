@@ -69,7 +69,7 @@ export default function EarningsScreen() {
   // There is nothing to withdraw, by design.
   //
   // Ticket money goes to the organiser's own Stripe account at the moment the
-  // card is charged — it never reaches a Four Circle balance that could be
+  // card is charged — it never reaches a FourCircle balance that could be
   // withdrawn from. Stripe then pays it to their bank on its own schedule.
   //
   // So this explains where the money already is rather than offering to move

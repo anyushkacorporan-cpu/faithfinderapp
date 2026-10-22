@@ -1,4 +1,4 @@
--- Four Circle — notification trigger tests. See supabase/tests/README.md.
+-- FourCircle — notification trigger tests. See supabase/tests/README.md.
 -- Run against a scratch Postgres, never against the real project.
 
 \set QUIET on

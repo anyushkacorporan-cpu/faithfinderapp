@@ -1,5 +1,5 @@
 -- ============================================================================
--- Four Circle — notifications
+-- FourCircle — notifications
 --
 -- The bell showed a hardcoded list. Every account saw the same "John Smith
 -- liked your post" on first run, and nothing anyone actually did ever produced

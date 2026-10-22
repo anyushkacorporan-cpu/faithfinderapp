@@ -1,5 +1,5 @@
 -- ============================================================================
--- Four Circle — blocks and reports
+-- FourCircle — blocks and reports
 --
 -- Both of these were kept in AsyncStorage on the phone, which made them look
 -- like features while being neither.

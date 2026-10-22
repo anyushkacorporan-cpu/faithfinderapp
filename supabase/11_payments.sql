@@ -1,5 +1,5 @@
 -- ============================================================================
--- Four Circle — real payments
+-- FourCircle — real payments
 --
 -- Checkout waited two seconds and issued a ticket. Seats were claimed,
 -- earnings were counted, and no money moved. An organiser would have seen a

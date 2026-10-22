@@ -254,7 +254,7 @@ export default function ProfileScreen() {
 
   function handleShare() {
     const name = isChurch ? user.churchName : `${user.firstName} ${user.lastName}`;
-    Share.share({ message: `Check out ${name} on Four Circle!` });
+    Share.share({ message: `Check out ${name} on FourCircle!` });
   }
 
   // ── CHURCH PROFILE ──────────────────────────────────

@@ -1,5 +1,5 @@
 -- ============================================================================
--- Four Circle — saved churches, on the account
+-- FourCircle — saved churches, on the account
 --
 -- 16_saved_and_hidden.sql moved saved events and hidden posts onto the account
 -- and left saved churches behind on the phone. Nothing marked the omission, so

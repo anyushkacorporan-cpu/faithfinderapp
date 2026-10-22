@@ -1,5 +1,5 @@
 /**
- * Four Circle — the welcome email for the launch list.
+ * FourCircle — the welcome email for the launch list.
  *
  * Runs on Supabase because it holds the Resend API key, and anything the
  * public page holds can be read out of the public page.
@@ -56,7 +56,7 @@ function serviceKey(): string {
 
 const SERVICE_KEY = serviceKey();
 
-const FROM = 'Four Circle <hello@fourcircle.app>';
+const FROM = 'FourCircle <hello@fourcircle.app>';
 const REPLY_TO = 'support@fourcircle.app';
 const SUBJECT = "You're on the list";
 
@@ -101,7 +101,7 @@ function ok() {
 /** Plain text first. Some people read it, and every spam filter does. */
 const TEXT = (url: string) => `You're on the list.
 
-Thank you for being here before it begins. Four Circle comes to the App Store
+Thank you for being here before it begins. FourCircle comes to the App Store
 soon, and we will write to you the day it opens.
 
 It was built for you. We created something special where you can find a church
@@ -111,7 +111,7 @@ grow and encourage one another to draw closer to Christ.
 
 Until then, we will keep you updated.
 
-From Four Circle
+From FourCircle
 
 Instagram: @fourcircle.app
 https://instagram.com/fourcircle.app
@@ -144,12 +144,12 @@ const HTML = (url: string) => `<!doctype html>
 </head>
 <body style="margin:0;padding:0;background:#ffffff;color-scheme:light;">
   <div style="max-width:480px;margin:0 auto;padding:36px 26px;background:#ffffff;font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#1a1a2e;font-size:16px;line-height:1.6;">
-    <div style="font-size:12px;letter-spacing:3px;text-transform:uppercase;color:#a98c54;font-weight:700;">Four Circle</div>
+    <div style="font-size:12px;letter-spacing:3px;text-transform:uppercase;color:#a98c54;font-weight:700;">FourCircle</div>
     <h1 style="font-family:Georgia,'Times New Roman',serif;font-weight:700;font-size:26px;line-height:1.25;margin:16px 0 20px;color:#1a1a2e;">You're on the list.</h1>
-    <p style="margin:0 0 16px;color:#3c3c48;">Thank you for being here before it begins. Four Circle comes to the App Store soon, and we will write to you the day it opens.</p>
+    <p style="margin:0 0 16px;color:#3c3c48;">Thank you for being here before it begins. FourCircle comes to the App Store soon, and we will write to you the day it opens.</p>
     <p style="margin:0 0 24px;color:#3c3c48;">It was built for you. We created something special where you can find a church to call home, worship wherever you travel, and join exciting faith-based events near you. But most importantly, it is where you will find people who want to grow and encourage one another to draw closer to Christ.</p>
     <p style="margin:0 0 24px;color:#3c3c48;">Until then, we will keep you updated.</p>
-    <p style="margin:0;font-family:Georgia,serif;font-style:italic;font-size:15px;color:#a98c54;">From Four Circle</p>
+    <p style="margin:0;font-family:Georgia,serif;font-style:italic;font-size:15px;color:#a98c54;">From FourCircle</p>
     <p style="margin:28px 0 0;font-size:15px;">
       <a href="https://instagram.com/fourcircle.app" style="color:#a98c54;font-weight:600;text-decoration:none;"><img src="https://fourcircle.app/instagram.png" width="22" height="22" alt="Instagram" style="vertical-align:middle;border:0;">&nbsp;&nbsp;@fourcircle.app</a>
     </p>

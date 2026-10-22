@@ -547,7 +547,7 @@ export default function CommunityScreen() {
                   if (!target) return;
                   showConfirm({
                     title: tx('Block') + ' ' + target.authorName,
-                    message: tx('You will no longer see their posts or comments anywhere in Four Circle. You can undo this in Settings.'),
+                    message: tx('You will no longer see their posts or comments anywhere in FourCircle. You can undo this in Settings.'),
                     buttons: [
                       { text: t('cancel'), style: 'cancel' },
                       { text: tx('Block'), style: 'destructive', onPress: () => {

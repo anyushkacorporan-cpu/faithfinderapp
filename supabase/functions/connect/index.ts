@@ -1,5 +1,5 @@
 /**
- * Four Circle — connecting an organiser's own Stripe account.
+ * FourCircle — connecting an organiser's own Stripe account.
  *
  * Runs on Supabase for the same reason the payments function does: everything
  * here needs the Stripe secret key, and anything shipped inside the app can be
@@ -127,7 +127,7 @@ Deno.serve(async (req) => {
         const account = await stripe('accounts', 'POST', {
           type: 'standard',
           email: user.email ?? '',
-          'business_profile[product_description]': 'Event tickets sold through Four Circle',
+          'business_profile[product_description]': 'Event tickets sold through FourCircle',
           'metadata[user_id]': user.id,
         });
         accountId = String(account.id);

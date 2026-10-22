@@ -1,5 +1,5 @@
 -- ============================================================================
--- Four Circle — what the buyer paid, split into its parts
+-- FourCircle — what the buyer paid, split into its parts
 --
 -- A ticket recorded the total and the platform's share of it. Card processing
 -- was not recorded anywhere, because until now it was not charged to anyone:

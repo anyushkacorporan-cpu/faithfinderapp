@@ -50,7 +50,7 @@ export const SLIDES: Slide[] = [
   },
   {
     title: 'Why we built this',
-    body: 'No believer should be doing life alone. That\'s why Four Circle was built. We have more than 235,000 churches across all fifty states for you to search, whether you\'re looking for a church to finally call home or you\'re in town for the weekend and want somewhere to worship. All of it is here to help you find a house of God and for you to be in community.',
+    body: 'No believer should be doing life alone. That\'s why FourCircle was built. We have more than 235,000 churches across all fifty states for you to search, whether you\'re looking for a church to finally call home or you\'re in town for the weekend and want somewhere to worship. All of it is here to help you find a house of God and for you to be in community.',
     verse: {
       text: 'For where two or three gather in my name, there am I with them.',
       ref: 'Matthew 18:20',

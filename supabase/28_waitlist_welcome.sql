@@ -1,5 +1,5 @@
 -- ============================================================================
--- Four Circle — one welcome email per address, ever
+-- FourCircle — one welcome email per address, ever
 --
 -- Signing up and receiving nothing is a worse experience than it looks. The
 -- person has no record it happened, and a typed-wrong address fails silently:

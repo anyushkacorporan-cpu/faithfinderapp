@@ -1,5 +1,5 @@
 -- ============================================================================
--- Four Circle — make searching the directory use its indexes
+-- FourCircle — make searching the directory use its indexes
 --
 -- THE SYMPTOM
 --

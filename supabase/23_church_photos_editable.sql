@@ -1,5 +1,5 @@
 -- ============================================================================
--- Four Circle — a claimed church manages its own photos
+-- FourCircle — a claimed church manages its own photos
 --
 -- WHAT WAS MISSING
 --

@@ -1,5 +1,5 @@
 -- ============================================================================
--- Four Circle — church directory
+-- FourCircle — church directory
 --
 -- Run this once in the Supabase SQL editor (Dashboard → SQL Editor → New query).
 -- It is safe to run more than once.

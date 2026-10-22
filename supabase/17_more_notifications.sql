@@ -1,5 +1,5 @@
 -- ============================================================================
--- Four Circle — the other five notifications
+-- FourCircle — the other five notifications
 --
 -- Settings → Notification Preferences offers eight switches. Three of them —
 -- Likes, Comments, Announcements — governed something real. The other five

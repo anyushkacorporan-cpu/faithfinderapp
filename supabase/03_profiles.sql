@@ -1,5 +1,5 @@
 -- ============================================================================
--- Four Circle — accounts
+-- FourCircle — accounts
 --
 -- Supabase owns `auth.users`: email, password hash, sessions, resets. We never
 -- touch it. This adds the profile that hangs off it — the things the app shows

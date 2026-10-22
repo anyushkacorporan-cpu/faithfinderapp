@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Builds every file of the Four Circle mark from one description of it.
+# Builds every file of the FourCircle mark from one description of it.
 #
 #   sh scripts/build-mark.sh
 #

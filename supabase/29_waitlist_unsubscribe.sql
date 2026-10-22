@@ -1,5 +1,5 @@
 -- ============================================================================
--- Four Circle — one click off the list
+-- FourCircle — one click off the list
 --
 -- The welcome email's unsubscribe was a mailto. Clicking it opened a half
 -- written message to support@ that the reader then had to actually send, and

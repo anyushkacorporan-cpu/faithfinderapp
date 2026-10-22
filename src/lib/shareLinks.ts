@@ -1,9 +1,9 @@
 /**
- * Deep linking + share text helpers for Four Circle.
+ * Deep linking + share text helpers for FourCircle.
  *
  * CURRENT STATE: links use the app's custom URL scheme (fourcircle://...).
  * This works TODAY when the app is already installed (tapping the link on a
- * device that has Four Circle opens directly to that church/event).
+ * device that has FourCircle opens directly to that church/event).
  *
  * NOT YET AVAILABLE: "deferred deep linking" - opening the App Store first,
  * then automatically landing on the right church/event after install. That
@@ -32,7 +32,7 @@ export function buildChurchShareText(opts: {
   churchId: string;
 }): string {
   const link = getChurchDeepLink(opts.churchId);
-  const parts = [`Check out ${opts.name} on Four Circle!`];
+  const parts = [`Check out ${opts.name} on FourCircle!`];
   if (opts.description) parts.push(opts.description);
   parts.push(link);
   return parts.join('\n\n');
@@ -49,7 +49,7 @@ export function buildEventShareText(opts: {
   const whenWhere = [opts.date, opts.location].filter(Boolean).join(' at ');
   const parts = [`${opts.title}${whenWhere ? ' — ' + whenWhere : ''}`];
   if (opts.description) parts.push(opts.description);
-  parts.push('Join me on Four Circle!');
+  parts.push('Join me on FourCircle!');
   parts.push(link);
   return parts.join('\n\n');
 }
@@ -81,7 +81,7 @@ export function buildPostShareText(post: {
     churchShareData?: { id?: string; placeId?: string; name?: string; address?: string };
   };
 } | null | undefined): string {
-  if (!post) return 'Check this out on Four Circle!';
+  if (!post) return 'Check this out on FourCircle!';
 
   // A repost shows the original post's card, so share the original.
   const source = post.repostOf ?? post;
@@ -110,22 +110,22 @@ export function buildPostShareText(post: {
   // The caption on a repost belongs to the reposter, not the original author.
   const originalBody = (source.content || '').trim();
   if (originalBody) {
-    return author ? `${author}: ${originalBody}\n\nSeen on Four Circle` : originalBody;
+    return author ? `${author}: ${originalBody}\n\nSeen on FourCircle` : originalBody;
   }
   const caption = (post.repostComment || '').trim();
   if (caption) {
     const reposter = (post.authorName || '').trim();
-    return reposter ? `${reposter}: ${caption}\n\nSeen on Four Circle` : caption;
+    return reposter ? `${reposter}: ${caption}\n\nSeen on FourCircle` : caption;
   }
 
-  if (post.linkUrl) return `${post.linkUrl}\n\nSeen on Four Circle`;
+  if (post.linkUrl) return `${post.linkUrl}\n\nSeen on FourCircle`;
   if (source.image) {
     return author
-      ? `${author} shared a photo on Four Circle`
-      : 'Check out this photo on Four Circle!';
+      ? `${author} shared a photo on FourCircle`
+      : 'Check out this photo on FourCircle!';
   }
 
   return author
-    ? `Check out ${author}'s post on Four Circle!`
-    : 'Check this out on Four Circle!';
+    ? `Check out ${author}'s post on FourCircle!`
+    : 'Check this out on FourCircle!';
 }

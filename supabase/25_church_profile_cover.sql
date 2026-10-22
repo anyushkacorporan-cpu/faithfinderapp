@@ -1,5 +1,5 @@
 -- ============================================================================
--- Four Circle — a claimed church's profile photo and cover photo
+-- FourCircle — a claimed church's profile photo and cover photo
 --
 -- 23_church_photos_editable.sql gave a claimed church a gallery. It did not
 -- give it the two single photos every profile in this app has: the square

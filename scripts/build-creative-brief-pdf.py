@@ -61,7 +61,7 @@ def panel(rows, bg, border):
 
 story = []
 story.append(Table(
-    [[Paragraph('<font color="#c9a96e">&#8224;</font>&nbsp;&nbsp;Four Circle', MAST)],
+    [[Paragraph('<font color="#c9a96e">&#8224;</font>&nbsp;&nbsp;FourCircle', MAST)],
      [Paragraph('Creative brief — pre-launch content', MTAG)]],
     colWidths=[6.9*inch],
     style=TableStyle([('BACKGROUND',(0,0),(-1,-1), NAVY),
@@ -71,7 +71,7 @@ story.append(Table(
 story.append(Spacer(1, 15))
 
 story.append(Paragraph(
-    'Four Circle is a national church directory and a faith community in one iOS app. '
+    'FourCircle is a national church directory and a faith community in one iOS app. '
     '<b>235,147 churches across the United States are already in it.</b> Nobody has to add '
     'their church — it is already there, waiting to be claimed.', LEAD))
 
@@ -166,12 +166,12 @@ story.append(KeepTogether(panel([
 ], WASH, colors.HexColor('#e2e0e6'))))
 
 story.append(Spacer(1, 18))
-story.append(Paragraph('Four Circle &nbsp;·&nbsp; Creative brief &nbsp;·&nbsp; '
+story.append(Paragraph('FourCircle &nbsp;·&nbsp; Creative brief &nbsp;·&nbsp; '
                        'September 2026 &nbsp;·&nbsp; A full feature list is available separately', FOOT))
 
 SimpleDocTemplate('/home/user/faithfinderapp/Four-Circle-Creative-Brief.pdf',
                   pagesize=LETTER, leftMargin=0.8*inch, rightMargin=0.8*inch,
                   topMargin=0.62*inch, bottomMargin=0.62*inch,
-                  title='Four Circle — Creative Brief',
-                  author='Four Circle').build(story)
+                  title='FourCircle — Creative Brief',
+                  author='FourCircle').build(story)
 print('built')
