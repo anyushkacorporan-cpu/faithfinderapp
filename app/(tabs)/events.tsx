@@ -99,6 +99,31 @@ export default function EventsScreen() {
     userEvents.filter(e => e.status !== 'draft')
   , [userEvents]);
 
+  /**
+   * The tab counts, taken from the events rather than from the saved ids.
+   *
+   * `saved` and `attending` are ids written when somebody tapped the heart.
+   * Nothing deletes an id when the event it points at is deleted, so a tab
+   * reading `saved.length` counted an event that is no longer there, while
+   * the list below it correctly showed nothing: "Saved (1)" over "No saved
+   * events."
+   *
+   * Counting the events themselves means an id with nothing behind it is
+   * simply not counted, and the number cannot disagree with the list.
+   *
+   * Deliberately not narrowed by the search box or the filters: those are
+   * what the person is doing right now, and a save they made last week does
+   * not stop existing because they typed something.
+   */
+  const savedCount = useMemo(
+    () => allEvents.filter((e: any) => saved.includes(e.id)).length,
+    [allEvents, saved],
+  );
+  const attendingCount = useMemo(
+    () => allEvents.filter((e: any) => attending.includes(e.id)).length,
+    [allEvents, attending],
+  );
+
   // Nearby events — matched against nearbyPlace, the "City, ST" this device resolved.
   const nearbyEvents = useMemo(() => {
     if (!appSettings.location.locationEnabled || !appSettings.location.nearbyEvents) return [];
@@ -240,7 +265,7 @@ export default function EventsScreen() {
           {TABS.map(tab => (
             <TouchableOpacity key={tab} style={[s.toggleBtn, activeTab===tab && s.toggleBtnActive]} onPress={() => setActiveTab(tab)}>
               <Text style={[s.toggleTxt, activeTab===tab && s.toggleTxtActive]}>
-                {tab==='List'?t('list'):tab==='Attending'?t('attending'):t('saved')}{tab==='Attending'&&attending.length>0?` (${attending.length})`:''}{tab==='Saved'&&saved.length>0?` (${saved.length})`:''}
+                {tab==='List'?t('list'):tab==='Attending'?t('attending'):t('saved')}{tab==='Attending'&&attendingCount>0?` (${attendingCount})`:''}{tab==='Saved'&&savedCount>0?` (${savedCount})`:''}
               </Text>
             </TouchableOpacity>
           ))}
