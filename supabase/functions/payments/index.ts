@@ -50,6 +50,39 @@ async function stripe(path: string, method: 'GET' | 'POST', form?: Record<string
   return data;
 }
 
+/**
+ * Put the event on the transfer as well as on the charge.
+ *
+ * A destination charge creates its transfer itself, and Stripe takes no
+ * metadata for it when the PaymentIntent is made — the only way to label it
+ * is to update it afterwards, which is why this runs on confirmation rather
+ * than at creation.
+ *
+ * It matters because the transfer is the organiser's side of the sale. On
+ * their dashboard, and on ours when a refund has to reverse one, an untagged
+ * transfer is a sum of money with no event attached to it.
+ *
+ * Failure here is logged and swallowed. The ticket is paid and the money has
+ * moved; a missing label is not worth telling a buyer their payment failed.
+ */
+async function tagTransfer(
+  intent: Record<string, unknown>,
+  eventId: string,
+  eventName: string,
+): Promise<void> {
+  try {
+    const charge = intent.latest_charge as Record<string, unknown> | null;
+    const transferId = typeof charge?.transfer === 'string' ? charge.transfer : '';
+    if (!transferId) return;
+    await stripe(`transfers/${transferId}`, 'POST', {
+      'metadata[event_id]': eventId,
+      'metadata[event_name]': String(eventName).slice(0, 500),
+    });
+  } catch (err) {
+    console.error('could not tag transfer', eventId, String((err as Error).message));
+  }
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS });
 
@@ -111,6 +144,18 @@ Deno.serve(async (req) => {
       .eq('user_id', event.organizer_id)
       .maybeSingle();
 
+    // charges_enabled, and deliberately not payouts_enabled.
+    //
+    // The two look interchangeable and are not. We hold every organiser's
+    // account on a manual payout schedule, and may pause its payouts
+    // outright; a paused account reports payouts_enabled false with
+    // disabled_reason 'platform_paused'. Gating sales on it would mean the
+    // act of holding an organiser's money also stopped them selling, which
+    // is the opposite of the arrangement.
+    //
+    // charges_enabled is the right question here: can this account receive
+    // the money. Whether it can then move it to a bank is ours to decide and
+    // ours to time.
     if (!payee?.stripe_account_id || !payee.charges_enabled) {
       return json({
         error: 'This event cannot take payments yet — the organiser has not finished setting up payouts.',
@@ -199,9 +244,21 @@ Deno.serve(async (req) => {
         // waiting to be forwarded by hand.
         'transfer_data[destination]': payee.stripe_account_id,
         application_fee_amount: String(applicationFee),
+        // What a line in the Stripe dashboard has to be readable as, months
+        // later, by somebody reconciling a payout or answering a dispute.
+        //
+        // event_id is ours and matches `events.id` exactly; event_name is
+        // there so the dashboard does not read as a column of identifiers.
+        // Stripe copies a PaymentIntent's metadata onto the charge, so both
+        // appear there too without being sent twice.
+        //
+        // The buyer's id used to be here and is not any more: who bought a
+        // ticket is in our own tickets table, and the payment processor is
+        // not the place to keep a list of which person attended which church
+        // event. Stripe already has their card and their email.
         'metadata[ticket_id]': ticketId,
         'metadata[event_id]': event.id,
-        'metadata[buyer_id]': user.id,
+        'metadata[event_name]': String(event.title ?? '').slice(0, 500),
         'metadata[organizer_id]': String(event.organizer_id ?? ''),
       });
 
@@ -232,7 +289,7 @@ Deno.serve(async (req) => {
 
     const { data: ticket } = await admin
       .from('tickets')
-      .select('id, buyer_id, payment_intent_id, status, event_id, quantity')
+      .select('id, buyer_id, payment_intent_id, status, event_id, event_title, quantity')
       .eq('id', ticketId)
       .single();
 
@@ -241,10 +298,13 @@ Deno.serve(async (req) => {
     if (ticket.status === 'paid') return json({ ok: true });
     if (!ticket.payment_intent_id) return json({ error: 'No payment was started.' }, 400);
 
-    const intent = await stripe(`payment_intents/${ticket.payment_intent_id}`, 'GET');
+    // The charge comes back with it so the transfer can be found below.
+    const intent = await stripe(
+      `payment_intents/${ticket.payment_intent_id}?expand[]=latest_charge`, 'GET');
 
     if (intent.status === 'succeeded') {
       await admin.from('tickets').update({ status: 'paid' }).eq('id', ticketId);
+      await tagTransfer(intent, ticket.event_id, ticket.event_title ?? '');
       return json({ ok: true });
     }
 

@@ -12,15 +12,34 @@
  *   status   ask Stripe where that account stands, and cache the answer
  *   login    a link into their Stripe dashboard, once they have one
  *
- * STANDARD, NOT EXPRESS
+ * CONTROLLER PROPERTIES, NOT `type`
  *
- * `type=standard` means the account belongs to the organiser, not to us. They
- * see Stripe's own branding, they get Stripe's own dashboard, and Stripe
- * handles their tax forms. We never file their 1099-K — Stripe issues it
- * directly, because `controller.fees.payer` is `account`, which is Standard's
- * default. The cost is that they fill in Stripe's full form rather than a
- * short one — once, per organiser, which is the right place for that cost to
- * land.
+ * This said `type: 'standard'`, which is a shorthand for four separate
+ * decisions. Three of them were the ones we wanted and the fourth was not, and
+ * a shorthand cannot be half-taken, so the four are now stated one by one:
+ *
+ *   stripe_dashboard.type  = full         the account is theirs. Stripe's own
+ *                                         dashboard, Stripe's own branding.
+ *   requirement_collection = stripe       Stripe asks for their documents and
+ *                                         decides when they are verified.
+ *   fees.payer             = account      which is the condition under which
+ *                                         Stripe issues their 1099-K rather
+ *                                         than us.
+ *   losses.payments        = application  FourCircle is liable for a negative
+ *                                         balance on their account.
+ *
+ * The first three are exactly what `type=standard` gave. The fourth is the
+ * change, and it is the price of being able to pause payouts: Stripe only
+ * offers that on accounts where the platform carries the negative balance.
+ * Confirmed with Stripe support, October 2026 — including that this
+ * combination is allowed, which matters, because `requirement_collection =
+ * application` is incompatible with both of the middle two.
+ *
+ * NONE OF THIS CAN BE CHANGED LATER
+ *
+ * `stripe_dashboard.type` is fixed at creation; converting an account means
+ * creating a different one. So an account made before this commit cannot be
+ * brought forward, and there are none — checked, the table was empty.
  *
  * MANUAL PAYOUTS
  *
@@ -153,7 +172,12 @@ Deno.serve(async (req) => {
         // abandoned the form halfway would strand the first one, and Stripe
         // counts both against the platform.
         const account = await stripe('accounts', 'POST', {
-          type: 'standard',
+          // No `type`. It and `controller` are two ways of saying the same
+          // thing and Stripe takes one or the other.
+          'controller[stripe_dashboard][type]': 'full',
+          'controller[requirement_collection]': 'stripe',
+          'controller[fees][payer]': 'account',
+          'controller[losses][payments]': 'application',
           email: user.email ?? '',
           'business_profile[product_description]': 'Event tickets sold through FourCircle',
           'metadata[user_id]': user.id,
