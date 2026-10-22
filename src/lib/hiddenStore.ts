@@ -71,6 +71,55 @@ export async function syncHiddenFromServer(): Promise<void> {
   persist(); notify();
 }
 
+/**
+ * Events this person has chosen not to see again.
+ *
+ * The same idea as the post list above, and here for the same reason:
+ * reporting something and then still being shown it is not a report, it is a
+ * form. An event anyone can create is content anyone can object to, so the
+ * objection has to remove it from the objector's own events tab.
+ *
+ * Local only, deliberately. hidden_posts on the server takes a post id and
+ * nothing else, and widening it to hold two kinds of id is a migration and a
+ * column of its own; it is not worth that to carry a list that is a handful
+ * of ids long. The report itself does reach the server, which is the half
+ * that has to outlive the device.
+ */
+let hiddenEvents: string[] = [];
+
+const EVENTS_KEY = 'fourcircle_hidden_events_v1';
+function persistEvents() { save(EVENTS_KEY, hiddenEvents); }
+load<string[]>(EVENTS_KEY, v => { hiddenEvents = v || []; notify(); });
+
+export function isEventHidden(eventId?: string): boolean {
+  return !!eventId && hiddenEvents.includes(eventId);
+}
+
+export function hideEvent(eventId: string) {
+  if (!eventId || hiddenEvents.includes(eventId)) return;
+  hiddenEvents = [...hiddenEvents, eventId];
+  persistEvents();
+  notify();
+}
+
+export function unhideEvent(eventId: string) {
+  hiddenEvents = hiddenEvents.filter(id => id !== eventId);
+  persistEvents();
+  notify();
+}
+
+/** Subscribes to the same notify() as useHidden, so either list re-renders. */
+export function useHiddenEvents(): string[] {
+  const [state, setState] = useState(hiddenEvents);
+  useEffect(() => {
+    const fn = () => setState(hiddenEvents);
+    fn();
+    listeners.push(fn);
+    return () => { const i = listeners.indexOf(fn); if (i > -1) listeners.splice(i, 1); };
+  }, []);
+  return state;
+}
+
 export function useHidden(): string[] {
   const [state, setState] = useState(hidden);
   useEffect(() => {
@@ -86,6 +135,8 @@ export function useHidden(): string[] {
 /** Return this store to a fresh-install state, for account deletion. */
 export function resetStore() {
   hidden = [];
+  hiddenEvents = [];
   persist();
+  persistEvents();
   notify();
 }

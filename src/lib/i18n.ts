@@ -582,6 +582,8 @@ const translations: Record<string, Record<Lang, string>> = {
   deletePost: { English: 'Delete Post', Español: 'Eliminar Publicación' },
   reportPost: { English: 'Report Post', Español: 'Reportar Publicación' },
   whyReporting: { English: 'Why are you reporting this post?', Español: '¿Por qué reportas esta publicación?' },
+  reportEvent: { English: 'Report Event', Español: 'Reportar Evento' },
+  whyReportingEvent: { English: 'Why are you reporting this event?', Español: '¿Por qué reportas este evento?' },
   sharePost: { English: 'Share Post', Español: 'Compartir Publicación' },
   repost: { English: 'Repost', Español: 'Republicar' },
   shareToFeed: { English: 'Share to your FourCircle feed', Español: 'Comparte en tu feed de FourCircle' },
@@ -1150,6 +1152,9 @@ const translations: Record<string, Record<Lang, string>> = {
   hid01: {
     English: "Thanks for telling us. You won't see this post again.",
     Español: 'Gracias por avisarnos. No volverás a ver esta publicación.' },
+  hid02: {
+    English: "Thanks for telling us. You won't see this event again.",
+    Español: 'Gracias por avisarnos. No volverás a ver este evento.' },
   near01: {
     English: "Couldn't load churches near you. Showing all churches instead.",
     Español: 'No se pudieron cargar las iglesias cercanas. Mostrando todas las iglesias.' },

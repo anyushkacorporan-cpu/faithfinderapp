@@ -15,6 +15,7 @@ import { useEventActions, toggleSaveEvent, addAttending, removeAttending } from 
 import { useSettings } from '../../src/lib/settingsStore';
 import { useTranslation } from '../../src/lib/i18n';
 import { stateCode, eventStateCode } from '../../src/lib/filters';
+import { isEventHidden, useHiddenEvents } from '../../src/lib/hiddenStore';
 
 import { KeyboardScreen, KEYBOARD_SCROLL_PROPS } from '../../src/components/KeyboardScreen';
 const TABS = ['List', 'Attending', 'Saved'];
@@ -95,9 +96,14 @@ export default function EventsScreen() {
   const [shareMessage, setShareMessage] = useState('');
   const [sharedToast, setSharedToast] = useState(false);
 
+  // Subscribed to, not just read: hiding happens on the detail screen, which
+  // sits over this one. Without the subscription the list underneath keeps
+  // the event somebody just reported and shows it again on the way back.
+  const hiddenEvents = useHiddenEvents();
+
   const allEvents = useMemo(() =>
-    userEvents.filter(e => e.status !== 'draft')
-  , [userEvents]);
+    userEvents.filter(e => e.status !== 'draft' && !isEventHidden(e.id))
+  , [userEvents, hiddenEvents]);
 
   /**
    * The tab counts, taken from the events rather than from the saved ids.

@@ -21,6 +21,9 @@ import { useTranslation } from '../src/lib/i18n';
 
 import { KeyboardScreen, KEYBOARD_SCROLL_PROPS } from '../src/components/KeyboardScreen';
 import { useConfirm } from '../src/components/Confirm';
+import { useToast } from '../src/components/Toast';
+import { hideEvent } from '../src/lib/hiddenStore';
+import { submitReport } from '../src/lib/moderationApi';
 export default function EventDetailScreen() {
   const c = useThemeColors();
   const s = makeStyles(c);
@@ -32,12 +35,14 @@ export default function EventDetailScreen() {
   const appSettings = useSettings();
   const { t, tx } = useTranslation();
   const { showConfirm } = useConfirm();
+  const { showToast } = useToast();
   // Same store, same reason as `attending` below: a snapshot taken at mount
   // disagrees with the events tab the moment the event is saved or unsaved
   // anywhere else while this screen sits under it.
   const { saved: savedEventIds } = useEventActions();
   const saved = savedEventIds.includes(params.id || '');
   const [showFullPhoto, setShowFullPhoto] = useState(false);
+  const [showReport, setShowReport] = useState(false);
   // Read through the store rather than snapshotted at mount. Registering
   // happens on the checkout screen, which is pushed over this one — this screen
   // never unmounts, so a useState initialiser runs once and then says "not
@@ -271,6 +276,14 @@ export default function EventDetailScreen() {
                 <TouchableOpacity style={s.bannerIconBtn} onPress={handleShare}>
                   <Ionicons name="share-social-outline" size={22} color={c.onPrimary} />
                 </TouchableOpacity>
+                <TouchableOpacity
+                  style={s.bannerIconBtn}
+                  onPress={() => setShowReport(true)}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('reportEvent')}
+                >
+                  <Ionicons name="ellipsis-horizontal" size={22} color={c.onPrimary} />
+                </TouchableOpacity>
               </View>
             </View>
           </ImageBackground>
@@ -287,6 +300,14 @@ export default function EventDetailScreen() {
                 </TouchableOpacity>
                 <TouchableOpacity style={s.bannerIconBtn} onPress={handleShare}>
                   <Ionicons name="share-social-outline" size={22} color={c.onPrimary} />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={s.bannerIconBtn}
+                  onPress={() => setShowReport(true)}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('reportEvent')}
+                >
+                  <Ionicons name="ellipsis-horizontal" size={22} color={c.onPrimary} />
                 </TouchableOpacity>
               </View>
             </View>
@@ -755,6 +776,66 @@ export default function EventDetailScreen() {
         </View>
       )}
     </SafeAreaView>
+
+      {/*
+        Reporting an event.
+
+        Events are created by anyone with an account, which makes them user
+        content in the sense App Store guideline 1.2 means: there has to be a
+        way to object to one, and objecting has to take it out of the
+        objector's own app rather than only filing a note. Posts have had this
+        since the start; events had the table column and the api and no button.
+
+        The reasons and their translations are the post sheet's, reused
+        deliberately — two lists of reasons drift apart and then a report means
+        a different thing depending on where it was filed.
+      */}
+      <Modal visible={showReport} transparent animationType="fade" onRequestClose={() => setShowReport(false)}>
+        <TouchableOpacity style={{flex:1,backgroundColor:c.overlay,justifyContent:'flex-end'}} activeOpacity={1} onPress={() => setShowReport(false)}>
+          <View style={{backgroundColor:c.card,borderTopLeftRadius:24,borderTopRightRadius:24,paddingTop:8,paddingBottom:32}}>
+            <View style={{width:36,height:4,borderRadius:2,backgroundColor:c.border,alignSelf:'center',marginVertical:10}}/>
+            <Text style={{fontSize:17,fontWeight:'700',color:c.text,textAlign:'center',marginBottom:4}}>{t('reportEvent')}</Text>
+            <Text style={{fontSize:13,color:c.textMuted,textAlign:'center',marginBottom:14,paddingHorizontal:24}}>{t('whyReportingEvent')}</Text>
+            {[
+              {id:'spam', label:'Spam'},
+              {id:'harassment', label:'Harassment or bullying'},
+              {id:'inappropriate', label:'Inappropriate content'},
+              {id:'misleading', label:'False or misleading information'},
+              {id:'hate_speech', label:'Hate speech'},
+              {id:'other', label:'Other'},
+            ].map(reason => (
+              <TouchableOpacity key={reason.id} style={{paddingHorizontal:20,paddingVertical:14,borderTopWidth:1,borderTopColor:c.rowBorder}} onPress={() => {
+                const id = params.id || '';
+                setShowReport(false);
+                void submitReport({
+                  targetType: 'event',
+                  targetId: id,
+                  reason: reason.label,
+                  targetAuthor: fullEvent?.organizer || params.organizer,
+                  // What was reported, in the words it was reported for. An
+                  // organiser who edits or deletes the event afterwards would
+                  // otherwise take the evidence with them.
+                  snapshot: [
+                    fullEvent?.title || params.title,
+                    fullEvent?.organizer || params.organizer,
+                    fullEvent?.date || params.date,
+                    fullEvent?.location || params.location,
+                    fullEvent?.description || params.description,
+                  ].filter(Boolean).join('\n'),
+                });
+                hideEvent(id);
+                showToast(tx('Reported'), tx("Thanks for telling us. You won't see this event again."), 'info');
+                router.back();
+              }}>
+                <Text style={{fontSize:15,color:c.text}}>{tx(reason.label)}</Text>
+              </TouchableOpacity>
+            ))}
+            <TouchableOpacity style={{flexDirection:'row',alignItems:'center',justifyContent:'center',paddingVertical:16,marginTop:4}} onPress={() => setShowReport(false)}>
+              <Text style={{fontSize:15,fontWeight:'600',color:c.textMuted}}>{t('cancel')}</Text>
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      </Modal>
 
       <Modal visible={showFullPhoto} transparent animationType="fade" onRequestClose={() => setShowFullPhoto(false)}>
         <View style={{flex:1, backgroundColor:'rgba(0,0,0,0.95)', justifyContent:'center', alignItems:'center'}}>
