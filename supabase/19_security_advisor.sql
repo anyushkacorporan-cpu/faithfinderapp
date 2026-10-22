@@ -75,3 +75,40 @@ end $$;
 -- Every Supabase project using PostGIS reports this error. It stays reported.
 -- Leaving a note is the honest outcome; the alternative is somebody spending
 -- an afternoon on it in six months because the dashboard says "error".
+
+-- 4. The three that remain, checked 22 October 2026
+--
+-- After the two fixes above, a sweep of every table and view in `public`
+-- leaves exactly three objects:
+--
+--     spatial_ref_sys      table   row level security off
+--     geography_columns    view    security definer
+--     geometry_columns     view    security definer
+--
+-- All three were created by `create extension postgis` and are owned by the
+-- extension, so `alter` on any of them is refused for want of ownership. The
+-- two views are PostGIS's own catalogue: they answer "which columns in this
+-- database hold geometry?" by reading the system catalogues. Like
+-- spatial_ref_sys they describe shape, not content, and there is nothing in
+-- any of them about a person.
+--
+-- Supabase's own advisor is narrower than that sweep and flags only
+-- spatial_ref_sys, which is why the dashboard shows one item and this note
+-- lists three. The sweep is the one worth keeping, because it would also
+-- catch a view of ours that lost its security_invoker:
+--
+--   select 'table' as kind, c.relname as name, 'RLS OFF' as problem
+--   from pg_class c
+--   join pg_namespace n on n.oid = c.relnamespace
+--   where n.nspname = 'public' and c.relkind = 'r' and not c.relrowsecurity
+--   union all
+--   select 'view', c.relname, 'SECURITY DEFINER'
+--   from pg_class c
+--   join pg_namespace n on n.oid = c.relnamespace
+--   where n.nspname = 'public' and c.relkind = 'v'
+--     and coalesce((select option_value from pg_options_to_table(c.reloptions)
+--                   where option_name = 'security_invoker'), 'false')
+--         not in ('true','on');
+--
+-- Three rows means settled. A fourth name means something of ours changed,
+-- and that is the one worth reading.
