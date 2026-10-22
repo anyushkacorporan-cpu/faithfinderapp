@@ -1,0 +1,386 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>FourCircle — moderation</title>
+<meta name="robots" content="noindex, nofollow">
+
+<!--
+  The owner's moderation queue.
+
+  NOT PUBLISHED. GitHub Pages serves docs/ only, and this is held back the
+  same way legal/ is, so that putting it on fourcircle.app is a decision
+  somebody makes rather than a side effect of saving a file. See README.md
+  beside it.
+
+  Nothing here is protected by the page being hard to find, and nothing
+  should be. The page signs in with Supabase Auth like any other account and
+  then reads `reports` with that person's own token, so row-level security
+  decides what comes back. A stranger who opens it sees a login box, signs in
+  with their own account, and gets a refusal, because is_admin() answers
+  false for them. See supabase/30_admin.sql.
+
+  No service-role key is here, and none may ever be put here. That key
+  bypasses row-level security entirely; in a web page it is a key everyone
+  has.
+
+  Written with fetch against PostgREST rather than supabase-js, for the same
+  reason the rest of the site is: one file, no build step, nothing to update
+  when a library moves on.
+-->
+
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap">
+<style>
+  :root {
+    --gold: #c9a96e;
+    --gold-lit: #e8d3a4;
+    --ground: #120d08;
+    --panel: #1b140d;
+    --panel-2: #241a11;
+    --rule: rgba(201,169,110,0.26);
+    --ink: #f6f2ea;
+    --ink-2: rgba(246,242,234,0.72);
+    --red: #e7686b;
+    --green: #6fc08a;
+    --display: "Playfair Display", Georgia, "Times New Roman", serif;
+    --text: "DM Sans", ui-sans-serif, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100svh; background: var(--ground); color: var(--ink);
+    font-family: var(--text); font-size: 16px; line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap {
+    max-width: 820px; margin: 0 auto;
+    padding: 40px max(16px, env(safe-area-inset-left, 0px)) 80px;
+  }
+  header {
+    display: flex; align-items: baseline; justify-content: space-between;
+    gap: 16px; flex-wrap: wrap; margin-bottom: 26px;
+  }
+  h1 { font-family: var(--display); font-size: 30px; margin: 0; font-weight: 700; }
+  .sub { color: var(--ink-2); font-size: 14px; margin: 4px 0 0; }
+
+  button {
+    font: inherit; font-weight: 600; font-size: 14px; cursor: pointer;
+    border-radius: 10px; border: 1px solid var(--rule);
+    background: var(--panel-2); color: var(--ink); padding: 9px 14px;
+  }
+  button:hover { border-color: var(--gold); }
+  button:disabled { opacity: 0.5; cursor: default; }
+  button.primary { background: var(--gold); border-color: var(--gold); color: #1a1208; }
+  button.primary:hover { background: var(--gold-lit); }
+  button.danger { color: var(--red); border-color: rgba(231,104,107,0.4); }
+  button.danger:hover { border-color: var(--red); }
+
+  /* Sign in */
+  #login { max-width: 360px; margin: 10vh auto 0; }
+  #login label { display: block; font-size: 13px; color: var(--ink-2); margin: 14px 0 6px; }
+  #login input {
+    width: 100%; font: inherit; font-size: 15px; padding: 11px 13px;
+    border-radius: 10px; border: 1px solid var(--rule);
+    background: var(--panel); color: var(--ink);
+  }
+  #login input:focus { outline: none; border-color: var(--gold); }
+  #login button { width: 100%; margin-top: 18px; padding: 12px; }
+
+  .msg { min-height: 1.3rem; font-size: 13.5px; color: var(--ink-2); margin: 12px 0 0; }
+  .msg.bad { color: var(--red); }
+  .msg.good { color: var(--green); }
+
+  /* Queue */
+  .tabs { display: flex; gap: 8px; margin-bottom: 18px; flex-wrap: wrap; }
+  .tabs button.on { background: var(--gold); border-color: var(--gold); color: #1a1208; }
+
+  .card {
+    background: var(--panel); border: 1px solid var(--rule); border-radius: 14px;
+    padding: 16px 17px; margin-bottom: 14px;
+  }
+  .card .top { display: flex; align-items: center; gap: 9px; flex-wrap: wrap; margin-bottom: 10px; }
+  .pill {
+    font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+    padding: 4px 9px; border-radius: 999px;
+    background: rgba(201,169,110,0.15); color: var(--gold-lit);
+  }
+  .pill.many { background: rgba(231,104,107,0.18); color: var(--red); }
+  .when { font-size: 12.5px; color: var(--ink-2); margin-left: auto; }
+  .reason { font-weight: 600; }
+  .who { font-size: 13.5px; color: var(--ink-2); margin-bottom: 10px; }
+  .snap {
+    white-space: pre-wrap; word-break: break-word;
+    background: var(--panel-2); border: 1px solid var(--rule); border-radius: 10px;
+    padding: 11px 13px; font-size: 14px; color: var(--ink-2); margin-bottom: 13px;
+    max-height: 220px; overflow: auto;
+  }
+  .acts { display: flex; gap: 8px; flex-wrap: wrap; }
+  .empty { color: var(--ink-2); text-align: center; padding: 50px 10px; }
+  .hidden { display: none; }
+</style>
+
+<div class="wrap">
+
+  <!-- Sign in -->
+  <section id="login">
+    <h1>FourCircle</h1>
+    <p class="sub">Moderation. Sign in with the owner account.</p>
+    <form id="loginForm">
+      <label for="email">Email</label>
+      <input id="email" type="email" autocomplete="username" required>
+      <label for="password">Password</label>
+      <input id="password" type="password" autocomplete="current-password" required>
+      <button class="primary" type="submit">Sign in</button>
+    </form>
+    <p class="msg" id="loginMsg"></p>
+  </section>
+
+  <!-- Queue -->
+  <section id="app" class="hidden">
+    <header>
+      <div>
+        <h1>Reports</h1>
+        <p class="sub" id="whoami"></p>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button id="refresh">Refresh</button>
+        <button id="signout">Sign out</button>
+      </div>
+    </header>
+
+    <div class="tabs">
+      <button data-status="open" class="on">Open</button>
+      <button data-status="actioned">Actioned</button>
+      <button data-status="dismissed">Dismissed</button>
+      <button data-status="all">All</button>
+    </div>
+
+    <p class="msg" id="appMsg"></p>
+    <div id="list"></div>
+  </section>
+
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  // The publishable key, which is meant to be public: it names the project and
+  // nothing more. Every request below also carries the signed-in user's own
+  // token, and the policies in 30_admin.sql are what decide the answer.
+  var BASE = 'https://mmhpfiabbpzaizkjozjq.supabase.co';
+  var KEY = 'sb_publishable_sVF7I5TRILs0rhDGRgTl3Q_eerLcV_6';
+
+  // sessionStorage, not localStorage: the token should not outlive the tab on
+  // what may well be a shared or borrowed computer.
+  var STORE = 'fourcircle_admin_token';
+  var token = null;
+  try { token = sessionStorage.getItem(STORE); } catch (e) {}
+
+  var el = function (id) { return document.getElementById(id); };
+  var status = 'open';
+  var reports = [];
+
+  function say(node, text, kind) {
+    node.textContent = text || '';
+    node.className = 'msg' + (kind ? ' ' + kind : '');
+  }
+
+  function api(path, opts) {
+    opts = opts || {};
+    var headers = { apikey: KEY, 'Content-Type': 'application/json' };
+    if (token) headers.Authorization = 'Bearer ' + token;
+    if (opts.prefer) headers.Prefer = opts.prefer;
+    return fetch(BASE + path, {
+      method: opts.method || 'GET',
+      headers: headers,
+      body: opts.body ? JSON.stringify(opts.body) : undefined,
+    }).then(function (r) {
+      // An expired token reads as a permission problem, which is confusing
+      // enough to be worth naming. Tokens last about an hour.
+      if (r.status === 401) { signOut('Session expired. Sign in again.'); throw new Error('expired'); }
+      if (!r.ok) return r.text().then(function (t) { throw new Error(t || ('HTTP ' + r.status)); });
+      return r.status === 204 ? null : r.json();
+    });
+  }
+
+  // ── Sign in ──────────────────────────────────────────────────────────────
+  el('loginForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var btn = e.target.querySelector('button');
+    btn.disabled = true;
+    say(el('loginMsg'), 'Signing in…');
+
+    fetch(BASE + '/auth/v1/token?grant_type=password', {
+      method: 'POST',
+      headers: { apikey: KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: el('email').value.trim(), password: el('password').value }),
+    })
+      .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
+      .then(function (res) {
+        if (!res.ok || !res.j.access_token) {
+          throw new Error(res.j.error_description || res.j.msg || 'Wrong email or password.');
+        }
+        token = res.j.access_token;
+        try { sessionStorage.setItem(STORE, token); } catch (e2) {}
+        el('whoami').textContent = (res.j.user && res.j.user.email) || '';
+        return start();
+      })
+      .catch(function (err) { say(el('loginMsg'), err.message, 'bad'); })
+      .then(function () { btn.disabled = false; });
+  });
+
+  function signOut(why) {
+    token = null;
+    try { sessionStorage.removeItem(STORE); } catch (e) {}
+    el('app').className = 'hidden';
+    el('login').className = '';
+    say(el('loginMsg'), why || '', why ? 'bad' : '');
+  }
+  el('signout').addEventListener('click', function () { signOut(); });
+  el('refresh').addEventListener('click', function () { load(); });
+
+  // ── Only an admin gets the queue ─────────────────────────────────────────
+  function start() {
+    return api('/rest/v1/rpc/is_admin', { method: 'POST', body: {} })
+      .then(function (yes) {
+        if (!yes) { signOut('That account is not an admin.'); return; }
+        el('login').className = 'hidden';
+        el('app').className = '';
+        return load();
+      });
+  }
+
+  // ── The queue ────────────────────────────────────────────────────────────
+  Array.prototype.forEach.call(document.querySelectorAll('.tabs button'), function (b) {
+    b.addEventListener('click', function () {
+      Array.prototype.forEach.call(document.querySelectorAll('.tabs button'), function (o) { o.className = ''; });
+      b.className = 'on';
+      status = b.dataset.status;
+      load();
+    });
+  });
+
+  function load() {
+    say(el('appMsg'), 'Loading…');
+    var q = '/rest/v1/reports?select=*&order=created_at.desc&limit=200';
+    if (status !== 'all') q += '&status=eq.' + status;
+    return api(q)
+      .then(function (rows) {
+        reports = rows || [];
+        say(el('appMsg'), '');
+        render();
+      })
+      .catch(function (err) { if (err.message !== 'expired') say(el('appMsg'), err.message, 'bad'); });
+  }
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (ch) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch];
+    });
+  }
+
+  function when(iso) {
+    var d = new Date(iso);
+    var mins = Math.round((Date.now() - d.getTime()) / 60000);
+    if (mins < 60) return mins + ' min ago';
+    if (mins < 60 * 24) return Math.round(mins / 60) + ' h ago';
+    return d.toLocaleDateString();
+  }
+
+  function render() {
+    var list = el('list');
+    if (!reports.length) {
+      list.innerHTML = '<p class="empty">' +
+        (status === 'open' ? 'No open reports.' : 'Nothing here.') + '</p>';
+      return;
+    }
+
+    // How many people reported the same thing. One report is a complaint;
+    // four about one post is the number worth acting on first.
+    var counts = {};
+    reports.forEach(function (r) {
+      var k = r.target_type + ':' + r.target_id;
+      counts[k] = (counts[k] || 0) + 1;
+    });
+
+    list.innerHTML = reports.map(function (r) {
+      var n = counts[r.target_type + ':' + r.target_id];
+      var removable = r.target_type === 'post' || r.target_type === 'comment' || r.target_type === 'event';
+      return '' +
+        '<div class="card" data-id="' + esc(r.id) + '">' +
+          '<div class="top">' +
+            '<span class="pill">' + esc(r.target_type) + '</span>' +
+            (n > 1 ? '<span class="pill many">' + n + ' reports</span>' : '') +
+            '<span class="reason">' + esc(r.reason) + '</span>' +
+            '<span class="when">' + esc(when(r.created_at)) + '</span>' +
+          '</div>' +
+          '<p class="who">' +
+            (r.target_author ? 'By ' + esc(r.target_author) + ' &middot; ' : '') +
+            'status ' + esc(r.status) +
+          '</p>' +
+          (r.snapshot ? '<div class="snap">' + esc(r.snapshot) + '</div>' : '') +
+          (r.details ? '<div class="snap">' + esc(r.details) + '</div>' : '') +
+          '<div class="acts">' +
+            (removable
+              ? '<button class="danger" data-act="remove">Remove this ' + esc(r.target_type) + '</button>'
+              : '<span class="who">Accounts are removed from the Supabase dashboard.</span>') +
+            '<button data-act="dismissed">Dismiss</button>' +
+            '<button data-act="reviewed">Mark reviewed</button>' +
+          '</div>' +
+        '</div>';
+    }).join('');
+  }
+
+  var TABLE = { post: 'posts', comment: 'comments', event: 'events' };
+
+  el('list').addEventListener('click', function (e) {
+    var btn = e.target.closest('button[data-act]');
+    if (!btn) return;
+    var card = btn.closest('.card');
+    var report = reports.filter(function (r) { return r.id === card.dataset.id; })[0];
+    if (!report) return;
+
+    var act = btn.dataset.act;
+    var lock = function (on) {
+      Array.prototype.forEach.call(card.querySelectorAll('button'), function (b) { b.disabled = on; });
+    };
+
+    if (act === 'remove') {
+      var what = report.target_type;
+      if (!confirm('Delete this ' + what + ' for everyone? This cannot be undone.\n\n'
+                 + 'The report keeps a copy of what it said.')) return;
+      lock(true);
+      // Delete the content, then close the report, in that order: a report
+      // marked actioned over content still standing is the one lie this page
+      // must not tell.
+      api('/rest/v1/' + TABLE[what] + '?id=eq.' + encodeURIComponent(report.target_id), {
+        method: 'DELETE', prefer: 'return=minimal',
+      })
+        .then(function () { return setStatus(report, 'actioned'); })
+        .then(function () { say(el('appMsg'), 'Removed, and the report is closed.', 'good'); })
+        .catch(function (err) {
+          if (err.message !== 'expired') say(el('appMsg'), 'Could not remove it: ' + err.message, 'bad');
+          lock(false);
+        });
+      return;
+    }
+
+    lock(true);
+    setStatus(report, act)
+      .then(function () { say(el('appMsg'), 'Report marked ' + act + '.', 'good'); })
+      .catch(function (err) {
+        if (err.message !== 'expired') say(el('appMsg'), err.message, 'bad');
+        lock(false);
+      });
+  });
+
+  function setStatus(report, next) {
+    return api('/rest/v1/reports?id=eq.' + encodeURIComponent(report.id), {
+      method: 'PATCH', prefer: 'return=minimal', body: { status: next },
+    }).then(function () { return load(); });
+  }
+
+  // A token already in this tab means a reload should not ask again.
+  if (token) start().catch(function () { signOut(); });
+})();
+</script>
