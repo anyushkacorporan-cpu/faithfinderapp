@@ -88,7 +88,12 @@ export const SLIDES: Slide[] = [
   {
     title: 'Be bold and share your faith',
     lead: 'Someone needs to hear your story.',
-    body: 'Post your testimony. Share the scripture that carried you through. Send encouragement to someone who needs it today. You never know who is reading.',
+    bullets: [
+      'Post your testimony',
+      'Share the scripture that carried you through',
+      'Send encouragement to someone who needs it today',
+    ],
+    body: 'You never know who is reading.',
     verse: {
       text: 'Let your light shine before others, that they may see your good deeds.',
       ref: 'Matthew 5:16',

@@ -1212,8 +1212,17 @@ const translations: Record<string, Record<Lang, string>> = {
     English: 'Someone needs to hear your story.',
     Español: 'Alguien necesita escuchar tu historia.' },
   card13: {
-    English: 'Post your testimony. Share the scripture that carried you through. Send encouragement to someone who needs it today. You never know who is reading.',
-    Español: 'Publica tu testimonio. Comparte el versículo que te sostuvo. Envía ánimo a alguien que hoy lo necesita. Nunca sabes quién te está leyendo.' },
+    English: 'You never know who is reading.',
+    Español: 'Nunca sabes quién te está leyendo.' },
+  bullet05: {
+    English: 'Post your testimony',
+    Español: 'Publica tu testimonio' },
+  bullet06: {
+    English: 'Share the scripture that carried you through',
+    Español: 'Comparte el versículo que te sostuvo' },
+  bullet07: {
+    English: 'Send encouragement to someone who needs it today',
+    Español: 'Envía ánimo a alguien que hoy lo necesita' },
   card14: {
     English: 'A holy and safe place',
     Español: 'Un lugar santo y seguro' },
