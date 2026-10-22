@@ -582,6 +582,7 @@ const translations: Record<string, Record<Lang, string>> = {
   deletePost: { English: 'Delete Post', Español: 'Eliminar Publicación' },
   reportPost: { English: 'Report Post', Español: 'Reportar Publicación' },
   whyReporting: { English: 'Why are you reporting this post?', Español: '¿Por qué reportas esta publicación?' },
+  plusFees: { English: '+ fees', Español: '+ tarifas' },
   reportEvent: { English: 'Report Event', Español: 'Reportar Evento' },
   whyReportingEvent: { English: 'Why are you reporting this event?', Español: '¿Por qué reportas este evento?' },
   sharePost: { English: 'Share Post', Español: 'Compartir Publicación' },

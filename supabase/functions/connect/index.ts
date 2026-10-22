@@ -16,9 +16,37 @@
  *
  * `type=standard` means the account belongs to the organiser, not to us. They
  * see Stripe's own branding, they get Stripe's own dashboard, and Stripe
- * handles their tax forms. We never hold their money and never file their
- * 1099-K. The cost is that they fill in Stripe's full form rather than a short
- * one — once, per organiser, which is the right place for that cost to land.
+ * handles their tax forms. We never file their 1099-K — Stripe issues it
+ * directly, because `controller.fees.payer` is `account`, which is Standard's
+ * default. The cost is that they fill in Stripe's full form rather than a
+ * short one — once, per organiser, which is the right place for that cost to
+ * land.
+ *
+ * MANUAL PAYOUTS
+ *
+ * Ticket money reaches the organiser's balance at the moment of sale, because
+ * these are destination charges. It must not leave that balance until three
+ * business days after the event, or a cancelled event would have nothing left
+ * to refund from.
+ *
+ * Platform controls are what let us hold it, and on a Standard account they
+ * are on by default: an account with full Dashboard access under our platform
+ * can have its payout schedule set by us and its payouts created by us.
+ * Confirmed with Stripe support, October 2026. There is no parameter to
+ * enable them.
+ *
+ * WHAT THIS DOES NOT DO
+ *
+ * It does not stop an organiser paying themselves out. A manual schedule
+ * stops Stripe's automatic payouts, but an account with full Dashboard access
+ * can still press Pay out on its own Balances page, and platform controls do
+ * not take that away — Stripe was explicit about this. So the balance we are
+ * relying on for a refund can be emptied by the person we would be reclaiming
+ * it from.
+ *
+ * That is a risk to carry rather than a bug to fix, and the terms carry it:
+ * FourCircle refunds the buyer regardless and recovers from the organiser's
+ * later payouts. Worth knowing before somebody assumes the money is locked.
  */
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.58.0';
@@ -129,6 +157,10 @@ Deno.serve(async (req) => {
           email: user.email ?? '',
           'business_profile[product_description]': 'Event tickets sold through FourCircle',
           'metadata[user_id]': user.id,
+          // Set at creation rather than afterwards, so there is no window in
+          // which an account exists on Stripe's daily rolling default and
+          // pays an event out before we ever meant to.
+          'settings[payouts][schedule][interval]': 'manual',
         });
         accountId = String(account.id);
 
@@ -164,7 +196,31 @@ Deno.serve(async (req) => {
       return json({ connected: false, charges_enabled: false, payouts_enabled: false, requirements_due: [] });
     }
     try {
-      const account = await stripe(`accounts/${existing.stripe_account_id}`, 'GET');
+      let account = await stripe(`accounts/${existing.stripe_account_id}`, 'GET');
+
+      // A safety net, not the main mechanism: accounts are created on a
+      // manual schedule above. This catches one created before that was
+      // true, and one an organiser has switched back to automatic from their
+      // own Dashboard — which they can do, and which would quietly start
+      // paying out events we have not been paid for yet.
+      //
+      // Read before write so the common case costs nothing, and failure here
+      // never fails the status call: an organiser should still see where
+      // their onboarding stands even if this could not be set.
+      const schedule = ((account.settings as Record<string, unknown> | undefined)
+        ?.payouts as Record<string, unknown> | undefined)
+        ?.schedule as Record<string, unknown> | undefined;
+      if (schedule && schedule.interval !== 'manual') {
+        try {
+          account = await stripe(`accounts/${existing.stripe_account_id}`, 'POST', {
+            'settings[payouts][schedule][interval]': 'manual',
+          });
+        } catch (_) {
+          // Left alone deliberately. Worth a log, not a failed screen.
+          console.error('could not set manual payouts', existing.stripe_account_id);
+        }
+      }
+
       const snap = snapshot(account);
 
       await admin.from('stripe_accounts')

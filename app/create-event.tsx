@@ -11,7 +11,6 @@ import { LinearGradient } from 'expo-linear-gradient';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useThemeColors, ThemeColors } from '../src/lib/theme';
 import { addEvent, formatPrice, Currency } from '../src/lib/eventsStore';
-import { stateCode, CA_PROVINCES } from '../src/lib/filters';
 import { getUser } from '../src/lib/userStore';
 import { useTranslation } from '../src/lib/i18n';
 import { suggestAddresses, resolveAddress, newSessionToken, AddressSuggestion } from '../src/lib/addressAutocomplete';
@@ -168,12 +167,11 @@ export default function CreateEventScreen() {
   const [payoutsReady, setPayoutsReady] = useState<boolean | null>(null);
   const [ticketPrice, setTicketPrice] = useState('');
   const [capacity, setCapacity] = useState('');
-  // Defaults to the organiser's own currency rather than to USD, since that is
-  // the money they set the price in.
-  const [currency, setCurrency] = useState<Currency>(
-    stateCode(user.location?.split(',')[1]) && CA_PROVINCES.some(r => r.code === stateCode(user.location?.split(',')[1]))
-      ? 'CAD' : 'USD'
-  );
+  // USD only, per the ticketing terms. This used to default to the organiser's
+  // own currency and offer a CAD option beside it; the terms say one currency,
+  // and an organiser in Canada pricing in CAD would be selling under terms
+  // written for dollars.
+  const currency: Currency = 'USD';
   const [showPreview, setShowPreview] = useState(false);
 
   const [errors, setErrors] = useState<Record<string,string>>({});
@@ -730,26 +728,12 @@ export default function CreateEventScreen() {
                 <>
                   <LField label={`Ticket Price (${currency}) *`} error={errors.ticketPrice}>
                     <View style={{flexDirection:'row',alignItems:'center',gap:8}}>
-                      <Text style={s.dollar}>{currency === 'CAD' ? 'CA$' : '$'}</Text>
+                      <Text style={s.dollar}>$</Text>
                       <TextInput style={[s.input,{flex:1},!!errors.ticketPrice&&s.inputErr]} placeholder="0.00" placeholderTextColor={c.placeholder} value={ticketPrice} onChangeText={v=>{setTicketPrice(v);setErrors(e=>({...e,ticketPrice:''}));}} keyboardType="decimal-pad"/>
                     </View>
                   </LField>
                   <LField label="Capacity" hint="Seats available. Leave blank for no limit.">
                     <TextInput style={s.input} placeholder={tx('No limit')} placeholderTextColor={c.placeholder} value={capacity} onChangeText={v=>setCapacity(v.replace(/\D/g,''))} keyboardType="number-pad"/>
-                  </LField>
-                  <LField label="Currency">
-                    <View style={{flexDirection:'row',gap:8}}>
-                      {(['USD','CAD'] as Currency[]).map(cur => (
-                        <TouchableOpacity
-                          key={cur}
-                          style={[s.currencyBtn, currency===cur && s.currencyBtnOn]}
-                          activeOpacity={0.7}
-                          onPress={() => setCurrency(cur)}
-                        >
-                          <Text style={[s.currencyTxt, currency===cur && s.currencyTxtOn]}>{cur}</Text>
-                        </TouchableOpacity>
-                      ))}
-                    </View>
                   </LField>
                   {price>0&&(
                     <View style={s.feeCard}>

@@ -320,7 +320,18 @@ export default function EventDetailScreen() {
             <View style={s.typePill}><Text style={s.typePillTxt}>{(fullEvent?.type || params.type)}</Text></View>
             {(fullEvent?.price || params.price) === 'Free'
               ? <View style={s.freePill}><Text style={s.freePillTxt}>{t('freeAdmission')}</Text></View>
-              : <View style={s.pricePill}><Text style={s.pricePillTxt}>{(fullEvent?.price || params.price)}</Text></View>
+              : (
+                /* "+ fees" rather than a total, which is the other half of
+                   what the ticketing terms allow: the full amount, fees
+                   itemised, is on the checkout screen before anything is
+                   charged. A total here would have to be for one ticket and
+                   would disagree with the total for two. */
+                <View style={s.pricePill}>
+                  <Text style={s.pricePillTxt}>
+                    {(fullEvent?.price || params.price)} {t('plusFees')}
+                  </Text>
+                </View>
+              )
             }
           </View>
           <Text style={{fontFamily:'PlayfairDisplay_700Bold', fontSize:24, color: c.text, lineHeight:30, marginBottom:4}}>{(fullEvent?.title || params.title)}</Text>
