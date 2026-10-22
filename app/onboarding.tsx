@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity, StyleSheet, ImageBackground,
   useWindowDimensions, NativeSyntheticEvent, NativeScrollEvent, StatusBar,
+  Animated, AccessibilityInfo,
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -114,8 +115,15 @@ export default function Onboarding() {
         onScroll={onScroll}
         scrollEventThrottle={16}
       >
-        {SLIDES.map(slide => (
-          <SlideView key={slide.title || 'welcome'} slide={slide} width={width} tx={tx} name={name} />
+        {SLIDES.map((slide, i) => (
+          <SlideView
+            key={slide.title}
+            slide={slide}
+            width={width}
+            tx={tx}
+            name={name}
+            active={i === page}
+          />
         ))}
       </ScrollView>
 
@@ -255,8 +263,8 @@ function LanguageGate({ onPick }: { onPick: (lang: Lang) => void }) {
   );
 }
 
-function SlideView({ slide, width, tx, name }: {
-  slide: Slide; width: number; tx: (s: string) => string; name: string;
+function SlideView({ slide, width, tx, name, active }: {
+  slide: Slide; width: number; tx: (s: string) => string; name: string; active: boolean;
 }) {
   // Dark at both ends and lighter through the middle: the top has to carry the
   // wordmark and the bottom a button, while the photograph stays visible where
@@ -268,6 +276,45 @@ function SlideView({ slide, width, tx, name }: {
   // the greeting.
   const heading = tx(slide.title).replace('{name}', name);
   const headingHasName = slide.title.includes('{name}');
+
+  /**
+   * The bullets arrive one at a time, once, when the card does.
+   *
+   * Every card is mounted at the start, all seven of them side by side in one
+   * scroll view, so animating on mount would play this to nobody and leave it
+   * finished by the time anybody swiped here. It waits for the card to be the
+   * one on screen, and then never replays: a list that re-animates every time
+   * you swipe back is a list you cannot re-read.
+   *
+   * Reduced motion gets the finished state immediately rather than a faster
+   * version of the same thing. Somebody who asks for less movement is not
+   * asking for quicker movement.
+   */
+  const bullets = slide.bullets ?? [];
+  const stepsRef = useRef<Animated.Value[] | null>(null);
+  if (!stepsRef.current) stepsRef.current = bullets.map(() => new Animated.Value(0));
+  const steps = stepsRef.current;
+  const played = useRef(false);
+
+  useEffect(() => {
+    if (!active || played.current || steps.length === 0) return;
+    played.current = true;
+
+    let live = true;
+    void AccessibilityInfo.isReduceMotionEnabled().then(reduced => {
+      if (!live) return;
+      if (reduced) { steps.forEach(v => v.setValue(1)); return; }
+      Animated.stagger(
+        260,
+        steps.map(v => Animated.timing(v, {
+          toValue: 1,
+          duration: 520,
+          useNativeDriver: true,
+        })),
+      ).start();
+    });
+    return () => { live = false; };
+  }, [active, steps]);
 
   const content = (
     <LinearGradient colors={scrim} locations={[0, 0.35, 1]} style={{ width, flex: 1 }}>
@@ -291,6 +338,28 @@ function SlideView({ slide, width, tx, name }: {
         <View style={s.rule} />
 
         {!!slide.lead && <Text style={s.lead}>{tx(slide.lead)}</Text>}
+
+        {bullets.length > 0 && (
+          <View style={s.bullets}>
+            {bullets.map((b, i) => (
+              <Animated.View
+                key={b}
+                style={[s.bulletRow, {
+                  opacity: steps[i],
+                  transform: [{
+                    translateY: steps[i].interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [10, 0],
+                    }),
+                  }],
+                }]}
+              >
+                <View style={s.bulletDot} />
+                <Text style={s.bulletTxt}>{tx(b)}</Text>
+              </Animated.View>
+            ))}
+          </View>
+        )}
 
         {/* A blank line in the copy is a paragraph break, not a line break. */}
         {!!slide.body && tx(slide.body).split('\n\n').map((para, i) => (
@@ -392,6 +461,13 @@ const s = StyleSheet.create({
   // leaves the screen; Back and Next only move between cards.
   navTxt: { color: 'rgba(255,255,255,0.72)', fontSize: 14, fontWeight: '600' },
   skipTxt: { color: '#fff', fontSize: 14, fontWeight: '600' },
+
+  // Centred as a block, left aligned inside it, so four lines of different
+  // lengths read as a list rather than as four separate centred sentences.
+  bullets: { alignSelf: 'center', marginBottom: 20 },
+  bulletRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 15 },
+  bulletDot: { width: 5, height: 5, borderRadius: 3, backgroundColor: GOLD, marginRight: 14 },
+  bulletTxt: { fontSize: 17, lineHeight: 24, color: 'rgba(255,255,255,0.92)' },
 
   gate: { flex: 1, justifyContent: 'flex-end', paddingHorizontal: 30, paddingBottom: 54 },
   gateTitle: {

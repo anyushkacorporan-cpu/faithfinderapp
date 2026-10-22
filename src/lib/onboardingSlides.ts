@@ -26,6 +26,8 @@ export type Slide = {
   lead?: string;
   /** The paragraph. A blank line splits it in two. */
   body?: string;
+  /** Short lines, one per row, that arrive one after another. */
+  bullets?: string[];
   /** Italic, with the reference under it in gold. */
   verse?: { text: string; ref: string };
   /** Photograph behind the card. Falls back to the gradient below. */
@@ -58,7 +60,13 @@ export const SLIDES: Slide[] = [
   },
   {
     title: 'Build friendships with other believers',
-    body: 'Four Circle is for everyone who wants to grow. Connect with one another. Encourage one another. Be kind and loving to one another. But most importantly, help one another. However long we\'ve been walking with God, let\'s lift each other.',
+    bullets: [
+      'Connect with one another',
+      'Encourage one another',
+      'Be kind and loving to one another',
+      'Help one another',
+    ],
+    body: 'However long we\'ve been walking with God, let\'s lift each other.',
     verse: {
       text: 'As iron sharpens iron, so one person sharpens another.',
       ref: 'Proverbs 27:17',

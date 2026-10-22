@@ -1176,8 +1176,20 @@ const translations: Record<string, Record<Lang, string>> = {
     English: 'Build friendships with other believers',
     Español: 'Forma amistades con otros creyentes' },
   card05: {
-    English: "Four Circle is for everyone who wants to grow. Connect with one another. Encourage one another. Be kind and loving to one another. But most importantly, help one another. However long we've been walking with God, let's lift each other.",
-    Español: 'Four Circle es para todo el que quiera crecer. Conéctense unos con otros. Anímense unos a otros. Sean amables y amorosos unos con otros. Pero sobre todo, ayúdense unos a otros. Sea cual sea el tiempo que llevemos caminando con Dios, levantémonos unos a otros.' },
+    English: "However long we've been walking with God, let's lift each other.",
+    Español: 'Sea cual sea el tiempo que llevemos caminando con Dios, levantémonos unos a otros.' },
+  bullet01: {
+    English: 'Connect with one another',
+    Español: 'Conéctense unos con otros' },
+  bullet02: {
+    English: 'Encourage one another',
+    Español: 'Anímense unos a otros' },
+  bullet03: {
+    English: 'Be kind and loving to one another',
+    Español: 'Sean amables y amorosos unos con otros' },
+  bullet04: {
+    English: 'Help one another',
+    Español: 'Ayúdense unos a otros' },
   card06: {
     English: 'As iron sharpens iron, so one person sharpens another.',
     Español: 'Hierro con hierro se aguza; y así el hombre aguza el rostro de su amigo.' },
