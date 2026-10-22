@@ -5,7 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useThemeColors, ThemeColors } from '../lib/theme';
 import { Post, formatRelativeTime, postImages, isEmptyPost } from '../lib/postsStore';
-import { translateText, detectLanguage } from '../lib/translate';
+import { translateText, detectLanguage, clearRefusal } from '../lib/translate';
 import { useSettings } from '../lib/settingsStore';
 import { useTranslation } from '../lib/i18n';
 import { useConnections, isConnectedTo, addConnection, connectionFromAuthor } from '../lib/connectionsStore';
@@ -280,6 +280,9 @@ export function TranslateRow({text}:{text:string}) {
 
   async function handleTranslate() {
     if (translated) { setShowingTranslation(!showingTranslation); return; }
+    // This tap is the retry the label offers. Without this the refusal latched
+    // by the first failure answers it instantly and nothing is ever sent.
+    if (error) clearRefusal();
     setLoading(true);
     setError(false);
     const result = await translateText(text, myLang);

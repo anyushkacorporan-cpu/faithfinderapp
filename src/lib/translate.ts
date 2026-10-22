@@ -126,6 +126,23 @@ function alreadyRefused(): boolean {
   return refused !== null;
 }
 
+/**
+ * Let one more request through after a refusal.
+ *
+ * The latch above exists to silence the automatic side of this: language
+ * detection runs once per post, and seven posts meant seven identical
+ * warnings on every load for a service that had already said no.
+ *
+ * Somebody tapping "tap to retry" is not that. It is a person asking again,
+ * usually because they have just gone and fixed whatever Google was objecting
+ * to, and the latch made that tap do nothing at all — not a failed request, no
+ * request. Clearing it here means the next call actually asks, and if the
+ * answer is still no the latch simply closes again.
+ */
+export function clearRefusal(): void {
+  refused = null;
+}
+
 export async function translateText(text: string, targetLang: string = 'en'): Promise<TranslateResult | null> {
   if (!text || !text.trim()) return null;
   if (alreadyRefused()) return null;
