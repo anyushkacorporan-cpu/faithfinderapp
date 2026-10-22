@@ -412,7 +412,12 @@ export default function ChurchesScreen() {
                 // showing the version from that day.
                 if (t === 'Saved') void refreshDirectorySaves();
               }}>
-              <Text style={[s.toggleTxt, activeTab===t && s.toggleTxtActive]}>{t}{t==='Saved'&&saved.length>0?` (${saved.length})`:''}</Text>
+              <Text
+                style={[s.toggleTxt, activeTab===t && s.toggleTxtActive]}
+                numberOfLines={1}
+                adjustsFontSizeToFit
+                minimumFontScale={0.8}
+              >{t}{t==='Saved'&&saved.length>0?` (${saved.length})`:''}</Text>
             </TouchableOpacity>
           ))}
         </View>

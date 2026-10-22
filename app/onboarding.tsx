@@ -149,7 +149,7 @@ export default function Onboarding() {
               cards. On the last card there is nothing left to skip. */}
           {!last && (
             <TouchableOpacity onPress={leave} hitSlop={12}>
-              <Text style={s.skipTxt}>{tx(isReplay ? 'Done' : 'Skip')}</Text>
+              <Text style={s.skipTxt} numberOfLines={1}>{tx(isReplay ? 'Done' : 'Skip')}</Text>
             </TouchableOpacity>
           )}
         </View>
@@ -162,7 +162,7 @@ export default function Onboarding() {
           <View style={s.end}>
             {page > 0 && (
               <TouchableOpacity onPress={back} hitSlop={12}>
-                <Text style={s.navTxt}>{tx('Back')}</Text>
+                <Text style={s.navTxt} numberOfLines={1}>{tx('Back')}</Text>
               </TouchableOpacity>
             )}
           </View>
@@ -176,7 +176,7 @@ export default function Onboarding() {
           <View style={[s.end, s.endRight]}>
             {!last && (
               <TouchableOpacity onPress={next} hitSlop={12}>
-                <Text style={s.navTxt}>{tx('Next')}</Text>
+                <Text style={s.navTxt} numberOfLines={1}>{tx('Next')}</Text>
               </TouchableOpacity>
             )}
           </View>
@@ -186,7 +186,7 @@ export default function Onboarding() {
             something to do other than read on. */}
         {last && (
           <TouchableOpacity style={s.cta} onPress={leave} activeOpacity={0.85}>
-            <Text style={s.ctaTxt}>{tx(isReplay ? 'Done' : 'Get started')}</Text>
+            <Text style={s.ctaTxt} numberOfLines={1}>{tx(isReplay ? 'Done' : 'Get started')}</Text>
           </TouchableOpacity>
         )}
       </SafeAreaView>
@@ -489,7 +489,10 @@ const s = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center',
     paddingHorizontal: 24, paddingBottom: 16,
   },
-  end: { width: 56 },
+  // Wide enough for the longest label either language has. "Siguiente" did
+  // not fit 56 and broke after "Siguient", with the "e" alone underneath.
+  // Both ends keep the same width so the dots stay centred on the screen.
+  end: { width: 82 },
   endRight: { alignItems: 'flex-end' },
 
   bottomBar: { position: 'absolute', left: 0, right: 0, bottom: 0 },

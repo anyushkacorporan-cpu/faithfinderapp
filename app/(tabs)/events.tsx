@@ -264,7 +264,12 @@ export default function EventsScreen() {
         <View style={s.toggle}>
           {TABS.map(tab => (
             <TouchableOpacity key={tab} style={[s.toggleBtn, activeTab===tab && s.toggleBtnActive]} onPress={() => setActiveTab(tab)}>
-              <Text style={[s.toggleTxt, activeTab===tab && s.toggleTxtActive]}>
+              <Text
+                style={[s.toggleTxt, activeTab===tab && s.toggleTxtActive]}
+                numberOfLines={1}
+                adjustsFontSizeToFit
+                minimumFontScale={0.8}
+              >
                 {tab==='List'?t('list'):tab==='Attending'?t('attending'):t('saved')}{tab==='Attending'&&attendingCount>0?` (${attendingCount})`:''}{tab==='Saved'&&savedCount>0?` (${savedCount})`:''}
               </Text>
             </TouchableOpacity>
