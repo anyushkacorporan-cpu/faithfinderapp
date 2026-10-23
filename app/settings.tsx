@@ -23,6 +23,7 @@ import { useTranslation } from '../src/lib/i18n';
  */
 const ROWS = [
   { icon: 'calendar-outline',            key: 'createEvent',             route: '/create-event' },
+  { icon: 'ticket-outline',              key: 'myTickets',               route: '/my-tickets' },
   { icon: 'list-outline',                key: 'myEvents',                route: '/my-events' },
   { icon: 'cash-outline',                key: 'earnings',                route: '/earnings' },
   { icon: 'notifications-outline',       key: 'notificationPreferences', route: '/settings-notifications' },
@@ -45,7 +46,7 @@ export default function SettingsScreen() {
   const { t } = useTranslation();
 
   const colorFor = (key: string) => ({
-    createEvent: '#c9a96e', myEvents: '#667eea', earnings: c.green,
+    createEvent: '#c9a96e', myTickets: '#9b59b6', myEvents: '#667eea', earnings: c.green,
     notificationPreferences: c.gold, locationSettings: c.green,
     privacySecurity: c.navy, blockedUsers: c.red, appearance: '#9b59b6',
     howItWorks: c.gold, helpSupport: '#e67e22', aboutApp: c.textMuted, signOut: c.red,

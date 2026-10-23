@@ -195,6 +195,10 @@ export async function fetchTickets(): Promise<Ticket[] | null> {
     platformFee: Number(r.platform_fee) || 0,
     purchasedAt: new Date(r.purchased_at).getTime(),
     ticketIds: r.ticket_codes || [],
+    processingFee: Number(r.processing_fee) || 0,
+    status: r.status || 'paid',
+    refundPolicy: r.refund_policy || undefined,
+    refundedAmount: Number(r.refunded_amount) || 0,
   }));
 }
 

@@ -84,6 +84,7 @@ export default function RootLayout() {
         <Stack.Screen name="register-church" />
         <Stack.Screen name="edit-profile" />
         <Stack.Screen name="create-event" />
+        <Stack.Screen name="my-tickets" />
         <Stack.Screen name="my-events" />
         <Stack.Screen name="earnings" />
         <Stack.Screen name="edit-church-profile" />

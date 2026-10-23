@@ -23,6 +23,13 @@ export type Ticket = {
   platformFee: number;
   purchasedAt: number;
   ticketIds: string[];
+  /** Stripe's processing fee, recovered from the buyer at checkout. */
+  processingFee?: number;
+  /** 'pending' | 'paid' | 'failed' | 'refunded'. */
+  status?: string;
+  /** The policy that applied when this was bought, not the event's today. */
+  refundPolicy?: string;
+  refundedAmount?: number;
 };
 
 let tickets: Ticket[] = [];
