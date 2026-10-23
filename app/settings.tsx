@@ -1,8 +1,10 @@
+import { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useThemeColors, ThemeColors } from '../src/lib/theme';
+import { amIAdmin } from '../src/lib/refundsApi';
 import { signOut } from '../src/lib/userStore';
 import { clearLocalAccountData } from '../src/lib/accountDeletion';
 import { signOut as signOutServer } from '../src/lib/auth';
@@ -27,6 +29,9 @@ const ROWS = [
   { icon: 'list-outline',                key: 'myEvents',                route: '/my-events' },
   { icon: 'cash-outline',                key: 'earnings',                route: '/earnings' },
   { icon: 'return-down-back-outline',    key: 'refundRequests',          route: '/refund-requests' },
+  // Shown only to an admin — see the filter below. Listed here so the order
+  // on screen is the order in this array rather than an append at the end.
+  { icon: 'wallet-outline',              key: 'payoutsDue',              route: '/payouts-due', ownerOnly: true },
   { icon: 'notifications-outline',       key: 'notificationPreferences', route: '/settings-notifications' },
   { icon: 'location-outline',            key: 'locationSettings',        route: '/settings-location' },
   { icon: 'shield-outline',              key: 'privacySecurity',         route: '/settings-privacy' },
@@ -46,8 +51,13 @@ export default function SettingsScreen() {
   const s = makeStyles(c);
   const { t } = useTranslation();
 
+  // Asked of the database rather than assumed from anything on this phone:
+  // the row it hides leads to every organiser's money.
+  const [isOwner, setIsOwner] = useState(false);
+  useEffect(() => { void amIAdmin().then(setIsOwner); }, []);
+
   const colorFor = (key: string) => ({
-    createEvent: '#c9a96e', myTickets: '#9b59b6', myEvents: '#667eea', earnings: c.green, refundRequests: '#e67e22',
+    createEvent: '#c9a96e', myTickets: '#9b59b6', myEvents: '#667eea', earnings: c.green, refundRequests: '#e67e22', payoutsDue: '#1f3a5f',
     notificationPreferences: c.gold, locationSettings: c.green,
     privacySecurity: c.navy, blockedUsers: c.red, appearance: '#9b59b6',
     howItWorks: c.gold, helpSupport: '#e67e22', aboutApp: c.textMuted, signOut: c.red,
@@ -64,7 +74,7 @@ export default function SettingsScreen() {
       </View>
 
       <ScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}>
-        {ROWS.map(item => {
+        {ROWS.filter(item => !('ownerOnly' in item) || isOwner).map(item => {
           const color = colorFor(item.key);
           return (
             <TouchableOpacity

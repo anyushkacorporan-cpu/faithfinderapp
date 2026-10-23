@@ -50,6 +50,12 @@ export type AppEvent = {
   /** Whether the event is still happening. Separate from `status`, which says
    *  where it sits in time: an event can be past and cancelled at once. */
   lifecycle: Lifecycle;
+  /**
+   * When the event actually finishes, as an ISO timestamp, for payout timing.
+   * `date` and `time` stay the text the organiser typed — see 33_payouts.sql
+   * for why both exist. Undefined on events made before this was recorded.
+   */
+  endsAt?: string;
   ticketPrice: number;
   platformFee: number;
   creatorPayout: number;

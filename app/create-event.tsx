@@ -289,6 +289,18 @@ export default function CreateEventScreen() {
       type:eventType,
       price:isPaid?formatPrice(price, currency):'Free',
       refundPolicy: isPaid ? refundPolicy : 'none',
+      // A real instant, beside the text. The end time if one was given, the
+      // start otherwise — an event with no end is over when it began as far
+      // as a payout is concerned, which is late rather than early.
+      endsAt: (() => {
+        const day = endDate ?? startDate;
+        if (!day) return undefined;
+        const clock = endTime ?? startTime;
+        const at = new Date(day);
+        if (clock) at.setHours(clock.getHours(), clock.getMinutes(), 0, 0);
+        else at.setHours(23, 59, 0, 0);
+        return at.toISOString();
+      })(),
       isPaid,
       ticketPrice:price,
       bannerImage:bannerImage||undefined,

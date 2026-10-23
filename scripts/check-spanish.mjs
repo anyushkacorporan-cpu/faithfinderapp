@@ -90,6 +90,9 @@ const LEAVE_IN_ENGLISH = new Set([
   // Spanish one is already Spanish and the English one has to stay English
   // for the person who cannot read the other.
   'What language do you speak?', '¿Qué idioma hablas?',
+  // A Stripe payout id's prefix, shown as the shape of the thing to paste.
+  // Not a word in any language.
+  'po_...',
 ]);
 
 const skip = /^[\s\d\W]*$/;

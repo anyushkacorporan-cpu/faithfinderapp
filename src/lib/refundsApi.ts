@@ -207,3 +207,156 @@ export async function cancelEvent(
     owed: Number(data?.owed) || 0,
   };
 }
+
+// ── Earnings, from the records rather than from the phone ──────────────────
+
+export type EventEarnings = {
+  eventId: string;
+  title: string;
+  endsAt?: string;
+  payoutDueAt?: string;
+  lifecycle: string;
+  ticketsPaid: number;
+  /** Ticket price collected on tickets still paid for. Fees are not in it. */
+  gross: number;
+  refunded: number;
+  /** Refunds we covered that this organiser has not repaid yet. */
+  owed: number;
+  /** What they will actually be sent: gross minus owed. */
+  payable: number;
+};
+
+/**
+ * Every paid event this organiser has, with the real figures.
+ *
+ * The earnings screen used to compute these on the phone from the local
+ * events list: gross was price times a ticket count, pending payout was
+ * simply all of it, and completed payout was the number zero. None of it had
+ * met a refund or a payout.
+ */
+export async function fetchEventEarnings(): Promise<EventEarnings[] | null> {
+  const db = supabase();
+  const me = getAuthUser();
+  if (!db || !me) return null;
+
+  const { data, error } = await db
+    .from('event_payout_amounts')
+    .select('*')
+    .eq('organizer_id', me.id);
+
+  if (error || !data) return null;
+
+  return data.map((r: any) => ({
+    eventId: r.event_id,
+    title: r.title || '',
+    endsAt: r.ends_at || undefined,
+    payoutDueAt: r.payout_due_at || undefined,
+    lifecycle: r.lifecycle || 'scheduled',
+    ticketsPaid: Number(r.tickets_paid) || 0,
+    gross: Number(r.gross) || 0,
+    refunded: Number(r.refunded) || 0,
+    owed: Number(r.owed) || 0,
+    payable: Number(r.payable) || 0,
+  }));
+}
+
+// ── The owner's payouts list ───────────────────────────────────────────────
+
+export type PayoutDue = {
+  eventId: string;
+  title: string;
+  organizerId: string;
+  organizerName?: string;
+  stripeAccountId?: string;
+  endsAt?: string;
+  payoutDueAt?: string;
+  lifecycle: string;
+  ticketsPaid: number;
+  gross: number;
+  refunded: number;
+  owed: number;
+  payable: number;
+  status: 'pending' | 'held' | 'released' | 'failed';
+  stripePayoutId?: string;
+  releasedAt?: string;
+  note?: string;
+  isDue: boolean;
+  openDisputes: number;
+};
+
+/** Am I an admin? Answered by the database, not by anything on this phone. */
+export async function amIAdmin(): Promise<boolean> {
+  const db = supabase();
+  if (!db) return false;
+  const { data, error } = await db.rpc('is_admin');
+  return !error && data === true;
+}
+
+/**
+ * Every paid event and where its payout stands.
+ *
+ * The view answers with no rows for anybody who is not an admin, so there is
+ * nothing to check here beyond what comes back.
+ */
+export async function fetchPayoutsDue(): Promise<PayoutDue[] | null> {
+  const db = supabase();
+  if (!db) return null;
+
+  const { data, error } = await db
+    .from('payouts_due')
+    .select('*')
+    .order('payout_due_at', { ascending: true, nullsFirst: false });
+
+  if (error || !data) return null;
+
+  return data.map((r: any) => ({
+    eventId: r.event_id,
+    title: r.title || '',
+    organizerId: r.organizer_id,
+    organizerName: r.organizer_name || undefined,
+    stripeAccountId: r.stripe_account_id || undefined,
+    endsAt: r.ends_at || undefined,
+    payoutDueAt: r.payout_due_at || undefined,
+    lifecycle: r.lifecycle || 'scheduled',
+    ticketsPaid: Number(r.tickets_paid) || 0,
+    gross: Number(r.gross) || 0,
+    refunded: Number(r.refunded) || 0,
+    owed: Number(r.owed) || 0,
+    payable: Number(r.payable) || 0,
+    status: r.status,
+    stripePayoutId: r.stripe_payout_id || undefined,
+    releasedAt: r.released_at || undefined,
+    note: r.note || undefined,
+    isDue: !!r.is_due,
+    openDisputes: Number(r.open_disputes) || 0,
+  }));
+}
+
+/**
+ * Record what was done about a payout.
+ *
+ * Nothing here moves money. Releasing a payout happens in Stripe, by hand,
+ * because the account has to be unpaused first and there is no API for that
+ * — so this is the note that says it was done, and the Stripe payout id is
+ * what ties the note to the money.
+ */
+export async function markPayout(
+  eventId: string,
+  status: 'pending' | 'held' | 'released' | 'failed',
+  extra: { stripePayoutId?: string; amount?: number; note?: string } = {},
+): Promise<{ ok?: true; error?: string }> {
+  const db = supabase();
+  if (!db) return { error: 'The app is not connected to its server yet.' };
+
+  const { error } = await db.from('event_payouts').upsert({
+    event_id: eventId,
+    status,
+    stripe_payout_id: extra.stripePayoutId ?? null,
+    amount: extra.amount ?? null,
+    released_at: status === 'released' ? new Date().toISOString() : null,
+    note: extra.note ?? null,
+  }, { onConflict: 'event_id' });
+
+  if (error) return { error: error.message };
+  return { ok: true };
+}
