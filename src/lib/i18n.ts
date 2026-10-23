@@ -584,6 +584,56 @@ const translations: Record<string, Record<Lang, string>> = {
   whyReporting: { English: 'Why are you reporting this post?', Español: '¿Por qué reportas esta publicación?' },
   plusFees: { English: '+ fees', Español: '+ tarifas' },
   myTickets: { English: 'My Tickets', Español: 'Mis Boletos' },
+  refundRequests: { English: 'Refund Requests', Español: 'Solicitudes de Reembolso' },
+  noRefundRequests: { English: 'Nothing to answer', Español: 'Nada que responder' },
+  noRefundRequestsBody: {
+    English: 'Refund requests from people who bought tickets to your events appear here.',
+    Español: 'Las solicitudes de reembolso de quienes compraron boletos para tus eventos aparecen aquí.' },
+  needsAnAnswer: { English: 'Needs an answer', Español: 'Necesita respuesta' },
+  alreadyAnswered: { English: 'Already answered', Español: 'Ya respondidas' },
+  approve: { English: 'Approve', Español: 'Aprobar' },
+  decline: { English: 'Decline', Español: 'Rechazar' },
+  approveRefundTitle: { English: 'Approve this refund?', Español: '¿Aprobar este reembolso?' },
+  declineRefund: { English: 'Decline the refund', Español: 'Rechazar el reembolso' },
+  declineReasonShown: {
+    English: 'The attendee is shown your reason, so write something they can understand.',
+    Español: 'Al asistente se le muestra tu motivo, así que escribe algo que pueda entender.' },
+  sendDecline: { English: 'Send decline', Español: 'Enviar rechazo' },
+  daysToRespond: { English: 'days left to respond', Español: 'días para responder' },
+  refundDueToday: { English: 'Due today', Español: 'Vence hoy' },
+  refundOverdue: { English: 'Overdue — they can escalate to FourCircle', Español: 'Vencida — pueden escalar a FourCircle' },
+  refundEscalatedOrganizer: {
+    English: 'The attendee asked FourCircle to review this.',
+    Español: 'El asistente pidió a FourCircle que revise esto.' },
+  rq01: { English: 'This refunds', Español: 'Esto reembolsa' },
+  rq02: {
+    English: 'to the buyer and takes the same amount out of your Stripe balance. It cannot be undone.',
+    Español: 'al comprador y saca la misma cantidad de tu saldo de Stripe. No se puede deshacer.' },
+  rq03: { English: 'Could not refund that', Español: 'No se pudo reembolsar' },
+  rq04: { English: 'Refunded', Español: 'Reembolsado' },
+  rq05: { English: 'The buyer has been refunded.', Español: 'Se ha reembolsado al comprador.' },
+  rq06: { English: 'A reason is needed', Español: 'Se necesita un motivo' },
+  rq07: {
+    English: 'The attendee is shown why it was declined.',
+    Español: 'Al asistente se le muestra por qué fue rechazado.' },
+  rq08: { English: 'Could not decline that', Español: 'No se pudo rechazar' },
+  rq09: { English: 'Declined', Español: 'Rechazado' },
+  rq10: {
+    English: 'The attendee has been told, with your reason.',
+    Español: 'Se le informó al asistente, con tu motivo.' },
+  rq11: { English: 'cancelled event, fees included', Español: 'evento cancelado, tarifas incluidas' },
+  rq12: {
+    English: 'Flexible — full refund up to 7 days before',
+    Español: 'Flexible — reembolso completo hasta 7 días antes' },
+  rq13: {
+    English: 'Standard — full refund up to 48 hours before',
+    Español: 'Estándar — reembolso completo hasta 48 horas antes' },
+  rq14: {
+    English: 'No refunds, except cancellation',
+    Español: 'Sin reembolsos, salvo cancelación' },
+  rq15: {
+    English: 'e.g. The event is in two days and the caterer is already paid.',
+    Español: 'p. ej. El evento es en dos días y el servicio de comida ya está pagado.' },
   tk01: { English: 'Could not send that', Español: 'No se pudo enviar' },
   tk02: {
     English: 'This event\u2019s policy covers your request. The organiser has 5 business days to respond.',

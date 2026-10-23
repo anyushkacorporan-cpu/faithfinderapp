@@ -102,3 +102,80 @@ export async function escalateRefund(requestId: string): Promise<{ ok?: true; er
   if (error) return { error };
   return data?.ok ? { ok: true } : { error: 'Could not escalate that request.' };
 }
+
+// ── The organiser's side ───────────────────────────────────────────────────
+
+export type OrganizerRefundRequest = RefundRequest & {
+  eventTitle: string;
+  eventDate: string;
+  eventCancelled: boolean;
+  quantity: number;
+  /** What a refund would return to the buyer: the ticket price, or all of it
+   *  when the event was cancelled. */
+  refundAmount: number;
+  ticketPolicy: string;
+  buyerEmail?: string;
+};
+
+/**
+ * Requests against this organiser's own events.
+ *
+ * Narrowed by event id rather than by "not me": an organiser can buy a ticket
+ * to their own event, and a request they filed as a buyer should not vanish
+ * from the list they answer as the host — nor should their own ticket be the
+ * one request they cannot see.
+ */
+export async function fetchOrganizerRefundRequests(
+  eventIds: string[],
+): Promise<OrganizerRefundRequest[] | null> {
+  const db = supabase();
+  if (!db || eventIds.length === 0) return eventIds.length === 0 ? [] : null;
+
+  const { data, error } = await db
+    .from('refund_requests')
+    .select('*, tickets(quantity, price_per_ticket, total_paid, refund_policy, email), events(title, date, lifecycle)')
+    .in('event_id', eventIds)
+    .order('created_at', { ascending: false });
+
+  if (error || !data) return null;
+
+  return data.map((r: any) => {
+    const ticket = r.tickets ?? {};
+    const event = r.events ?? {};
+    const cancelled = event.lifecycle === 'cancelled';
+    const ticketPrice = (Number(ticket.price_per_ticket) || 0) * (Number(ticket.quantity) || 1);
+    return {
+      ...shape(r),
+      eventTitle: event.title || '',
+      eventDate: event.date || '',
+      eventCancelled: cancelled,
+      quantity: Number(ticket.quantity) || 1,
+      // A cancelled event returns everything paid, fees included. Everything
+      // else returns the ticket price alone. The organiser sees which, before
+      // they decide, because the two are different amounts of their money.
+      refundAmount: cancelled ? (Number(ticket.total_paid) || 0) : +ticketPrice.toFixed(2),
+      ticketPolicy: ticket.refund_policy || 'standard',
+      buyerEmail: ticket.email || undefined,
+    };
+  });
+}
+
+/**
+ * Answer one.
+ *
+ * A decline without a reason is refused by the server, because a decline
+ * nobody can escalate against is not a decline. Approving moves money: the
+ * buyer is refunded and the amount comes back out of this organiser's Stripe
+ * balance, so it is the server that does it and not the app.
+ */
+export async function decideRefund(
+  requestId: string,
+  approve: boolean,
+  declineReason = '',
+): Promise<{ ok?: true; status?: string; error?: string }> {
+  const { data, error } = await call({
+    action: 'refund_decide', requestId, approve, declineReason,
+  });
+  if (error) return { error };
+  return { ok: true, status: data?.status };
+}

@@ -26,6 +26,7 @@ const ROWS = [
   { icon: 'ticket-outline',              key: 'myTickets',               route: '/my-tickets' },
   { icon: 'list-outline',                key: 'myEvents',                route: '/my-events' },
   { icon: 'cash-outline',                key: 'earnings',                route: '/earnings' },
+  { icon: 'return-down-back-outline',    key: 'refundRequests',          route: '/refund-requests' },
   { icon: 'notifications-outline',       key: 'notificationPreferences', route: '/settings-notifications' },
   { icon: 'location-outline',            key: 'locationSettings',        route: '/settings-location' },
   { icon: 'shield-outline',              key: 'privacySecurity',         route: '/settings-privacy' },
@@ -46,7 +47,7 @@ export default function SettingsScreen() {
   const { t } = useTranslation();
 
   const colorFor = (key: string) => ({
-    createEvent: '#c9a96e', myTickets: '#9b59b6', myEvents: '#667eea', earnings: c.green,
+    createEvent: '#c9a96e', myTickets: '#9b59b6', myEvents: '#667eea', earnings: c.green, refundRequests: '#e67e22',
     notificationPreferences: c.gold, locationSettings: c.green,
     privacySecurity: c.navy, blockedUsers: c.red, appearance: '#9b59b6',
     howItWorks: c.gold, helpSupport: '#e67e22', aboutApp: c.textMuted, signOut: c.red,
