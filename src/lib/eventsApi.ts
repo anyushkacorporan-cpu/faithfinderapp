@@ -82,6 +82,7 @@ function rowToEvent(r: Record<string, any>): AppEvent {
     price: r.price || '',
     isPaid: r.is_paid,
     refundPolicy: r.refund_policy ?? 'standard',
+    lifecycle: r.lifecycle ?? 'scheduled',
     ticketPrice: Number(r.ticket_price) || 0,
     platformFee: Number(r.platform_fee) || 0,
     creatorPayout: Number(r.creator_payout) || 0,

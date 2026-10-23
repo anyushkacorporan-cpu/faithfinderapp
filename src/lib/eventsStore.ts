@@ -20,6 +20,7 @@ export type EventStatus = 'upcoming' | 'active' | 'past' | 'draft';
  */
 export type Currency = 'USD' | 'CAD';
 export type RefundPolicy = 'flexible' | 'standard' | 'none';
+export type Lifecycle = 'scheduled' | 'postponed' | 'rescheduled' | 'cancelled';
 
 /** What the symbol alone cannot say, since both countries write it '$'. */
 export function formatPrice(amount: number, currency: Currency = 'USD'): string {
@@ -46,6 +47,9 @@ export type AppEvent = {
   isPaid: boolean;
   /** 'flexible' | 'standard' | 'none'. What the organiser promised. */
   refundPolicy: RefundPolicy;
+  /** Whether the event is still happening. Separate from `status`, which says
+   *  where it sits in time: an event can be past and cancelled at once. */
+  lifecycle: Lifecycle;
   ticketPrice: number;
   platformFee: number;
   creatorPayout: number;
@@ -116,6 +120,7 @@ const INITIAL_EVENTS: AppEvent[] = SEED_EVENTS.map((e: any, idx: number) => {
     price: e.price,
     isPaid,
     refundPolicy: (e as any).refundPolicy ?? 'standard',
+    lifecycle: 'scheduled' as Lifecycle,
     ticketPrice,
     platformFee: 0,
     creatorPayout: 0,
@@ -184,7 +189,7 @@ export function getEvents() { return [...events]; }
 export function getUpcomingEvents() { return events.filter(e => e.status !== 'past' && e.status !== 'draft'); }
 export function getUserEvents() { return [...events].sort((a,b) => b.createdAt - a.createdAt); }
 
-export function addEvent(event: Omit<AppEvent, 'id' | 'createdAt' | 'bannerColor' | 'platformFee' | 'creatorPayout' | 'ticketsSold' | 'attending'> & { capacity?: number; currency?: Currency }) {
+export function addEvent(event: Omit<AppEvent, 'id' | 'createdAt' | 'bannerColor' | 'platformFee' | 'creatorPayout' | 'ticketsSold' | 'attending' | 'lifecycle'> & { capacity?: number; currency?: Currency }) {
   const idx = events.length % GRADIENTS.length;
   // Both from ticketPricing.ts, so the number quoted to the organiser here is
   // the number charged at checkout and the number the server bills. The fee is
@@ -196,6 +201,10 @@ export function addEvent(event: Omit<AppEvent, 'id' | 'createdAt' | 'bannerColor
     ...event,
     id: 'user_' + Date.now().toString(),
     createdAt: Date.now(),
+    // Every event is happening when it is made. Only cancelling, postponing
+    // or rescheduling moves this, and none of those is something you do while
+    // filling in the form.
+    lifecycle: 'scheduled',
     bannerColor: GRADIENTS[idx],
     platformFee,
     creatorPayout,

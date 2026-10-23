@@ -585,6 +585,23 @@ const translations: Record<string, Record<Lang, string>> = {
   plusFees: { English: '+ fees', Español: '+ tarifas' },
   myTickets: { English: 'My Tickets', Español: 'Mis Boletos' },
   refundRequests: { English: 'Refund Requests', Español: 'Solicitudes de Reembolso' },
+  cancelEventTitle: { English: 'Cancel this event?', Español: '¿Cancelar este evento?' },
+  cancelEventConfirm: { English: 'Cancel and refund', Español: 'Cancelar y reembolsar' },
+  cancelEventShort: { English: 'Cancel event', Español: 'Cancelar evento' },
+  cancelledWord: { English: 'Cancelled', Español: 'Cancelado' },
+  ce01: { English: 'Everyone who bought a ticket to', Español: 'Todos los que compraron un boleto para' },
+  ce02: {
+    English: 'is refunded in full, including fees, and told why. This cannot be undone.',
+    Español: 'recibirán un reembolso completo, con tarifas incluidas, y se les dirá por qué. Esto no se puede deshacer.' },
+  ce03: { English: 'Could not cancel it', Español: 'No se pudo cancelar' },
+  ce04: { English: 'Event cancelled', Español: 'Evento cancelado' },
+  ce05: { English: 'refunded', Español: 'reembolsados' },
+  ce06: {
+    English: 'could not be refunded — check Stripe',
+    Español: 'no se pudieron reembolsar — revisa Stripe' },
+  ce07: { English: 'of', Español: 'de' },
+  ce08: { English: 'refunded in full', Español: 'reembolsados por completo' },
+  ce09: { English: 'Refunding…', Español: 'Reembolsando…' },
   noRefundRequests: { English: 'Nothing to answer', Español: 'Nada que responder' },
   noRefundRequestsBody: {
     English: 'Refund requests from people who bought tickets to your events appear here.',

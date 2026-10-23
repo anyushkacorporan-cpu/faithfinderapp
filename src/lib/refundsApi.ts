@@ -179,3 +179,31 @@ export async function decideRefund(
   if (error) return { error };
   return { ok: true, status: data?.status };
 }
+
+/**
+ * Call the event off.
+ *
+ * Every attendee is refunded everything they paid, fees included, without
+ * being asked — that is what the terms promise, and an automatic refund is
+ * the only kind that reaches somebody who has stopped opening the app. The
+ * server does it one ticket at a time and a failure on one does not stop the
+ * rest, so what comes back says how many went through and how many did not.
+ *
+ * `owed` is money we refunded that could not be reclaimed from the
+ * organiser's balance, usually because they had already paid themselves out.
+ * The buyer is refunded regardless; the shortfall is recorded against the
+ * organiser and comes off a later payout.
+ */
+export async function cancelEvent(
+  eventId: string,
+  note: string,
+): Promise<{ ok?: true; refunded?: number; failed?: number; owed?: number; error?: string }> {
+  const { data, error } = await call({ action: 'event_cancel', eventId, note });
+  if (error) return { error };
+  return {
+    ok: true,
+    refunded: Number(data?.refunded) || 0,
+    failed: Number(data?.failed) || 0,
+    owed: Number(data?.owed) || 0,
+  };
+}
