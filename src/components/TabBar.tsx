@@ -20,10 +20,16 @@ type TabBarProps = {
     routes: { key: string; name: string; params?: object }[];
   };
   descriptors: Record<string, { options: { title?: string } }>;
-  navigation: {
+  /**
+   * SDK 58 renamed these. The tab bar used to be handed a `navigation`
+   * object with `emit` and `navigate` on it; it is now given an `emitter`
+   * for the event and a `navigateToTab` that takes a route key rather than a
+   * route name. Same two jobs, two new names.
+   */
+  emitter: {
     emit(event: { type: 'tabPress'; target: string; canPreventDefault: true }): { defaultPrevented: boolean };
-    navigate(name: string, params?: object): void;
   };
+  navigateToTab: (routeKey: string) => void;
   insets: { bottom: number };
 };
 import { useThemeColors, ThemeColors } from '../lib/theme';
@@ -67,7 +73,7 @@ const ICONS: Record<string, string> = {
 /** iOS renders the blur; elsewhere the tint carries the surface on its own. */
 const GLASS = Platform.OS === 'ios';
 
-export function TabBar({ state, descriptors, navigation, insets }: TabBarProps) {
+export function TabBar({ state, descriptors, emitter, navigateToTab, insets }: TabBarProps) {
   const c = useThemeColors();
   const s = makeStyles(c);
   const { width: screenWidth } = useWindowDimensions();
@@ -104,12 +110,12 @@ export function TabBar({ state, descriptors, navigation, insets }: TabBarProps) 
               const label = options.title ?? route.name;
 
               const onPress = () => {
-                const event = navigation.emit({
+                const event = emitter.emit({
                   type: 'tabPress', target: route.key, canPreventDefault: true,
                 });
                 if (focused || event.defaultPrevented) return;
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
-                navigation.navigate(route.name, route.params);
+                navigateToTab(route.key);
               };
 
               return (

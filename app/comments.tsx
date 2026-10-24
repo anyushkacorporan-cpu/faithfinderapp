@@ -3,6 +3,7 @@ import { useState, useRef } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity, StyleSheet,
   TextInput, Platform, Alert, Image, Modal} from 'react-native';
+import type { ScrollViewInstance } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -57,7 +58,7 @@ export default function CommentsScreen() {
     if (!result.canceled && result.assets?.[0]) setCommentImage(result.assets[0].uri);
   }
   const [replyingTo, setReplyingTo] = useState<{commentId: string; author: string} | null>(null);
-  const scrollRef = useRef<ScrollView>(null);
+  const scrollRef = useRef<ScrollViewInstance>(null);
 
   const displayName = user.accountType === 'church'
     ? (user.churchName || 'Church')
