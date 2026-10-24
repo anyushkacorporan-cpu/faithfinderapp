@@ -38,6 +38,7 @@ export default function AboutScreen() {
             {icon:'globe-outline', color:'#667eea', label:'Website', action:() => Linking.openURL('https://fourcircle.app')},
             {icon:'logo-instagram', color:'#e91e63', label:'Instagram', action:() => Linking.openURL('https://instagram.com/fourcircle.app')},
             {icon:'document-text-outline', color:c.navy, label:'Terms of Service', action:() => router.push('/terms')},
+            {icon:'receipt-outline', color:c.gold, label:'Ticketing & Refund Terms', action:() => router.push('/ticketing-terms')},
             {icon:'shield-outline', color:c.green, label:'Privacy Policy', action:() => router.push('/privacy')},
           ].map((item,i,arr) => (
             <TouchableOpacity key={i} style={[s.row, i<arr.length-1&&s.rowBorder]} onPress={item.action}>

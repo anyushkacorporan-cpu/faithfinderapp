@@ -11,10 +11,11 @@ import { useTranslation } from '../src/lib/i18n';
 import { addAttending } from '../src/lib/eventActionsStore';
 import { useStripe } from '../src/lib/payments';
 import { purchaseTicket, syncTicketsFromServer } from '../src/lib/ticketStore';
-import { recordTicketSale, syncEventsFromServer, ensureEventOnServer } from '../src/lib/eventsStore';
+import { recordTicketSale, syncEventsFromServer, ensureEventOnServer, getEvents } from '../src/lib/eventsStore';
 import { startPayment, confirmPayment } from '../src/lib/paymentsApi';
 import { hasStripe } from '../src/lib/stripeConfig';
 import { priceBreakdown } from '../src/lib/ticketPricing';
+import { RefundPolicyNote } from '../src/components/RefundPolicyNote';
 import { KeyboardScreen } from '../src/components/KeyboardScreen';
 import { useConfirm } from '../src/components/Confirm';
 
@@ -34,6 +35,11 @@ export default function EventCheckoutScreen() {
   const [agreed, setAgreed] = useState(false);
   const [processing, setProcessing] = useState(false);
   const { initPaymentSheet, presentPaymentSheet } = useStripe();
+
+  // The policy this event actually carries, for the summary below. Read from
+  // the store rather than passed in a route parameter: the parameter would be
+  // whatever the previous screen believed when it pushed this one.
+  const fullEvent = getEvents().find(e => e.id === params.id);
 
   const priceStr = params.price || '0';
   const isFree = priceStr === 'Free' || priceStr === '0' || priceStr === '';
@@ -319,14 +325,20 @@ export default function EventCheckoutScreen() {
           {/* Terms */}
           <View style={s.section}>
             <Text style={s.termsTitle}>{t('termsConditions')}</Text>
-            <View style={s.termsBox}>
-              <Text style={s.termsTxt}>
-                {isFree
-                  ? "By registering you agree to FourCircle's Terms of Service and Privacy Policy. Registration is free and may be cancelled by the organizer."
-                  : "By purchasing tickets you agree to FourCircle's Terms of Service and Privacy Policy. All sales are final. Tickets are non-refundable unless the event is cancelled or rescheduled."
-                }
-              </Text>
-            </View>
+            {/* This used to say "All sales are final. Tickets are
+                non-refundable unless the event is cancelled or rescheduled"
+                to every buyer of every event. It was not the policy, it was
+                not any event's policy, and it sat directly above a tick box
+                agreeing to terms that said otherwise. */}
+            {isFree ? (
+              <View style={s.termsBox}>
+                <Text style={s.termsTxt}>
+                  {tx("By registering you agree to FourCircle's Terms of Service and Privacy Policy. Registration is free and may be cancelled by the organizer.")}
+                </Text>
+              </View>
+            ) : (
+              <RefundPolicyNote policy={fullEvent?.refundPolicy} />
+            )}
             <View style={s.agreeRow}>
               <TouchableOpacity style={[s.checkbox, agreed && s.checkboxChecked]} onPress={() => setAgreed(a => !a)}>
                 {agreed && <Ionicons name="checkmark" size={13} color={c.onPrimary}/>}

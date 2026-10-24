@@ -21,6 +21,8 @@ import { useTranslation } from '../src/lib/i18n';
 
 import { KeyboardScreen, KEYBOARD_SCROLL_PROPS } from '../src/components/KeyboardScreen';
 import { useConfirm } from '../src/components/Confirm';
+import { RefundPolicyNote } from '../src/components/RefundPolicyNote';
+import { priceBreakdown } from '../src/lib/ticketPricing';
 import { useToast } from '../src/components/Toast';
 import { hideEvent } from '../src/lib/hiddenStore';
 import { submitReport } from '../src/lib/moderationApi';
@@ -43,6 +45,11 @@ export default function EventDetailScreen() {
   const saved = savedEventIds.includes(params.id || '');
   const [showFullPhoto, setShowFullPhoto] = useState(false);
   const [showReport, setShowReport] = useState(false);
+
+  // One ticket, fees included, from the same file checkout prices with.
+  const oneTicketTotal = fullEvent?.isPaid
+    ? priceBreakdown(fullEvent.ticketPrice, 1).total
+    : 0;
   // Read through the store rather than snapshotted at mount. Registering
   // happens on the checkout screen, which is pushed over this one — this screen
   // never unmounts, so a useState initialiser runs once and then says "not
@@ -321,14 +328,17 @@ export default function EventDetailScreen() {
             {(fullEvent?.price || params.price) === 'Free'
               ? <View style={s.freePill}><Text style={s.freePillTxt}>{t('freeAdmission')}</Text></View>
               : (
-                /* "+ fees" rather than a total, which is the other half of
-                   what the ticketing terms allow: the full amount, fees
-                   itemised, is on the checkout screen before anything is
-                   charged. A total here would have to be for one ticket and
-                   would disagree with the total for two. */
+                /* The whole amount for one ticket, not the ticket price on
+                   its own. Somebody deciding whether to come should be
+                   deciding against the number their card will be charged;
+                   finding a different one at checkout is how a fee stops
+                   feeling disclosed and starts feeling sprung. */
                 <View style={s.pricePill}>
                   <Text style={s.pricePillTxt}>
-                    {(fullEvent?.price || params.price)} {t('plusFees')}
+                    {(fullEvent?.price || params.price)}
+                    {oneTicketTotal > 0
+                      ? ` · $${oneTicketTotal.toFixed(2)} ${t('totalWithFees').toLowerCase()}`
+                      : ''}
                   </Text>
                 </View>
               )
@@ -337,6 +347,15 @@ export default function EventDetailScreen() {
           <Text style={{fontFamily:'PlayfairDisplay_700Bold', fontSize:24, color: c.text, lineHeight:30, marginBottom:4}}>{(fullEvent?.title || params.title)}</Text>
           {!!fullEvent?.organizer && (
             <Text style={{fontSize:14, color: c.gold, fontWeight:'600', marginBottom:16}}>by {fullEvent.organizer}</Text>
+          )}
+
+          {/* What refunds look like here, before anybody taps through to pay.
+              The terms ask for it on the event page as well as at checkout,
+              and this is the screen where somebody decides. */}
+          {!!fullEvent?.isPaid && (
+            <View style={{marginBottom:16}}>
+              <RefundPolicyNote policy={fullEvent.refundPolicy} />
+            </View>
           )}
 
           {/* Date & Location */}

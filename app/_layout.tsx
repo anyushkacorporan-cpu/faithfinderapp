@@ -87,6 +87,7 @@ export default function RootLayout() {
         <Stack.Screen name="my-tickets" />
         <Stack.Screen name="refund-requests" />
         <Stack.Screen name="payouts-due" />
+        <Stack.Screen name="ticketing-terms" />
         <Stack.Screen name="my-events" />
         <Stack.Screen name="earnings" />
         <Stack.Screen name="edit-church-profile" />

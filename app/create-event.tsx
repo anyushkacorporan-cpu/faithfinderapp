@@ -169,6 +169,10 @@ export default function CreateEventScreen() {
   // least surprised by. A default of 'none' would make every organiser who
   // never looked at this field the strictest kind.
   const [refundPolicy, setRefundPolicy] = useState<RefundPolicy>('standard');
+  // Required before a paid event can be published. Not remembered between
+  // events: agreeing once to terms that govern other people's money is not
+  // the same as agreeing each time it applies.
+  const [agreedTerms, setAgreedTerms] = useState(false);
   const [ticketPrice, setTicketPrice] = useState('');
   const [capacity, setCapacity] = useState('');
   // USD only, per the ticketing terms. This used to default to the organiser's
@@ -259,6 +263,7 @@ export default function CreateEventScreen() {
     }
     if (s===2 && venueType!=='online' && !venueAddress.trim()) e.venueAddress='Required';
     if (s===4 && isPaid && price<=0) e.ticketPrice='Enter valid price';
+    if (s===4 && isPaid && !agreedTerms) e.agreedTerms='Required';
     setErrors(e);
     return Object.keys(e).length===0;
   }
@@ -757,6 +762,29 @@ export default function CreateEventScreen() {
                 </LField>
               )}
 
+              {isPaid && (
+                <View style={s.agreeWrap}>
+                  <TouchableOpacity
+                    style={s.agreeRow}
+                    activeOpacity={0.7}
+                    onPress={() => { setAgreedTerms(a => !a); setErrors(e => ({...e, agreedTerms: ''})); }}
+                  >
+                    <Ionicons
+                      name={agreedTerms ? 'checkbox' : 'square-outline'}
+                      size={21}
+                      color={agreedTerms ? c.gold : (errors.agreedTerms ? c.red : c.placeholder)}
+                    />
+                    <Text style={s.agreeTxt}>{t('agreeTicketingTerms')}</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={() => router.push('/ticketing-terms')}>
+                    <Text style={s.agreeLink}>{t('seeFullTerms')}</Text>
+                  </TouchableOpacity>
+                  {!!errors.agreedTerms && (
+                    <Text style={s.agreeErr}>{t('mustAgreeTerms')}</Text>
+                  )}
+                </View>
+              )}
+
               {isPaid && payoutsReady === false && (
                 <TouchableOpacity style={s.payoutWarn} onPress={() => router.push('/earnings?tab=Settings')}>
                   <Ionicons name="alert-circle" size={18} color={c.gold} />
@@ -1068,6 +1096,11 @@ const makeStyles = (c: ThemeColors) => StyleSheet.create({
   ticketBtnPaid:{borderColor:c.primary,backgroundColor:c.primary},
   ticketBtnTxt:{fontSize:14,fontWeight:'700',color:c.textMuted},
   ticketBtnSub:{fontSize:11,color:c.textMuted},
+  agreeWrap:{marginTop:4,gap:6},
+  agreeRow:{flexDirection:'row',alignItems:'flex-start',gap:9},
+  agreeTxt:{flex:1,fontSize:13.5,color:c.text,lineHeight:19},
+  agreeLink:{fontSize:13,fontWeight:'700',color:c.gold,marginLeft:30},
+  agreeErr:{fontSize:12.5,color:c.red,marginLeft:30},
   policyRow:{flexDirection:'row',alignItems:'center',gap:10,paddingVertical:11,paddingHorizontal:12,borderRadius:12,borderWidth:1,borderColor:c.border,backgroundColor:c.card},
   policyRowOn:{borderColor:c.gold},
   policyLbl:{fontSize:14,fontWeight:'700',color:c.text},

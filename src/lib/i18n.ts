@@ -586,6 +586,27 @@ const translations: Record<string, Record<Lang, string>> = {
   myTickets: { English: 'My Tickets', Español: 'Mis Boletos' },
   refundRequests: { English: 'Refund Requests', Español: 'Solicitudes de Reembolso' },
   payoutsDue: { English: 'Payouts Due', Español: 'Pagos Pendientes' },
+  ticketingTerms: {
+    English: 'Ticketing & Refund Terms',
+    Español: 'Términos de Boletos y Reembolsos' },
+  seeFullTerms: { English: 'See full terms', Español: 'Ver términos completos' },
+  freeRegTerms: {
+    English: "By registering you agree to FourCircle's Terms of Service and Privacy Policy. Registration is free and may be cancelled by the organizer.",
+    Español: 'Al registrarte aceptas los Términos del Servicio y la Política de Privacidad de FourCircle. El registro es gratuito y el organizador puede cancelarlo.' },
+  cancelMeansFullRefund: {
+    English: 'If the organiser cancels, you get a full refund automatically.',
+    Español: 'Si el organizador cancela, recibes un reembolso completo automáticamente.' },
+  feesShownBeforeYouPay: {
+    English: 'Fees are shown before you pay.',
+    Español: 'Las tarifas se muestran antes de pagar.' },
+  agreeTicketingTerms: {
+    English: 'I agree to the FourCircle Ticketing, Refund and Payout Terms.',
+    Español: 'Acepto los Términos de Boletos, Reembolsos y Pagos de FourCircle.' },
+  mustAgreeTerms: {
+    English: 'Agree to the ticketing terms to publish a paid event.',
+    Español: 'Acepta los términos de boletos para publicar un evento de pago.' },
+  totalWithFees: { English: 'Total with fees', Español: 'Total con tarifas' },
+  perTicket: { English: 'per ticket', Español: 'por boleto' },
   ownersOnly: { English: 'Owners only', Español: 'Solo para propietarios' },
   noPayouts: { English: 'No paid events yet', Español: 'Aún no hay eventos de pago' },
   noPayoutsBody: {
