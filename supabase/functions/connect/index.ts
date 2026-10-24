@@ -22,18 +22,35 @@
  *                                         dashboard, Stripe's own branding.
  *   requirement_collection = stripe       Stripe asks for their documents and
  *                                         decides when they are verified.
- *   fees.payer             = account      which is the condition under which
- *                                         Stripe issues their 1099-K rather
- *                                         than us.
  *   losses.payments        = application  FourCircle is liable for a negative
  *                                         balance on their account.
+ *   fees.payer             = application  FourCircle pays Stripe's processing
+ *                                         fees.
  *
- * The first three are exactly what `type=standard` gave. The fourth is the
- * change, and it is the price of being able to pause payouts: Stripe only
- * offers that on accounts where the platform carries the negative balance.
- * Confirmed with Stripe support, October 2026 — including that this
- * combination is allowed, which matters, because `requirement_collection =
- * application` is incompatible with both of the middle two.
+ * The first two are what `type=standard` gave. The last two are the change,
+ * and they come as a pair whether we like it or not.
+ *
+ * WHY fees.payer IS NOT `account`
+ *
+ * It was, for exactly one deploy. `account` is the condition under which
+ * Stripe issues the organiser's 1099-K instead of us, which is worth having,
+ * and Stripe's own support said in October 2026 that it could sit alongside
+ * `losses.payments = application`. It cannot. The API refuses the pair:
+ *
+ *     When `losses[payments]=application`, the Connect application must also
+ *     control fees.
+ *
+ * So the choice is real and it is one or the other: Stripe files their tax
+ * form, or we can pause their payouts. We take the pause, because holding
+ * ticket money until three business days after the event is the whole
+ * arrangement, and because the tax side is survivable — a 1099-K is only
+ * required once an organiser passes $20,000 and 200 transactions in a year,
+ * which at church ticket prices is a long way off, and Stripe will e-file
+ * them for us at about $3 a form when it arrives.
+ *
+ * This changes nothing about the money. With destination charges Stripe debits
+ * its processing fee from the platform balance regardless of this setting, so
+ * `application` is only describing what was already true.
  *
  * NONE OF THIS CAN BE CHANGED LATER
  *
@@ -176,7 +193,7 @@ Deno.serve(async (req) => {
           // thing and Stripe takes one or the other.
           'controller[stripe_dashboard][type]': 'full',
           'controller[requirement_collection]': 'stripe',
-          'controller[fees][payer]': 'account',
+          'controller[fees][payer]': 'application',
           'controller[losses][payments]': 'application',
           email: user.email ?? '',
           'business_profile[product_description]': 'Event tickets sold through FourCircle',
