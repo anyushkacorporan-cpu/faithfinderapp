@@ -17,10 +17,10 @@ export type Connection = {
   placeId?: string;
 };
 
-const INITIAL_CONNECTIONS: Connection[] = [
-  { id: 'grace-community', name: 'Grace Community Church', type: 'church', color: '#c9a96e', initials: 'GC' },
-  { id: 'pastor-mike', name: 'Pastor Michael Johnson', type: 'user', color: '#667eea', initials: 'MJ' },
-];
+// Empty. Two demo connections used to live here, Grace Community Church and
+// Pastor Michael Johnson, and every account that opened the app began with
+// both — two people it had never met, in a list of the people it knows.
+const INITIAL_CONNECTIONS: Connection[] = [];
 
 let connections: Connection[] = INITIAL_CONNECTIONS;
 

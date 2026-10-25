@@ -176,65 +176,11 @@ export function formatRelativeTime(createdAt?: number, fallback?: string): strin
 
 const COLORS_LIST = ['#e74c6f','#667eea','#f093fb','#4facfe','#43e97b','#fa709a','#c9a96e','#f5576c'];
 
-const INITIAL_POSTS: Post[] = [
-  {
-    id:'1', authorName:'Grace Community Church', authorInitials:'GC', authorType:'church',
-    authorColor:'#e74c6f', city:'Glen Cove', state:'NY',
-    content:'What an incredible Sunday! Over 50 people came forward during altar call. God is moving! Join us next week, all are welcome.',
-    time:'2h', likes:12, liked:false, feed:'both',
-    comments:[
-      { id:'c1', author:'Maria Santos', initials:'MS', color:'#667eea', text:'This is amazing! God is so good!', time:'1h', likes:3, liked:false, city:'Bronx', state:'NY', replies:[
-        { id:'r1', author:'James Wilson', initials:'JW', color:'#43e97b', text:'Amen! Praying for continued revival!', time:'45m', likes:1, liked:false, city:'Brooklyn', state:'NY' }
-      ]},
-      { id:'c2', author:'David Kim', initials:'DK', color:'#f093fb', text:'Wish I could have been there!', time:'30m', likes:1, liked:false, city:'Queens', state:'NY', replies:[] }
-    ]
-  },
-  {
-    id:'2', authorName:'Pastor Michael Johnson', authorInitials:'MJ', authorType:'personal',
-    authorColor:'#667eea', city:'Dallas', state:'TX',
-    content:'"For I know the plans I have for you," declares the Lord. Trust His timing. Your breakthrough is coming. Keep faith!',
-    time:'4h', likes:34, liked:false, feed:'both',
-    comments:[
-      { id:'c3', author:'Sarah Thompson', initials:'ST', color:'#fa709a', text:'I needed this word today. Thank you Pastor!', time:'3h', likes:5, liked:false, city:'Houston', state:'TX', replies:[
-        { id:'r2', author:'Pastor Michael Johnson', initials:'MJ', color:'#667eea', text:'Blessings to you Sarah! Stay encouraged!', time:'2h', likes:2, liked:false, city:'Dallas', state:'TX' }
-      ]}
-    ]
-  },
-  {
-    id:'3', authorName:'Faith Tabernacle NYC', authorInitials:'FT', authorType:'church',
-    authorColor:'#43e97b', city:'Harlem', state:'NY',
-    content:'Youth night this Friday 7PM! Food, worship, and the Word. Bring a friend!',
-    time:'6h', likes:28, liked:false, feed:'both',
-    comments:[]
-  },
-  {
-    id:'4', authorName:'Blessing Okafor', authorInitials:'BO', authorType:'personal',
-    authorColor:'#f093fb', city:'Atlanta', state:'GA',
-    content:'Just finished reading Psalms 23 for the 100th time and it hits different every single time. "Yea, though I walk through the valley..." His presence is everything.',
-    time:'8h', likes:67, liked:false, feed:'both',
-    comments:[
-      { id:'c4', author:'Priya Nair', initials:'PN', color:'#4facfe', text:'One of my favorite passages too!', time:'7h', likes:4, liked:false, city:'Miami', state:'FL', replies:[] }
-    ]
-  },
-  {
-    id:'5', authorName:'Brooklyn Gospel Choir', authorInitials:'BG', authorType:'church',
-    authorColor:'#fa709a', city:'Brooklyn', state:'NY',
-    content:'New worship album dropping next month! 12 original songs written by our choir members. God has been so faithful through this process.',
-    time:'10h', likes:89, liked:false, feed:'both',
-    comments:[]
-  },
-  {
-    id:'6', authorName:'Carlos Rivera', authorInitials:'CR', authorType:'personal',
-    authorColor:'#c9a96e', city:'Miami', state:'FL',
-    content:'Sunday sermon hit home today. "God doesn\'t call the qualified, He qualifies the called." Stop disqualifying yourself from your destiny.',
-    time:'12h', likes:112, liked:false, feed:'both',
-    comments:[
-      { id:'c5', author:'Angela Moore', initials:'AM', color:'#e74c6f', text:'Preach! Someone needed to hear this.', time:'11h', likes:8, liked:false, city:'Orlando', state:'FL', replies:[
-        { id:'r3', author:'Carlos Rivera', initials:'CR', color:'#c9a96e', text:'God placed it on my heart to share. Blessings!', time:'10h', likes:3, liked:false, city:'Miami', state:'FL' }
-      ]}
-    ]
-  },
-];
+// Empty. Six invented posts used to sit here — Grace Community Church,
+// Pastor Michael Johnson, Faith Tabernacle NYC and the rest — each with
+// invented comments and replies beneath it. They arrived on every account
+// that opened the app and read as a community that had already been talking.
+const INITIAL_POSTS: Post[] = [];
 
 let posts: Post[] = INITIAL_POSTS;
 let hydrated = false;

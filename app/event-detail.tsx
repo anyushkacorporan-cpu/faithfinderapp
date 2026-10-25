@@ -4,7 +4,6 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { EVENT_DETAILS } from '../src/lib/constants';
 import { useThemeColors, ThemeColors } from '../src/lib/theme';
 import { buildEventShareText } from '../src/lib/shareLinks';
 import { addPost } from '../src/lib/postsStore';
@@ -66,7 +65,10 @@ export default function EventDetailScreen() {
   const [inviteSent, setInviteSent] = useState(false);
   const [inviteSearch, setInviteSearch] = useState('');
 
-  const details = EVENT_DETAILS[params.id] || {
+  // There is no lookup table any more — the five demo events it described
+  // are gone. A real event carries its own speakers and agenda, so what is
+  // left here is the shape an event with none of those still has to render.
+  const details: Record<string, any> = {
     bannerColor: ['#667eea', '#764ba2'],
     summary: params.description || 'Join us for this special faith event.',
     experience: ['Worship', 'Teaching', 'Fellowship', 'Prayer'],

@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { EVENTS as SEED_EVENTS, EVENT_DETAILS as SEED_EVENT_DETAILS } from './constants';
 import * as api from './eventsApi';
 import { getUser } from './userStore';
 import { platformFeePerTicket, organizerPayoutPerTicket } from './ticketPricing';
@@ -99,58 +98,11 @@ const GRADIENTS: [string,string][] = [
   ['#c9a96e','#1a1a2e'],
 ];
 
-// Seed the real events store with the demo/discovery events too, so they're
-// uniformly findable by ID the same way user-created events are (matching
-// how postsStore.ts already seeds INITIAL_POSTS). Without this, sharing a
-// demo event produced a broken lookup since it existed only as route params,
-// never as a real stored record.
-const INITIAL_EVENTS: AppEvent[] = SEED_EVENTS.map((e: any, idx: number) => {
-  const details = (SEED_EVENT_DETAILS as any)[e.id] || {};
-  const isPaid = e.price !== 'Free';
-  const ticketPrice = isPaid ? parseFloat(String(e.price).replace('$','')) || 0 : 0;
-  return {
-    id: e.id,
-    status: 'upcoming',
-    title: e.title,
-    description: e.description || details.summary || '',
-    summary: details.summary || e.description || '',
-    organizer: '',
-    date: e.date,
-    time: '',
-    endTime: '',
-    location: e.location,
-    city: '',
-    state: '',
-    zip: '',
-    type: e.type,
-    price: e.price,
-    isPaid,
-    refundPolicy: (e as any).refundPolicy ?? 'standard',
-    lifecycle: 'scheduled' as Lifecycle,
-    ticketPrice,
-    platformFee: 0,
-    creatorPayout: 0,
-    ticketsSold: 0,
-    bannerColor: details.bannerColor || GRADIENTS[idx % GRADIENTS.length],
-    speakers: details.speakers || [],
-    agenda: [],
-    experience: details.experience || [],
-    audience: details.audience || '',
-    venueType: 'in-person',
-    venueName: '',
-    venueAddress: '',
-    venueInstructions: '',
-    parking: '',
-    liveStreamUrl: '',
-    meetingUrl: '',
-    platform: '',
-    hasLiveStream: false,
-    recurrence: 'once',
-    notes: '',
-    attending: e.attending || 0,
-    createdAt: Date.now() - (SEED_EVENTS.length - idx) * 1000,
-  };
-});
+// No seed. Five invented events used to be merged in here so they were
+// findable by id the way real ones are. They showed in the events tab, in
+// search, and in an organiser's earnings, indistinguishable from anything
+// somebody had actually created.
+const INITIAL_EVENTS: AppEvent[] = [];
 
 let events: AppEvent[] = INITIAL_EVENTS;
 let hydrated = false;

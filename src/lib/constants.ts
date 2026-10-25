@@ -171,27 +171,6 @@ export const CHURCHES = [
   { id: '50', state: 'WY', name: 'Element Church', address: '600 E Carlson St, Cheyenne, WY 82009', phone: '(307) 635-1316', type: 'Non-Denom', rating: 4.6, count: 184, hours: 'Sun: 8AM, 9:30AM, 11AM', website: 'elementchurch.com', placeId: 'ChIJ3XGqo0E6b4cR83xMVTL8gB0', gradient: ['#4facfe','#00f2fe'] as [string,string] },
 ];
 
-export const EVENTS = [
-  { id: '1', title: 'Women of Purpose Conference', description: 'Worship and fellowship for women.', date: 'Apr 18-19, 2026', location: 'Valley Stream, NY', type: 'Conference', price: 'Free', attending: 0 },
-  { id: '2', title: 'NYC Gospel Music Festival', description: 'A celebration of gospel music.', date: 'May 2, 2026', location: 'Brooklyn, NY', type: 'Festival', price: '$15', attending: 0 },
-  { id: '3', title: 'Faith & Finance Workshop', description: 'Learn to manage money with faith.', date: 'Apr 5, 2026', location: 'Glen Cove, NY', type: 'Workshop', price: 'Free', attending: 0 },
-  { id: '4', title: 'Passion Conference 2026', description: 'A conference for the next generation.', date: 'Jun 12-14, 2026', location: 'Atlanta, GA', type: 'Conference', price: '$125', attending: 0 },
-  { id: '5', title: 'Red Rocks Worship Night', description: 'An unforgettable night of worship.', date: 'Jun 27, 2026', location: 'Morrison, CO', type: 'Service', price: '$30', attending: 0 },
-];
-
-export const POSTS = [
-  { id: '1', author: 'Grace Community Church', initials: 'GC', type: 'Church', time: '2h', content: 'What an incredible Sunday! Over 50 people came forward during altar call. God is moving in Glen Cove! Join us next week, all are welcome.', likes: 2, comments: 2, color: '#e74c6f' },
-  { id: '2', author: 'Lakewood Church', initials: 'LC', type: 'Church', time: '1d', content: 'Night of Hope is coming to Chicago on June 5th! Free admission. Join Joel and Victoria Osteen for an unforgettable evening of worship and encouragement.', likes: 2, comments: 2, color: '#c9a96e' },
-  { id: '3', author: 'Jasmine Carter', initials: 'JC', type: 'Member', time: '4h', content: 'Just finished writing Unshakeable. God gave me every lyric at 3am!', likes: 8, comments: 1, color: '#667eea' },
-];
-
-export const PEOPLE = [
-  { id: '1', name: 'Jasmine Carter', initials: 'JC', role: 'Unknown', color: '#64b5f6' },
-  { id: '2', name: 'David Okonkwo', initials: 'DO', role: 'Unknown', color: '#ce93d8' },
-  { id: '3', name: 'Isaiah Williams', initials: 'IW', role: 'Unknown', color: '#ef9a9a' },
-  { id: '4', name: 'Rachel Park', initials: 'RP', role: 'Unknown', color: '#b39ddb' },
-];
-
 // User reviews store
 let churchReviews: Record<string, {id:string; author:string; rating:number; text:string; time:string}[]> = {};
 const reviewListeners: Array<()=>void> = [];
@@ -211,79 +190,3 @@ export function subscribeReviews(fn: ()=>void) {
   return () => { const i = reviewListeners.indexOf(fn); if (i>-1) reviewListeners.splice(i,1); };
 }
 
-export const EVENT_DETAILS: Record<string, any> = {
-  '1': {
-    bannerColor: ['#667eea', '#764ba2'],
-    summary: 'A powerful two-day conference designed to inspire and equip women of faith to walk boldly in their God-given purpose.',
-    experience: ['Powerful worship sessions', 'Keynote messages from faith leaders', 'Breakout workshops', 'Prayer and intercession time', 'Fellowship and networking'],
-    speakers: [
-      { name: 'Pastor Sarah Williams', role: 'Keynote Speaker', initials: 'SW', color: '#667eea' },
-      { name: 'Dr. Joyce Carter', role: 'Workshop Leader', initials: 'JC', color: '#f093fb' },
-    ],
-    audience: 'Women of all ages and backgrounds',
-    notes: [
-      { icon: 'wifi-outline', label: 'Live Stream', value: 'Available on FourCircle' },
-      { icon: 'car-outline', label: 'Parking', value: 'Free parking available on site' },
-      { icon: 'shirt-outline', label: 'Dress Code', value: 'Smart casual' },
-    ],
-  },
-  '2': {
-    bannerColor: ['#f093fb', '#f5576c'],
-    summary: 'A joyful celebration of gospel music featuring choirs, soloists, and worship bands from across the tri-state area.',
-    experience: ['Live gospel performances', 'Community choir showcase', 'Worship and praise', 'Food vendors on site', 'Children\'s activities area'],
-    speakers: [
-      { name: 'Minister David Okonkwo', role: 'Host & Worship Leader', initials: 'DO', color: '#f5576c' },
-      { name: 'Brooklyn Gospel Choir', role: 'Featured Performance', initials: 'BC', color: '#f093fb' },
-    ],
-    audience: 'All ages — families welcome',
-    notes: [
-      { icon: 'ticket-outline', label: 'Tickets', value: '$15 at door or online' },
-      { icon: 'car-outline', label: 'Parking', value: 'Street parking available nearby' },
-      { icon: 'restaurant-outline', label: 'Food', value: 'Food vendors on site' },
-    ],
-  },
-  '3': {
-    bannerColor: ['#4facfe', '#00f2fe'],
-    summary: 'Learn practical biblical principles for managing finances, giving, saving, and building generational wealth.',
-    experience: ['Interactive teaching sessions', 'Q&A with financial advisors', 'Faith-based budgeting tools', 'Small group discussions'],
-    speakers: [
-      { name: 'Bishop Marcus Johnson', role: 'Lead Teacher', initials: 'MJ', color: '#4facfe' },
-    ],
-    audience: 'Adults, couples, and young professionals',
-    notes: [
-      { icon: 'book-outline', label: 'Bring', value: 'Notebook and pen' },
-      { icon: 'wifi-outline', label: 'Live Stream', value: 'Available on YouTube' },
-      { icon: 'cafe-outline', label: 'Refreshments', value: 'Light refreshments provided' },
-    ],
-  },
-  '4': {
-    bannerColor: ['#43e97b', '#38f9d7'],
-    summary: 'Passion Conference is the premier gathering for the next generation of believers, featuring world-class worship and teaching.',
-    experience: ['Mainstage worship sessions', 'Breakout sessions by topic', 'Late-night prayer gatherings', 'Merchandise and resources', 'Communion service'],
-    speakers: [
-      { name: 'Louie Giglio', role: 'Founder & Speaker', initials: 'LG', color: '#43e97b' },
-      { name: 'Christine Caine', role: 'Guest Speaker', initials: 'CC', color: '#38f9d7' },
-      { name: 'Hillsong Worship', role: 'Worship Leaders', initials: 'HW', color: '#667eea' },
-    ],
-    audience: 'College students and young adults (18-25)',
-    notes: [
-      { icon: 'bed-outline', label: 'Lodging', value: 'Hotel blocks available nearby' },
-      { icon: 'wifi-outline', label: 'Live Stream', value: 'Streaming on Passion App' },
-      { icon: 'bag-outline', label: 'What to Bring', value: 'Bible, journal, open heart' },
-    ],
-  },
-  '5': {
-    bannerColor: ['#fa709a', '#fee140'],
-    summary: 'An unforgettable evening of worship under the stars at Red Rocks Amphitheatre — one of the most iconic venues in the world.',
-    experience: ['Sunset worship experience', 'Live band performance', 'Acoustic sets', 'Outdoor prayer walk', 'Communion at sunset'],
-    speakers: [
-      { name: 'Red Rocks Worship Band', role: 'Worship Leaders', initials: 'RR', color: '#fa709a' },
-    ],
-    audience: 'All ages — outdoor event',
-    notes: [
-      { icon: 'cloudy-outline', label: 'Weather', value: 'Bring layers — evenings can be cool' },
-      { icon: 'car-outline', label: 'Parking', value: 'Arrive early — limited spaces' },
-      { icon: 'accessibility-outline', label: 'Accessibility', value: 'Accessible seating available' },
-    ],
-  },
-};
