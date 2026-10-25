@@ -15,8 +15,8 @@
  * CONTROLLER PROPERTIES, NOT `type`
  *
  * This said `type: 'standard'`, which is a shorthand for four separate
- * decisions. Three of them were the ones we wanted and the fourth was not, and
- * a shorthand cannot be half-taken, so the four are now stated one by one:
+ * decisions. A shorthand cannot be half-taken, so the four are stated one by
+ * one:
  *
  *   stripe_dashboard.type  = express      the organiser gets Stripe's Express
  *                                         page rather than the full dashboard.
@@ -74,24 +74,31 @@
  * business days after the event, or a cancelled event would have nothing left
  * to refund from.
  *
- * Platform controls are what let us hold it, and on a Standard account they
- * are on by default: an account with full Dashboard access under our platform
- * can have its payout schedule set by us and its payouts created by us.
- * Confirmed with Stripe support, October 2026. There is no parameter to
- * enable them.
+ * The manual schedule set below is half of that: it stops Stripe paying the
+ * balance out on its own daily rolling default. It is set at creation rather
+ * than afterwards so there is never a window where an account sits on that
+ * default, and the `status` action re-asserts it, because an organiser can
+ * change it back.
  *
- * WHAT THIS DOES NOT DO
+ * PAUSING IS THE OTHER HALF, AND IT IS A DASHBOARD JOB
  *
- * It does not stop an organiser paying themselves out. A manual schedule
- * stops Stripe's automatic payouts, but an account with full Dashboard access
- * can still press Pay out on its own Balances page, and platform controls do
- * not take that away — Stripe was explicit about this. So the balance we are
- * relying on for a refund can be emptied by the person we would be reclaiming
- * it from.
+ * A manual schedule does not stop the organiser paying themselves out. What
+ * does is pausing payouts on the account, which is available here only
+ * because `losses.payments = application` — it is not offered on accounts
+ * where Stripe carries the negative balance. That is the whole reason this
+ * file gave up the full dashboard.
  *
- * That is a risk to carry rather than a bug to fix, and the terms carry it:
- * FourCircle refunds the buyer regardless and recovers from the organiser's
- * later payouts. Worth knowing before somebody assumes the money is locked.
+ * Stripe has no API for it. Pausing and unpausing are done by hand on the
+ * account's page in Stripe's own dashboard, so releasing an event's money
+ * means unpausing, creating the payout for the exact amount, and pausing
+ * again. The payouts list in the app is the record of that; it does not and
+ * cannot do it.
+ *
+ * Until an account is paused, its balance can still be emptied by the person
+ * we would be reclaiming a refund from. The terms carry that: FourCircle
+ * refunds the buyer regardless and recovers from later payouts. But the
+ * pause is what makes it rare rather than routine, so pause an account when
+ * it connects, not when its first event ends.
  */
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.58.0';
