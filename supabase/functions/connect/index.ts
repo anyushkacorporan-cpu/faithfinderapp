@@ -101,15 +101,19 @@ const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
 const SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
 
 // Where Stripe sends the organiser when their form is done or has expired.
-// A deep link rather than a web page, because the journey started in the app
-// and should end there; `scheme` in app.json is what makes this resolve.
 //
-// It must name a route that exists. These pointed at /payouts, which does not
-// — the payouts screen is a tab inside /earnings — so finishing Stripe's form
-// would have dropped the organiser on an unmatched route, at the end of
-// handing over their bank details, with no way to tell whether it had worked.
-const RETURN_URL = 'fourcircle://earnings?tab=Settings&connected=1';
-const REFRESH_URL = 'fourcircle://earnings?tab=Settings&refresh=1';
+// These were deep links — `fourcircle://earnings?...` — which reads as the
+// right answer, since the journey started in the app and should end there.
+// Stripe refuses them: an account link's return_url and refresh_url must be
+// http or https, and a custom scheme comes back as "Not a valid URL". Nobody
+// found out until the first account was created, because this function had
+// never been deployed.
+//
+// So the journey goes through one page on the website, which bounces straight
+// back to the deep link and offers a button to anybody the bounce fails. See
+// docs/stripe-return.html.
+const RETURN_URL = 'https://fourcircle.app/stripe-return.html?connected=1';
+const REFRESH_URL = 'https://fourcircle.app/stripe-return.html?refresh=1';
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
