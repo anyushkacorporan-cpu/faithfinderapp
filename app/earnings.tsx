@@ -146,8 +146,23 @@ export default function EarningsScreen() {
                   <Text style={s.heroStatLbl}>{t('ticketsSold')}</Text>
                 </View>
                 <View style={s.heroStatDivider} />
+                {/*
+                  Ticket holders, from the tickets table.
+
+                  This read events.attending, a column nothing has ever
+                  written: not the payments function, which increments
+                  tickets_sold through the capacity trigger, and not the app,
+                  whose own attending list is a per-device thing in
+                  eventActionsStore. So it was not a count that had drifted —
+                  it had never counted anything, and sat at nought beside a
+                  ticket that had just been sold.
+
+                  Free events are not in it. Their RSVPs live in that same
+                  unmaintained column, and a number that quietly omits them
+                  is better than one that quietly invents them.
+                */}
                 <View style={s.heroStat}>
-                  <Text style={s.heroStatVal}>{earnings.totalAttendees}</Text>
+                  <Text style={s.heroStatVal}>{totals.tickets}</Text>
                   <Text style={s.heroStatLbl}>{t('attendees')}</Text>
                 </View>
                 <View style={s.heroStatDivider} />
