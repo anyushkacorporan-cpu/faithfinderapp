@@ -22,7 +22,10 @@ export type Connection = {
 // both — two people it had never met, in a list of the people it knows.
 const INITIAL_CONNECTIONS: Connection[] = [];
 
-let connections: Connection[] = INITIAL_CONNECTIONS;
+// A copy, not the array itself: addConnection pushes in place, so sharing the
+// reference would let it write into INITIAL_CONNECTIONS and leave resetStore
+// handing back everything it was supposed to clear.
+let connections: Connection[] = [...INITIAL_CONNECTIONS];
 
 /**
  * The seeded pair are demo content, not people. Pushing them would write two
@@ -168,7 +171,7 @@ export async function syncConnectionsAfterSignIn(): Promise<void> {
  * storage alone is not enough.
  */
 export function resetStore() {
-  connections = INITIAL_CONNECTIONS;
+  connections = [...INITIAL_CONNECTIONS];
   persist();
   notify();
 }
