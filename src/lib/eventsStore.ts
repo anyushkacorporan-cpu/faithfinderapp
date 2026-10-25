@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as api from './eventsApi';
+import { stripSampleEvents } from './purgeSampleData';
 import { getUser } from './userStore';
 import { platformFeePerTicket, organizerPayoutPerTicket } from './ticketPricing';
 
@@ -135,9 +136,12 @@ async function hydrate() {
     // Merge: keep any real stored events, and backfill seed/demo events for
     // any IDs not already present, so demo events stay findable even for
     // users who already had (possibly empty) event data saved.
-    const storedIds = new Set(stored.map(e => e.id));
-    const missingSeed = INITIAL_EVENTS.filter(e => !storedIds.has(e.id));
-    events = [...stored, ...missingSeed];
+    // Drop the sample events this device saved under the old build before
+    // anything reads them, then write the cleaned list straight back so the
+    // next launch does not have to do it again.
+    const cleaned = stripSampleEvents(stored);
+    events = cleaned;
+    if (cleaned.length !== stored.length) void persist();
     notify();
   } catch {}
 }

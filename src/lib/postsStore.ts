@@ -8,6 +8,7 @@ import { getSettings } from './settingsStore';
 import { getConnections } from './connectionsStore';
 import { submitReport } from './moderationApi';
 import * as api from './postsApi';
+import { stripSamplePosts } from './purgeSampleData';
 
 const POSTS_KEY = 'fourcircle_posts_v1';
 
@@ -211,7 +212,13 @@ async function hydrate() {
         // Drop anything empty on the way in, so a stub written by an older
         // build disappears on the next launch rather than needing a delete
         // the app cannot offer.
-        posts = parsed.filter((p: Post) => !isEmptyPost(p));
+        // Two filters, both on the way in: the empty stubs an older build
+        // could write, and the sample posts seeded on first launch.
+        const cleaned = stripSamplePosts(
+          parsed.filter((p: Post) => !isEmptyPost(p)) as Post[]
+        );
+        posts = cleaned;
+        if (cleaned.length !== parsed.length) void persist();
         notify();
       }
     }

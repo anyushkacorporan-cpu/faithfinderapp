@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { load, save } from './persist';
 import { fetchConnections, pushConnection, removeConnectionRemote } from './connectionsApi';
+import { stripSampleConnections } from './purgeSampleData';
 
 /**
  * Someone (or some church) the user follows. `address` and `placeId` are only
@@ -49,7 +50,14 @@ function notify() { [...listeners].forEach(l => l()); }
 
 const STORAGE_KEY = 'fourcircle_connections_v1';
 function persist() { save(STORAGE_KEY, connections); }
-load<typeof connections>(STORAGE_KEY, v => { connections = v; notify(); });
+load<typeof connections>(STORAGE_KEY, v => {
+  // The two demo connections were saved on first launch, so they survived the
+  // seed being deleted. Strip them here and re-save the cleaned list.
+  const cleaned = stripSampleConnections(v);
+  connections = cleaned;
+  if (cleaned.length !== v.length) persist();
+  notify();
+});
 
 /**
  * Build a Connection from any author — a post, a comment, a profile screen.
