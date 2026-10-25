@@ -253,7 +253,7 @@ export default function EarningsScreen() {
               <Ionicons name="receipt-outline" size={26} color={c.textMuted} />
               <Text style={s.emptyPayoutsTitle}>{tx('Transfers live in Stripe')}</Text>
               <Text style={s.emptyPayoutsSub}>
-                {tx('Your money goes to your own Stripe account, so every transfer to your bank is listed there with its date and status. Sign in at dashboard.stripe.com.')}
+                {tx('Your money goes to your own Stripe account, so every transfer to your bank is listed there with its date and status. Open it from the Stripe button above.')}
               </Text>
             </View>
           </>

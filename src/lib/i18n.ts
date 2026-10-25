@@ -1302,8 +1302,8 @@ const translations: Record<string, Record<Lang, string>> = {
     English: 'Where is my money?',
     Español: '¿Dónde está mi dinero?' },
   payout16: {
-    English: 'Your money goes to your own Stripe account, so every transfer to your bank is listed there with its date and status. Sign in at dashboard.stripe.com.',
-    Español: 'Tu dinero va a tu propia cuenta de Stripe, así que cada transferencia a tu banco aparece allí con su fecha y estado. Inicia sesión en dashboard.stripe.com.' },
+    English: 'Your money goes to your own Stripe account, so every transfer to your bank is listed there with its date and status. Open it from the Stripe button above.',
+    Español: 'Tu dinero va a tu propia cuenta de Stripe, así que cada transferencia a tu banco aparece allí con su fecha y estado. Ábrela con el botón de Stripe de arriba.' },
   payout17: {
     English: 'Please try again.',
     Español: 'Inténtalo de nuevo.' },

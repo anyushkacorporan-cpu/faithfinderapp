@@ -18,8 +18,8 @@
  * decisions. Three of them were the ones we wanted and the fourth was not, and
  * a shorthand cannot be half-taken, so the four are now stated one by one:
  *
- *   stripe_dashboard.type  = full         the account is theirs. Stripe's own
- *                                         dashboard, Stripe's own branding.
+ *   stripe_dashboard.type  = express      the organiser gets Stripe's Express
+ *                                         page rather than the full dashboard.
  *   requirement_collection = stripe       Stripe asks for their documents and
  *                                         decides when they are verified.
  *   losses.payments        = application  FourCircle is liable for a negative
@@ -27,30 +27,39 @@
  *   fees.payer             = application  FourCircle pays Stripe's processing
  *                                         fees.
  *
- * The first two are what `type=standard` gave. The last two are the change,
- * and they come as a pair whether we like it or not.
+ * WHY EXPRESS, AFTER TWO ATTEMPTS AT STANDARD
  *
- * WHY fees.payer IS NOT `account`
- *
- * It was, for exactly one deploy. `account` is the condition under which
- * Stripe issues the organiser's 1099-K instead of us, which is worth having,
- * and Stripe's own support said in October 2026 that it could sit alongside
- * `losses.payments = application`. It cannot. The API refuses the pair:
+ * This was `type=standard`, then controller properties shaped like it. Both
+ * were refused, and the two refusals together say why the shape is
+ * impossible:
  *
  *     When `losses[payments]=application`, the Connect application must also
  *     control fees.
  *
- * So the choice is real and it is one or the other: Stripe files their tax
- * form, or we can pause their payouts. We take the pause, because holding
- * ticket money until three business days after the event is the whole
- * arrangement, and because the tax side is survivable — a 1099-K is only
- * required once an organiser passes $20,000 and 200 transactions in a year,
- * which at church ticket prices is a long way off, and Stripe will e-file
- * them for us at about $3 a form when it arrives.
+ *     `fees[payer]=application` is not supported when creating an account
+ *     with the full dashboard.
  *
- * This changes nothing about the money. With destination charges Stripe debits
- * its processing fee from the platform balance regardless of this setting, so
- * `application` is only describing what was already true.
+ * Full dashboard forces fees.payer=account; pausing payouts forces
+ * fees.payer=application. They cannot both be true, so a full-dashboard
+ * account can never have its payouts paused. Stripe's own support said twice
+ * that this combination was fine. It is not, and the API is the thing that
+ * knows.
+ *
+ * So it is the Express dashboard or no payout hold, and the hold is the
+ * arrangement: ticket money stays put until three business days after the
+ * event. Without it an organiser can withdraw on the day tickets go on sale
+ * and cancel the week after, and the buyers get refunded out of our balance.
+ *
+ * WHAT IT COSTS
+ *
+ * The organiser sees Stripe's simpler Express page instead of the full
+ * dashboard — and fills in a shorter form to get there, which suits a church
+ * secretary better than the long one did. And the 1099-K becomes ours to
+ * issue rather than Stripe's, because fees.payer is no longer `account`. That
+ * is a form, not a tax return: it reports what we paid them, they file their
+ * own return with it, Stripe generates and e-files it for about $3, and it is
+ * only required at all once an organiser passes $20,000 and 200 transactions
+ * in a year.
  *
  * NONE OF THIS CAN BE CHANGED LATER
  *
@@ -191,7 +200,7 @@ Deno.serve(async (req) => {
         const account = await stripe('accounts', 'POST', {
           // No `type`. It and `controller` are two ways of saying the same
           // thing and Stripe takes one or the other.
-          'controller[stripe_dashboard][type]': 'full',
+          'controller[stripe_dashboard][type]': 'express',
           'controller[requirement_collection]': 'stripe',
           'controller[fees][payer]': 'application',
           'controller[losses][payments]': 'application',
@@ -291,9 +300,12 @@ Deno.serve(async (req) => {
   if (action === 'login') {
     if (!existing?.stripe_account_id) return json({ error: 'No payout account yet.' }, 400);
     try {
-      // Standard accounts own their dashboard, so this is just a signpost to
-      // stripe.com rather than a session we create.
-      return json({ url: 'https://dashboard.stripe.com/' });
+      // This pointed at dashboard.stripe.com, which was right for a Standard
+      // account — those own their dashboard and sign in there themselves. An
+      // Express account cannot: it has no password of its own, and the only
+      // way in is a single-use link the platform mints for it.
+      const link = await stripe(`accounts/${existing.stripe_account_id}/login_links`, 'POST');
+      return json({ url: String(link.url) });
     } catch (err) {
       return json({ error: String((err as Error).message || 'Could not open Stripe.') }, 502);
     }

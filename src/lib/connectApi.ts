@@ -7,9 +7,9 @@ import { supabase } from './supabase';
  * — it talks to the `connect` edge function, which does.
  *
  * The account belongs to the organiser, not to FourCircle. They sign up with
- * Stripe directly, ticket money lands in their account rather than ours, and
- * Stripe handles their tax forms. We take a fee from each sale and never hold
- * the rest.
+ * Stripe directly and ticket money lands in their account rather than ours.
+ * We take a fee from each sale and never hold the rest — though we do decide
+ * when it leaves their balance, which is what the payout hold is for.
  */
 
 export type PayoutStatus = {
