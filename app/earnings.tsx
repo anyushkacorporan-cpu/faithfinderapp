@@ -182,18 +182,31 @@ export default function EarningsScreen() {
             {paidEvents.length > 0 && (
               <View style={s.section}>
                 <Text style={s.sectionTitle}>{t('eventBreakdown')}</Text>
-                {paidEvents.map(e => (
-                  <View key={e.id} style={s.eventRow}>
-                    <View style={s.eventRowInfo}>
-                      <Text style={s.eventRowTitle} numberOfLines={1}>{e.title}</Text>
-                      <Text style={s.eventRowDate}>{e.date}</Text>
+                {paidEvents.map(e => {
+                  // From the same records the figures above come from, not
+                  // from the event row's own creatorPayout. That column is
+                  // written once when an event is made, so an event created
+                  // under an older fee model still carries that model's
+                  // number — which is how this line said $9.00 under a
+                  // heading that said $10.00.
+                  const real = rows.find(r => r.eventId === e.id);
+                  return (
+                    <View key={e.id} style={s.eventRow}>
+                      <View style={s.eventRowInfo}>
+                        <Text style={s.eventRowTitle} numberOfLines={1}>{e.title}</Text>
+                        <Text style={s.eventRowDate}>{e.date}</Text>
+                      </View>
+                      <View style={s.eventRowStats}>
+                        <Text style={s.eventRowTickets}>
+                          {real?.ticketsPaid ?? e.ticketsSold} {t('ticketsWord').toLowerCase()}
+                        </Text>
+                        <Text style={s.eventRowRevenue}>
+                          ${(real?.payable ?? 0).toFixed(2)}
+                        </Text>
+                      </View>
                     </View>
-                    <View style={s.eventRowStats}>
-                      <Text style={s.eventRowTickets}>{e.ticketsSold} tickets</Text>
-                      <Text style={s.eventRowRevenue}>${(e.creatorPayout * e.ticketsSold).toFixed(2)}</Text>
-                    </View>
-                  </View>
-                ))}
+                  );
+                })}
               </View>
             )}
 
