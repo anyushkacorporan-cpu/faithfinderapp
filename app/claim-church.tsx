@@ -127,13 +127,13 @@ export default function ClaimChurchScreen() {
             <Ionicons name="checkmark-circle" size={48} color={COLORS.gold} />
           </LinearGradient>
           <Text style={s.submittedTitle}>{t('verificationSubmitted')}</Text>
-          <Text style={s.submittedSub}>{t('thankYouClaiming')}<Text style={{fontWeight:'700',color:COLORS.navy}}>{selectedChurch?.name}</Text>. FourCircle will review your submission within 3–5 business days.</Text>
+          <Text style={s.submittedSub}>{t('thankYouClaiming')}<Text style={{fontWeight:'700',color:COLORS.navy}}>{selectedChurch?.name}</Text>. {t('claimReviewWindow')}</Text>
           <View style={s.submittedCard}>
             <View style={s.submittedRow}>
               <Ionicons name="time-outline" size={20} color={COLORS.gold} />
               <View style={s.submittedInfo}>
                 <Text style={s.submittedRowTitle}>{t('reviewPeriod')}</Text>
-                <Text style={s.submittedRowSub}>3–5 business days</Text>
+                <Text style={s.submittedRowSub}>{t('threeToFiveBusinessDays')}</Text>
               </View>
             </View>
             <View style={s.submittedDivider} />
@@ -329,7 +329,7 @@ export default function ClaimChurchScreen() {
               <Text style={s.stepBadgeTxt}>{t('verification')}</Text>
             </View>
             <Text style={s.title}>{t('verifyYourRole')}</Text>
-            <Text style={s.subtitle}>{t('helpUsConfirm')}<Text style={{fontWeight:'700',color:COLORS.navy}}>{selectedChurch?.name}</Text>. We review all claims within 3–5 business days.</Text>
+            <Text style={s.subtitle}>{t('helpUsConfirm')}<Text style={{fontWeight:'700',color:COLORS.navy}}>{selectedChurch?.name}</Text>. {t('weReviewAllClaims')}</Text>
 
             {/* Step 1: Role */}
             <View style={s.verifySection}>

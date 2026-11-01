@@ -810,6 +810,21 @@ const translations: Record<string, Record<Lang, string>> = {
   viaEmailAndApp: { English: 'Via email and app notification', Español: 'Por correo y notificación de la app' },
   helpUsConfirm: { English: 'Help us confirm you represent ', Español: 'Ayúdanos a confirmar que representas a ' },
   thankYouClaiming: { English: 'Thank you for claiming ', Español: 'Gracias por reclamar ' },
+  // The sentence that follows the church name on the submitted screen. It was
+  // written straight into the JSX, so a church reading in Spanish got a
+  // Spanish thank-you and then this in English. Phrased to match
+  // churchVerificationNote, which already said the same thing in both.
+  claimReviewWindow: {
+    English: 'FourCircle will review your submission within 3–5 business days.',
+    Español: 'FourCircle revisará tu solicitud en un plazo de 3 a 5 días hábiles.' },
+  // The value beside the "Review period" label on the same screen.
+  threeToFiveBusinessDays: {
+    English: '3–5 business days',
+    Español: '3 a 5 días hábiles' },
+  // And the one on the verify step, before the claim is sent.
+  weReviewAllClaims: {
+    English: 'We review all claims within 3–5 business days.',
+    Español: 'Revisamos todas las solicitudes en un plazo de 3 a 5 días hábiles.' },
 
   // Final pass
   connectWithChurches: { English: 'Connect with churches and believers to see their posts here', Español: 'Conéctate con iglesias y creyentes para ver sus publicaciones aquí' },

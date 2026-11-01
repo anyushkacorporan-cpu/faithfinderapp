@@ -50,6 +50,15 @@ declare
   result timestamptz := from_ts;
   added  integer := 0;
 begin
+  -- Null in, null out. Without this the loop never terminates: every
+  -- comparison against a null day-of-week is null rather than true, so `added`
+  -- is never incremented and the query hangs. Callers in 33_payouts.sql guard
+  -- their own nulls with a case expression; this makes the function safe even
+  -- where one forgets.
+  if from_ts is null then
+    return null;
+  end if;
+
   while added < days loop
     result := result + interval '1 day';
     -- `at time zone` makes this a wall-clock timestamp in New York, so the
