@@ -186,3 +186,40 @@ test('the wide-open policy is dropped, not left beside the new one', () => {
   // would make the new one decorative.
   assert.match(code(FREE_TICKETS), /drop policy if exists tickets_insert_own on tickets;/);
 });
+
+// ── The platform fee ──────────────────────────────────────────────────────
+// events.platform_fee used to arrive from the client and the payments
+// function billed on it, so an organiser could zero their own fee. It is
+// computed by a trigger now. These assert the trigger is still there and
+// still agrees with what the app promises.
+
+const EVENT_FEES = sql('37_event_fees_server_side.sql');
+
+test('the fee trigger still exists and fires on update as well as insert', () => {
+  const c = code(EVENT_FEES);
+  assert.match(c, /create trigger events_set_fees before insert or update on events/,
+    'an update-only gap would let the fee be zeroed after the event is made');
+});
+
+test('the trigger computes the same fee the app promises', async () => {
+  // The one place these two numbers can drift apart. ticketPricing.ts is what
+  // the buyer is shown; the trigger is what gets billed.
+  const { PLATFORM_RATE, PLATFORM_FLAT } =
+    await import('../src/lib/ticketPricing.ts');
+  const c = code(EVENT_FEES);
+  assert.match(
+    c,
+    new RegExp(`new\\.ticket_price \\* ${PLATFORM_RATE} \\+ ${PLATFORM_FLAT.toFixed(2)}`),
+    `the trigger no longer charges ${PLATFORM_RATE * 100}% + $${PLATFORM_FLAT.toFixed(2)}`,
+  );
+});
+
+test('a free event carries no fee', () => {
+  const c = code(EVENT_FEES);
+  assert.match(c, /new\.platform_fee\s*:= 0;/);
+  assert.match(c, /new\.creator_payout\s*:= 0;/);
+});
+
+test('the organiser is still paid the whole ticket price', () => {
+  assert.match(code(EVENT_FEES), /new\.creator_payout := round\(new\.ticket_price, 2\)/);
+});
