@@ -24,7 +24,7 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 
 const here = import.meta.dirname;
@@ -354,4 +354,42 @@ test('the email fallback keeps the name in order', () => {
   // would reverse somebody's name at random.
   assert.match(code(AUTHOR), /with ordinality as t\(part, ord\)/);
   assert.match(code(AUTHOR), /order by ord/);
+});
+
+// ── A gate that was closed, reopened, and closed again ────────────────────
+// 23 dropped profiles_owner_update on purpose and replaced it with an
+// approval-gated policy. 38 recreated it from the original definition in 01,
+// which put the gate back to sleep, because permissive policies are ORed and
+// the weaker one wins. 40 drops it again.
+
+test('the loose church_profiles update policy ends up dropped', () => {
+  // The net effect across every migration, in the order they run, rather than
+  // whether any single file mentions it. 38 does recreate it -- that is the
+  // mistake -- and 40 drops it again; an applied migration is a record of what
+  // happened, so it is corrected by a later one rather than edited.
+  const files = readdirSync(here).filter(f => /^\d+_.*\.sql$/.test(f)).sort();
+  const timeline: { file: string; verb: string }[] = [];
+
+  for (const f of files) {
+    const stmts = code(sql(f))
+      .match(/(drop|create) policy (if exists )?profiles_owner_update on church_profiles/g) ?? [];
+    for (const stmt of stmts) {
+      timeline.push({ file: f, verb: stmt.startsWith('drop') ? 'drop' : 'create' });
+    }
+  }
+
+  assert.ok(timeline.length > 0, 'the policy is not referenced anywhere');
+  const last = timeline[timeline.length - 1];
+  assert.equal(
+    last.verb, 'drop',
+    `the last word on profiles_owner_update is a create, in ${last.file} — ` +
+    'the approval gate in 23 is back to sleep',
+  );
+});
+
+test('the approval-gated policy is the one left standing', () => {
+  const c = code(sql('23_church_photos_editable.sql'));
+  assert.match(c,
+    /create policy church_profiles_owner_update on church_profiles for update using \(owns_church\(church_id\)\) with check \(owns_church\(church_id\)\);/,
+    'the approval gate on church listings is gone');
 });
