@@ -223,3 +223,43 @@ test('a free event carries no fee', () => {
 test('the organiser is still paid the whole ticket price', () => {
   assert.match(code(EVENT_FEES), /new\.creator_payout := round\(new\.ticket_price, 2\)/);
 });
+
+// ── Update policies ───────────────────────────────────────────────────────
+// Six update policies had `using` without `with check`, so a row you own
+// could be turned into one you do not. Two of those were takeovers rather
+// than giveaways; these pin all of it.
+
+const UPDATES = sql('38_update_policies.sql');
+
+test('every update policy here states what the row may become', () => {
+  const c = code(UPDATES);
+  // Each `for update using (...)` must be followed by a with check before the
+  // next statement ends.
+  const policies = c.match(/create policy [^;]+ for update [^;]+;/g) ?? [];
+  assert.ok(policies.length >= 5, `expected the update policies, found ${policies.length}`);
+  for (const p of policies) {
+    assert.match(p, /with check/, `no with check: ${p.slice(0, 70)}…`);
+  }
+});
+
+test('a church profile cannot be moved to another church', () => {
+  const c = code(UPDATES);
+  assert.match(c, /new\.church_id is distinct from old\.church_id/,
+    'the primary key is unfrozen — any unclaimed church can be taken again');
+  assert.match(c, /create trigger church_profiles_freeze_id before update on church_profiles/);
+});
+
+test('which church is being claimed is frozen once submitted', () => {
+  const c = code(UPDATES);
+  assert.match(c, /new\.claimed_church_id := old\.claimed_church_id;/,
+    'claimed_church_id is writable again — an approval can be switched after review');
+  // And only the submitting update may set it.
+  assert.match(c, /new\.verification_status = 'pending' and coalesce\(old\.verification_status, 'none'\) in \('none', 'rejected'\)/);
+});
+
+test('the verification guard keeps everything 35 gave it', () => {
+  const c = code(UPDATES);
+  assert.match(c, /new\.verification_status := old\.verification_status;/); // no self-approval
+  assert.match(c, /and not is_admin\(\)/);                                   // reviewers still work
+  assert.match(c, /new\.verification_submitted_at := now\(\);/);             // clock still stamped
+});
