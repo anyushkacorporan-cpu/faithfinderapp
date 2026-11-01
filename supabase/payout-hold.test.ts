@@ -263,3 +263,95 @@ test('the verification guard keeps everything 35 gave it', () => {
   assert.match(c, /and not is_admin\(\)/);                                   // reviewers still work
   assert.match(c, /new\.verification_submitted_at := now\(\);/);             // clock still stamped
 });
+
+// ── Author identity ───────────────────────────────────────────────────────
+// posts.author_name and comments.author_name were sent by the client, so a
+// post could carry a real account id and a church's name. They are derived
+// from the profile now. Same two halves as the payout hold: the rule mirrored
+// here, the SQL pinned below.
+//
+// displayName() in userStore.ts cannot be imported into a test -- it reaches
+// for React and AsyncStorage -- so these cases are transcribed from it. The
+// pinning assertions are what catch the SQL drifting away from them.
+
+const AUTHOR = sql('39_author_identity.sql');
+
+/** Mirrors profile_display_name(). Keep in step with 39_author_identity.sql. */
+function displayNameMirror(p: {
+  accountType?: string; churchName?: string;
+  firstName?: string; lastName?: string; email?: string;
+}): string {
+  if (p.accountType === 'church') return (p.churchName ?? '').trim() || 'Church';
+  const full = [p.firstName, p.lastName]
+    .map(s => (s ?? '').trim()).filter(Boolean).join(' ').trim();
+  if (full) return full;
+  const local = (p.email ?? '').split('@')[0];
+  if (local) {
+    const words = local.split(/[._+-]+/).filter(Boolean);
+    if (words.length) return words.map(w => w[0].toUpperCase() + w.slice(1)).join(' ');
+  }
+  return 'Member';
+}
+
+/** Mirrors profile_initials(). */
+const initialsMirror = (name: string) => {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  return ((parts[0]?.[0] ?? '') + (parts[1]?.[0] ?? '')).toUpperCase() || 'M';
+};
+
+test('a church posts under its church name', () => {
+  assert.equal(displayNameMirror(
+    { accountType: 'church', churchName: 'Grace Community Church' }),
+    'Grace Community Church');
+  // A church account that never filled the name in still is not a person.
+  assert.equal(displayNameMirror({ accountType: 'church' }), 'Church');
+  assert.equal(displayNameMirror({ accountType: 'church', churchName: '   ' }), 'Church');
+});
+
+test('a person posts under their own name', () => {
+  assert.equal(displayNameMirror(
+    { accountType: 'personal', firstName: 'Anyushka', lastName: 'Corporan' }),
+    'Anyushka Corporan');
+  assert.equal(displayNameMirror({ accountType: 'personal', firstName: 'Anyushka' }),
+    'Anyushka');
+});
+
+test('an account with no name falls back to the readable part of its email', () => {
+  assert.equal(displayNameMirror({ email: 'anyushka.corporan@gmail.com' }),
+    'Anyushka Corporan');
+  assert.equal(displayNameMirror({ email: 'pastor_mike@example.org' }), 'Pastor Mike');
+  assert.equal(displayNameMirror({ email: 'jo@example.org' }), 'Jo');
+  assert.equal(displayNameMirror({}), 'Member');
+});
+
+test('initials come from the same name the post carries', () => {
+  assert.equal(initialsMirror('Anyushka Corporan'), 'AC');
+  assert.equal(initialsMirror('Grace Community Church'), 'GC');
+  assert.equal(initialsMirror('Madonna'), 'M');
+  assert.equal(initialsMirror(''), 'M');
+});
+
+test('the byline is overwritten on posts and on comments', () => {
+  const c = code(AUTHOR);
+  for (const t of ['posts', 'comments']) {
+    assert.match(
+      c,
+      new RegExp(`create trigger ${t}_set_author before insert or update on ${t}`),
+      `${t} can have its byline set by the client again`,
+    );
+  }
+  assert.match(c, /new\.author_name\s*:= nm;/);
+  assert.match(c, /new\.author_initials := profile_initials\(nm\)/);
+});
+
+test('the account type is derived, so nobody wears the church badge', () => {
+  assert.match(code(AUTHOR),
+    /new\.author_type\s*:= case when acct = 'church' then 'church' else 'personal' end/);
+});
+
+test('the email fallback keeps the name in order', () => {
+  // Without `with ordinality` the pieces can come back in any order, which
+  // would reverse somebody's name at random.
+  assert.match(code(AUTHOR), /with ordinality as t\(part, ord\)/);
+  assert.match(code(AUTHOR), /order by ord/);
+});
