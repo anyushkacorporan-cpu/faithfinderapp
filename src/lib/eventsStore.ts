@@ -57,6 +57,11 @@ export type AppEvent = {
    * for why both exist. Undefined on events made before this was recorded.
    */
   endsAt?: string;
+  /**
+   * IANA zone of the device that set the date and time, e.g. America/New_York.
+   * Recorded so endsAt can be corrected later; nothing reads it yet.
+   */
+  timezone?: string;
   ticketPrice: number;
   platformFee: number;
   creatorPayout: number;

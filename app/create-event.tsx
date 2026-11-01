@@ -310,6 +310,16 @@ export default function CreateEventScreen() {
         else at.setHours(23, 59, 0, 0);
         return at.toISOString();
       })(),
+      // Which clock the times above were read off. ends_at is a real instant
+      // and this is the only record of what it meant: an organiser in Los
+      // Angeles setting up an event in New York produces one three hours out,
+      // and without this there is no way to tell afterwards, let alone fix it.
+      // Taken from the device rather than asked for — an organiser creates an
+      // event where they are, and an online event has no venue zone at all.
+      timezone: (() => {
+        try { return Intl.DateTimeFormat().resolvedOptions().timeZone || undefined; }
+        catch { return undefined; }
+      })(),
       isPaid,
       ticketPrice:price,
       bannerImage:bannerImage||undefined,

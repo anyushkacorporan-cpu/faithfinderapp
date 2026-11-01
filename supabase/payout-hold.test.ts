@@ -393,3 +393,28 @@ test('the approval-gated policy is the one left standing', () => {
     /create policy church_profiles_owner_update on church_profiles for update using \(owns_church\(church_id\)\) with check \(owns_church\(church_id\)\);/,
     'the approval gate on church listings is gone');
 });
+
+// ── The event timezone ────────────────────────────────────────────────────
+// Recorded, not yet read. The point of the column is that which clock an
+// event's time was read off cannot be reconstructed after the fact, so these
+// check it is being filled and that nothing has quietly started depending on
+// it before the display logic is ready.
+
+test('the timezone column exists and says what it is for', () => {
+  const c = code(sql('41_event_timezone.sql'));
+  assert.match(c, /alter table events add column if not exists timezone text;/);
+});
+
+test('new events record the device zone', () => {
+  const screen = readFileSync(join(here, '..', 'app', 'create-event.tsx'), 'utf8');
+  assert.match(screen, /Intl\.DateTimeFormat\(\)\.resolvedOptions\(\)\.timeZone/,
+    'create-event no longer records which clock the times were read off');
+  // And it must not be able to take the save down with it.
+  assert.match(flat(screen), /try \{ return Intl\.DateTimeFormat\(\)\.resolvedOptions\(\)\.timeZone \|\| undefined; \} catch/);
+});
+
+test('the zone survives a round trip through the API', () => {
+  const api = readFileSync(join(here, '..', 'src', 'lib', 'eventsApi.ts'), 'utf8');
+  assert.match(api, /timezone: e\.timezone \?\? null,/, 'not sent to the server');
+  assert.match(api, /timezone: r\.timezone \?\? undefined,/, 'not read back');
+});
