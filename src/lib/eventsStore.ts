@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as api from './eventsApi';
+import { hasEnded } from './eventTime';
 import { stripSampleEvents } from './purgeSampleData';
 import { getUser } from './userStore';
 import { platformFeePerTicket, organizerPayoutPerTicket } from './ticketPricing';
@@ -156,8 +157,17 @@ async function hydrate() {
 }
 hydrate();
 
+/**
+ * When an event is over, as a number, or null when nobody can say.
+ *
+ * `ends_at` is the only real instant an event carries — `date` and `time` are
+ * whatever the organiser typed. Events made before that column existed have
+ * none, and null here is the honest answer for them.
+ */
 export function getEvents() { return [...events]; }
-export function getUpcomingEvents() { return events.filter(e => e.status !== 'past' && e.status !== 'draft'); }
+export function getUpcomingEvents() {
+  return events.filter(e => e.status !== 'past' && e.status !== 'draft' && !hasEnded(e));
+}
 export function getUserEvents() { return [...events].sort((a,b) => b.createdAt - a.createdAt); }
 
 export function addEvent(event: Omit<AppEvent, 'id' | 'createdAt' | 'bannerColor' | 'platformFee' | 'creatorPayout' | 'ticketsSold' | 'attending' | 'lifecycle'> & { capacity?: number; currency?: Currency }) {

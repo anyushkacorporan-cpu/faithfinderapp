@@ -656,8 +656,23 @@ Deno.serve(async (req) => {
       .eq('event_id', eventId)
       .eq('status', 'paid');
 
-    let refunded = 0, failed = 0, owed = 0;
+    let refunded = 0, failed = 0, owed = 0, released = 0;
     for (const ticket of tickets ?? []) {
+      // A free registration has nothing to send back. It is a ticket row like
+      // any other, with no payment_intent_id, so refundTicket refused it with
+      // "That ticket has no payment to refund" and it was counted as a
+      // failure: cancelling a free event with twelve people reported
+      // "0 refunded, 12 could not be refunded - check Stripe", which is
+      // alarming and describes nothing that happened. Marked cancelled and
+      // counted separately instead.
+      if (!ticket.payment_intent_id || !(Number(ticket.total_paid ?? 0) > 0)) {
+        await admin.from('tickets')
+          .update({ status: 'refunded', refunded_amount: 0, refunded_at: new Date().toISOString() })
+          .eq('id', ticket.id);
+        released += 1;
+        continue;
+      }
+
       // One at a time, and a failure does not stop the rest: twenty buyers
       // refunded and one error is a better outcome than one error and twenty
       // people still out of pocket.
@@ -683,7 +698,7 @@ Deno.serve(async (req) => {
       }
     }
 
-    return json({ ok: true, refunded, failed, owed: +owed.toFixed(2) });
+    return json({ ok: true, refunded, failed, released, owed: +owed.toFixed(2) });
   }
 
   return json({ error: 'Unknown action.' }, 400);

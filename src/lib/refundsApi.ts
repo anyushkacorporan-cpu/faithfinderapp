@@ -197,13 +197,17 @@ export async function decideRefund(
 export async function cancelEvent(
   eventId: string,
   note: string,
-): Promise<{ ok?: true; refunded?: number; failed?: number; owed?: number; error?: string }> {
+): Promise<{ ok?: true; refunded?: number; failed?: number; released?: number; owed?: number; error?: string }> {
   const { data, error } = await call({ action: 'event_cancel', eventId, note });
   if (error) return { error };
   return {
     ok: true,
     refunded: Number(data?.refunded) || 0,
     failed: Number(data?.failed) || 0,
+    // Free registrations. Nothing was paid, so nothing is sent back, and
+    // counting them as refunds would overstate what happened as badly as
+    // counting them as failures did.
+    released: Number(data?.released) || 0,
     owed: Number(data?.owed) || 0,
   };
 }

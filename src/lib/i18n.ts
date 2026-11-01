@@ -670,6 +670,8 @@ const translations: Record<string, Record<Lang, string>> = {
   pd17: { English: 'Refunded to Buyers', Español: 'Reembolsado a Compradores' },
   pd18: { English: 'Owed Back to FourCircle', Español: 'Debido a FourCircle' },
   pd19: { English: 'Owed to You', Español: 'Se te Debe' },
+  // What a free event's cancellation says instead of "refunded in full".
+  toldItIsOff: { English: 'told it is off', Español: 'avisados de la cancelación' },
   cancelEventTitle: { English: 'Cancel this event?', Español: '¿Cancelar este evento?' },
   cancelEventConfirm: { English: 'Cancel and refund', Español: 'Cancelar y reembolsar' },
   cancelEventShort: { English: 'Cancel event', Español: 'Cancelar evento' },

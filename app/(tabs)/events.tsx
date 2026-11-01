@@ -10,6 +10,7 @@ import { TAB_BAR_CLEARANCE } from '../../src/lib/tabBar';
 import { getUser } from '../../src/lib/userStore';
 import * as Location from 'expo-location';
 import { useEvents, isSoldOut } from '../../src/lib/eventsStore';
+import { hasEnded, eventEndsAt } from '../../src/lib/eventTime';
 import { useEventActions, toggleSaveEvent, addAttending, removeAttending } from '../../src/lib/eventActionsStore';
 import { useSettings } from '../../src/lib/settingsStore';
 import { useTranslation } from '../../src/lib/i18n';
@@ -180,8 +181,37 @@ export default function EventsScreen() {
       );
     }
 
+    // Events that are over do not belong in a list people browse to find
+    // something to go to. Nothing ever set status to 'past', so this list has
+    // been carrying finished events indefinitely — a date in November was
+    // still on offer in January. An event with no recorded end is left alone
+    // rather than guessed at.
+    result = result.filter((e: any) => !hasEnded(e));
+
     // Filters
     if (activeFilters.length > 0) {
+      const now = Date.now();
+      const DAY = 86_400_000;
+      // Measured against the event's own end, the only real instant it has.
+      // `date` is free text the organiser typed and will not parse reliably.
+      const endsWithin = (e: any, days: number) => {
+        const end = eventEndsAt(e);
+        if (end === null) return false;
+        // Written as three statements rather than one comparison because
+        // `end >= now && end <` reads as a JSX text node to check-spanish.mjs,
+        // which then reports "= now && end" as untranslated screen text.
+        if (end < now) return false;
+        return end < now + days * DAY;
+      };
+      const endsToday = (e: any) => {
+        const end = eventEndsAt(e);
+        if (end === null) return false;
+        const d = new Date(end), t = new Date(now);
+        return d.getFullYear() === t.getFullYear()
+            && d.getMonth() === t.getMonth()
+            && d.getDate() === t.getDate();
+      };
+
       result = result.filter((e: any) => {
         return activeFilters.every(f => {
           if (f === 'free') return e.price === 'Free';
@@ -189,6 +219,12 @@ export default function EventsScreen() {
           if (f === 'in-person') return !e.venueType || e.venueType === 'in-person';
           if (f === 'online') return e.venueType === 'online';
           if (f === 'hybrid') return e.venueType === 'hybrid';
+          // Date filters. These chips have been on the screen since the first
+          // version of it with nothing behind them: every one fell through to
+          // `return true`, so tapping Today changed nothing at all.
+          if (f === 'today') return endsToday(e);
+          if (f === 'week')  return endsWithin(e, 7);
+          if (f === 'month') return endsWithin(e, 31);
           // Category filters
           if (['Conference','Festival','Workshop','Revival','Service','Concert','Retreat'].includes(f)) return e.type === f;
           return true;

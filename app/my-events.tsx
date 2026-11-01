@@ -8,6 +8,7 @@ import { useThemeColors, ThemeColors } from '../src/lib/theme';
 import { useTranslation } from '../src/lib/i18n';
 import { useConfirm } from '../src/components/Confirm';
 import { useUserEvents, deleteEvent, updateEvent } from '../src/lib/eventsStore';
+import { hasEnded } from '../src/lib/eventTime';
 import { useToast } from '../src/components/Toast';
 import { cancelEvent } from '../src/lib/refundsApi';
 
@@ -25,9 +26,12 @@ export default function MyEventsScreen() {
 
   const filtered = events.filter(e => {
     if (activeTab === 'All') return true;
-    if (activeTab === 'Upcoming') return e.status === 'upcoming';
-    if (activeTab === 'Active') return e.status === 'active';
-    if (activeTab === 'Past') return e.status === 'past';
+    // Worked out from the event's end rather than from status, which nothing
+    // has ever written — this tab was permanently empty, and finished events
+    // sat under Upcoming forever.
+    if (activeTab === 'Upcoming') return e.status !== 'draft' && !hasEnded(e);
+    if (activeTab === 'Active') return e.status === 'active' && !hasEnded(e);
+    if (activeTab === 'Past') return hasEnded(e);
     if (activeTab === 'Drafts') return e.status === 'draft';
     return true;
   });
@@ -54,18 +58,23 @@ export default function MyEventsScreen() {
           style: 'destructive',
           onPress: async () => {
             setCancelling(id);
-            const { ok, refunded, failed, error } = await cancelEvent(id, '');
+            const { ok, refunded, failed, released, error } = await cancelEvent(id, '');
             setCancelling(null);
             if (!ok) {
               showToast(tx('Could not cancel it'), error || '', 'error');
               return;
             }
             updateEvent(id, { lifecycle: 'cancelled' });
+            // A free event has nothing to refund, and saying "0 refunded"
+            // about twelve people who registered for free reads as a failure.
+            const nothingWasPaid = !refunded && !failed && !!released;
             showToast(
               tx('Event cancelled'),
               failed
                 ? `${refunded} ${tx('refunded')}, ${failed} ${tx('could not be refunded — check Stripe')}`
-                : `${refunded} ${tx('of')} ${sold} ${tx('refunded in full')}`,
+                : nothingWasPaid
+                  ? `${released} ${tx('of')} ${sold} ${t('toldItIsOff')}`
+                  : `${refunded} ${tx('of')} ${sold} ${tx('refunded in full')}`,
               failed ? 'error' : 'success',
             );
           },
