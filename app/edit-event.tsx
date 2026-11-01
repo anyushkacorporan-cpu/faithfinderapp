@@ -6,7 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useThemeColors, ThemeColors } from '../src/lib/theme';
 import { getEvents, updateEvent, formatPrice } from '../src/lib/eventsStore';
-import { endsAtFromText } from '../src/lib/eventTime';
+import { endsAtFromText, startsAtFromText } from '../src/lib/eventTime';
 import { KeyboardScreen } from '../src/components/KeyboardScreen';
 import { platformFeePerTicket, organizerPayoutPerTicket } from '../src/lib/ticketPricing';
 
@@ -65,6 +65,7 @@ export default function EditEventScreen() {
       // as it was when the typed text will not parse, because a wrong instant
       // here is worse than a stale one.
       ...(endsAtFromText(date, time) ? { endsAt: endsAtFromText(date, time)! } : {}),
+      ...(startsAtFromText(date, time) ? { startsAt: startsAtFromText(date, time)! } : {}),
       isPaid,
       ticketPrice: parsedPrice,
       capacity: Math.max(

@@ -10,6 +10,7 @@ import { addPost } from '../src/lib/postsStore';
 import { getUser } from '../src/lib/userStore';
 import { toggleSaveEvent, addAttending, removeAttending, useEventActions } from '../src/lib/eventActionsStore';
 import { getEvents, seatsLeft } from '../src/lib/eventsStore';
+import { registrationClosed } from '../src/lib/eventTime';
 import { useConnections } from '../src/lib/connectionsStore';
 import { searchPeople, getProfile, PersonResult } from '../src/lib/profilesStore';
 import { sendEventInvites } from '../src/lib/invitesApi';
@@ -56,6 +57,7 @@ export default function EventDetailScreen() {
   // gating the calendar on it would have turned a cosmetic bug into a blocked
   // action for exactly the people entitled to it.
   const { attending: attendingEventIds } = useEventActions();
+  const closedForRegistration = !!fullEvent && registrationClosed(fullEvent);
   const attending = attendingEventIds.includes(params.id || '');
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [showShareComposer, setShowShareComposer] = useState(false);
@@ -256,6 +258,13 @@ export default function EventDetailScreen() {
 
   function handleGetTicket() {
     if (attending) { Alert.alert(tx('Already Attending'), "You already have a ticket for this event!"); return; }
+    // Said here as well as on the server, which is where it is enforced. A
+    // button that opens checkout and fails at the end is worse than one that
+    // says why before you tap it.
+    if (fullEvent && registrationClosed(fullEvent)) {
+      Alert.alert(tx('Registration closed'), t('registrationClosedBody'));
+      return;
+    }
     router.push({ pathname: '/event-checkout', params: { id: params.id, title: (fullEvent?.title || params.title), date: (fullEvent?.date || params.date), location: (fullEvent?.location || params.location), price: (fullEvent?.price || params.price), type: (fullEvent?.type || params.type), organizer: params.organizer || '' } });
   }
 
@@ -501,7 +510,7 @@ export default function EventDetailScreen() {
           <TouchableOpacity
             style={[s.ticketBtn, attending && s.ticketBtnActive, soldOut && !attending && s.ticketBtnDisabled]}
             onPress={handleGetTicket}
-            disabled={soldOut && !attending}
+            disabled={(soldOut || closedForRegistration) && !attending}
             activeOpacity={0.88}
           >
             <Ionicons
@@ -510,7 +519,9 @@ export default function EventDetailScreen() {
               color={c.onPrimary}
             />
             <Text style={s.ticketBtnTxt}>
-              {attending ? t('youreRegistered') : soldOut ? t('soldOut') : t('register')}
+              {attending ? t('youreRegistered')
+                : closedForRegistration ? t('registrationClosedShort')
+                : soldOut ? t('soldOut') : t('register')}
             </Text>
           </TouchableOpacity>
 

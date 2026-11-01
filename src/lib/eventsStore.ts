@@ -62,6 +62,10 @@ export type AppEvent = {
    * Recorded so endsAt can be corrected later; nothing reads it yet.
    */
   timezone?: string;
+  /** When the event begins. Undefined on events made before it was recorded. */
+  startsAt?: string;
+  /** An organiser's own cutoff, earlier than the default. */
+  registrationClosesAt?: string;
   ticketPrice: number;
   platformFee: number;
   creatorPayout: number;

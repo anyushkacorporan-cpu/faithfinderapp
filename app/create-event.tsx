@@ -77,7 +77,7 @@ export default function CreateEventScreen() {
   const [endDate, setEndDate] = useState<Date|null>(null);
   const [endTime, setEndTime] = useState<Date|null>(null);
   const [pickerMode, setPickerMode] = useState<'date'|'time'>('date');
-  const [pickerTarget, setPickerTarget] = useState<'startDate'|'startTime'|'endDate'|'endTime'>('startDate');
+  const [pickerTarget, setPickerTarget] = useState<'startDate'|'startTime'|'endDate'|'endTime'|'closeDate'|'closeTime'>('startDate');
   const [showPicker, setShowPicker] = useState(false);
   const [tempDate, setTempDate] = useState(new Date());
 
@@ -152,6 +152,10 @@ export default function CreateEventScreen() {
   const [platform, setPlatform] = useState('');
   const [showPlatforms, setShowPlatforms] = useState(false);
   const [venueLayoutImage, setVenueLayoutImage] = useState('');
+  // The organiser's own earlier cutoff. Off by default: paid events already
+  // close at the start and free ones at the end, which is right for most.
+  const [closeEarly, setCloseEarly] = useState(false);
+  const [closeAt, setCloseAt] = useState<Date|null>(null);
 
   // Agenda
   const [agendaItems, setAgendaItems] = useState<{time:string;activity:string}[]>([]);
@@ -209,7 +213,7 @@ export default function CreateEventScreen() {
     const mode = target.includes('Time') ? 'time' : 'date';
     setPickerTarget(target);
     setPickerMode(mode);
-    const current = target==='startDate'?startDate:target==='startTime'?startTime:target==='endDate'?endDate:endTime;
+    const current = target==='startDate'?startDate:target==='startTime'?startTime:target==='endDate'?endDate:target==='endTime'?endTime:closeAt ?? startDate;
     setTempDate(current||new Date());
     setShowPicker(true);
   }
@@ -224,7 +228,18 @@ export default function CreateEventScreen() {
     if (pickerTarget==='startDate') setStartDate(tempDate);
     else if (pickerTarget==='startTime') setStartTime(tempDate);
     else if (pickerTarget==='endDate') setEndDate(tempDate);
-    else setEndTime(tempDate);
+    else if (pickerTarget==='endTime') setEndTime(tempDate);
+    else if (pickerTarget==='closeDate') {
+      // Keep whatever time was already chosen when only the day moves.
+      const next = new Date(tempDate);
+      if (closeAt) next.setHours(closeAt.getHours(), closeAt.getMinutes(), 0, 0);
+      setCloseAt(next);
+    }
+    else if (pickerTarget==='closeTime') {
+      const next = new Date(closeAt ?? startDate ?? tempDate);
+      next.setHours(tempDate.getHours(), tempDate.getMinutes(), 0, 0);
+      setCloseAt(next);
+    }
     setShowPicker(false);
   }
 
@@ -316,6 +331,18 @@ export default function CreateEventScreen() {
       // and without this there is no way to tell afterwards, let alone fix it.
       // Taken from the device rather than asked for — an organiser creates an
       // event where they are, and an online event has no venue zone at all.
+      // The start as a real instant. The event has never had one — ends_at was
+      // added for the payout hold and the start lived only in `time`, free
+      // text — so "registration closes when it starts" had nothing to compare
+      // against.
+      startsAt: (() => {
+        if (!startDate) return undefined;
+        const at = new Date(startDate);
+        if (startTime) at.setHours(startTime.getHours(), startTime.getMinutes(), 0, 0);
+        else at.setHours(0, 0, 0, 0);
+        return at.toISOString();
+      })(),
+      registrationClosesAt: closeEarly && closeAt ? closeAt.toISOString() : undefined,
       timezone: (() => {
         try { return Intl.DateTimeFormat().resolvedOptions().timeZone || undefined; }
         catch { return undefined; }
@@ -812,6 +839,39 @@ export default function CreateEventScreen() {
                 </View>
               )}
 
+              {/* An earlier cutoff, when the organiser wants one — a door
+                  time, catering numbers, badges to print. Left off, a paid
+                  event closes at its start and a free one at its end. */}
+              <View style={s.closeEarlyRow}>
+                <View style={{flex:1}}>
+                  <Text style={s.fieldLbl}>{t('closeRegistrationEarly')}</Text>
+                  <Text style={s.closeEarlyHint}>
+                    {isPaid ? t('closesAtStartByDefault') : t('closesAtEndByDefault')}
+                  </Text>
+                </View>
+                <Switch
+                  value={closeEarly}
+                  onValueChange={v => { setCloseEarly(v); if (v && !closeAt) setCloseAt(startDate ?? new Date()); }}
+                  trackColor={{false:c.border,true:c.gold}}
+                />
+              </View>
+              {closeEarly && (
+                <View style={s.closeEarlyPickers}>
+                  <TouchableOpacity style={s.closeEarlyBtn} onPress={() => openPicker('closeDate')}>
+                    <Ionicons name="calendar-outline" size={15} color={c.textMuted}/>
+                    <Text style={s.closeEarlyBtnTxt}>
+                      {closeAt ? closeAt.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : tx('Pick a date')}
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={s.closeEarlyBtn} onPress={() => openPicker('closeTime')}>
+                    <Ionicons name="time-outline" size={15} color={c.textMuted}/>
+                    <Text style={s.closeEarlyBtnTxt}>
+                      {closeAt ? closeAt.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',hour12:true}) : tx('Pick a time')}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+
               {isPaid && payoutsReady === false && (
                 <TouchableOpacity style={s.payoutWarn} onPress={() => router.push('/earnings?tab=Settings')}>
                   <Ionicons name="alert-circle" size={18} color={c.gold} />
@@ -1100,6 +1160,12 @@ const makeStyles = (c: ThemeColors) => StyleSheet.create({
   uploadBoxInner:{flex:1,alignItems:'center',justifyContent:'center',gap:8,backgroundColor:c.cardAlt},
   uploadBoxTxt:{fontSize:13,color:c.textMuted},
   venueLayoutImg:{width:'100%',height:'100%'},
+  closeEarlyRow:{flexDirection:'row',alignItems:'center',gap:12,marginBottom:6},
+  closeEarlyHint:{fontSize:11.5,color:c.textMuted,marginTop:2,lineHeight:16},
+  closeEarlyPickers:{flexDirection:'row',gap:8,marginBottom:16},
+  closeEarlyBtn:{flex:1,flexDirection:'row',alignItems:'center',gap:6,borderWidth:1,
+    borderColor:c.border,borderRadius:10,paddingHorizontal:10,paddingVertical:10,backgroundColor:c.cardAlt},
+  closeEarlyBtnTxt:{fontSize:13,color:c.text},
   agendaDesc:{fontSize:14,color:c.textMuted,marginBottom:16,lineHeight:20},
   agendaList:{marginBottom:16},
   agendaItem:{flexDirection:'row',alignItems:'center',gap:8,marginBottom:10},

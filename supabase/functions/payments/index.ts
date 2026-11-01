@@ -270,13 +270,32 @@ Deno.serve(async (req) => {
 
     const { data: event, error: eventErr } = await admin
       .from('events')
-      .select('id, title, date, location, type, ticket_price, platform_fee, currency, is_paid, organizer_id, refund_policy, lifecycle')
+      .select('id, title, date, location, type, ticket_price, platform_fee, currency, is_paid, organizer_id, refund_policy, lifecycle, starts_at, ends_at, registration_closes_at')
       .eq('id', eventId)
       .single();
     if (eventErr || !event) return json({ error: 'That event no longer exists.' }, 404);
     if (!event.is_paid) return json({ error: 'That event is free — no payment needed.' }, 400);
     if (event.lifecycle === 'cancelled') {
       return json({ error: 'That event has been cancelled.' }, 409);
+    }
+
+    // Registration has to shut somewhere, and it has to shut here rather than
+    // only on the screen: the checkout screen is a courtesy, this is the gate.
+    //
+    // A paid event closes when it starts. Somebody buying a $30 ticket at 7:30
+    // for a six-to-eight concert has paid full price for half an hour, and
+    // FourCircle is the merchant of record when they dispute it. The
+    // organiser's own cutoff, when they set one, beats that.
+    //
+    // An event with no recorded instant is never treated as closed. Refusing a
+    // real sale because a column was never filled is worse than taking a late
+    // one.
+    const closesAt = event.registration_closes_at ?? event.starts_at;
+    if (closesAt) {
+      const closes = Date.parse(String(closesAt));
+      if (!Number.isNaN(closes) && closes < Date.now()) {
+        return json({ error: 'Registration for that event has closed.' }, 409);
+      }
     }
 
     // Where this organiser's money goes.

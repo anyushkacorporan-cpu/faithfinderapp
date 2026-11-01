@@ -16,6 +16,7 @@ import { startPayment, confirmPayment } from '../src/lib/paymentsApi';
 import { hasStripe } from '../src/lib/stripeConfig';
 import { priceBreakdown } from '../src/lib/ticketPricing';
 import { RefundPolicyNote } from '../src/components/RefundPolicyNote';
+import { registrationClosed } from '../src/lib/eventTime';
 import { KeyboardScreen } from '../src/components/KeyboardScreen';
 import { useConfirm } from '../src/components/Confirm';
 
@@ -235,7 +236,11 @@ export default function EventCheckoutScreen() {
     });
   }
 
-  const canPay = agreed;
+  // A free event stays open until it ends; a paid one shut at its start and
+  // never reached this screen. Checked here too because somebody can sit on
+  // checkout while the window closes behind them.
+  const closedForRegistration = !!fullEvent && registrationClosed(fullEvent);
+  const canPay = agreed && !closedForRegistration;
 
   return (
     <SafeAreaView style={s.root} edges={['top']}>
@@ -400,9 +405,11 @@ export default function EventCheckoutScreen() {
           <Text style={s.payNowBtnTxt}>
             {processing
               ? tx('Processing…')
-              : isFree
-                ? tx('Complete Registration')
-                : `${tx('Pay')} $${total.toFixed(2)}`}
+              : closedForRegistration
+                ? t('registrationClosedShort')
+                : isFree
+                  ? tx('Complete Registration')
+                  : `${tx('Pay')} $${total.toFixed(2)}`}
           </Text>
         </TouchableOpacity>
       </View>

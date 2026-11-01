@@ -671,6 +671,20 @@ const translations: Record<string, Record<Lang, string>> = {
   pd18: { English: 'Owed Back to FourCircle', Español: 'Debido a FourCircle' },
   pd19: { English: 'Owed to You', Español: 'Se te Debe' },
   // What a free event's cancellation says instead of "refunded in full".
+  registrationClosedShort: { English: 'Registration closed', Español: 'Inscripciones cerradas' },
+  registrationClosedBody: {
+    English: 'Registration for this event has closed.',
+    Español: 'Las inscripciones para este evento están cerradas.' },
+  pickADate: { English: 'Pick a date', Español: 'Elige una fecha' },
+  pickATime: { English: 'Pick a time', Español: 'Elige una hora' },
+  closeRegistrationEarly: {
+    English: 'Close registration early', Español: 'Cerrar inscripciones antes' },
+  closesAtStartByDefault: {
+    English: 'Otherwise it closes when the event starts.',
+    Español: 'De lo contrario, se cierra cuando empieza el evento.' },
+  closesAtEndByDefault: {
+    English: 'Otherwise it stays open until the event ends.',
+    Español: 'De lo contrario, permanece abierta hasta que termina el evento.' },
   toldItIsOff: { English: 'told it is off', Español: 'avisados de la cancelación' },
   cancelEventTitle: { English: 'Cancel this event?', Español: '¿Cancelar este evento?' },
   cancelEventConfirm: { English: 'Cancel and refund', Español: 'Cancelar y reembolsar' },

@@ -8,7 +8,10 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { endsAtFromText, hasEnded, eventEndsAt } from './eventTime.ts';
+import {
+  endsAtFromText, hasEnded, eventEndsAt,
+  startsAtFromText, registrationClosesAt, registrationClosed,
+} from './eventTime.ts';
 
 const local = (iso: string | null) => (iso === null ? null : new Date(iso).toString());
 
@@ -77,4 +80,62 @@ test('an event nobody can date is never treated as over', () => {
   assert.equal(hasEnded({ endsAt: '' }), false);
   assert.equal(hasEnded({ endsAt: 'not a timestamp' }), false);
   assert.equal(eventEndsAt({ endsAt: 'not a timestamp' }), null);
+});
+
+// ── When registration closes ──────────────────────────────────────────────
+
+const at = (iso: string) => Date.parse(iso);
+const EVENING = {
+  startsAt: '2026-11-08T23:00:00Z',   // 6pm ET
+  endsAt:   '2026-11-09T01:00:00Z',   // 8pm ET
+};
+
+test('a paid event closes at its start', () => {
+  const e = { ...EVENING, isPaid: true };
+  assert.equal(registrationClosesAt(e), at(EVENING.startsAt));
+  // Ten minutes in: shut.
+  assert.equal(registrationClosed(e, at('2026-11-08T23:10:00Z')), true);
+  // Ten minutes before: open.
+  assert.equal(registrationClosed(e, at('2026-11-08T22:50:00Z')), false);
+});
+
+test('a free event stays open until it ends', () => {
+  const e = { ...EVENING, isPaid: false };
+  assert.equal(registrationClosesAt(e), at(EVENING.endsAt));
+  // Ten past six, somebody walks in. Still open.
+  assert.equal(registrationClosed(e, at('2026-11-08T23:10:00Z')), false);
+  // After eight, done.
+  assert.equal(registrationClosed(e, at('2026-11-09T01:30:00Z')), true);
+});
+
+test("the organiser's own cutoff beats both defaults", () => {
+  const cutoff = '2026-11-08T20:00:00Z';   // 3pm ET, doors at six
+  for (const isPaid of [true, false]) {
+    const e = { ...EVENING, isPaid, registrationClosesAt: cutoff };
+    assert.equal(registrationClosesAt(e), at(cutoff), `isPaid ${isPaid}`);
+    assert.equal(registrationClosed(e, at('2026-11-08T21:00:00Z')), true);
+    assert.equal(registrationClosed(e, at('2026-11-08T19:00:00Z')), false);
+  }
+});
+
+test('an event nobody can time is never closed', () => {
+  // Events made before these columns existed. Refusing a real registration
+  // because nothing was recorded is worse than taking a late one.
+  assert.equal(registrationClosesAt({ isPaid: true }), null);
+  assert.equal(registrationClosed({ isPaid: true }), false);
+  assert.equal(registrationClosed({ isPaid: false, endsAt: 'nonsense' }), false);
+  // A paid event with no start falls through to nothing, not to its end.
+  assert.equal(registrationClosesAt({ isPaid: true, endsAt: EVENING.endsAt }), null);
+});
+
+test('a start is parsed from the beginning of a range, not the end', () => {
+  const d = new Date(startsAtFromText('Sun, Nov 8, 2026', '6:00 PM - 8:00 PM')!);
+  assert.equal(d.getHours(), 18);
+  assert.equal(d.getDate(), 8);
+});
+
+test('a start with no time is the beginning of its day, not the close', () => {
+  const d = new Date(startsAtFromText('Nov 8, 2026', '')!);
+  assert.equal(d.getHours(), 0);
+  assert.equal(d.getMinutes(), 0);
 });
