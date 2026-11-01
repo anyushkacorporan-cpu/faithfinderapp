@@ -719,7 +719,17 @@ export default function CreateEventScreen() {
                 <TouchableOpacity style={[s.ticketBtn,isPaid&&s.ticketBtnPaid]} onPress={()=>{
                   setIsPaid(true);
                   if (payoutsReady === null) {
-                    void fetchPayoutStatus().then(({ status }) => setPayoutsReady(status.chargesEnabled));
+                    // Only a definitive answer is recorded. fetchPayoutStatus
+                    // reports NO_PAYOUT_ACCOUNT when it could not reach Stripe
+                    // at all, and flags a cached answer as stale — taking
+                    // either at face value tells an organiser who IS set up
+                    // that they are not, over a dropped connection. Left null
+                    // instead, which shows nothing rather than something
+                    // untrue. The purchase is refused server-side regardless,
+                    // so silence here costs no money.
+                    void fetchPayoutStatus().then(({ status, error }) => {
+                      if (!error) setPayoutsReady(status.chargesEnabled);
+                    });
                   }
                 }}>
                   <Ionicons name="card-outline" size={20} color={isPaid?c.white:c.placeholder}/>

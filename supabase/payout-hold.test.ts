@@ -155,3 +155,34 @@ test('the verification guard still exempts admins and stamps the clock', () => {
   // And the claimant is still stopped from approving themselves.
   assert.match(code(CLAIMS), /auth\.uid\(\) is not null/);
 });
+
+// ── The ticket insert policy ──────────────────────────────────────────────
+// Same drift-pinning as above, on 36_free_tickets_only.sql. A client could
+// once write itself a paid ticket for nothing; these assert the conditions
+// that stop it are still in the policy.
+
+const FREE_TICKETS = sql('36_free_tickets_only.sql');
+
+test('a client insert still has to be for a free event', () => {
+  const c = code(FREE_TICKETS);
+  assert.match(c, /e\.is_paid = false/,
+    'the free-event condition is gone — paid tickets can be forged again');
+  assert.match(c, /e\.status <> 'draft'/);
+  assert.match(c, /e\.lifecycle <> 'cancelled'/);
+});
+
+test('a client insert still has to claim no money', () => {
+  const c = code(FREE_TICKETS);
+  for (const column of
+       ['total_paid', 'platform_fee', 'processing_fee', 'price_per_ticket']) {
+    assert.match(c, new RegExp(`coalesce\\(${column}, 0\\) = 0`),
+      `${column} is no longer forced to zero`);
+  }
+  assert.match(c, /payment_intent_id is null/);
+});
+
+test('the wide-open policy is dropped, not left beside the new one', () => {
+  // Postgres ORs permissive policies together: leaving the old one in place
+  // would make the new one decorative.
+  assert.match(code(FREE_TICKETS), /drop policy if exists tickets_insert_own on tickets;/);
+});
