@@ -168,7 +168,15 @@ export default function MyEventsScreen() {
                 </View>
                 <View style={s.cardInfo}>
                   <Ionicons name="people-outline" size={13} color={c.textMuted} />
-                  <Text style={s.cardInfoTxt}>{event.attending} attending</Text>
+                  {/*
+                    ticketsSold, not attending. `attending` is never written by
+                    anything, so this read 0 beside a card that had just said
+                    tickets were sold — and on a free event it read 0 however
+                    many people had registered. Every registration inserts a
+                    ticket row, free ones at a price of zero, and the
+                    claim_seats trigger counts them all.
+                  */}
+                  <Text style={s.cardInfoTxt}>{event.ticketsSold} attending</Text>
                 </View>
               </View>
               <View style={s.cardActions}>

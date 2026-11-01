@@ -86,6 +86,15 @@ export type AppEvent = {
   hasLiveStream: boolean;
   recurrence: RecurrenceType;
   notes: string;
+  /**
+   * Dead. Nothing has ever written this, on the server or the phone.
+   *
+   * The column exists, the API maps it, and it is always 0. Registrations —
+   * free and paid alike — are counted by the claim_seats trigger into
+   * `ticketsSold`, because every registration inserts a ticket row, a free
+   * one at a price of zero. Read `ticketsSold` for "how many people are
+   * coming"; this field is kept only so a row round-trips unchanged.
+   */
   attending: number;
   createdAt: number;
 };
@@ -365,7 +374,6 @@ export function getEarnings() {
   const totalFees = paidEvents.reduce((sum, e) => sum + (e.platformFee * e.ticketsSold), 0);
   const netRevenue = grossRevenue;
   const totalTickets = events.reduce((sum, e) => sum + e.ticketsSold, 0);
-  const totalAttendees = events.reduce((sum, e) => sum + e.attending, 0);
   // Everything earned is owed until a transfer actually happens. These used to
   // be netRevenue * 0.7 and * 0.3 — placeholder numbers from before earnings
   // were wired to real ticket sales, which survived the wiring and turned into
@@ -376,7 +384,11 @@ export function getEarnings() {
   // completedPayout stays at zero until there are real transfers to count.
   // Stripe Connect owns that ledger — what moved, when, and to which account —
   // so this is where its payout total is read in, not something to model here.
-  return { grossRevenue, totalFees, netRevenue, totalTickets, totalAttendees, pendingPayout: netRevenue, completedPayout: 0 };
+  // totalAttendees used to be returned here, summing `attending` — the column
+  // nothing writes. Nothing read it any more either: the earnings hero moved to
+  // real ticket records. Removed rather than corrected, so the next person does
+  // not find a plausible-looking attendee total sitting here and use it.
+  return { grossRevenue, totalFees, netRevenue, totalTickets, pendingPayout: netRevenue, completedPayout: 0 };
 }
 
 /**
