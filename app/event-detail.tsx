@@ -273,7 +273,7 @@ export default function EventDetailScreen() {
         {/* Banner */}
         {fullEvent?.bannerImage ? (
           <TouchableOpacity activeOpacity={0.95} onPress={() => setShowFullPhoto(true)} style={s.banner}>
-          <ImageBackground source={{uri: fullEvent.bannerImage}} style={{flex:1}} resizeMode="cover">
+          <ImageBackground source={{uri: fullEvent.bannerImage}} style={{flex:1}} resizeMode="contain">
             <View style={s.bannerTop}>
               <TouchableOpacity style={s.backBtn} onPress={() => router.back()}>
                 <Ionicons name="arrow-back" size={20} color={c.onPrimary} />
@@ -383,6 +383,24 @@ export default function EventDetailScreen() {
               </TouchableOpacity>
             </View>
           </View>
+
+          {/* The venue map.
+              Organisers have been able to upload one since create-event had
+              the field, and it reached the database and came back down — it
+              was simply never drawn on this screen, so every map uploaded so
+              far has been invisible to the people it was for. Contained
+              rather than cropped: a seating chart with its edges cut off is
+              worse than none. */}
+          {!!fullEvent?.venueLayoutImage && (
+            <View style={s.venueMapWrap}>
+              <Image
+                source={{uri: fullEvent.venueLayoutImage}}
+                style={s.venueMapImg}
+                resizeMode="contain"
+                accessibilityLabel={tx('Venue map')}
+              />
+            </View>
+          )}
 
           {/* Summary */}
           <View style={s.section}>
@@ -888,7 +906,12 @@ export default function EventDetailScreen() {
 
 const makeStyles = (c: ThemeColors) => StyleSheet.create({
   root:{flex:1,backgroundColor:c.card},
-  banner:{aspectRatio:16/9,justifyContent:'flex-start',padding:16},
+  // See the note on cardBanner in events.tsx: the whole flyer, with the
+  // background filling whatever contain leaves over.
+  banner:{aspectRatio:16/9,justifyContent:'flex-start',padding:16,backgroundColor:c.cardAlt},
+  venueMapWrap:{marginHorizontal:16,marginBottom:16,borderRadius:14,overflow:'hidden',
+    borderWidth:1,borderColor:c.border,backgroundColor:c.cardAlt},
+  venueMapImg:{width:'100%',height:220},
   bannerTop:{flexDirection:'row',justifyContent:'space-between',alignItems:'center'},
   backBtn:{width:38,height:38,borderRadius:19,backgroundColor:'rgba(0,0,0,0.3)',alignItems:'center',justifyContent:'center'},
   bannerTopRight:{flexDirection:'row',gap:8},

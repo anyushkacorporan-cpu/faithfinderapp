@@ -404,11 +404,14 @@ function CommentRow({ comment, postId, onReply, onLike, onReplyLike, onMenu }: {
               <Ionicons name="ellipsis-horizontal" size={15} color={c.textMuted} />
             </TouchableOpacity>
           </View>
-          {!!comment.text && <Text style={cs.text}>{comment.text}</Text>}
+          {!!comment.text && (
+            <TranslateRow text={comment.text}>
+              {shown => <Text style={cs.text}>{shown}</Text>}
+            </TranslateRow>
+          )}
           {!!comment.image && (
             <Image source={{uri: comment.image}} style={cs.commentImage} resizeMode="cover" />
           )}
-          <TranslateRow text={comment.text}/>
           <View style={cs.actions}>
             <TouchableOpacity style={cs.actionBtn} onPress={onLike}>
               <Ionicons name={comment.liked ? 'heart' : 'heart-outline'} size={15} color={comment.liked ? '#e74c6f' : c.textMuted} />
@@ -442,8 +445,9 @@ function CommentRow({ comment, postId, onReply, onLike, onReplyLike, onMenu }: {
               {reply.city && reply.state && <Text style={cs.meta}> · {reply.city}, {reply.state}</Text>}
               <Text style={cs.meta}> · {reply.time}</Text>
             </View>
-            <Text style={cs.text}>{reply.text}</Text>
-            <TranslateRow text={reply.text}/>
+            <TranslateRow text={reply.text}>
+              {shown => <Text style={cs.text}>{shown}</Text>}
+            </TranslateRow>
             <View style={cs.actions}>
               <TouchableOpacity style={cs.actionBtn} onPress={() => onReplyLike(reply.id)}>
                 <Ionicons name={reply.liked ? 'heart' : 'heart-outline'} size={14} color={reply.liked ? '#e74c6f' : c.textMuted} />

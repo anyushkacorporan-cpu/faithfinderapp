@@ -322,33 +322,6 @@ export default function EventCheckoutScreen() {
 
           <View style={s.divider} />
 
-          {/* Terms */}
-          <View style={s.section}>
-            <Text style={s.termsTitle}>{t('termsConditions')}</Text>
-            {/* This used to say "All sales are final. Tickets are
-                non-refundable unless the event is cancelled or rescheduled"
-                to every buyer of every event. It was not the policy, it was
-                not any event's policy, and it sat directly above a tick box
-                agreeing to terms that said otherwise. */}
-            {isFree ? (
-              <View style={s.termsBox}>
-                <Text style={s.termsTxt}>
-                  {tx("By registering you agree to FourCircle's Terms of Service and Privacy Policy. Registration is free and may be cancelled by the organizer.")}
-                </Text>
-              </View>
-            ) : (
-              <RefundPolicyNote policy={fullEvent?.refundPolicy} />
-            )}
-            <View style={s.agreeRow}>
-              <TouchableOpacity style={[s.checkbox, agreed && s.checkboxChecked]} onPress={() => setAgreed(a => !a)}>
-                {agreed && <Ionicons name="checkmark" size={13} color={c.onPrimary}/>}
-              </TouchableOpacity>
-              <Text style={s.agreeTxt}>{t('agreeTerms')}</Text>
-            </View>
-          </View>
-
-          <View style={s.divider} />
-
           {/* Payment — paid events only.
               There is no card form here on purpose. Card numbers are collected
               by Stripe's own sheet, which opens when Pay is tapped: it handles
@@ -366,6 +339,45 @@ export default function EventCheckoutScreen() {
               </View>
             </View>
           )}
+
+          {/* Refund policy and terms, last.
+              They used to sit above the payment section, which put the thing
+              somebody is agreeing to several screens above the button they
+              agree with. Last means read last. */}
+          <View style={s.section}>
+            <Text style={s.termsTitle}>{t('termsConditions')}</Text>
+            {/* This used to say "All sales are final. Tickets are
+                non-refundable unless the event is cancelled or rescheduled"
+                to every buyer of every event. It was not the policy, it was
+                not any event's policy, and it sat directly above a tick box
+                agreeing to terms that said otherwise. */}
+            {isFree ? (
+              <View style={s.termsBox}>
+                <Text style={s.termsTxt}>
+                  {tx("By registering you agree to FourCircle's Terms of Service and Privacy Policy. Registration is free and may be cancelled by the organizer.")}
+                </Text>
+                <Text style={[s.termsTxt,{marginTop:6}]}>{t('cancelMeansFullRefund')}</Text>
+              </View>
+            ) : (
+              <RefundPolicyNote policy={fullEvent?.refundPolicy} />
+            )}
+
+            <TouchableOpacity
+              style={s.termsLinkRow}
+              onPress={() => router.push('/ticketing-terms')}
+              accessibilityRole="link"
+            >
+              <Text style={s.termsLinkTxt}>{t('byRegisteringAgreeTerms')}</Text>
+              <Ionicons name="chevron-forward" size={14} color={c.gold} />
+            </TouchableOpacity>
+
+            <View style={s.agreeRow}>
+              <TouchableOpacity style={[s.checkbox, agreed && s.checkboxChecked]} onPress={() => setAgreed(a => !a)}>
+                {agreed && <Ionicons name="checkmark" size={13} color={c.onPrimary}/>}
+              </TouchableOpacity>
+              <Text style={s.agreeTxt}>{t('agreeTerms')}</Text>
+            </View>
+          </View>
 
           <View style={{height:120}} />
         </ScrollView>
@@ -426,6 +438,8 @@ const makeStyles = (c: ThemeColors) => StyleSheet.create({
   termsTitle:{fontSize:15,fontWeight:'700',color:c.text,marginBottom:10},
   termsBox:{borderWidth:1,borderColor:c.placeholder,borderRadius:8,padding:12,marginBottom:12,maxHeight:100,overflow:'hidden'},
   termsTxt:{fontSize:13,color:c.textSecondary,lineHeight:19},
+  termsLinkRow:{flexDirection:'row',alignItems:'center',gap:4,marginTop:10,paddingVertical:2},
+  termsLinkTxt:{flex:1,fontSize:12.5,color:c.gold,fontWeight:'600',lineHeight:18},
   agreeRow:{flexDirection:'row',alignItems:'center',gap:10},
   checkbox:{width:20,height:20,borderRadius:4,borderWidth:1.5,borderColor:c.placeholder,alignItems:'center',justifyContent:'center'},
   checkboxChecked:{backgroundColor:c.primary,borderColor:c.primary},

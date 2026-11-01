@@ -238,7 +238,11 @@ export default function CreateEventScreen() {
   async function handlePickVenueLayout() {
     const {status} = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status!=='granted') { Alert.alert(tx('Permission needed')); return; }
-    const result = await ImagePicker.launchImageLibraryAsync({quality:0.8,allowsEditing:true});
+    // allowsEditing is off here, unlike the banner. On iOS it opens a square
+    // crop box with no way out of it, so a seating chart or a floor plan was
+    // being trimmed to a square before it ever reached the preview — which is
+    // most of why it looked wrong. A map has to arrive whole.
+    const result = await ImagePicker.launchImageLibraryAsync({quality:0.8});
     if (!result.canceled) setVenueLayoutImage(result.assets[0].uri);
   }
 
@@ -658,7 +662,10 @@ export default function CreateEventScreen() {
               )}
 
               <Text style={s.fieldLbl}>{tx('Venue Map / Layout')} <Text style={{fontWeight:'400',color:c.textMuted,fontSize:11}}>{tx('(Optional)')}</Text></Text>
-              <TouchableOpacity style={s.uploadBox} onPress={handlePickVenueLayout}>
+              <TouchableOpacity
+                style={[s.uploadBox, !!venueLayoutImage && s.uploadBoxFilled]}
+                onPress={handlePickVenueLayout}
+              >
                 {venueLayoutImage
                   ?<Image source={{uri:venueLayoutImage}} style={s.venueLayoutImg} resizeMode="contain"/>
                   :<View style={s.uploadBoxInner}>
@@ -1075,7 +1082,11 @@ const makeStyles = (c: ThemeColors) => StyleSheet.create({
   venueBtn:{flex:1,alignItems:'center',gap:6,borderWidth:1.5,borderColor:c.border,borderRadius:12,paddingVertical:14},
   venueBtnActive:{borderColor:c.primary,backgroundColor:c.primary},
   venueTxt:{fontSize:12,fontWeight:'700',color:c.textMuted},
-  uploadBox:{height:130,borderRadius:14,borderWidth:1.5,borderColor:c.border,borderStyle:'dashed',overflow:'hidden',marginBottom:16},
+  uploadBox:{height:130,borderRadius:14,borderWidth:1.5,borderColor:c.border,borderStyle:'dashed',overflow:'hidden',marginBottom:16,justifyContent:'center'},
+  // Taller once there is something to look at, and backed, so a tall floor
+  // plan is readable rather than a stripe. 130 is the right height for an
+  // empty dashed box and the wrong one for a map.
+  uploadBoxFilled:{height:220,borderStyle:'solid',backgroundColor:c.cardAlt},
   uploadBoxInner:{flex:1,alignItems:'center',justifyContent:'center',gap:8,backgroundColor:c.cardAlt},
   uploadBoxTxt:{fontSize:13,color:c.textMuted},
   venueLayoutImg:{width:'100%',height:'100%'},

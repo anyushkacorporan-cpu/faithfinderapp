@@ -394,6 +394,8 @@ const translations: Record<string, Record<Lang, string>> = {
   speakersGuests: { English: 'Speakers & Guests', Español: 'Oradores e Invitados' },
   venueType: { English: 'Venue Type', Español: 'Tipo de Lugar' },
   uploadSeatingChart: { English: 'Upload seating chart or venue map', Español: 'Subir plano de asientos o mapa del lugar' },
+  // The screen-reader label on the venue map now shown on the event page.
+  venueMapLabel: { English: 'Venue map', Español: 'Mapa del lugar' },
   buildTimeline: { English: 'Build your event timeline step by step.', Español: 'Construye el cronograma de tu evento paso a paso.' },
   noAgendaYet: { English: 'No agenda yet', Español: 'Aún no hay agenda' },
   freeEvent: { English: 'Free Event', Español: 'Evento Gratuito' },
@@ -599,6 +601,11 @@ const translations: Record<string, Record<Lang, string>> = {
   feesShownBeforeYouPay: {
     English: 'Fees are shown before you pay.',
     Español: 'Las tarifas se muestran antes de pagar.' },
+  // The line under the refund policy on the registration screen. Separate
+  // from agreeTerms, which labels the tick box: this one is the link.
+  byRegisteringAgreeTerms: {
+    English: 'By registering, you agree to the FourCircle Terms and Conditions.',
+    Español: 'Al registrarte, aceptas los Términos y Condiciones de FourCircle.' },
   agreeTicketingTerms: {
     English: 'I agree to the FourCircle Ticketing, Refund and Payout Terms.',
     Español: 'Acepto los Términos de Boletos, Reembolsos y Pagos de FourCircle.' },

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, type ReactNode } from 'react';
 import { View, Text, TouchableOpacity, Image, StyleSheet, Dimensions, ImageBackground, ScrollView } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -262,7 +262,25 @@ function Caption({ text, style }: { text: string; style: any }) {
 
 const APP_LANG_CODES: Record<string,string> = { 'English':'en', 'Español':'es', 'Français':'fr', 'Português':'pt' };
 
-export function TranslateRow({text}:{text:string}) {
+/**
+ * Translation shown in place of the original, the way every other feed does it.
+ *
+ * This used to render the translation as a second paragraph underneath, in
+ * italics, so a post appeared twice and the screen grew as you read it. The
+ * text is now swapped where it already sits, and the same control swaps it
+ * back — one button, two directions, no second copy.
+ *
+ * The body is passed back through `children` rather than rendered here,
+ * because the three callers draw it differently: a post runs it through
+ * Caption, which handles hashtags and the "more" link, while a comment and a
+ * reply are plain Text. Each keeps its own renderer and this decides only
+ * which string goes into it.
+ */
+export function TranslateRow({text, children}:{
+  text: string;
+  /** Receives the original, or the translation while one is being shown. */
+  children: (shown: string) => ReactNode;
+}) {
   const c = useThemeColors();
   const appSettings = useSettings();
   const myLang = APP_LANG_CODES[appSettings.appearance.language] || 'en';
@@ -295,17 +313,21 @@ export function TranslateRow({text}:{text:string}) {
     }
   }
 
-  if (!detectedLang || detectedLang === myLang) return null;
+  // Already in the reader's language, or not worth detecting. The body still
+  // has to be drawn — returning null here would take the post's own text with
+  // it, which is what made this a render prop rather than a sibling.
+  const worthOffering = !!detectedLang && detectedLang !== myLang;
+  const shown = showingTranslation && translated ? translated : text;
 
   return (
     <View>
-      <TouchableOpacity onPress={handleTranslate} disabled={loading} style={{marginTop:4}}>
-        <Text style={{fontSize:12,color:c.textMuted,fontWeight:'600'}}>
-          {loading ? 'Translating...' : showingTranslation ? 'See original' : error ? 'Translation failed – tap to retry' : 'Translate'}
-        </Text>
-      </TouchableOpacity>
-      {showingTranslation && !!translated && (
-        <Text style={{fontSize:14,color:c.textSecondary,lineHeight:20,marginTop:4,fontStyle:'italic'}}>{translated}</Text>
+      {children(shown)}
+      {worthOffering && (
+        <TouchableOpacity onPress={handleTranslate} disabled={loading} style={{marginTop:4}}>
+          <Text style={{fontSize:12,color:c.textMuted,fontWeight:'600'}}>
+            {loading ? 'Translating...' : showingTranslation ? 'See original' : error ? 'Translation failed – tap to retry' : 'Translate'}
+          </Text>
+        </TouchableOpacity>
       )}
     </View>
   );
@@ -390,8 +412,11 @@ export function PostCard({post,showLocation,onLike,onComment,onShare,onOpenProfi
       </View>
 
       {!!post.repostComment&&<Caption text={post.repostComment} style={p.content}/>}
-      {!post.repostOf&&!!post.content&&<Caption text={post.content} style={p.content}/>}
-      {!post.repostOf&&!!post.content&&<TranslateRow text={post.content}/>}
+      {!post.repostOf&&!!post.content&&(
+        <TranslateRow text={post.content}>
+          {shown => <Caption text={shown} style={p.content}/>}
+        </TranslateRow>
+      )}
       {!post.repostOf&&<PostPhotos uris={postImages(post)} />}
 
       {!post.repostOf&&!!post.linkPreview&&!!post.linkUrl&&(
