@@ -6,7 +6,8 @@
     "start": "expo start",
     "reset-project": "node ./scripts/reset-project.js",
     "ios": "expo start --ios",
-    "lint": "expo lint"
+    "lint": "expo lint",
+    "test": "node --test --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON 'src/**/*.test.ts' 'supabase/**/*.test.ts'"
   },
   "dependencies": {
     "@expo-google-fonts/dm-sans": "^0.4.2",
