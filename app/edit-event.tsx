@@ -7,6 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useThemeColors, ThemeColors } from '../src/lib/theme';
 import { getEvents, updateEvent, formatPrice } from '../src/lib/eventsStore';
 import { endsAtFromText, startsAtFromText } from '../src/lib/eventTime';
+import { flushEventNotices } from '../src/lib/eventNotifyApi';
 import { KeyboardScreen } from '../src/components/KeyboardScreen';
 import { platformFeePerTicket, organizerPayoutPerTicket } from '../src/lib/ticketPricing';
 
@@ -77,6 +78,9 @@ export default function EditEventScreen() {
       platformFee,
       creatorPayout,
     });
+    // Not awaited. The trigger has already recorded what changed, so this is
+    // only asking the server to send it now rather than on the next flush.
+    void flushEventNotices(event!.id);
     Alert.alert(tx('Saved'), tx('Your event has been updated.'), [{ text: 'OK', onPress: () => router.back() }]);
   }
 

@@ -9,6 +9,7 @@ import { useTranslation } from '../src/lib/i18n';
 import { useConfirm } from '../src/components/Confirm';
 import { useUserEvents, deleteEvent, updateEvent } from '../src/lib/eventsStore';
 import { hasEnded } from '../src/lib/eventTime';
+import { flushEventNotices } from '../src/lib/eventNotifyApi';
 import { useToast } from '../src/components/Toast';
 import { cancelEvent } from '../src/lib/refundsApi';
 
@@ -65,6 +66,7 @@ export default function MyEventsScreen() {
               return;
             }
             updateEvent(id, { lifecycle: 'cancelled' });
+            void flushEventNotices(id);
             // A free event has nothing to refund, and saying "0 refunded"
             // about twelve people who registered for free reads as a failure.
             const nothingWasPaid = !refunded && !failed && !!released;

@@ -418,3 +418,65 @@ test('the zone survives a round trip through the API', () => {
   assert.match(api, /timezone: e\.timezone \?\? null,/, 'not sent to the server');
   assert.match(api, /timezone: r\.timezone \?\? undefined,/, 'not read back');
 });
+
+// ── Event change notices ──────────────────────────────────────────────────
+// The diff is captured by a trigger because only the database sees the old
+// value and the new one at the same moment. These pin which fields count,
+// which deliberately do not, and the claim-before-send that stops a retry
+// mailing everyone twice.
+
+const CHANGES = sql('43_event_change_log.sql');
+
+test('the fields worth telling people about are watched', () => {
+  const c = code(CHANGES);
+  for (const field of ['title', 'date', 'time', 'location']) {
+    assert.match(c, new RegExp(`new\\.${field} is distinct from old\\.${field}`),
+      `${field} changes would go unreported`);
+  }
+});
+
+test('a description edit is not news', () => {
+  // Mailing everybody about a typo fix teaches them to ignore the mails that
+  // matter. If this ever becomes wanted it should be a deliberate change.
+  assert.doesNotMatch(code(CHANGES), /new\.description is distinct from old\.description/);
+});
+
+test('cancellation is reported as cancellation, not as a field change', () => {
+  const c = code(CHANGES);
+  assert.match(c, /new\.lifecycle = 'cancelled' and coalesce\(old\.lifecycle, ''\) <> 'cancelled'/);
+  assert.match(c, /values \(new\.id, 'cancelled', '\[\]'::jsonb\);/);
+});
+
+test('an edit that changed nothing watched writes no row', () => {
+  assert.match(code(CHANGES), /if jsonb_array_length\(diff\) = 0 then return new; end if;/);
+});
+
+test('a notice is claimed before it is sent, so a retry cannot repeat it', () => {
+  const fn = readFileSync(
+    join(here, 'functions', 'event-notify', 'index.ts'), 'utf8');
+  const c = flat(fn);
+  assert.match(c, /\.update\(\{ sent_at: new Date\(\)\.toISOString\(\) \}\) \.eq\('id', row\.id\)\.is\('sent_at', null\)/,
+    'the claim is gone — a second flush would mail everybody again');
+});
+
+test('attendees are not shown each other addresses', () => {
+  const fn = readFileSync(
+    join(here, 'functions', 'event-notify', 'index.ts'), 'utf8');
+  // One request per address. Resend's `to` array puts them all in one header.
+  assert.match(flat(fn), /for \(const address of to\)/);
+  assert.match(flat(fn), /to: \[address\]/);
+  assert.doesNotMatch(flat(fn), /to: to,/);
+});
+
+test('one message each, however many tickets they hold', () => {
+  const fn = readFileSync(
+    join(here, 'functions', 'event-notify', 'index.ts'), 'utf8');
+  assert.match(flat(fn), /const to = \[\.\.\.new Set\(/);
+});
+
+test('it sends from the right address, with replies going somewhere answered', () => {
+  const fn = readFileSync(
+    join(here, 'functions', 'event-notify', 'index.ts'), 'utf8');
+  assert.match(fn, /const FROM = 'FourCircle <hello@fourcircle\.app>';/);
+  assert.match(fn, /const REPLY_TO = 'support@fourcircle\.app';/);
+});
