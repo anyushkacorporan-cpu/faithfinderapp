@@ -200,6 +200,18 @@ export default function MyEventsScreen() {
                   <Ionicons name="create-outline" size={16} color={c.text} />
                   <Text style={s.editBtnTxt}>{t('edit')}</Text>
                 </TouchableOpacity>
+                {/* Only where there is somebody to check in. A door button on
+                    an event nobody has registered for is a button that can
+                    only disappoint. */}
+                {event.ticketsSold > 0 && event.lifecycle !== 'cancelled' && (
+                  <TouchableOpacity
+                    style={s.editBtn}
+                    onPress={() => router.push({ pathname: '/event-checkin', params: { id: event.id, title: event.title } })}
+                  >
+                    <Ionicons name="qr-code-outline" size={16} color={c.text} />
+                    <Text style={s.editBtnTxt}>{t('checkIn')}</Text>
+                  </TouchableOpacity>
+                )}
                 {/* One or the other, never both. A delete cascades to the
                     tickets, so once a seat is sold the safe action is the
                     only one offered. */}

@@ -65,6 +65,31 @@ async function stripe(path: string, method: 'GET' | 'POST', form?: Record<string
  * Failure here is logged and swallowed. The ticket is paid and the money has
  * moved; a missing label is not worth telling a buyer their payment failed.
  */
+/**
+ * A ticket code somebody can read aloud and nobody can guess.
+ *
+ * This was six hex characters -- 16.7 million -- while a FREE registration
+ * already used eight from a 32-letter alphabet, about 1.1 trillion. So the
+ * paid ticket, the one worth forging and now the one that opens a door, had
+ * the weaker code of the two by a factor of sixty thousand. An event's codes
+ * are all for the same door, so the space that matters is the one an attacker
+ * walks looking for any valid seat, not a particular one.
+ *
+ * Same alphabet as newShortCode() in src/lib/ids.ts: no I, O, 0 or 1, because
+ * these get read out at a door and typed back in by somebody who could not
+ * make the scanner work.
+ *
+ * crypto.getRandomValues rather than Math.random: this one authorises entry.
+ * The modulo is unbiased because 256 divides evenly by 32.
+ */
+function newTicketCode(): string {
+  const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  const bytes = crypto.getRandomValues(new Uint8Array(8));
+  let out = '';
+  for (const b of bytes) out += alphabet[b % 32];
+  return 'TKT-' + out;
+}
+
 async function tagTransfer(
   intent: Record<string, unknown>,
   eventId: string,
@@ -354,8 +379,7 @@ Deno.serve(async (req) => {
     const processingFee = +(total - subtotal - totalFee).toFixed(2);
 
     const ticketId = crypto.randomUUID();
-    const codes = Array.from({ length: quantity }, () =>
-      'TKT-' + crypto.randomUUID().replace(/-/g, '').slice(0, 6).toUpperCase());
+    const codes = Array.from({ length: quantity }, () => newTicketCode());
 
     // Insert first: the capacity trigger runs here and refuses if the seats
     // are gone. Charging someone and then discovering the event is full is

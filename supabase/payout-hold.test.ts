@@ -480,3 +480,62 @@ test('it sends from the right address, with replies going somewhere answered', (
   assert.match(fn, /const FROM = 'FourCircle <hello@fourcircle\.app>';/);
   assert.match(fn, /const REPLY_TO = 'support@fourcircle\.app';/);
 });
+
+// ── The door ──────────────────────────────────────────────────────────────
+// A code admits somebody to a room, so these pin the three things that make
+// it safe: it is single-use, it belongs to the organiser's own event, and it
+// cannot be guessed.
+
+const CHECKIN = sql('44_checkin.sql');
+
+test('a code can only be used once, by the database rather than by a check', () => {
+  const c = code(CHECKIN);
+  // Two doors scanning the same code at the same instant both pass a check
+  // that read the table a moment earlier. Only the unique index is true.
+  assert.match(c, /code\s+text not null unique/);
+  assert.match(c, /exception when unique_violation then/);
+});
+
+test('only the organiser can work their own door', () => {
+  const c = code(CHECKIN);
+  assert.match(c, /if ev\.organizer_id is distinct from auth\.uid\(\) and not is_admin\(\) then/);
+  assert.match(c, /'status', 'forbidden'/);
+  // And the attendee list is an attendance record, not public.
+  assert.match(c, /create policy ticket_checkins_organizer on ticket_checkins/);
+});
+
+test('a real code for another event says so, rather than "not found"', () => {
+  // At a venue running two events this is the likeliest mistake, and turning
+  // away somebody holding a valid ticket is the worst way to handle it.
+  assert.match(code(CHECKIN), /'status', 'wrong_event'/);
+});
+
+test('a refunded ticket does not open a door', () => {
+  const c = code(CHECKIN);
+  assert.match(c, /if t\.status = 'refunded' then return jsonb_build_object\('status', 'refunded'\); end if;/);
+  assert.match(c, /if t\.status <> 'paid'\s+then/);
+});
+
+test('paid ticket codes are no weaker than free ones', () => {
+  const fn = readFileSync(
+    join(here, 'functions', 'payments', 'index.ts'), 'utf8');
+  // Was six hex characters -- 16.7 million -- while a free registration
+  // already used eight from a 32-letter alphabet. The paid ticket, the one
+  // worth forging, had the weaker code by a factor of sixty thousand.
+  assert.doesNotMatch(flat(fn), /crypto\.randomUUID\(\)\.replace\(\/-\/g, ''\)\.slice\(0, 6\)/,
+    'the weak six-character ticket code is back');
+  assert.match(fn, /const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';/);
+  assert.match(fn, /crypto\.getRandomValues\(new Uint8Array\(8\)\)/,
+    'ticket codes authorise entry and must not come from Math.random');
+});
+
+test('the readable alphabet has nothing ambiguous in it', () => {
+  const fn = readFileSync(
+    join(here, 'functions', 'payments', 'index.ts'), 'utf8');
+  const m = fn.match(/const alphabet = '([A-Z0-9]+)';/);
+  assert.ok(m, 'no alphabet found');
+  for (const ch of ['I', 'O', '0', '1']) {
+    assert.ok(!m![1].includes(ch), `${ch} is in the alphabet and gets misread aloud`);
+  }
+  assert.equal(m![1].length, 32, 'a byte % 32 is only unbiased for exactly 32');
+});

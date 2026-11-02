@@ -5,6 +5,7 @@ import {
 import { router, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import QRCode from 'react-native-qrcode-svg';
 import { useThemeColors, ThemeColors } from '../src/lib/theme';
 import { useTranslation } from '../src/lib/i18n';
 import { useToast } from '../src/components/Toast';
@@ -152,13 +153,27 @@ export default function MyTicketsScreen() {
                   ? `${ticket.ticketIds.length} ${t('ticketsWord')}`
                   : t('ticketWord')}
               </Text>
+              {/* One QR per seat, with the code under it.
+                  The code stays visible on purpose: a scanner that will not
+                  focus, a cracked screen, a door with no phone — somebody has
+                  to be able to read it out and have it typed in, which is why
+                  the alphabet has no I, O, 0 or 1 in it. */}
               <View style={s.codes}>
                 {ticket.ticketIds.map(code => (
-                  <View key={code} style={s.codePill}>
+                  <View key={code} style={s.codeCard}>
+                    <View style={s.qrBox}>
+                      <QRCode
+                        value={code}
+                        size={116}
+                        backgroundColor="#ffffff"
+                        color="#000000"
+                      />
+                    </View>
                     <Text style={s.codeTxt}>{code}</Text>
                   </View>
                 ))}
               </View>
+              <Text style={s.qrHint}>{t('yourTicketQr')}</Text>
 
               {paid && (
                 <>
@@ -291,12 +306,17 @@ function makeStyles(c: ThemeColors) {
       fontSize: 11, fontWeight: '700', letterSpacing: 0.6, textTransform: 'uppercase',
       color: c.textMuted, marginTop: 10,
     },
-    codes: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 2 },
-    codePill: {
-      backgroundColor: c.bg, borderWidth: 1, borderColor: c.gold, borderRadius: 8,
-      paddingHorizontal: 11, paddingVertical: 6,
+    codes: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginTop: 4 },
+    codeCard: {
+      alignItems: 'center', gap: 7,
+      backgroundColor: c.bg, borderWidth: 1, borderColor: c.gold, borderRadius: 12,
+      paddingHorizontal: 12, paddingVertical: 12,
     },
-    codeTxt: { fontSize: 15, fontWeight: '700', color: c.gold, letterSpacing: 1 },
+    // White behind the code whatever the theme: a QR inverted by dark mode is
+    // one a scanner will not read.
+    qrBox: { backgroundColor: '#ffffff', padding: 7, borderRadius: 7 },
+    codeTxt: { fontSize: 14, fontWeight: '700', color: c.gold, letterSpacing: 1 },
+    qrHint: { fontSize: 12, color: c.textMuted, marginTop: 8 },
 
     rule: { height: 1, backgroundColor: c.border, marginVertical: 10 },
     line: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
