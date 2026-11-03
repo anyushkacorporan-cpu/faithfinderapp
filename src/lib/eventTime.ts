@@ -58,6 +58,59 @@ function setDefaultHour(d: Date, which: 'start' | 'end') {
 }
 
 /**
+ * Whether the event has begun.
+ *
+ * Unknown reads as "not yet", so an event made before starts_at existed sits
+ * under Upcoming rather than vanishing. Never hidden for want of a column.
+ */
+export function hasStarted(
+  e: { startsAt?: string | null },
+  now: number = Date.now(),
+): boolean {
+  const t = parseInstant(e.startsAt);
+  return t !== null && t <= now;
+}
+
+export type MyEventsTab = 'Upcoming' | 'Active' | 'Past' | 'Drafts';
+
+/**
+ * The one tab an event belongs to.
+ *
+ * One function rather than five independent conditions, because the rule is
+ * that an event appears in exactly one tab and that is far easier to
+ * guarantee by construction than to keep true across five filters that each
+ * grew their own idea of the answer. Which is what had happened:
+ *
+ *   Active   read `status === 'active'`, and NOTHING has ever written
+ *            'active' — the tab was permanently empty, like Past before it.
+ *   Upcoming was everything not draft and not ended, so an event happening
+ *            right now sat in Upcoming.
+ *   Past     was anything ended, drafts included, so a draft dated yesterday
+ *            appeared in Past AND in Drafts.
+ *
+ * The order below is the rule. Draft first, because a draft is a draft
+ * whatever its date. Then over, because something finished is not upcoming.
+ * Then begun. Everything else is still to come.
+ *
+ * A cancelled event counts as over. It was showing as Upcoming, which is the
+ * app saying an event is going ahead after the organiser called it off.
+ */
+export function tabForEvent(
+  e: {
+    status?: string;
+    lifecycle?: string;
+    startsAt?: string | null;
+    endsAt?: string | null;
+  },
+  now: number = Date.now(),
+): MyEventsTab {
+  if (e.status === 'draft') return 'Drafts';
+  if (e.lifecycle === 'cancelled' || hasEnded(e, now)) return 'Past';
+  if (hasStarted(e, now)) return 'Active';
+  return 'Upcoming';
+}
+
+/**
  * When registration stops.
  *
  * Paid closes at the start: somebody buying a $30 ticket at 7:30 for a six-to-

@@ -8,7 +8,7 @@ import { useThemeColors, ThemeColors } from '../src/lib/theme';
 import { useTranslation } from '../src/lib/i18n';
 import { useConfirm } from '../src/components/Confirm';
 import { useUserEvents, deleteEvent, updateEvent } from '../src/lib/eventsStore';
-import { hasEnded } from '../src/lib/eventTime';
+import { tabForEvent } from '../src/lib/eventTime';
 import { flushEventNotices } from '../src/lib/eventNotifyApi';
 import { useToast } from '../src/components/Toast';
 import { cancelEvent } from '../src/lib/refundsApi';
@@ -25,17 +25,12 @@ export default function MyEventsScreen() {
   const { showToast } = useToast();
   const [cancelling, setCancelling] = useState<string | null>(null);
 
-  const filtered = events.filter(e => {
-    if (activeTab === 'All') return true;
-    // Worked out from the event's end rather than from status, which nothing
-    // has ever written — this tab was permanently empty, and finished events
-    // sat under Upcoming forever.
-    if (activeTab === 'Upcoming') return e.status !== 'draft' && !hasEnded(e);
-    if (activeTab === 'Active') return e.status === 'active' && !hasEnded(e);
-    if (activeTab === 'Past') return hasEnded(e);
-    if (activeTab === 'Drafts') return e.status === 'draft';
-    return true;
-  });
+  // One function decides, so an event is in exactly one tab by construction
+  // rather than by five filters agreeing. See tabForEvent in eventTime.ts for
+  // what each of these used to do and why none of them quite worked.
+  const filtered = events.filter(
+    e => activeTab === 'All' || tabForEvent(e) === activeTab,
+  );
 
   /**
    * Calling the event off.

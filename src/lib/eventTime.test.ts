@@ -11,6 +11,7 @@ import assert from 'node:assert/strict';
 import {
   endsAtFromText, hasEnded, eventEndsAt,
   startsAtFromText, registrationClosesAt, registrationClosed,
+  tabForEvent, hasStarted,
 } from './eventTime.ts';
 
 const local = (iso: string | null) => (iso === null ? null : new Date(iso).toString());
@@ -138,4 +139,106 @@ test('a start with no time is the beginning of its day, not the close', () => {
   const d = new Date(startsAtFromText('Nov 8, 2026', '')!);
   assert.equal(d.getHours(), 0);
   assert.equal(d.getMinutes(), 0);
+});
+
+// ── The My Events tabs: the ten cases, one per test ───────────────────────
+// Against the real tabForEvent, at fixed instants, so "today" and "next week"
+// mean the same thing every time this runs.
+
+// A Thursday. Events below are built around it in New York time.
+const NOW = Date.parse('2026-11-05T19:00:00-05:00');   // Thu 5 Nov, 7:00 PM ET
+const ny = (iso: string) => new Date(iso).toISOString();
+
+const published = (startsAt: string, endsAt: string) =>
+  ({ status: 'upcoming', startsAt: ny(startsAt), endsAt: ny(endsAt) });
+
+test('1. a published event next week is Upcoming', () => {
+  const e = published('2026-11-12T18:00:00-05:00', '2026-11-12T20:00:00-05:00');
+  assert.equal(tabForEvent(e, NOW), 'Upcoming');
+});
+
+test('2. a published event today is Active before, at and after its start', () => {
+  const e = published('2026-11-05T18:00:00-05:00', '2026-11-05T22:00:00-05:00');
+  // Before it starts it is still to come.
+  assert.equal(tabForEvent(e, Date.parse('2026-11-05T17:00:00-05:00')), 'Upcoming');
+  // On the hour, and an hour in: Active, not Past.
+  assert.equal(tabForEvent(e, Date.parse('2026-11-05T18:00:00-05:00')), 'Active');
+  assert.equal(tabForEvent(e, NOW), 'Active');
+});
+
+test('3. a published event today whose end time has passed is Past', () => {
+  const e = published('2026-11-05T14:00:00-05:00', '2026-11-05T16:00:00-05:00');
+  assert.equal(tabForEvent(e, NOW), 'Past');
+});
+
+test('4. no end time: Active until the end of the day, Past the next', () => {
+  // create-event writes 23:59 of the day when no end time is given.
+  const e = published('2026-11-05T18:00:00-05:00', '2026-11-05T23:59:00-05:00');
+  assert.equal(tabForEvent(e, Date.parse('2026-11-05T23:50:00-05:00')), 'Active');
+  assert.equal(tabForEvent(e, Date.parse('2026-11-06T00:30:00-05:00')), 'Past');
+});
+
+test('5. a published event dated yesterday is Past', () => {
+  const e = published('2026-11-04T18:00:00-05:00', '2026-11-04T23:59:00-05:00');
+  assert.equal(tabForEvent(e, NOW), 'Past');
+});
+
+test('6. a draft is only ever in Drafts, future or past', () => {
+  const future = { status: 'draft', startsAt: ny('2026-12-01T18:00:00-05:00'),
+                   endsAt: ny('2026-12-01T20:00:00-05:00') };
+  const past   = { status: 'draft', startsAt: ny('2026-10-01T18:00:00-05:00'),
+                   endsAt: ny('2026-10-01T20:00:00-05:00') };
+  assert.equal(tabForEvent(future, NOW), 'Drafts');
+  // This is the one that was in two tabs at once: Past and Drafts.
+  assert.equal(tabForEvent(past, NOW), 'Drafts');
+});
+
+test('7. a multi-day event mid-run is Active', () => {
+  const e = published('2026-11-03T09:00:00-05:00', '2026-11-08T17:00:00-05:00');
+  assert.equal(tabForEvent(e, NOW), 'Active');
+  // And on its last day, before the end.
+  assert.equal(tabForEvent(e, Date.parse('2026-11-08T12:00:00-05:00')), 'Active');
+});
+
+test('8. publishing a draft moves it to Upcoming, or Active if it has begun', () => {
+  const dates = { startsAt: ny('2026-11-12T18:00:00-05:00'),
+                  endsAt: ny('2026-11-12T20:00:00-05:00') };
+  assert.equal(tabForEvent({ status: 'draft', ...dates }, NOW), 'Drafts');
+  assert.equal(tabForEvent({ status: 'upcoming', ...dates }, NOW), 'Upcoming');
+
+  const running = { startsAt: ny('2026-11-05T18:00:00-05:00'),
+                    endsAt: ny('2026-11-05T22:00:00-05:00') };
+  assert.equal(tabForEvent({ status: 'upcoming', ...running }, NOW), 'Active');
+});
+
+test('10. every event lands in exactly one tab, and never none', () => {
+  // Case 9 is a deletion, which removes the row and is not this function's
+  // to answer. This is the invariant the whole thing exists for.
+  const samples = [
+    published('2026-11-12T18:00:00-05:00', '2026-11-12T20:00:00-05:00'),
+    published('2026-11-05T18:00:00-05:00', '2026-11-05T22:00:00-05:00'),
+    published('2026-11-04T18:00:00-05:00', '2026-11-04T23:59:00-05:00'),
+    { status: 'draft', startsAt: ny('2026-10-01T18:00:00-05:00'), endsAt: ny('2026-10-01T20:00:00-05:00') },
+    { status: 'upcoming', lifecycle: 'cancelled', startsAt: ny('2026-11-12T18:00:00-05:00'), endsAt: ny('2026-11-12T20:00:00-05:00') },
+    { status: 'upcoming' },                                   // no dates at all
+    { status: 'upcoming', startsAt: null, endsAt: 'nonsense' },
+  ];
+  const tabs = ['Upcoming', 'Active', 'Past', 'Drafts'];
+  for (const e of samples) {
+    const landed = tabs.filter(tab => tabForEvent(e as never, NOW) === tab);
+    assert.equal(landed.length, 1, `${JSON.stringify(e)} landed in ${landed.length} tabs`);
+  }
+});
+
+test('a cancelled event is not Upcoming', () => {
+  // It was. The app told you an event was going ahead after it was called off.
+  const e = { status: 'upcoming', lifecycle: 'cancelled',
+              startsAt: ny('2026-11-12T18:00:00-05:00'),
+              endsAt: ny('2026-11-12T20:00:00-05:00') };
+  assert.equal(tabForEvent(e, NOW), 'Past');
+});
+
+test('an event with no dates stays visible rather than disappearing', () => {
+  assert.equal(tabForEvent({ status: 'upcoming' }, NOW), 'Upcoming');
+  assert.equal(hasStarted({ startsAt: undefined }, NOW), false);
 });
