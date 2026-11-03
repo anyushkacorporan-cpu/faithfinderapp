@@ -175,7 +175,6 @@ export function formatRelativeTime(createdAt?: number, fallback?: string): strin
   return `${diffYear} year${diffYear === 1 ? '' : 's'} ago`;
 }
 
-const COLORS_LIST = ['#e74c6f','#667eea','#f093fb','#4facfe','#43e97b','#fa709a','#c9a96e','#f5576c'];
 
 // Empty. Six invented posts used to sit here — Grace Community Church,
 // Pastor Michael Johnson, Faith Tabernacle NYC and the rest — each with

@@ -99,7 +99,6 @@ export default function OtherUserProfileScreen() {
   const ownGallery = isSelf ? (currentUser.photos || []) : (snapshot?.photos || []);
   const combinedGalleryPhotos = [...new Set([...galleryPhotos, ...ownGallery])];
   const galleryItems = combinedGalleryPhotos.map(uri => ({ uri, post: userPosts.find(p => p.image === uri) || null }));
-  const churchesShared = userPosts.filter(p => !!p.churchShareData).map(p => p.churchShareData!);
 
   const [showAllGallery, setShowAllGallery] = useState(false);
   // Separate from the gallery's viewer below. That one pages through a list by

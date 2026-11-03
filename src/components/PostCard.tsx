@@ -282,6 +282,7 @@ export function TranslateRow({text, children}:{
   children: (shown: string) => ReactNode;
 }) {
   const c = useThemeColors();
+  const { t } = useTranslation();
   const appSettings = useSettings();
   const myLang = APP_LANG_CODES[appSettings.appearance.language] || 'en';
   const [detectedLang, setDetectedLang] = useState<string|null>(null);
@@ -325,7 +326,10 @@ export function TranslateRow({text, children}:{
       {worthOffering && (
         <TouchableOpacity onPress={handleTranslate} disabled={loading} style={{marginTop:4}}>
           <Text style={{fontSize:12,color:c.textMuted,fontWeight:'600'}}>
-            {loading ? 'Translating...' : showingTranslation ? 'See original' : error ? 'Translation failed – tap to retry' : 'Translate'}
+            {loading ? t('translatingWord')
+              : showingTranslation ? t('seeOriginal')
+              : error ? t('translateFailedRetry')
+              : t('translateAction')}
           </Text>
         </TouchableOpacity>
       )}

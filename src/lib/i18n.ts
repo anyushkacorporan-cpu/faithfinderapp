@@ -672,6 +672,15 @@ const translations: Record<string, Record<Lang, string>> = {
   pd19: { English: 'Owed to You', Español: 'Se te Debe' },
   // What a free event's cancellation says instead of "refunded in full".
   // The door.
+  // The control under a post in another language. These were written into
+  // PostCard.tsx directly, so a Spanish reader got a button saying
+  // "Translate" in English — on the translation feature itself.
+  translateAction: { English: 'Translate', Español: 'Traducir' },
+  seeOriginal: { English: 'See original', Español: 'Ver original' },
+  translatingWord: { English: 'Translating…', Español: 'Traduciendo…' },
+  translateFailedRetry: {
+    English: 'Translation failed – tap to retry',
+    Español: 'No se pudo traducir: toca para reintentar' },
   checkIn: { English: 'Check in', Español: 'Registro de entrada' },
   checkInAction: { English: 'Check in', Español: 'Registrar' },
   checkedIn: { English: 'Checked in', Español: 'Registrado' },
