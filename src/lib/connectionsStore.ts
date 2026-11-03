@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { load, save } from './persist';
 import { fetchConnections, pushConnection, removeConnectionRemote } from './connectionsApi';
+import { stripSampleConnections } from './purgeSampleData';
 
 /**
  * Someone (or some church) the user follows. `address` and `placeId` are only
@@ -17,12 +18,15 @@ export type Connection = {
   placeId?: string;
 };
 
-const INITIAL_CONNECTIONS: Connection[] = [
-  { id: 'grace-community', name: 'Grace Community Church', type: 'church', color: '#c9a96e', initials: 'GC' },
-  { id: 'pastor-mike', name: 'Pastor Michael Johnson', type: 'user', color: '#667eea', initials: 'MJ' },
-];
+// Empty. Two demo connections used to live here, Grace Community Church and
+// Pastor Michael Johnson, and every account that opened the app began with
+// both — two people it had never met, in a list of the people it knows.
+const INITIAL_CONNECTIONS: Connection[] = [];
 
-let connections: Connection[] = INITIAL_CONNECTIONS;
+// A copy, not the array itself: addConnection pushes in place, so sharing the
+// reference would let it write into INITIAL_CONNECTIONS and leave resetStore
+// handing back everything it was supposed to clear.
+let connections: Connection[] = [...INITIAL_CONNECTIONS];
 
 /**
  * The seeded pair are demo content, not people. Pushing them would write two
@@ -46,7 +50,14 @@ function notify() { [...listeners].forEach(l => l()); }
 
 const STORAGE_KEY = 'fourcircle_connections_v1';
 function persist() { save(STORAGE_KEY, connections); }
-load<typeof connections>(STORAGE_KEY, v => { connections = v; notify(); });
+load<typeof connections>(STORAGE_KEY, v => {
+  // The two demo connections were saved on first launch, so they survived the
+  // seed being deleted. Strip them here and re-save the cleaned list.
+  const cleaned = stripSampleConnections(v);
+  connections = cleaned;
+  if (cleaned.length !== v.length) persist();
+  notify();
+});
 
 /**
  * Build a Connection from any author — a post, a comment, a profile screen.
@@ -168,7 +179,7 @@ export async function syncConnectionsAfterSignIn(): Promise<void> {
  * storage alone is not enough.
  */
 export function resetStore() {
-  connections = INITIAL_CONNECTIONS;
+  connections = [...INITIAL_CONNECTIONS];
   persist();
   notify();
 }

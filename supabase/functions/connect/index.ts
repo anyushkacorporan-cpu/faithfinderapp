@@ -12,13 +12,93 @@
  *   status   ask Stripe where that account stands, and cache the answer
  *   login    a link into their Stripe dashboard, once they have one
  *
- * STANDARD, NOT EXPRESS
+ * CONTROLLER PROPERTIES, NOT `type`
  *
- * `type=standard` means the account belongs to the organiser, not to us. They
- * see Stripe's own branding, they get Stripe's own dashboard, and Stripe
- * handles their tax forms. We never hold their money and never file their
- * 1099-K. The cost is that they fill in Stripe's full form rather than a short
- * one — once, per organiser, which is the right place for that cost to land.
+ * This said `type: 'standard'`, which is a shorthand for four separate
+ * decisions. A shorthand cannot be half-taken, so the four are stated one by
+ * one:
+ *
+ *   stripe_dashboard.type  = express      the organiser gets Stripe's Express
+ *                                         page rather than the full dashboard.
+ *   requirement_collection = stripe       Stripe asks for their documents and
+ *                                         decides when they are verified.
+ *   losses.payments        = application  FourCircle is liable for a negative
+ *                                         balance on their account.
+ *   fees.payer             = application  FourCircle pays Stripe's processing
+ *                                         fees.
+ *
+ * WHY EXPRESS, AFTER TWO ATTEMPTS AT STANDARD
+ *
+ * This was `type=standard`, then controller properties shaped like it. Both
+ * were refused, and the two refusals together say why the shape is
+ * impossible:
+ *
+ *     When `losses[payments]=application`, the Connect application must also
+ *     control fees.
+ *
+ *     `fees[payer]=application` is not supported when creating an account
+ *     with the full dashboard.
+ *
+ * Full dashboard forces fees.payer=account; pausing payouts forces
+ * fees.payer=application. They cannot both be true, so a full-dashboard
+ * account can never have its payouts paused. Stripe's own support said twice
+ * that this combination was fine. It is not, and the API is the thing that
+ * knows.
+ *
+ * So it is the Express dashboard or no payout hold, and the hold is the
+ * arrangement: ticket money stays put until three business days after the
+ * event. Without it an organiser can withdraw on the day tickets go on sale
+ * and cancel the week after, and the buyers get refunded out of our balance.
+ *
+ * WHAT IT COSTS
+ *
+ * The organiser sees Stripe's simpler Express page instead of the full
+ * dashboard — and fills in a shorter form to get there, which suits a church
+ * secretary better than the long one did. And the 1099-K becomes ours to
+ * issue rather than Stripe's, because fees.payer is no longer `account`. That
+ * is a form, not a tax return: it reports what we paid them, they file their
+ * own return with it, Stripe generates and e-files it for about $3, and it is
+ * only required at all once an organiser passes $20,000 and 200 transactions
+ * in a year.
+ *
+ * NONE OF THIS CAN BE CHANGED LATER
+ *
+ * `stripe_dashboard.type` is fixed at creation; converting an account means
+ * creating a different one. So an account made before this commit cannot be
+ * brought forward, and there are none — checked, the table was empty.
+ *
+ * MANUAL PAYOUTS
+ *
+ * Ticket money reaches the organiser's balance at the moment of sale, because
+ * these are destination charges. It must not leave that balance until three
+ * business days after the event, or a cancelled event would have nothing left
+ * to refund from.
+ *
+ * The manual schedule set below is half of that: it stops Stripe paying the
+ * balance out on its own daily rolling default. It is set at creation rather
+ * than afterwards so there is never a window where an account sits on that
+ * default, and the `status` action re-asserts it, because an organiser can
+ * change it back.
+ *
+ * PAUSING IS THE OTHER HALF, AND IT IS A DASHBOARD JOB
+ *
+ * A manual schedule does not stop the organiser paying themselves out. What
+ * does is pausing payouts on the account, which is available here only
+ * because `losses.payments = application` — it is not offered on accounts
+ * where Stripe carries the negative balance. That is the whole reason this
+ * file gave up the full dashboard.
+ *
+ * Stripe has no API for it. Pausing and unpausing are done by hand on the
+ * account's page in Stripe's own dashboard, so releasing an event's money
+ * means unpausing, creating the payout for the exact amount, and pausing
+ * again. The payouts list in the app is the record of that; it does not and
+ * cannot do it.
+ *
+ * Until an account is paused, its balance can still be emptied by the person
+ * we would be reclaiming a refund from. The terms carry that: FourCircle
+ * refunds the buyer regardless and recovers from later payouts. But the
+ * pause is what makes it rare rather than routine, so pause an account when
+ * it connects, not when its first event ends.
  */
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.58.0';
@@ -28,15 +108,19 @@ const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
 const SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
 
 // Where Stripe sends the organiser when their form is done or has expired.
-// A deep link rather than a web page, because the journey started in the app
-// and should end there; `scheme` in app.json is what makes this resolve.
 //
-// It must name a route that exists. These pointed at /payouts, which does not
-// — the payouts screen is a tab inside /earnings — so finishing Stripe's form
-// would have dropped the organiser on an unmatched route, at the end of
-// handing over their bank details, with no way to tell whether it had worked.
-const RETURN_URL = 'fourcircle://earnings?tab=Settings&connected=1';
-const REFRESH_URL = 'fourcircle://earnings?tab=Settings&refresh=1';
+// These were deep links — `fourcircle://earnings?...` — which reads as the
+// right answer, since the journey started in the app and should end there.
+// Stripe refuses them: an account link's return_url and refresh_url must be
+// http or https, and a custom scheme comes back as "Not a valid URL". Nobody
+// found out until the first account was created, because this function had
+// never been deployed.
+//
+// So the journey goes through one page on the website, which bounces straight
+// back to the deep link and offers a button to anybody the bounce fails. See
+// docs/stripe-return.html.
+const RETURN_URL = 'https://fourcircle.app/stripe-return.html?connected=1';
+const REFRESH_URL = 'https://fourcircle.app/stripe-return.html?refresh=1';
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
@@ -125,10 +209,19 @@ Deno.serve(async (req) => {
         // abandoned the form halfway would strand the first one, and Stripe
         // counts both against the platform.
         const account = await stripe('accounts', 'POST', {
-          type: 'standard',
+          // No `type`. It and `controller` are two ways of saying the same
+          // thing and Stripe takes one or the other.
+          'controller[stripe_dashboard][type]': 'express',
+          'controller[requirement_collection]': 'stripe',
+          'controller[fees][payer]': 'application',
+          'controller[losses][payments]': 'application',
           email: user.email ?? '',
           'business_profile[product_description]': 'Event tickets sold through FourCircle',
           'metadata[user_id]': user.id,
+          // Set at creation rather than afterwards, so there is no window in
+          // which an account exists on Stripe's daily rolling default and
+          // pays an event out before we ever meant to.
+          'settings[payouts][schedule][interval]': 'manual',
         });
         accountId = String(account.id);
 
@@ -164,7 +257,31 @@ Deno.serve(async (req) => {
       return json({ connected: false, charges_enabled: false, payouts_enabled: false, requirements_due: [] });
     }
     try {
-      const account = await stripe(`accounts/${existing.stripe_account_id}`, 'GET');
+      let account = await stripe(`accounts/${existing.stripe_account_id}`, 'GET');
+
+      // A safety net, not the main mechanism: accounts are created on a
+      // manual schedule above. This catches one created before that was
+      // true, and one an organiser has switched back to automatic from their
+      // own Dashboard — which they can do, and which would quietly start
+      // paying out events we have not been paid for yet.
+      //
+      // Read before write so the common case costs nothing, and failure here
+      // never fails the status call: an organiser should still see where
+      // their onboarding stands even if this could not be set.
+      const schedule = ((account.settings as Record<string, unknown> | undefined)
+        ?.payouts as Record<string, unknown> | undefined)
+        ?.schedule as Record<string, unknown> | undefined;
+      if (schedule && schedule.interval !== 'manual') {
+        try {
+          account = await stripe(`accounts/${existing.stripe_account_id}`, 'POST', {
+            'settings[payouts][schedule][interval]': 'manual',
+          });
+        } catch (_) {
+          // Left alone deliberately. Worth a log, not a failed screen.
+          console.error('could not set manual payouts', existing.stripe_account_id);
+        }
+      }
+
       const snap = snapshot(account);
 
       await admin.from('stripe_accounts')
@@ -194,9 +311,12 @@ Deno.serve(async (req) => {
   if (action === 'login') {
     if (!existing?.stripe_account_id) return json({ error: 'No payout account yet.' }, 400);
     try {
-      // Standard accounts own their dashboard, so this is just a signpost to
-      // stripe.com rather than a session we create.
-      return json({ url: 'https://dashboard.stripe.com/' });
+      // This pointed at dashboard.stripe.com, which was right for a Standard
+      // account — those own their dashboard and sign in there themselves. An
+      // Express account cannot: it has no password of its own, and the only
+      // way in is a single-use link the platform mints for it.
+      const link = await stripe(`accounts/${existing.stripe_account_id}/login_links`, 'POST');
+      return json({ url: String(link.url) });
     } catch (err) {
       return json({ error: String((err as Error).message || 'Could not open Stripe.') }, 502);
     }

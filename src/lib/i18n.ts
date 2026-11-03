@@ -198,8 +198,8 @@ const translations: Record<string, Record<Lang, string>> = {
     English: '6. Events & Payments',
     Español: '6. Eventos y Pagos' },
   termsP6: {
-    English: 'FourCircle facilitates event registration and ticket purchases through Stripe. A service fee (currently 5% of the ticket price, capped at $5 per ticket) and a card processing fee apply to paid ticket transactions. Both are added at checkout and paid by the buyer, and both are shown separately before payment. Free events carry no fees. Service and processing fees are not refundable on a refunded ticket. Refunds, cancellations, and event changes are managed by the event organizer (church or individual host), not by FourCircle. We are not responsible for events hosted by third parties.',
-    Español: 'FourCircle facilita el registro a eventos y la compra de boletos a través de Stripe. Se aplica una tarifa de servicio (actualmente el 5% del precio del boleto, con un máximo de $5 por boleto) y una tarifa de procesamiento de tarjeta a las transacciones de boletos pagados. Ambas se agregan al finalizar la compra, las paga el comprador y se muestran por separado antes del pago. Los eventos gratuitos no tienen tarifas. Las tarifas de servicio y de procesamiento no son reembolsables cuando se reembolsa un boleto. Los reembolsos, las cancelaciones y los cambios de evento los gestiona el organizador del evento (la iglesia o el anfitrión individual), no FourCircle. No somos responsables de los eventos organizados por terceros.' },
+    English: 'FourCircle facilitates event registration and ticket purchases through Stripe. A service fee (currently 2% of the ticket price plus $0.80 per ticket) and a card processing fee apply to paid ticket transactions. Both are added at checkout and paid by the buyer, and both are shown separately before payment. Free events carry no fees. Service and processing fees are not refundable on a refunded ticket. Refunds, cancellations, and event changes are managed by the event organizer (church or individual host), not by FourCircle. We are not responsible for events hosted by third parties.',
+    Español: 'FourCircle facilita el registro a eventos y la compra de boletos a través de Stripe. Se aplica una tarifa de servicio (actualmente el 2% del precio del boleto más $0.80 por boleto) y una tarifa de procesamiento de tarjeta a las transacciones de boletos pagados. Ambas se agregan al finalizar la compra, las paga el comprador y se muestran por separado antes del pago. Los eventos gratuitos no tienen tarifas. Las tarifas de servicio y de procesamiento no son reembolsables cuando se reembolsa un boleto. Los reembolsos, las cancelaciones y los cambios de evento los gestiona el organizador del evento (la iglesia o el anfitrión individual), no FourCircle. No somos responsables de los eventos organizados por terceros.' },
   termsH7: {
     English: '7. Church Profiles',
     Español: '7. Perfiles de Iglesias' },
@@ -394,6 +394,8 @@ const translations: Record<string, Record<Lang, string>> = {
   speakersGuests: { English: 'Speakers & Guests', Español: 'Oradores e Invitados' },
   venueType: { English: 'Venue Type', Español: 'Tipo de Lugar' },
   uploadSeatingChart: { English: 'Upload seating chart or venue map', Español: 'Subir plano de asientos o mapa del lugar' },
+  // The screen-reader label on the venue map now shown on the event page.
+  venueMapLabel: { English: 'Venue map', Español: 'Mapa del lugar' },
   buildTimeline: { English: 'Build your event timeline step by step.', Español: 'Construye el cronograma de tu evento paso a paso.' },
   noAgendaYet: { English: 'No agenda yet', Español: 'Aún no hay agenda' },
   freeEvent: { English: 'Free Event', Español: 'Evento Gratuito' },
@@ -582,6 +584,263 @@ const translations: Record<string, Record<Lang, string>> = {
   deletePost: { English: 'Delete Post', Español: 'Eliminar Publicación' },
   reportPost: { English: 'Report Post', Español: 'Reportar Publicación' },
   whyReporting: { English: 'Why are you reporting this post?', Español: '¿Por qué reportas esta publicación?' },
+  plusFees: { English: '+ fees', Español: '+ tarifas' },
+  myTickets: { English: 'My Tickets', Español: 'Mis Boletos' },
+  refundRequests: { English: 'Refund Requests', Español: 'Solicitudes de Reembolso' },
+  payoutsDue: { English: 'Payouts Due', Español: 'Pagos Pendientes' },
+  ticketingTerms: {
+    English: 'Ticketing & Refund Terms',
+    Español: 'Términos de Boletos y Reembolsos' },
+  seeFullTerms: { English: 'See full terms', Español: 'Ver términos completos' },
+  freeRegTerms: {
+    English: "By registering you agree to FourCircle's Terms of Service and Privacy Policy. Registration is free and may be cancelled by the organizer.",
+    Español: 'Al registrarte aceptas los Términos del Servicio y la Política de Privacidad de FourCircle. El registro es gratuito y el organizador puede cancelarlo.' },
+  cancelMeansFullRefund: {
+    English: 'If the organiser cancels, you get a full refund automatically.',
+    Español: 'Si el organizador cancela, recibes un reembolso completo automáticamente.' },
+  feesShownBeforeYouPay: {
+    English: 'Fees are shown before you pay.',
+    Español: 'Las tarifas se muestran antes de pagar.' },
+  // The line under the refund policy on the registration screen. Separate
+  // from agreeTerms, which labels the tick box: this one is the link.
+  byRegisteringAgreeTerms: {
+    English: 'By registering, you agree to the FourCircle Terms and Conditions.',
+    Español: 'Al registrarte, aceptas los Términos y Condiciones de FourCircle.' },
+  agreeTicketingTerms: {
+    English: 'I agree to the FourCircle Ticketing, Refund and Payout Terms.',
+    Español: 'Acepto los Términos de Boletos, Reembolsos y Pagos de FourCircle.' },
+  mustAgreeTerms: {
+    English: 'Agree to the ticketing terms to publish a paid event.',
+    Español: 'Acepta los términos de boletos para publicar un evento de pago.' },
+  totalWithFees: { English: 'Total with fees', Español: 'Total con tarifas' },
+  perTicket: { English: 'per ticket', Español: 'por boleto' },
+  ownersOnly: { English: 'Owners only', Español: 'Solo para propietarios' },
+  noPayouts: { English: 'No paid events yet', Español: 'Aún no hay eventos de pago' },
+  noPayoutsBody: {
+    English: 'Once a paid event sells tickets, what it owes its organiser appears here.',
+    Español: 'Cuando un evento de pago venda boletos, lo que se le debe al organizador aparecerá aquí.' },
+  payoutHowTo: {
+    English: 'Releasing a payout is done in Stripe: unpause the account, create the payout for the exact amount, pause it again. Then mark it here.',
+    Español: 'Los pagos se liberan en Stripe: reactiva la cuenta, crea el pago por el monto exacto y vuelve a pausarla. Después márcalo aquí.' },
+  dueNow: { English: 'Due now', Español: 'Pendientes ahora' },
+  onHold: { English: 'On hold', Español: 'En espera' },
+  notYetDue: { English: 'Not yet due', Español: 'Aún no vencen' },
+  alreadyReleased: { English: 'Released', Español: 'Liberados' },
+  markReleased: { English: 'Mark released', Español: 'Marcar liberado' },
+  markReleasedNote: {
+    English: 'Paste the Stripe payout ID so this record points at the real transfer.',
+    Español: 'Pega el ID de pago de Stripe para que este registro apunte a la transferencia real.' },
+  releasedOn: { English: 'Released', Español: 'Liberado el' },
+  hold: { English: 'Hold', Español: 'Retener' },
+  unhold: { English: 'Release hold', Español: 'Quitar retención' },
+  noEndDateWarning: {
+    English: 'No end date recorded, so no payout date can be worked out. Edit the event to add one.',
+    Español: 'No hay fecha de finalización, así que no se puede calcular la fecha de pago. Edita el evento para añadirla.' },
+  openDisputesWarning: {
+    English: 'open dispute(s) — consider holding this payout',
+    Español: 'disputa(s) abierta(s) — considera retener este pago' },
+  owedToYou: { English: 'Owed to you', Español: 'Se te debe' },
+  owedBack: { English: 'owed back', Español: 'debes' },
+  byEvent: { English: 'By event', Español: 'Por evento' },
+  payoutDue: { English: 'Payout', Español: 'Pago' },
+  payoutDateUnknown: { English: 'Payout date not set', Español: 'Fecha de pago sin definir' },
+  payoutRule: {
+    English: 'Released 3 business days after your event ends. It cannot be withdrawn earlier.',
+    Español: 'Se libera 3 días hábiles después de que termine tu evento. No se puede retirar antes.' },
+  pd01: { English: 'Could not record it', Español: 'No se pudo registrar' },
+  pd02: { English: 'Marked as released', Español: 'Marcado como liberado' },
+  pd03: { English: 'Held', Español: 'Retenido' },
+  pd04: {
+    English: 'This payout will not be released until you unhold it.',
+    Español: 'Este pago no se liberará hasta que quites la retención.' },
+  pd05: { English: 'No longer held', Español: 'Ya no está retenido' },
+  pd06: { English: 'Unnamed organiser', Español: 'Organizador sin nombre' },
+  pd07: { English: 'cancelled', Español: 'cancelado' },
+  pd08: { English: 'gross', Español: 'bruto' },
+  pd09: { English: 'refunded', Español: 'reembolsado' },
+  pd10: { English: 'owed back', Español: 'por devolver' },
+  pd11: { English: 'Ends', Español: 'Termina' },
+  pd12: { English: 'Due', Español: 'Vence' },
+  pd13: { English: 'Saving…', Español: 'Guardando…' },
+  pd14: { English: 'Released after your event', Español: 'Se libera después de tu evento' },
+  pd15: {
+    English: 'Ticket money sits in your Stripe account from the moment somebody buys, and is released to your bank 3 business days after your event ends. It cannot be withdrawn before then. Your bank may take a few more days to show it.',
+    Español: 'El dinero de los boletos queda en tu cuenta de Stripe desde que alguien compra, y se libera a tu banco 3 días hábiles después de que termine tu evento. No se puede retirar antes. Tu banco puede tardar unos días más en mostrarlo.' },
+  pd16: { English: 'Gross Ticket Sales', Español: 'Ventas Brutas de Boletos' },
+  pd17: { English: 'Refunded to Buyers', Español: 'Reembolsado a Compradores' },
+  pd18: { English: 'Owed Back to FourCircle', Español: 'Debido a FourCircle' },
+  pd19: { English: 'Owed to You', Español: 'Se te Debe' },
+  // What a free event's cancellation says instead of "refunded in full".
+  // The door.
+  // The control under a post in another language. These were written into
+  // PostCard.tsx directly, so a Spanish reader got a button saying
+  // "Translate" in English — on the translation feature itself.
+  translateAction: { English: 'Translate', Español: 'Traducir' },
+  seeOriginal: { English: 'See original', Español: 'Ver original' },
+  translatingWord: { English: 'Translating…', Español: 'Traduciendo…' },
+  translateFailedRetry: {
+    English: 'Translation failed – tap to retry',
+    Español: 'No se pudo traducir: toca para reintentar' },
+  checkIn: { English: 'Check in', Español: 'Registro de entrada' },
+  checkInAction: { English: 'Check in', Español: 'Registrar' },
+  checkedIn: { English: 'Checked in', Español: 'Registrado' },
+  checkedInLower: { English: 'checked in', Español: 'registrados' },
+  alreadyCheckedIn: { English: 'Already checked in', Español: 'Ya registrado' },
+  wrongEvent: { English: 'Wrong event', Español: 'Evento equivocado' },
+  ticketRefunded: { English: 'Ticket was refunded', Español: 'El boleto fue reembolsado' },
+  eventCancelledWord: { English: 'Event is cancelled', Español: 'El evento está cancelado' },
+  notYourEvent: { English: 'Not your event', Español: 'No es tu evento' },
+  ticketNotValid: { English: 'Not a valid ticket', Español: 'Boleto no válido' },
+  scanWord: { English: 'Scan', Español: 'Escanear' },
+  attendeesWord: { English: 'Attendees', Español: 'Asistentes' },
+  seatWord: { English: 'seat', Español: 'lugar' },
+  seatsWord: { English: 'seats', Español: 'lugares' },
+  inWord: { English: 'in', Español: 'dentro' },
+  allInWord: { English: 'All in', Español: 'Todos dentro' },
+  ofWord: { English: 'of', Español: 'de' },
+  waitingToSync: { English: 'waiting to sync', Español: 'por sincronizar' },
+  searchByName: { English: 'Search by name', Español: 'Buscar por nombre' },
+  nobodyByThatName: { English: 'Nobody by that name.', Español: 'Nadie con ese nombre.' },
+  nobodyRegisteredYet: { English: 'Nobody has registered yet.', Español: 'Nadie se ha registrado todavía.' },
+  cameraNeededForCheckin: {
+    English: 'FourCircle needs the camera to scan tickets at the door.',
+    Español: 'FourCircle necesita la cámara para escanear boletos en la entrada.' },
+  allowCamera: { English: 'Allow camera', Español: 'Permitir cámara' },
+  yourTicketQr: { English: 'Show this at the door', Español: 'Muestra esto en la entrada' },
+  registrationClosedShort: { English: 'Registration closed', Español: 'Inscripciones cerradas' },
+  registrationClosedBody: {
+    English: 'Registration for this event has closed.',
+    Español: 'Las inscripciones para este evento están cerradas.' },
+  pickADate: { English: 'Pick a date', Español: 'Elige una fecha' },
+  pickATime: { English: 'Pick a time', Español: 'Elige una hora' },
+  closeRegistrationEarly: {
+    English: 'Close registration early', Español: 'Cerrar inscripciones antes' },
+  closesAtStartByDefault: {
+    English: 'Otherwise it closes when the event starts.',
+    Español: 'De lo contrario, se cierra cuando empieza el evento.' },
+  closesAtEndByDefault: {
+    English: 'Otherwise it stays open until the event ends.',
+    Español: 'De lo contrario, permanece abierta hasta que termina el evento.' },
+  toldItIsOff: { English: 'told it is off', Español: 'avisados de la cancelación' },
+  cancelEventTitle: { English: 'Cancel this event?', Español: '¿Cancelar este evento?' },
+  cancelEventConfirm: { English: 'Cancel and refund', Español: 'Cancelar y reembolsar' },
+  cancelEventShort: { English: 'Cancel event', Español: 'Cancelar evento' },
+  cancelledWord: { English: 'Cancelled', Español: 'Cancelado' },
+  ce01: { English: 'Everyone who bought a ticket to', Español: 'Todos los que compraron un boleto para' },
+  ce02: {
+    English: 'is refunded in full, including fees, and told why. This cannot be undone.',
+    Español: 'recibirán un reembolso completo, con tarifas incluidas, y se les dirá por qué. Esto no se puede deshacer.' },
+  ce03: { English: 'Could not cancel it', Español: 'No se pudo cancelar' },
+  ce04: { English: 'Event cancelled', Español: 'Evento cancelado' },
+  ce05: { English: 'refunded', Español: 'reembolsados' },
+  ce06: {
+    English: 'could not be refunded — check Stripe',
+    Español: 'no se pudieron reembolsar — revisa Stripe' },
+  ce07: { English: 'of', Español: 'de' },
+  ce08: { English: 'refunded in full', Español: 'reembolsados por completo' },
+  ce09: { English: 'Refunding…', Español: 'Reembolsando…' },
+  noRefundRequests: { English: 'Nothing to answer', Español: 'Nada que responder' },
+  noRefundRequestsBody: {
+    English: 'Refund requests from people who bought tickets to your events appear here.',
+    Español: 'Las solicitudes de reembolso de quienes compraron boletos para tus eventos aparecen aquí.' },
+  needsAnAnswer: { English: 'Needs an answer', Español: 'Necesita respuesta' },
+  alreadyAnswered: { English: 'Already answered', Español: 'Ya respondidas' },
+  approve: { English: 'Approve', Español: 'Aprobar' },
+  decline: { English: 'Decline', Español: 'Rechazar' },
+  approveRefundTitle: { English: 'Approve this refund?', Español: '¿Aprobar este reembolso?' },
+  declineRefund: { English: 'Decline the refund', Español: 'Rechazar el reembolso' },
+  declineReasonShown: {
+    English: 'The attendee is shown your reason, so write something they can understand.',
+    Español: 'Al asistente se le muestra tu motivo, así que escribe algo que pueda entender.' },
+  sendDecline: { English: 'Send decline', Español: 'Enviar rechazo' },
+  daysToRespond: { English: 'days left to respond', Español: 'días para responder' },
+  refundDueToday: { English: 'Due today', Español: 'Vence hoy' },
+  refundOverdue: { English: 'Overdue — they can escalate to FourCircle', Español: 'Vencida — pueden escalar a FourCircle' },
+  refundEscalatedOrganizer: {
+    English: 'The attendee asked FourCircle to review this.',
+    Español: 'El asistente pidió a FourCircle que revise esto.' },
+  rq01: { English: 'This refunds', Español: 'Esto reembolsa' },
+  rq02: {
+    English: 'to the buyer and takes the same amount out of your Stripe balance. It cannot be undone.',
+    Español: 'al comprador y saca la misma cantidad de tu saldo de Stripe. No se puede deshacer.' },
+  rq03: { English: 'Could not refund that', Español: 'No se pudo reembolsar' },
+  rq04: { English: 'Refunded', Español: 'Reembolsado' },
+  rq05: { English: 'The buyer has been refunded.', Español: 'Se ha reembolsado al comprador.' },
+  rq06: { English: 'A reason is needed', Español: 'Se necesita un motivo' },
+  rq07: {
+    English: 'The attendee is shown why it was declined.',
+    Español: 'Al asistente se le muestra por qué fue rechazado.' },
+  rq08: { English: 'Could not decline that', Español: 'No se pudo rechazar' },
+  rq09: { English: 'Declined', Español: 'Rechazado' },
+  rq10: {
+    English: 'The attendee has been told, with your reason.',
+    Español: 'Se le informó al asistente, con tu motivo.' },
+  rq11: { English: 'cancelled event, fees included', Español: 'evento cancelado, tarifas incluidas' },
+  rq12: {
+    English: 'Flexible — full refund up to 7 days before',
+    Español: 'Flexible — reembolso completo hasta 7 días antes' },
+  rq13: {
+    English: 'Standard — full refund up to 48 hours before',
+    Español: 'Estándar — reembolso completo hasta 48 horas antes' },
+  rq14: {
+    English: 'No refunds, except cancellation',
+    Español: 'Sin reembolsos, salvo cancelación' },
+  rq15: {
+    English: 'e.g. The event is in two days and the caterer is already paid.',
+    Español: 'p. ej. El evento es en dos días y el servicio de comida ya está pagado.' },
+  tk01: { English: 'Could not send that', Español: 'No se pudo enviar' },
+  tk02: {
+    English: 'This event\u2019s policy covers your request. The organiser has 5 business days to respond.',
+    Español: 'La política de este evento cubre tu solicitud. El organizador tiene 5 días hábiles para responder.' },
+  tk03: {
+    English: 'The organiser has 5 business days to respond.',
+    Español: 'El organizador tiene 5 días hábiles para responder.' },
+  tk04: { English: 'Could not escalate', Español: 'No se pudo escalar' },
+  tk05: { English: 'Sent to FourCircle', Español: 'Enviado a FourCircle' },
+  tk06: { English: 'We will look at this and decide.', Español: 'Lo revisaremos y decidiremos.' },
+  tk07: { English: 'Why are you asking? (optional)', Español: '¿Por qué lo solicitas? (opcional)' },
+  tk08: { English: 'Sending\u2026', Español: 'Enviando\u2026' },
+  noTicketsTitle: { English: 'No tickets yet', Español: 'Aún no tienes boletos' },
+  noTicketsBody: {
+    English: 'Tickets you buy will appear here, with the codes to show at the door.',
+    Español: 'Los boletos que compres aparecerán aquí, con los códigos para mostrar en la entrada.' },
+  browseEvents: { English: 'Browse events', Español: 'Ver eventos' },
+  ticketWord: { English: 'Ticket', Español: 'Boleto' },
+  ticketsWord: { English: 'Tickets', Español: 'Boletos' },
+  youPaid: { English: 'You paid', Español: 'Pagaste' },
+  refundedWord: { English: 'Refunded', Español: 'Reembolsado' },
+  refundPolicyWord: { English: 'Refund policy', Español: 'Política de reembolso' },
+  requestRefund: { English: 'Request a refund', Español: 'Solicitar un reembolso' },
+  sendRequest: { English: 'Send request', Español: 'Enviar solicitud' },
+  refundGoesToOrganizer: {
+    English: 'Your request goes to the event organiser, who has 5 business days to respond.',
+    Español: 'Tu solicitud va al organizador del evento, que tiene 5 días hábiles para responder.' },
+  refundRequested: { English: 'Refund requested', Español: 'Reembolso solicitado' },
+  refundApproved: { English: 'Refund approved', Español: 'Reembolso aprobado' },
+  refundDeclined: { English: 'Refund declined', Español: 'Reembolso rechazado' },
+  refundPaid: { English: 'Refunded to your card', Español: 'Reembolsado a tu tarjeta' },
+  refundEscalated: {
+    English: 'FourCircle is reviewing this.',
+    Español: 'FourCircle está revisando esto.' },
+  escalateToFourCircle: { English: 'Ask FourCircle to review', Español: 'Pedir revisión a FourCircle' },
+  refundPolicyLabel: { English: 'Refund policy *', Español: 'Política de reembolso *' },
+  refundPolicyHint: {
+    English: 'Shown to buyers before they pay. You can make it more generous later, but not stricter.',
+    Español: 'Se muestra a los compradores antes de pagar. Después puedes hacerla más generosa, pero no más estricta.' },
+  policyFlexible: { English: 'Flexible', Español: 'Flexible' },
+  policyFlexibleSub: {
+    English: 'Full ticket refund up to 7 days before',
+    Español: 'Reembolso completo del boleto hasta 7 días antes' },
+  policyStandard: { English: 'Standard', Español: 'Estándar' },
+  policyStandardSub: {
+    English: 'Full ticket refund up to 48 hours before',
+    Español: 'Reembolso completo del boleto hasta 48 horas antes' },
+  policyNone: { English: 'No refunds', Español: 'Sin reembolsos' },
+  policyNoneSub: {
+    English: 'Except if you cancel or change the event',
+    Español: 'Salvo si cancelas o cambias el evento' },
+  reportEvent: { English: 'Report Event', Español: 'Reportar Evento' },
+  whyReportingEvent: { English: 'Why are you reporting this event?', Español: '¿Por qué reportas este evento?' },
   sharePost: { English: 'Share Post', Español: 'Compartir Publicación' },
   repost: { English: 'Repost', Español: 'Republicar' },
   shareToFeed: { English: 'Share to your FourCircle feed', Español: 'Comparte en tu feed de FourCircle' },
@@ -610,6 +869,21 @@ const translations: Record<string, Record<Lang, string>> = {
   viaEmailAndApp: { English: 'Via email and app notification', Español: 'Por correo y notificación de la app' },
   helpUsConfirm: { English: 'Help us confirm you represent ', Español: 'Ayúdanos a confirmar que representas a ' },
   thankYouClaiming: { English: 'Thank you for claiming ', Español: 'Gracias por reclamar ' },
+  // The sentence that follows the church name on the submitted screen. It was
+  // written straight into the JSX, so a church reading in Spanish got a
+  // Spanish thank-you and then this in English. Phrased to match
+  // churchVerificationNote, which already said the same thing in both.
+  claimReviewWindow: {
+    English: 'FourCircle will review your submission within 3–5 business days.',
+    Español: 'FourCircle revisará tu solicitud en un plazo de 3 a 5 días hábiles.' },
+  // The value beside the "Review period" label on the same screen.
+  threeToFiveBusinessDays: {
+    English: '3–5 business days',
+    Español: '3 a 5 días hábiles' },
+  // And the one on the verify step, before the claim is sent.
+  weReviewAllClaims: {
+    English: 'We review all claims within 3–5 business days.',
+    Español: 'Revisamos todas las solicitudes en un plazo de 3 a 5 días hábiles.' },
 
   // Final pass
   connectWithChurches: { English: 'Connect with churches and believers to see their posts here', Español: 'Conéctate con iglesias y creyentes para ver sus publicaciones aquí' },
@@ -1102,8 +1376,8 @@ const translations: Record<string, Record<Lang, string>> = {
     English: 'Where is my money?',
     Español: '¿Dónde está mi dinero?' },
   payout16: {
-    English: 'Your money goes to your own Stripe account, so every transfer to your bank is listed there with its date and status. Sign in at dashboard.stripe.com.',
-    Español: 'Tu dinero va a tu propia cuenta de Stripe, así que cada transferencia a tu banco aparece allí con su fecha y estado. Inicia sesión en dashboard.stripe.com.' },
+    English: 'Your money goes to your own Stripe account, so every transfer to your bank is listed there with its date and status. Open it from the Stripe button above.',
+    Español: 'Tu dinero va a tu propia cuenta de Stripe, así que cada transferencia a tu banco aparece allí con su fecha y estado. Ábrela con el botón de Stripe de arriba.' },
   payout17: {
     English: 'Please try again.',
     Español: 'Inténtalo de nuevo.' },
@@ -1150,6 +1424,9 @@ const translations: Record<string, Record<Lang, string>> = {
   hid01: {
     English: "Thanks for telling us. You won't see this post again.",
     Español: 'Gracias por avisarnos. No volverás a ver esta publicación.' },
+  hid02: {
+    English: "Thanks for telling us. You won't see this event again.",
+    Español: 'Gracias por avisarnos. No volverás a ver este evento.' },
   near01: {
     English: "Couldn't load churches near you. Showing all churches instead.",
     Español: 'No se pudieron cargar las iglesias cercanas. Mostrando todas las iglesias.' },

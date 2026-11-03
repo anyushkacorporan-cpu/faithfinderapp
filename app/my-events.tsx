@@ -8,6 +8,10 @@ import { useThemeColors, ThemeColors } from '../src/lib/theme';
 import { useTranslation } from '../src/lib/i18n';
 import { useConfirm } from '../src/components/Confirm';
 import { useUserEvents, deleteEvent, updateEvent } from '../src/lib/eventsStore';
+import { hasEnded } from '../src/lib/eventTime';
+import { flushEventNotices } from '../src/lib/eventNotifyApi';
+import { useToast } from '../src/components/Toast';
+import { cancelEvent } from '../src/lib/refundsApi';
 
 const STATUS_TABS = ['All', 'Upcoming', 'Active', 'Past', 'Drafts'];
 
@@ -18,15 +22,68 @@ export default function MyEventsScreen() {
   const { showConfirm } = useConfirm();
   const events = useUserEvents();
   const [activeTab, setActiveTab] = useState('All');
+  const { showToast } = useToast();
+  const [cancelling, setCancelling] = useState<string | null>(null);
 
   const filtered = events.filter(e => {
     if (activeTab === 'All') return true;
-    if (activeTab === 'Upcoming') return e.status === 'upcoming';
-    if (activeTab === 'Active') return e.status === 'active';
-    if (activeTab === 'Past') return e.status === 'past';
+    // Worked out from the event's end rather than from status, which nothing
+    // has ever written — this tab was permanently empty, and finished events
+    // sat under Upcoming forever.
+    if (activeTab === 'Upcoming') return e.status !== 'draft' && !hasEnded(e);
+    if (activeTab === 'Active') return e.status === 'active' && !hasEnded(e);
+    if (activeTab === 'Past') return hasEnded(e);
     if (activeTab === 'Drafts') return e.status === 'draft';
     return true;
   });
+
+  /**
+   * Calling the event off.
+   *
+   * Not the same as deleting it, and the difference is the whole reason this
+   * exists: a delete cascades to the tickets, so deleting an event somebody
+   * has bought a seat at destroys their ticket and the payment record with
+   * it, leaving nobody refunded and no way left to refund them. Cancelling
+   * refunds every buyer in full first.
+   */
+  function handleCancel(id: string, title: string, sold: number) {
+    showConfirm({
+      title: t('cancelEventTitle'),
+      message: tx('Everyone who bought a ticket to')
+        + ` "${title}" `
+        + tx('is refunded in full, including fees, and told why. This cannot be undone.'),
+      buttons: [
+        { text: t('cancel'), style: 'cancel' },
+        {
+          text: t('cancelEventConfirm'),
+          style: 'destructive',
+          onPress: async () => {
+            setCancelling(id);
+            const { ok, refunded, failed, released, error } = await cancelEvent(id, '');
+            setCancelling(null);
+            if (!ok) {
+              showToast(tx('Could not cancel it'), error || '', 'error');
+              return;
+            }
+            updateEvent(id, { lifecycle: 'cancelled' });
+            void flushEventNotices(id);
+            // A free event has nothing to refund, and saying "0 refunded"
+            // about twelve people who registered for free reads as a failure.
+            const nothingWasPaid = !refunded && !failed && !!released;
+            showToast(
+              tx('Event cancelled'),
+              failed
+                ? `${refunded} ${tx('refunded')}, ${failed} ${tx('could not be refunded — check Stripe')}`
+                : nothingWasPaid
+                  ? `${released} ${tx('of')} ${sold} ${t('toldItIsOff')}`
+                  : `${refunded} ${tx('of')} ${sold} ${tx('refunded in full')}`,
+              failed ? 'error' : 'success',
+            );
+          },
+        },
+      ],
+    });
+  }
 
   function handleDelete(id: string, title: string) {
     showConfirm({
@@ -122,7 +179,15 @@ export default function MyEventsScreen() {
                 </View>
                 <View style={s.cardInfo}>
                   <Ionicons name="people-outline" size={13} color={c.textMuted} />
-                  <Text style={s.cardInfoTxt}>{event.attending} attending</Text>
+                  {/*
+                    ticketsSold, not attending. `attending` is never written by
+                    anything, so this read 0 beside a card that had just said
+                    tickets were sold — and on a free event it read 0 however
+                    many people had registered. Every registration inserts a
+                    ticket row, free ones at a price of zero, and the
+                    claim_seats trigger counts them all.
+                  */}
+                  <Text style={s.cardInfoTxt}>{event.ticketsSold} attending</Text>
                 </View>
               </View>
               <View style={s.cardActions}>
@@ -135,9 +200,41 @@ export default function MyEventsScreen() {
                   <Ionicons name="create-outline" size={16} color={c.text} />
                   <Text style={s.editBtnTxt}>{t('edit')}</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={s.deleteBtn} onPress={() => handleDelete(event.id, event.title)}>
-                  <Ionicons name="trash-outline" size={16} color={c.red} />
-                </TouchableOpacity>
+                {/* Only where there is somebody to check in. A door button on
+                    an event nobody has registered for is a button that can
+                    only disappoint. */}
+                {event.ticketsSold > 0 && event.lifecycle !== 'cancelled' && (
+                  <TouchableOpacity
+                    style={s.editBtn}
+                    onPress={() => router.push({ pathname: '/event-checkin', params: { id: event.id, title: event.title } })}
+                  >
+                    <Ionicons name="qr-code-outline" size={16} color={c.text} />
+                    <Text style={s.editBtnTxt}>{t('checkIn')}</Text>
+                  </TouchableOpacity>
+                )}
+                {/* One or the other, never both. A delete cascades to the
+                    tickets, so once a seat is sold the safe action is the
+                    only one offered. */}
+                {event.lifecycle === 'cancelled' ? (
+                  <View style={s.cancelledTag}>
+                    <Ionicons name="close-circle" size={14} color={c.red} />
+                    <Text style={s.cancelledTxt}>{t('cancelledWord')}</Text>
+                  </View>
+                ) : event.ticketsSold > 0 ? (
+                  <TouchableOpacity
+                    style={[s.cancelBtn, cancelling === event.id && { opacity: 0.5 }]}
+                    disabled={cancelling === event.id}
+                    onPress={() => handleCancel(event.id, event.title, event.ticketsSold)}
+                  >
+                    <Text style={s.cancelBtnTxt}>
+                      {cancelling === event.id ? tx('Refunding…') : t('cancelEventShort')}
+                    </Text>
+                  </TouchableOpacity>
+                ) : (
+                  <TouchableOpacity style={s.deleteBtn} onPress={() => handleDelete(event.id, event.title)}>
+                    <Ionicons name="trash-outline" size={16} color={c.red} />
+                  </TouchableOpacity>
+                )}
               </View>
             </View>
           </View>
@@ -185,5 +282,9 @@ const makeStyles = (c: ThemeColors) => StyleSheet.create({
   publishBtnTxt:{color:c.onPrimary,fontSize:12,fontWeight:'700'},
   editBtn:{flexDirection:'row',alignItems:'center',gap:4,borderWidth:1.5,borderColor:c.border,borderRadius:100,paddingHorizontal:14,paddingVertical:7},
   editBtnTxt:{fontSize:12,fontWeight:'700',color:c.text},
+  cancelBtn:{marginLeft:'auto',borderWidth:1.5,borderColor:'#fee2e2',backgroundColor:'#fff5f5',borderRadius:17,paddingHorizontal:13,paddingVertical:7},
+  cancelBtnTxt:{fontSize:13,fontWeight:'700',color:c.red},
+  cancelledTag:{marginLeft:'auto',flexDirection:'row',alignItems:'center',gap:5},
+  cancelledTxt:{fontSize:12.5,fontWeight:'700',color:c.red},
   deleteBtn:{width:34,height:34,borderRadius:17,borderWidth:1.5,borderColor:'#fee2e2',backgroundColor:'#fff5f5',alignItems:'center',justifyContent:'center',marginLeft:'auto'},
 });

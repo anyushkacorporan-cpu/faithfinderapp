@@ -29,7 +29,7 @@ function isTypeEnabled(type: Notification['type'], prefs = getSettings().notific
 
 export type Notification = {
   id: string;
-  type: 'like' | 'church_post' | 'event' | 'comment' | 'share' | 'invite' | 'verification' | 'announcement' | 'follow';
+  type: 'like' | 'church_post' | 'event' | 'event_cancelled' | 'comment' | 'share' | 'invite' | 'verification' | 'announcement' | 'follow';
   title: string;
   body: string;
   time: string;

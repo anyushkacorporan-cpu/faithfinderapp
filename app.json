@@ -46,6 +46,12 @@
         {
           "locationWhenInUsePermission": "FourCircle uses your location to show churches and events near you."
         }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "FourCircle uses your camera to scan ticket QR codes when you check people in at your event."
+        }
       ]
     ],
     "experiments": {

@@ -60,7 +60,7 @@ ok(`${entries.length} entries parsed from src/lib/i18n.ts`);
 // A declared entry whose Spanish is the same as its English is usually a gap,
 // but sometimes the word genuinely does not change. Only the unexpected ones
 // are worth a line.
-const SAME_IN_BOTH = new Set(['Total', 'Spam', 'Festival', 'Instagram', 'OK']);
+const SAME_IN_BOTH = new Set(['Total', 'Spam', 'Festival', 'Instagram', 'OK', 'Flexible']);
 const untranslated = entries.filter(e => e.en === e.es && !SAME_IN_BOTH.has(e.en));
 if (untranslated.length) {
   for (const e of untranslated) bad(`${e.key} has no Spanish: ${JSON.stringify(e.en)}`);
@@ -90,6 +90,9 @@ const LEAVE_IN_ENGLISH = new Set([
   // Spanish one is already Spanish and the English one has to stay English
   // for the person who cannot read the other.
   'What language do you speak?', '¿Qué idioma hablas?',
+  // A Stripe payout id's prefix, shown as the shape of the thing to paste.
+  // Not a word in any language.
+  'po_...',
 ]);
 
 const skip = /^[\s\d\W]*$/;

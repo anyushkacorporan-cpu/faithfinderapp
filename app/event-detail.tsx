@@ -4,13 +4,13 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { EVENT_DETAILS } from '../src/lib/constants';
 import { useThemeColors, ThemeColors } from '../src/lib/theme';
 import { buildEventShareText } from '../src/lib/shareLinks';
 import { addPost } from '../src/lib/postsStore';
 import { getUser } from '../src/lib/userStore';
 import { toggleSaveEvent, addAttending, removeAttending, useEventActions } from '../src/lib/eventActionsStore';
 import { getEvents, seatsLeft } from '../src/lib/eventsStore';
+import { registrationClosed } from '../src/lib/eventTime';
 import { useConnections } from '../src/lib/connectionsStore';
 import { searchPeople, getProfile, PersonResult } from '../src/lib/profilesStore';
 import { sendEventInvites } from '../src/lib/invitesApi';
@@ -21,6 +21,11 @@ import { useTranslation } from '../src/lib/i18n';
 
 import { KeyboardScreen, KEYBOARD_SCROLL_PROPS } from '../src/components/KeyboardScreen';
 import { useConfirm } from '../src/components/Confirm';
+import { RefundPolicyNote } from '../src/components/RefundPolicyNote';
+import { priceBreakdown } from '../src/lib/ticketPricing';
+import { useToast } from '../src/components/Toast';
+import { hideEvent } from '../src/lib/hiddenStore';
+import { submitReport } from '../src/lib/moderationApi';
 export default function EventDetailScreen() {
   const c = useThemeColors();
   const s = makeStyles(c);
@@ -32,12 +37,19 @@ export default function EventDetailScreen() {
   const appSettings = useSettings();
   const { t, tx } = useTranslation();
   const { showConfirm } = useConfirm();
+  const { showToast } = useToast();
   // Same store, same reason as `attending` below: a snapshot taken at mount
   // disagrees with the events tab the moment the event is saved or unsaved
   // anywhere else while this screen sits under it.
   const { saved: savedEventIds } = useEventActions();
   const saved = savedEventIds.includes(params.id || '');
   const [showFullPhoto, setShowFullPhoto] = useState(false);
+  const [showReport, setShowReport] = useState(false);
+
+  // One ticket, fees included, from the same file checkout prices with.
+  const oneTicketTotal = fullEvent?.isPaid
+    ? priceBreakdown(fullEvent.ticketPrice, 1).total
+    : 0;
   // Read through the store rather than snapshotted at mount. Registering
   // happens on the checkout screen, which is pushed over this one — this screen
   // never unmounts, so a useState initialiser runs once and then says "not
@@ -45,6 +57,7 @@ export default function EventDetailScreen() {
   // gating the calendar on it would have turned a cosmetic bug into a blocked
   // action for exactly the people entitled to it.
   const { attending: attendingEventIds } = useEventActions();
+  const closedForRegistration = !!fullEvent && registrationClosed(fullEvent);
   const attending = attendingEventIds.includes(params.id || '');
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [showShareComposer, setShowShareComposer] = useState(false);
@@ -54,7 +67,10 @@ export default function EventDetailScreen() {
   const [inviteSent, setInviteSent] = useState(false);
   const [inviteSearch, setInviteSearch] = useState('');
 
-  const details = EVENT_DETAILS[params.id] || {
+  // There is no lookup table any more — the five demo events it described
+  // are gone. A real event carries its own speakers and agenda, so what is
+  // left here is the shape an event with none of those still has to render.
+  const details: Record<string, any> = {
     bannerColor: ['#667eea', '#764ba2'],
     summary: params.description || 'Join us for this special faith event.',
     experience: ['Worship', 'Teaching', 'Fellowship', 'Prayer'],
@@ -242,6 +258,13 @@ export default function EventDetailScreen() {
 
   function handleGetTicket() {
     if (attending) { Alert.alert(tx('Already Attending'), "You already have a ticket for this event!"); return; }
+    // Said here as well as on the server, which is where it is enforced. A
+    // button that opens checkout and fails at the end is worse than one that
+    // says why before you tap it.
+    if (fullEvent && registrationClosed(fullEvent)) {
+      Alert.alert(tx('Registration closed'), t('registrationClosedBody'));
+      return;
+    }
     router.push({ pathname: '/event-checkout', params: { id: params.id, title: (fullEvent?.title || params.title), date: (fullEvent?.date || params.date), location: (fullEvent?.location || params.location), price: (fullEvent?.price || params.price), type: (fullEvent?.type || params.type), organizer: params.organizer || '' } });
   }
 
@@ -259,7 +282,7 @@ export default function EventDetailScreen() {
         {/* Banner */}
         {fullEvent?.bannerImage ? (
           <TouchableOpacity activeOpacity={0.95} onPress={() => setShowFullPhoto(true)} style={s.banner}>
-          <ImageBackground source={{uri: fullEvent.bannerImage}} style={{flex:1}} resizeMode="cover">
+          <ImageBackground source={{uri: fullEvent.bannerImage}} style={{flex:1}} resizeMode="contain">
             <View style={s.bannerTop}>
               <TouchableOpacity style={s.backBtn} onPress={() => router.back()}>
                 <Ionicons name="arrow-back" size={20} color={c.onPrimary} />
@@ -270,6 +293,14 @@ export default function EventDetailScreen() {
                 </TouchableOpacity>
                 <TouchableOpacity style={s.bannerIconBtn} onPress={handleShare}>
                   <Ionicons name="share-social-outline" size={22} color={c.onPrimary} />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={s.bannerIconBtn}
+                  onPress={() => setShowReport(true)}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('reportEvent')}
+                >
+                  <Ionicons name="ellipsis-horizontal" size={22} color={c.onPrimary} />
                 </TouchableOpacity>
               </View>
             </View>
@@ -288,6 +319,14 @@ export default function EventDetailScreen() {
                 <TouchableOpacity style={s.bannerIconBtn} onPress={handleShare}>
                   <Ionicons name="share-social-outline" size={22} color={c.onPrimary} />
                 </TouchableOpacity>
+                <TouchableOpacity
+                  style={s.bannerIconBtn}
+                  onPress={() => setShowReport(true)}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('reportEvent')}
+                >
+                  <Ionicons name="ellipsis-horizontal" size={22} color={c.onPrimary} />
+                </TouchableOpacity>
               </View>
             </View>
           </LinearGradient>
@@ -299,12 +338,35 @@ export default function EventDetailScreen() {
             <View style={s.typePill}><Text style={s.typePillTxt}>{(fullEvent?.type || params.type)}</Text></View>
             {(fullEvent?.price || params.price) === 'Free'
               ? <View style={s.freePill}><Text style={s.freePillTxt}>{t('freeAdmission')}</Text></View>
-              : <View style={s.pricePill}><Text style={s.pricePillTxt}>{(fullEvent?.price || params.price)}</Text></View>
+              : (
+                /* The whole amount for one ticket, not the ticket price on
+                   its own. Somebody deciding whether to come should be
+                   deciding against the number their card will be charged;
+                   finding a different one at checkout is how a fee stops
+                   feeling disclosed and starts feeling sprung. */
+                <View style={s.pricePill}>
+                  <Text style={s.pricePillTxt}>
+                    {(fullEvent?.price || params.price)}
+                    {oneTicketTotal > 0
+                      ? ` · $${oneTicketTotal.toFixed(2)} ${t('totalWithFees').toLowerCase()}`
+                      : ''}
+                  </Text>
+                </View>
+              )
             }
           </View>
           <Text style={{fontFamily:'PlayfairDisplay_700Bold', fontSize:24, color: c.text, lineHeight:30, marginBottom:4}}>{(fullEvent?.title || params.title)}</Text>
           {!!fullEvent?.organizer && (
             <Text style={{fontSize:14, color: c.gold, fontWeight:'600', marginBottom:16}}>by {fullEvent.organizer}</Text>
+          )}
+
+          {/* What refunds look like here, before anybody taps through to pay.
+              The terms ask for it on the event page as well as at checkout,
+              and this is the screen where somebody decides. */}
+          {!!fullEvent?.isPaid && (
+            <View style={{marginBottom:16}}>
+              <RefundPolicyNote policy={fullEvent.refundPolicy} />
+            </View>
           )}
 
           {/* Date & Location */}
@@ -330,6 +392,24 @@ export default function EventDetailScreen() {
               </TouchableOpacity>
             </View>
           </View>
+
+          {/* The venue map.
+              Organisers have been able to upload one since create-event had
+              the field, and it reached the database and came back down — it
+              was simply never drawn on this screen, so every map uploaded so
+              far has been invisible to the people it was for. Contained
+              rather than cropped: a seating chart with its edges cut off is
+              worse than none. */}
+          {!!fullEvent?.venueLayoutImage && (
+            <View style={s.venueMapWrap}>
+              <Image
+                source={{uri: fullEvent.venueLayoutImage}}
+                style={s.venueMapImg}
+                resizeMode="contain"
+                accessibilityLabel={tx('Venue map')}
+              />
+            </View>
+          )}
 
           {/* Summary */}
           <View style={s.section}>
@@ -430,7 +510,7 @@ export default function EventDetailScreen() {
           <TouchableOpacity
             style={[s.ticketBtn, attending && s.ticketBtnActive, soldOut && !attending && s.ticketBtnDisabled]}
             onPress={handleGetTicket}
-            disabled={soldOut && !attending}
+            disabled={(soldOut || closedForRegistration) && !attending}
             activeOpacity={0.88}
           >
             <Ionicons
@@ -439,7 +519,9 @@ export default function EventDetailScreen() {
               color={c.onPrimary}
             />
             <Text style={s.ticketBtnTxt}>
-              {attending ? t('youreRegistered') : soldOut ? t('soldOut') : t('register')}
+              {attending ? t('youreRegistered')
+                : closedForRegistration ? t('registrationClosedShort')
+                : soldOut ? t('soldOut') : t('register')}
             </Text>
           </TouchableOpacity>
 
@@ -756,6 +838,66 @@ export default function EventDetailScreen() {
       )}
     </SafeAreaView>
 
+      {/*
+        Reporting an event.
+
+        Events are created by anyone with an account, which makes them user
+        content in the sense App Store guideline 1.2 means: there has to be a
+        way to object to one, and objecting has to take it out of the
+        objector's own app rather than only filing a note. Posts have had this
+        since the start; events had the table column and the api and no button.
+
+        The reasons and their translations are the post sheet's, reused
+        deliberately — two lists of reasons drift apart and then a report means
+        a different thing depending on where it was filed.
+      */}
+      <Modal visible={showReport} transparent animationType="fade" onRequestClose={() => setShowReport(false)}>
+        <TouchableOpacity style={{flex:1,backgroundColor:c.overlay,justifyContent:'flex-end'}} activeOpacity={1} onPress={() => setShowReport(false)}>
+          <View style={{backgroundColor:c.card,borderTopLeftRadius:24,borderTopRightRadius:24,paddingTop:8,paddingBottom:32}}>
+            <View style={{width:36,height:4,borderRadius:2,backgroundColor:c.border,alignSelf:'center',marginVertical:10}}/>
+            <Text style={{fontSize:17,fontWeight:'700',color:c.text,textAlign:'center',marginBottom:4}}>{t('reportEvent')}</Text>
+            <Text style={{fontSize:13,color:c.textMuted,textAlign:'center',marginBottom:14,paddingHorizontal:24}}>{t('whyReportingEvent')}</Text>
+            {[
+              {id:'spam', label:'Spam'},
+              {id:'harassment', label:'Harassment or bullying'},
+              {id:'inappropriate', label:'Inappropriate content'},
+              {id:'misleading', label:'False or misleading information'},
+              {id:'hate_speech', label:'Hate speech'},
+              {id:'other', label:'Other'},
+            ].map(reason => (
+              <TouchableOpacity key={reason.id} style={{paddingHorizontal:20,paddingVertical:14,borderTopWidth:1,borderTopColor:c.rowBorder}} onPress={() => {
+                const id = params.id || '';
+                setShowReport(false);
+                void submitReport({
+                  targetType: 'event',
+                  targetId: id,
+                  reason: reason.label,
+                  targetAuthor: fullEvent?.organizer || params.organizer,
+                  // What was reported, in the words it was reported for. An
+                  // organiser who edits or deletes the event afterwards would
+                  // otherwise take the evidence with them.
+                  snapshot: [
+                    fullEvent?.title || params.title,
+                    fullEvent?.organizer || params.organizer,
+                    fullEvent?.date || params.date,
+                    fullEvent?.location || params.location,
+                    fullEvent?.description || params.description,
+                  ].filter(Boolean).join('\n'),
+                });
+                hideEvent(id);
+                showToast(tx('Reported'), tx("Thanks for telling us. You won't see this event again."), 'info');
+                router.back();
+              }}>
+                <Text style={{fontSize:15,color:c.text}}>{tx(reason.label)}</Text>
+              </TouchableOpacity>
+            ))}
+            <TouchableOpacity style={{flexDirection:'row',alignItems:'center',justifyContent:'center',paddingVertical:16,marginTop:4}} onPress={() => setShowReport(false)}>
+              <Text style={{fontSize:15,fontWeight:'600',color:c.textMuted}}>{t('cancel')}</Text>
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
       <Modal visible={showFullPhoto} transparent animationType="fade" onRequestClose={() => setShowFullPhoto(false)}>
         <View style={{flex:1, backgroundColor:'rgba(0,0,0,0.95)', justifyContent:'center', alignItems:'center'}}>
           <TouchableOpacity
@@ -775,7 +917,12 @@ export default function EventDetailScreen() {
 
 const makeStyles = (c: ThemeColors) => StyleSheet.create({
   root:{flex:1,backgroundColor:c.card},
-  banner:{aspectRatio:16/9,justifyContent:'flex-start',padding:16},
+  // See the note on cardBanner in events.tsx: the whole flyer, with the
+  // background filling whatever contain leaves over.
+  banner:{aspectRatio:16/9,justifyContent:'flex-start',padding:16,backgroundColor:c.cardAlt},
+  venueMapWrap:{marginHorizontal:16,marginBottom:16,borderRadius:14,overflow:'hidden',
+    borderWidth:1,borderColor:c.border,backgroundColor:c.cardAlt},
+  venueMapImg:{width:'100%',height:220},
   bannerTop:{flexDirection:'row',justifyContent:'space-between',alignItems:'center'},
   backBtn:{width:38,height:38,borderRadius:19,backgroundColor:'rgba(0,0,0,0.3)',alignItems:'center',justifyContent:'center'},
   bannerTopRight:{flexDirection:'row',gap:8},

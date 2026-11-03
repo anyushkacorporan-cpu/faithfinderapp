@@ -1,0 +1,87 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Back to FourCircle</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="favicon-32.png" sizes="32x32">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+
+<!--
+  Where Stripe sends an organiser when they finish setting up payouts.
+
+  It exists because Stripe will not redirect to a custom scheme: an account
+  link's return_url and refresh_url have to be http or https, so
+  `fourcircle://earnings` is refused outright with "Not a valid URL". This
+  page is the http half of the journey, and its only job is to hand the
+  person back to the app.
+
+  It does that straight away, and then shows a button, because an immediate
+  redirect can be swallowed — a browser that will not follow a scheme without
+  a tap, an in-app browser that has already closed, somebody who finished on
+  a different device. Anybody the automatic hop fails has something to press.
+-->
+
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:opsz,wght@9..40,400;9..40,600&display=swap">
+<style>
+  :root {
+    --gold: #c9a96e;
+    --gold-lit: #e8d3a4;
+    --ground: #120d08;
+    --ink: #f6f2ea;
+    --ink-2: rgba(246,242,234,0.76);
+    --display: "Playfair Display", Georgia, "Times New Roman", serif;
+    --text: "DM Sans", ui-sans-serif, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100svh; background: var(--ground); color: var(--ink);
+    font-family: var(--text); line-height: 1.6;
+    display: flex; align-items: center; justify-content: center;
+    padding: 24px max(16px, env(safe-area-inset-left, 0px));
+    -webkit-font-smoothing: antialiased; text-align: center;
+  }
+  .wrap { max-width: 380px; }
+  img { width: 64px; height: 64px; margin-bottom: 18px; }
+  h1 {
+    font-family: var(--display); font-weight: 700;
+    font-size: clamp(25px, 7vw, 31px); line-height: 1.15; margin: 0 0 10px;
+  }
+  p { margin: 0 0 22px; color: var(--ink-2); font-size: 15.5px; }
+  a.btn {
+    display: inline-block; background: var(--gold); color: #1a1208;
+    font-weight: 600; font-size: 16px; text-decoration: none;
+    padding: 13px 26px; border-radius: 12px;
+  }
+  a.btn:hover { background: var(--gold-lit); }
+  .small { margin: 20px 0 0; font-size: 13px; color: var(--ink-2); }
+</style>
+
+<div class="wrap">
+  <img src="mark-512.png" alt="">
+  <h1>You're done here</h1>
+  <p id="msg">Taking you back to FourCircle…</p>
+  <a class="btn" id="back" href="fourcircle://earnings?tab=Settings">Open FourCircle</a>
+  <p class="small">If nothing happens, open the FourCircle app yourself — your details are saved either way.</p>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  // Carry Stripe's own query along, so the app knows whether this was a
+  // finished form or an expired link it should start again.
+  var deep = 'fourcircle://earnings?tab=Settings' +
+    (window.location.search ? '&' + window.location.search.slice(1) : '');
+
+  document.getElementById('back').setAttribute('href', deep);
+
+  // One attempt, immediately. If the app is installed this never comes back.
+  try { window.location.replace(deep); } catch (e) {}
+
+  // And if it did come back, stop promising something that is not happening.
+  setTimeout(function () {
+    document.getElementById('msg').textContent =
+      'Tap below to return to the app.';
+  }, 1500);
+})();
+</script>

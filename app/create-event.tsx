@@ -10,8 +10,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from 'expo-linear-gradient';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useThemeColors, ThemeColors } from '../src/lib/theme';
-import { addEvent, formatPrice, Currency } from '../src/lib/eventsStore';
-import { stateCode, CA_PROVINCES } from '../src/lib/filters';
+import { addEvent, formatPrice, Currency, RefundPolicy } from '../src/lib/eventsStore';
 import { getUser } from '../src/lib/userStore';
 import { useTranslation } from '../src/lib/i18n';
 import { suggestAddresses, resolveAddress, newSessionToken, AddressSuggestion } from '../src/lib/addressAutocomplete';
@@ -78,7 +77,7 @@ export default function CreateEventScreen() {
   const [endDate, setEndDate] = useState<Date|null>(null);
   const [endTime, setEndTime] = useState<Date|null>(null);
   const [pickerMode, setPickerMode] = useState<'date'|'time'>('date');
-  const [pickerTarget, setPickerTarget] = useState<'startDate'|'startTime'|'endDate'|'endTime'>('startDate');
+  const [pickerTarget, setPickerTarget] = useState<'startDate'|'startTime'|'endDate'|'endTime'|'closeDate'|'closeTime'>('startDate');
   const [showPicker, setShowPicker] = useState(false);
   const [tempDate, setTempDate] = useState(new Date());
 
@@ -153,6 +152,10 @@ export default function CreateEventScreen() {
   const [platform, setPlatform] = useState('');
   const [showPlatforms, setShowPlatforms] = useState(false);
   const [venueLayoutImage, setVenueLayoutImage] = useState('');
+  // The organiser's own earlier cutoff. Off by default: paid events already
+  // close at the start and free ones at the end, which is right for most.
+  const [closeEarly, setCloseEarly] = useState(false);
+  const [closeAt, setCloseAt] = useState<Date|null>(null);
 
   // Agenda
   const [agendaItems, setAgendaItems] = useState<{time:string;activity:string}[]>([]);
@@ -166,14 +169,21 @@ export default function CreateEventScreen() {
   // off to Stripe for a few minutes and that is better learned before the
   // rest of the form is filled in than after.
   const [payoutsReady, setPayoutsReady] = useState<boolean | null>(null);
+  // Standard by default: the middle of the three, and the one a buyer is
+  // least surprised by. A default of 'none' would make every organiser who
+  // never looked at this field the strictest kind.
+  const [refundPolicy, setRefundPolicy] = useState<RefundPolicy>('standard');
+  // Required before a paid event can be published. Not remembered between
+  // events: agreeing once to terms that govern other people's money is not
+  // the same as agreeing each time it applies.
+  const [agreedTerms, setAgreedTerms] = useState(false);
   const [ticketPrice, setTicketPrice] = useState('');
   const [capacity, setCapacity] = useState('');
-  // Defaults to the organiser's own currency rather than to USD, since that is
-  // the money they set the price in.
-  const [currency, setCurrency] = useState<Currency>(
-    stateCode(user.location?.split(',')[1]) && CA_PROVINCES.some(r => r.code === stateCode(user.location?.split(',')[1]))
-      ? 'CAD' : 'USD'
-  );
+  // USD only, per the ticketing terms. This used to default to the organiser's
+  // own currency and offer a CAD option beside it; the terms say one currency,
+  // and an organiser in Canada pricing in CAD would be selling under terms
+  // written for dollars.
+  const currency: Currency = 'USD';
   const [showPreview, setShowPreview] = useState(false);
 
   const [errors, setErrors] = useState<Record<string,string>>({});
@@ -203,7 +213,7 @@ export default function CreateEventScreen() {
     const mode = target.includes('Time') ? 'time' : 'date';
     setPickerTarget(target);
     setPickerMode(mode);
-    const current = target==='startDate'?startDate:target==='startTime'?startTime:target==='endDate'?endDate:endTime;
+    const current = target==='startDate'?startDate:target==='startTime'?startTime:target==='endDate'?endDate:target==='endTime'?endTime:closeAt ?? startDate;
     setTempDate(current||new Date());
     setShowPicker(true);
   }
@@ -218,7 +228,18 @@ export default function CreateEventScreen() {
     if (pickerTarget==='startDate') setStartDate(tempDate);
     else if (pickerTarget==='startTime') setStartTime(tempDate);
     else if (pickerTarget==='endDate') setEndDate(tempDate);
-    else setEndTime(tempDate);
+    else if (pickerTarget==='endTime') setEndTime(tempDate);
+    else if (pickerTarget==='closeDate') {
+      // Keep whatever time was already chosen when only the day moves.
+      const next = new Date(tempDate);
+      if (closeAt) next.setHours(closeAt.getHours(), closeAt.getMinutes(), 0, 0);
+      setCloseAt(next);
+    }
+    else if (pickerTarget==='closeTime') {
+      const next = new Date(closeAt ?? startDate ?? tempDate);
+      next.setHours(tempDate.getHours(), tempDate.getMinutes(), 0, 0);
+      setCloseAt(next);
+    }
     setShowPicker(false);
   }
 
@@ -232,7 +253,11 @@ export default function CreateEventScreen() {
   async function handlePickVenueLayout() {
     const {status} = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status!=='granted') { Alert.alert(tx('Permission needed')); return; }
-    const result = await ImagePicker.launchImageLibraryAsync({quality:0.8,allowsEditing:true});
+    // allowsEditing is off here, unlike the banner. On iOS it opens a square
+    // crop box with no way out of it, so a seating chart or a floor plan was
+    // being trimmed to a square before it ever reached the preview — which is
+    // most of why it looked wrong. A map has to arrive whole.
+    const result = await ImagePicker.launchImageLibraryAsync({quality:0.8});
     if (!result.canceled) setVenueLayoutImage(result.assets[0].uri);
   }
 
@@ -257,6 +282,7 @@ export default function CreateEventScreen() {
     }
     if (s===2 && venueType!=='online' && !venueAddress.trim()) e.venueAddress='Required';
     if (s===4 && isPaid && price<=0) e.ticketPrice='Enter valid price';
+    if (s===4 && isPaid && !agreedTerms) e.agreedTerms='Required';
     setErrors(e);
     return Object.keys(e).length===0;
   }
@@ -286,6 +312,41 @@ export default function CreateEventScreen() {
       zip:zip.trim(),
       type:eventType,
       price:isPaid?formatPrice(price, currency):'Free',
+      refundPolicy: isPaid ? refundPolicy : 'none',
+      // A real instant, beside the text. The end time if one was given, the
+      // start otherwise — an event with no end is over when it began as far
+      // as a payout is concerned, which is late rather than early.
+      endsAt: (() => {
+        const day = endDate ?? startDate;
+        if (!day) return undefined;
+        const clock = endTime ?? startTime;
+        const at = new Date(day);
+        if (clock) at.setHours(clock.getHours(), clock.getMinutes(), 0, 0);
+        else at.setHours(23, 59, 0, 0);
+        return at.toISOString();
+      })(),
+      // Which clock the times above were read off. ends_at is a real instant
+      // and this is the only record of what it meant: an organiser in Los
+      // Angeles setting up an event in New York produces one three hours out,
+      // and without this there is no way to tell afterwards, let alone fix it.
+      // Taken from the device rather than asked for — an organiser creates an
+      // event where they are, and an online event has no venue zone at all.
+      // The start as a real instant. The event has never had one — ends_at was
+      // added for the payout hold and the start lived only in `time`, free
+      // text — so "registration closes when it starts" had nothing to compare
+      // against.
+      startsAt: (() => {
+        if (!startDate) return undefined;
+        const at = new Date(startDate);
+        if (startTime) at.setHours(startTime.getHours(), startTime.getMinutes(), 0, 0);
+        else at.setHours(0, 0, 0, 0);
+        return at.toISOString();
+      })(),
+      registrationClosesAt: closeEarly && closeAt ? closeAt.toISOString() : undefined,
+      timezone: (() => {
+        try { return Intl.DateTimeFormat().resolvedOptions().timeZone || undefined; }
+        catch { return undefined; }
+      })(),
       isPaid,
       ticketPrice:price,
       bannerImage:bannerImage||undefined,
@@ -638,7 +699,10 @@ export default function CreateEventScreen() {
               )}
 
               <Text style={s.fieldLbl}>{tx('Venue Map / Layout')} <Text style={{fontWeight:'400',color:c.textMuted,fontSize:11}}>{tx('(Optional)')}</Text></Text>
-              <TouchableOpacity style={s.uploadBox} onPress={handlePickVenueLayout}>
+              <TouchableOpacity
+                style={[s.uploadBox, !!venueLayoutImage && s.uploadBoxFilled]}
+                onPress={handlePickVenueLayout}
+              >
                 {venueLayoutImage
                   ?<Image source={{uri:venueLayoutImage}} style={s.venueLayoutImg} resizeMode="contain"/>
                   :<View style={s.uploadBoxInner}>
@@ -699,7 +763,17 @@ export default function CreateEventScreen() {
                 <TouchableOpacity style={[s.ticketBtn,isPaid&&s.ticketBtnPaid]} onPress={()=>{
                   setIsPaid(true);
                   if (payoutsReady === null) {
-                    void fetchPayoutStatus().then(({ status }) => setPayoutsReady(status.chargesEnabled));
+                    // Only a definitive answer is recorded. fetchPayoutStatus
+                    // reports NO_PAYOUT_ACCOUNT when it could not reach Stripe
+                    // at all, and flags a cached answer as stale — taking
+                    // either at face value tells an organiser who IS set up
+                    // that they are not, over a dropped connection. Left null
+                    // instead, which shows nothing rather than something
+                    // untrue. The purchase is refused server-side regardless,
+                    // so silence here costs no money.
+                    void fetchPayoutStatus().then(({ status, error }) => {
+                      if (!error) setPayoutsReady(status.chargesEnabled);
+                    });
                   }
                 }}>
                   <Ionicons name="card-outline" size={20} color={isPaid?c.white:c.placeholder}/>
@@ -713,6 +787,91 @@ export default function CreateEventScreen() {
                   no money at all — the charge is refused before a card is
                   touched — so publishing one is publishing an event nobody can
                   attend. */}
+              {isPaid && (
+                <LField label={t('refundPolicyLabel')} hint={t('refundPolicyHint')}>
+                  <View style={{gap:8}}>
+                    {([
+                      {id:'flexible', label:'Flexible', sub:'Full ticket refund up to 7 days before'},
+                      {id:'standard', label:'Standard', sub:'Full ticket refund up to 48 hours before'},
+                      {id:'none',     label:'No refunds', sub:'Except if you cancel or change the event'},
+                    ] as {id:RefundPolicy;label:string;sub:string}[]).map(opt => (
+                      <TouchableOpacity
+                        key={opt.id}
+                        style={[s.policyRow, refundPolicy===opt.id && s.policyRowOn]}
+                        activeOpacity={0.7}
+                        onPress={() => setRefundPolicy(opt.id)}
+                      >
+                        <Ionicons
+                          name={refundPolicy===opt.id ? 'radio-button-on' : 'radio-button-off'}
+                          size={20}
+                          color={refundPolicy===opt.id ? c.gold : c.placeholder}
+                        />
+                        <View style={{flex:1}}>
+                          <Text style={[s.policyLbl, refundPolicy===opt.id && {color:c.gold}]}>{tx(opt.label)}</Text>
+                          <Text style={s.policySub}>{tx(opt.sub)}</Text>
+                        </View>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </LField>
+              )}
+
+              {isPaid && (
+                <View style={s.agreeWrap}>
+                  <TouchableOpacity
+                    style={s.agreeRow}
+                    activeOpacity={0.7}
+                    onPress={() => { setAgreedTerms(a => !a); setErrors(e => ({...e, agreedTerms: ''})); }}
+                  >
+                    <Ionicons
+                      name={agreedTerms ? 'checkbox' : 'square-outline'}
+                      size={21}
+                      color={agreedTerms ? c.gold : (errors.agreedTerms ? c.red : c.placeholder)}
+                    />
+                    <Text style={s.agreeTxt}>{t('agreeTicketingTerms')}</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={() => router.push('/ticketing-terms')}>
+                    <Text style={s.agreeLink}>{t('seeFullTerms')}</Text>
+                  </TouchableOpacity>
+                  {!!errors.agreedTerms && (
+                    <Text style={s.agreeErr}>{t('mustAgreeTerms')}</Text>
+                  )}
+                </View>
+              )}
+
+              {/* An earlier cutoff, when the organiser wants one — a door
+                  time, catering numbers, badges to print. Left off, a paid
+                  event closes at its start and a free one at its end. */}
+              <View style={s.closeEarlyRow}>
+                <View style={{flex:1}}>
+                  <Text style={s.fieldLbl}>{t('closeRegistrationEarly')}</Text>
+                  <Text style={s.closeEarlyHint}>
+                    {isPaid ? t('closesAtStartByDefault') : t('closesAtEndByDefault')}
+                  </Text>
+                </View>
+                <Switch
+                  value={closeEarly}
+                  onValueChange={v => { setCloseEarly(v); if (v && !closeAt) setCloseAt(startDate ?? new Date()); }}
+                  trackColor={{false:c.border,true:c.gold}}
+                />
+              </View>
+              {closeEarly && (
+                <View style={s.closeEarlyPickers}>
+                  <TouchableOpacity style={s.closeEarlyBtn} onPress={() => openPicker('closeDate')}>
+                    <Ionicons name="calendar-outline" size={15} color={c.textMuted}/>
+                    <Text style={s.closeEarlyBtnTxt}>
+                      {closeAt ? closeAt.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : tx('Pick a date')}
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={s.closeEarlyBtn} onPress={() => openPicker('closeTime')}>
+                    <Ionicons name="time-outline" size={15} color={c.textMuted}/>
+                    <Text style={s.closeEarlyBtnTxt}>
+                      {closeAt ? closeAt.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',hour12:true}) : tx('Pick a time')}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+
               {isPaid && payoutsReady === false && (
                 <TouchableOpacity style={s.payoutWarn} onPress={() => router.push('/earnings?tab=Settings')}>
                   <Ionicons name="alert-circle" size={18} color={c.gold} />
@@ -730,26 +889,12 @@ export default function CreateEventScreen() {
                 <>
                   <LField label={`Ticket Price (${currency}) *`} error={errors.ticketPrice}>
                     <View style={{flexDirection:'row',alignItems:'center',gap:8}}>
-                      <Text style={s.dollar}>{currency === 'CAD' ? 'CA$' : '$'}</Text>
+                      <Text style={s.dollar}>$</Text>
                       <TextInput style={[s.input,{flex:1},!!errors.ticketPrice&&s.inputErr]} placeholder="0.00" placeholderTextColor={c.placeholder} value={ticketPrice} onChangeText={v=>{setTicketPrice(v);setErrors(e=>({...e,ticketPrice:''}));}} keyboardType="decimal-pad"/>
                     </View>
                   </LField>
                   <LField label="Capacity" hint="Seats available. Leave blank for no limit.">
                     <TextInput style={s.input} placeholder={tx('No limit')} placeholderTextColor={c.placeholder} value={capacity} onChangeText={v=>setCapacity(v.replace(/\D/g,''))} keyboardType="number-pad"/>
-                  </LField>
-                  <LField label="Currency">
-                    <View style={{flexDirection:'row',gap:8}}>
-                      {(['USD','CAD'] as Currency[]).map(cur => (
-                        <TouchableOpacity
-                          key={cur}
-                          style={[s.currencyBtn, currency===cur && s.currencyBtnOn]}
-                          activeOpacity={0.7}
-                          onPress={() => setCurrency(cur)}
-                        >
-                          <Text style={[s.currencyTxt, currency===cur && s.currencyTxtOn]}>{cur}</Text>
-                        </TouchableOpacity>
-                      ))}
-                    </View>
                   </LField>
                   {price>0&&(
                     <View style={s.feeCard}>
@@ -1007,10 +1152,20 @@ const makeStyles = (c: ThemeColors) => StyleSheet.create({
   venueBtn:{flex:1,alignItems:'center',gap:6,borderWidth:1.5,borderColor:c.border,borderRadius:12,paddingVertical:14},
   venueBtnActive:{borderColor:c.primary,backgroundColor:c.primary},
   venueTxt:{fontSize:12,fontWeight:'700',color:c.textMuted},
-  uploadBox:{height:130,borderRadius:14,borderWidth:1.5,borderColor:c.border,borderStyle:'dashed',overflow:'hidden',marginBottom:16},
+  uploadBox:{height:130,borderRadius:14,borderWidth:1.5,borderColor:c.border,borderStyle:'dashed',overflow:'hidden',marginBottom:16,justifyContent:'center'},
+  // Taller once there is something to look at, and backed, so a tall floor
+  // plan is readable rather than a stripe. 130 is the right height for an
+  // empty dashed box and the wrong one for a map.
+  uploadBoxFilled:{height:220,borderStyle:'solid',backgroundColor:c.cardAlt},
   uploadBoxInner:{flex:1,alignItems:'center',justifyContent:'center',gap:8,backgroundColor:c.cardAlt},
   uploadBoxTxt:{fontSize:13,color:c.textMuted},
   venueLayoutImg:{width:'100%',height:'100%'},
+  closeEarlyRow:{flexDirection:'row',alignItems:'center',gap:12,marginBottom:6},
+  closeEarlyHint:{fontSize:11.5,color:c.textMuted,marginTop:2,lineHeight:16},
+  closeEarlyPickers:{flexDirection:'row',gap:8,marginBottom:16},
+  closeEarlyBtn:{flex:1,flexDirection:'row',alignItems:'center',gap:6,borderWidth:1,
+    borderColor:c.border,borderRadius:10,paddingHorizontal:10,paddingVertical:10,backgroundColor:c.cardAlt},
+  closeEarlyBtnTxt:{fontSize:13,color:c.text},
   agendaDesc:{fontSize:14,color:c.textMuted,marginBottom:16,lineHeight:20},
   agendaList:{marginBottom:16},
   agendaItem:{flexDirection:'row',alignItems:'center',gap:8,marginBottom:10},
@@ -1038,6 +1193,15 @@ const makeStyles = (c: ThemeColors) => StyleSheet.create({
   ticketBtnPaid:{borderColor:c.primary,backgroundColor:c.primary},
   ticketBtnTxt:{fontSize:14,fontWeight:'700',color:c.textMuted},
   ticketBtnSub:{fontSize:11,color:c.textMuted},
+  agreeWrap:{marginTop:4,gap:6},
+  agreeRow:{flexDirection:'row',alignItems:'flex-start',gap:9},
+  agreeTxt:{flex:1,fontSize:13.5,color:c.text,lineHeight:19},
+  agreeLink:{fontSize:13,fontWeight:'700',color:c.gold,marginLeft:30},
+  agreeErr:{fontSize:12.5,color:c.red,marginLeft:30},
+  policyRow:{flexDirection:'row',alignItems:'center',gap:10,paddingVertical:11,paddingHorizontal:12,borderRadius:12,borderWidth:1,borderColor:c.border,backgroundColor:c.card},
+  policyRowOn:{borderColor:c.gold},
+  policyLbl:{fontSize:14,fontWeight:'700',color:c.text},
+  policySub:{fontSize:12,color:c.textSecondary,marginTop:1},
   currencyBtn:{flex:1,alignItems:'center',paddingVertical:11,borderRadius:12,borderWidth:1,borderColor:c.border,backgroundColor:c.card},
   currencyBtnOn:{backgroundColor:c.navy,borderColor:c.navy},
   currencyTxt:{fontSize:14,fontWeight:'700',color:c.textSecondary},

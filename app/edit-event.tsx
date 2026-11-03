@@ -6,6 +6,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useThemeColors, ThemeColors } from '../src/lib/theme';
 import { getEvents, updateEvent, formatPrice } from '../src/lib/eventsStore';
+import { endsAtFromText, startsAtFromText } from '../src/lib/eventTime';
+import { flushEventNotices } from '../src/lib/eventNotifyApi';
 import { KeyboardScreen } from '../src/components/KeyboardScreen';
 import { platformFeePerTicket, organizerPayoutPerTicket } from '../src/lib/ticketPricing';
 
@@ -57,6 +59,14 @@ export default function EditEventScreen() {
       summary: description.trim(),
       date: date.trim(),
       time: time.trim(),
+      // Moved with the text it comes from. This screen changed `date` and
+      // `time` and left ends_at on the original day, so an event pushed back a
+      // week still had its payout released against the date it used to be on
+      // -- the three-day hold counted from a day that no longer existed. Kept
+      // as it was when the typed text will not parse, because a wrong instant
+      // here is worse than a stale one.
+      ...(endsAtFromText(date, time) ? { endsAt: endsAtFromText(date, time)! } : {}),
+      ...(startsAtFromText(date, time) ? { startsAt: startsAtFromText(date, time)! } : {}),
       isPaid,
       ticketPrice: parsedPrice,
       capacity: Math.max(
@@ -68,6 +78,9 @@ export default function EditEventScreen() {
       platformFee,
       creatorPayout,
     });
+    // Not awaited. The trigger has already recorded what changed, so this is
+    // only asking the server to send it now rather than on the next flush.
+    void flushEventNotices(event!.id);
     Alert.alert(tx('Saved'), tx('Your event has been updated.'), [{ text: 'OK', onPress: () => router.back() }]);
   }
 

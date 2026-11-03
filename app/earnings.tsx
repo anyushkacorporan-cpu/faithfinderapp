@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from 'react-native';
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
@@ -7,6 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useThemeColors, ThemeColors } from '../src/lib/theme';
 import { useTranslation } from '../src/lib/i18n';
+import { fetchEventEarnings, EventEarnings } from '../src/lib/refundsApi';
 import { useUserEvents, getEarnings } from '../src/lib/eventsStore';
 import { KeyboardScreen, KEYBOARD_SCROLL_PROPS } from '../src/components/KeyboardScreen';
 import {
@@ -35,6 +36,24 @@ export default function EarningsScreen() {
   const [payoutNote, setPayoutNote] = useState('');
   const [opening, setOpening] = useState(false);
 
+  // The real figures, from event_payout_amounts. These used to be computed on
+  // the phone from the local events list: gross was a price times a ticket
+  // count, pending payout was simply all of it, and completed payout was the
+  // number zero. None of it had ever met a refund or a payout.
+  const [rows, setRows] = useState<EventEarnings[]>([]);
+  const refreshEarnings = useCallback(async () => {
+    const data = await fetchEventEarnings();
+    if (data) setRows(data);
+  }, []);
+
+  const totals = useMemo(() => rows.reduce((acc, r) => ({
+    gross: acc.gross + r.gross,
+    refunded: acc.refunded + r.refunded,
+    owed: acc.owed + r.owed,
+    payable: acc.payable + r.payable,
+    tickets: acc.tickets + r.ticketsPaid,
+  }), { gross: 0, refunded: 0, owed: 0, payable: 0, tickets: 0 }), [rows]);
+
   const paidEvents = events.filter(e => e.isPaid);
 
   // Asked of Stripe each time this screen appears, not remembered. Approval
@@ -48,7 +67,10 @@ export default function EarningsScreen() {
     setPayoutLoading(false);
   }, []);
 
-  useFocusEffect(useCallback(() => { void refreshPayout(); }, [refreshPayout]));
+  useFocusEffect(useCallback(() => {
+    void refreshPayout();
+    void refreshEarnings();
+  }, [refreshPayout, refreshEarnings]));
 
   async function handleConnect() {
     setOpening(true);
@@ -82,9 +104,11 @@ export default function EarningsScreen() {
         tx('Set up payouts in the Settings tab. Until then your events cannot sell tickets.'));
       return;
     }
+    // This said the money was transferred on Stripe's own schedule, which
+    // stopped being true when connected accounts moved to a manual one.
     Alert.alert(
-      tx('Paid out automatically'),
-      tx('Ticket money goes straight to your Stripe account when someone buys, and Stripe transfers it to your bank on its own schedule. There is nothing to request here — check your Stripe dashboard for transfer dates.'));
+      tx('Released after your event'),
+      tx('Ticket money sits in your Stripe account from the moment somebody buys, and is released to your bank 3 business days after your event ends. It cannot be withdrawn before then. Your bank may take a few more days to show it.'));
   }
 
   return (
@@ -114,16 +138,31 @@ export default function EarningsScreen() {
           <>
             {/* Total earnings hero */}
             <LinearGradient colors={[c.navy, '#2d2240']} style={s.heroCard} start={{x:0,y:0}} end={{x:1,y:1}}>
-              <Text style={s.heroLabel}>{t('totalNetRevenue')}</Text>
-              <Text style={s.heroAmount}>${earnings.netRevenue.toFixed(2)}</Text>
+              <Text style={s.heroLabel}>{t('owedToYou')}</Text>
+              <Text style={s.heroAmount}>${totals.payable.toFixed(2)}</Text>
               <View style={s.heroRow}>
                 <View style={s.heroStat}>
-                  <Text style={s.heroStatVal}>{earnings.totalTickets}</Text>
+                  <Text style={s.heroStatVal}>{totals.tickets}</Text>
                   <Text style={s.heroStatLbl}>{t('ticketsSold')}</Text>
                 </View>
                 <View style={s.heroStatDivider} />
+                {/*
+                  Ticket holders, from the tickets table.
+
+                  This read events.attending, a column nothing has ever
+                  written: not the payments function, which increments
+                  tickets_sold through the capacity trigger, and not the app,
+                  whose own attending list is a per-device thing in
+                  eventActionsStore. So it was not a count that had drifted —
+                  it had never counted anything, and sat at nought beside a
+                  ticket that had just been sold.
+
+                  Free events are not in it. Their RSVPs live in that same
+                  unmaintained column, and a number that quietly omits them
+                  is better than one that quietly invents them.
+                */}
                 <View style={s.heroStat}>
-                  <Text style={s.heroStatVal}>{earnings.totalAttendees}</Text>
+                  <Text style={s.heroStatVal}>{totals.tickets}</Text>
                   <Text style={s.heroStatLbl}>{t('attendees')}</Text>
                 </View>
                 <View style={s.heroStatDivider} />
@@ -137,11 +176,11 @@ export default function EarningsScreen() {
             {/* Stats grid */}
             <View style={s.statsGrid}>
               {[
-                { label: 'Gross Revenue', value: formatCurrency(earnings.grossRevenue), icon: 'trending-up', color: '#667eea' },
+                { label: 'Gross Ticket Sales', value: formatCurrency(totals.gross), icon: 'trending-up', color: '#667eea' },
+                { label: 'Refunded to Buyers', value: formatCurrency(totals.refunded), icon: 'return-down-back', color: c.textMuted },
+                { label: 'Owed Back to FourCircle', value: formatCurrency(totals.owed), icon: 'alert-circle', color: totals.owed > 0 ? c.red : c.textMuted },
+                { label: 'Owed to You', value: formatCurrency(totals.payable), icon: 'wallet', color: c.green },
                 { label: 'Fees Paid by Buyers', value: formatCurrency(earnings.totalFees), icon: 'information-circle', color: c.textMuted },
-                { label: 'Net Revenue', value: formatCurrency(earnings.netRevenue), icon: 'checkmark-circle', color: c.green },
-                { label: 'Pending Payout', value: formatCurrency(earnings.pendingPayout), icon: 'time', color: c.gold },
-                { label: 'Completed Payout', value: formatCurrency(earnings.completedPayout), icon: 'wallet', color: '#43e97b' },
                 { label: 'Total Events', value: String(events.length), icon: 'calendar', color: c.text },
               ].map((stat, i) => (
                 <View key={i} style={s.statCard}>
@@ -149,7 +188,7 @@ export default function EarningsScreen() {
                     <Ionicons name={stat.icon as any} size={20} color={stat.color} />
                   </View>
                   <Text style={s.statVal} numberOfLines={1} adjustsFontSizeToFit>{stat.value}</Text>
-                  <Text style={s.statLbl} numberOfLines={2}>{stat.label}</Text>
+                  <Text style={s.statLbl} numberOfLines={2}>{tx(stat.label)}</Text>
                 </View>
               ))}
             </View>
@@ -158,18 +197,31 @@ export default function EarningsScreen() {
             {paidEvents.length > 0 && (
               <View style={s.section}>
                 <Text style={s.sectionTitle}>{t('eventBreakdown')}</Text>
-                {paidEvents.map(e => (
-                  <View key={e.id} style={s.eventRow}>
-                    <View style={s.eventRowInfo}>
-                      <Text style={s.eventRowTitle} numberOfLines={1}>{e.title}</Text>
-                      <Text style={s.eventRowDate}>{e.date}</Text>
+                {paidEvents.map(e => {
+                  // From the same records the figures above come from, not
+                  // from the event row's own creatorPayout. That column is
+                  // written once when an event is made, so an event created
+                  // under an older fee model still carries that model's
+                  // number — which is how this line said $9.00 under a
+                  // heading that said $10.00.
+                  const real = rows.find(r => r.eventId === e.id);
+                  return (
+                    <View key={e.id} style={s.eventRow}>
+                      <View style={s.eventRowInfo}>
+                        <Text style={s.eventRowTitle} numberOfLines={1}>{e.title}</Text>
+                        <Text style={s.eventRowDate}>{e.date}</Text>
+                      </View>
+                      <View style={s.eventRowStats}>
+                        <Text style={s.eventRowTickets}>
+                          {real?.ticketsPaid ?? e.ticketsSold} {t('ticketsWord').toLowerCase()}
+                        </Text>
+                        <Text style={s.eventRowRevenue}>
+                          ${(real?.payable ?? 0).toFixed(2)}
+                        </Text>
+                      </View>
                     </View>
-                    <View style={s.eventRowStats}>
-                      <Text style={s.eventRowTickets}>{e.ticketsSold} tickets</Text>
-                      <Text style={s.eventRowRevenue}>${(e.creatorPayout * e.ticketsSold).toFixed(2)}</Text>
-                    </View>
-                  </View>
-                ))}
+                  );
+                })}
               </View>
             )}
 
@@ -189,13 +241,35 @@ export default function EarningsScreen() {
         {activeTab === 'Payouts' && (
           <>
             <View style={s.balanceCard}>
-              <Text style={s.balanceLbl}>{t('availableBalance')}</Text>
-              <Text style={s.balanceAmt}>${earnings.pendingPayout.toFixed(2)}</Text>
+              <Text style={s.balanceLbl}>{t('owedToYou')}</Text>
+              <Text style={s.balanceAmt}>${totals.payable.toFixed(2)}</Text>
+              <Text style={s.balanceNote}>{t('payoutRule')}</Text>
               <TouchableOpacity style={s.withdrawBtn} onPress={handleWithdraw}>
                 <Ionicons name="information-circle-outline" size={18} color={c.onPrimary} />
                 <Text style={s.withdrawBtnTxt}>{tx('Where is my money?')}</Text>
               </TouchableOpacity>
             </View>
+
+            {rows.length > 0 && (
+              <>
+                <Text style={s.sectionTitle}>{t('byEvent')}</Text>
+                {rows.map(r => (
+                  <View key={r.eventId} style={s.eventPayoutRow}>
+                    <View style={{flex:1, minWidth:0}}>
+                      <Text style={s.payoutTitle} numberOfLines={1}>{r.title}</Text>
+                      <Text style={s.payoutSub}>
+                        {r.payoutDueAt
+                          ? `${t('payoutDue')} ${new Date(r.payoutDueAt).toLocaleDateString()}`
+                          : t('payoutDateUnknown')}
+                        {r.refunded > 0 ? ` · ${t('refundedWord')} $${r.refunded.toFixed(2)}` : ''}
+                        {r.owed > 0 ? ` · ${t('owedBack')} $${r.owed.toFixed(2)}` : ''}
+                      </Text>
+                    </View>
+                    <Text style={s.payoutAmt}>${r.payable.toFixed(2)}</Text>
+                  </View>
+                ))}
+              </>
+            )}
 
             <Text style={s.sectionTitle}>{t('withdrawalHistory')}</Text>
             {/* Transfers happen inside Stripe, between Stripe and the
@@ -207,7 +281,7 @@ export default function EarningsScreen() {
               <Ionicons name="receipt-outline" size={26} color={c.textMuted} />
               <Text style={s.emptyPayoutsTitle}>{tx('Transfers live in Stripe')}</Text>
               <Text style={s.emptyPayoutsSub}>
-                {tx('Your money goes to your own Stripe account, so every transfer to your bank is listed there with its date and status. Sign in at dashboard.stripe.com.')}
+                {tx('Your money goes to your own Stripe account, so every transfer to your bank is listed there with its date and status. Open it from the Stripe button above.')}
               </Text>
             </View>
           </>
@@ -365,6 +439,11 @@ const makeStyles = (c: ThemeColors) => StyleSheet.create({
   createBtn:{marginTop:8,backgroundColor:c.primary,borderRadius:100,paddingHorizontal:24,paddingVertical:12},
   createBtnTxt:{color:c.onPrimary,fontWeight:'700',fontSize:14},
   balanceCard:{margin:16,backgroundColor:c.primary,borderRadius:20,padding:20,alignItems:'center'},
+  balanceNote:{fontSize:12.5,color:'rgba(255,255,255,0.78)',marginTop:4,lineHeight:18,textAlign:'center'},
+  eventPayoutRow:{flexDirection:'row',alignItems:'center',gap:12,backgroundColor:c.card,borderWidth:1,borderColor:c.border,borderRadius:12,padding:13,marginBottom:9,marginHorizontal:16},
+  payoutTitle:{fontSize:14.5,fontWeight:'700',color:c.text},
+  payoutSub:{fontSize:12,color:c.textMuted,marginTop:2},
+  payoutAmt:{fontSize:16,fontWeight:'700',color:c.text},
   balanceLbl:{fontSize:13,color:'rgba(255,255,255,0.7)',marginBottom:8},
   balanceAmt:{fontSize:40,fontWeight:'700',color:c.onPrimary,marginBottom:20,fontFamily:'PlayfairDisplay_700Bold'},
   withdrawBtn:{flexDirection:'row',alignItems:'center',gap:8,backgroundColor:'rgba(255,255,255,0.15)',borderRadius:100,paddingHorizontal:24,paddingVertical:12},

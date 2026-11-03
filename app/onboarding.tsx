@@ -4,6 +4,7 @@ import {
   useWindowDimensions, NativeSyntheticEvent, NativeScrollEvent, StatusBar,
   Animated, AccessibilityInfo,
 } from 'react-native';
+import type { ScrollViewInstance } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -36,7 +37,7 @@ export default function Onboarding() {
   const { replay } = useLocalSearchParams<{ replay?: string }>();
   const isReplay = replay === '1';
   const { width } = useWindowDimensions();
-  const scroller = useRef<ScrollView>(null);
+  const scroller = useRef<ScrollViewInstance>(null);
 
   // A church account is addressed by the church's name, a personal one by a
   // first name. "Friend" only if the account somehow has neither, which is

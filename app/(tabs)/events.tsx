@@ -5,16 +5,17 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { HeaderIcons } from '../../src/components/Header';
-import { EVENTS } from '../../src/lib/constants';
 import { useThemeColors, ThemeColors } from '../../src/lib/theme';
 import { TAB_BAR_CLEARANCE } from '../../src/lib/tabBar';
 import { getUser } from '../../src/lib/userStore';
 import * as Location from 'expo-location';
 import { useEvents, isSoldOut } from '../../src/lib/eventsStore';
+import { hasEnded, eventEndsAt } from '../../src/lib/eventTime';
 import { useEventActions, toggleSaveEvent, addAttending, removeAttending } from '../../src/lib/eventActionsStore';
 import { useSettings } from '../../src/lib/settingsStore';
 import { useTranslation } from '../../src/lib/i18n';
 import { stateCode, eventStateCode } from '../../src/lib/filters';
+import { isEventHidden, useHiddenEvents } from '../../src/lib/hiddenStore';
 
 import { KeyboardScreen, KEYBOARD_SCROLL_PROPS } from '../../src/components/KeyboardScreen';
 const TABS = ['List', 'Attending', 'Saved'];
@@ -95,9 +96,14 @@ export default function EventsScreen() {
   const [shareMessage, setShareMessage] = useState('');
   const [sharedToast, setSharedToast] = useState(false);
 
+  // Subscribed to, not just read: hiding happens on the detail screen, which
+  // sits over this one. Without the subscription the list underneath keeps
+  // the event somebody just reported and shows it again on the way back.
+  const hiddenEvents = useHiddenEvents();
+
   const allEvents = useMemo(() =>
-    userEvents.filter(e => e.status !== 'draft')
-  , [userEvents]);
+    userEvents.filter(e => e.status !== 'draft' && !isEventHidden(e.id))
+  , [userEvents, hiddenEvents]);
 
   /**
    * The tab counts, taken from the events rather than from the saved ids.
@@ -175,8 +181,37 @@ export default function EventsScreen() {
       );
     }
 
+    // Events that are over do not belong in a list people browse to find
+    // something to go to. Nothing ever set status to 'past', so this list has
+    // been carrying finished events indefinitely — a date in November was
+    // still on offer in January. An event with no recorded end is left alone
+    // rather than guessed at.
+    result = result.filter((e: any) => !hasEnded(e));
+
     // Filters
     if (activeFilters.length > 0) {
+      const now = Date.now();
+      const DAY = 86_400_000;
+      // Measured against the event's own end, the only real instant it has.
+      // `date` is free text the organiser typed and will not parse reliably.
+      const endsWithin = (e: any, days: number) => {
+        const end = eventEndsAt(e);
+        if (end === null) return false;
+        // Written as three statements rather than one comparison because
+        // `end >= now && end <` reads as a JSX text node to check-spanish.mjs,
+        // which then reports "= now && end" as untranslated screen text.
+        if (end < now) return false;
+        return end < now + days * DAY;
+      };
+      const endsToday = (e: any) => {
+        const end = eventEndsAt(e);
+        if (end === null) return false;
+        const d = new Date(end), t = new Date(now);
+        return d.getFullYear() === t.getFullYear()
+            && d.getMonth() === t.getMonth()
+            && d.getDate() === t.getDate();
+      };
+
       result = result.filter((e: any) => {
         return activeFilters.every(f => {
           if (f === 'free') return e.price === 'Free';
@@ -184,6 +219,12 @@ export default function EventsScreen() {
           if (f === 'in-person') return !e.venueType || e.venueType === 'in-person';
           if (f === 'online') return e.venueType === 'online';
           if (f === 'hybrid') return e.venueType === 'hybrid';
+          // Date filters. These chips have been on the screen since the first
+          // version of it with nothing behind them: every one fell through to
+          // `return true`, so tapping Today changed nothing at all.
+          if (f === 'today') return endsToday(e);
+          if (f === 'week')  return endsWithin(e, 7);
+          if (f === 'month') return endsWithin(e, 31);
           // Category filters
           if (['Conference','Festival','Workshop','Revival','Service','Concert','Retreat'].includes(f)) return e.type === f;
           return true;
@@ -297,7 +338,7 @@ export default function EventsScreen() {
               return (
                 <TouchableOpacity key={'nb-'+event.id} style={s.card} activeOpacity={0.92} onPress={() => router.push({pathname:'/event-detail',params:{id:event.id,title:event.title,date:event.date,location:event.location,type:event.type,price:event.price,organizer:event.organizer||'',description:event.description||event.summary||''}})}>
                   {event.bannerImage ? (
-                    <ImageBackground source={{uri: event.bannerImage}} style={s.cardBanner} resizeMode="cover">
+                    <ImageBackground source={{uri: event.bannerImage}} style={s.cardBanner} resizeMode="contain">
                     <View style={{position:'absolute',top:12,right:12,backgroundColor:c.green,borderRadius:6,paddingHorizontal:10,paddingVertical:4}}>
                       <Text style={{color:'#fff',fontSize:11,fontWeight:'700',letterSpacing:0.5}}>{t('nearbyBadge')}</Text>
                     </View>
@@ -405,7 +446,7 @@ export default function EventsScreen() {
               })}
             >
               {event.bannerImage ? (
-                <ImageBackground source={{uri: event.bannerImage}} style={s.cardBanner} resizeMode="cover">
+                <ImageBackground source={{uri: event.bannerImage}} style={s.cardBanner} resizeMode="contain">
                 {nearbyEvents.some((ne) => ne.id === event.id) && (
                 <View style={{position:'absolute',top:12,right:12,backgroundColor:c.green,borderRadius:6,paddingHorizontal:10,paddingVertical:4}}>
                     <Text style={{color:'#fff',fontSize:11,fontWeight:'700',letterSpacing:0.5}}>{t('nearbyBadge')}</Text>
@@ -752,7 +793,11 @@ const makeStyles = (c: ThemeColors) => StyleSheet.create({
   emptyTxt:{fontSize:15,color:c.textMuted,fontWeight:'700'},
   emptySub:{fontSize:13,color:c.placeholder,textAlign:'center'},
   card:{backgroundColor:c.card,marginHorizontal:16,marginBottom:16,borderRadius:20,overflow:'hidden',borderWidth:1,borderColor:c.border,shadowColor:'#000',shadowOffset:{width:0,height:2},shadowOpacity:0.06,shadowRadius:8},
-  cardBanner:{aspectRatio:16/9,justifyContent:'flex-start',padding:14},
+  // contain, not cover, so a flyer is not cropped to a 16:9 slice — a poster
+  // shot portrait lost its top and bottom, which on an event flyer is usually
+  // the date and the address. The backgroundColor fills what contain leaves
+  // over, so the letterboxing reads as a frame rather than a hole.
+  cardBanner:{aspectRatio:16/9,justifyContent:'flex-start',padding:14,backgroundColor:c.cardAlt},
   heartBtn:{alignSelf:'flex-end',width:36,height:36,borderRadius:18,backgroundColor:'rgba(255,255,255,0.15)',alignItems:'center',justifyContent:'center'},
   bannerBadges:{flexDirection:'row',gap:6,flexWrap:'wrap'},
   badgeType:{backgroundColor:'rgba(0,0,0,0.5)',borderRadius:8,paddingHorizontal:10,paddingVertical:4},

@@ -22,7 +22,6 @@ import { useConfirm } from '../../src/components/Confirm';
 import { ActivityList } from '../../src/components/ActivityList';
 import { PostShareSheet } from '../../src/components/PostShareSheet';
 import { useEventActions } from '../../src/lib/eventActionsStore';
-import { EVENTS } from '../../src/lib/constants';
 import { useEvents } from '../../src/lib/eventsStore';
 import { useSettings } from '../../src/lib/settingsStore';
 import { useTranslation } from '../../src/lib/i18n';
@@ -151,7 +150,7 @@ export default function ProfileScreen() {
   const [photoViewerIndex, setPhotoViewerIndex] = useState(0);
   const { attending } = useEventActions();
   const userCreatedEvents = useEvents();
-  const allEventsPool = [...userCreatedEvents, ...EVENTS];
+  const allEventsPool = userCreatedEvents;
   const myAttendingEvents = attending
     .map(id => allEventsPool.find((e: any) => e.id === id))
     .filter(Boolean);

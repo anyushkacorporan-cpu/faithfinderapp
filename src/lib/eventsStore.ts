@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { EVENTS as SEED_EVENTS, EVENT_DETAILS as SEED_EVENT_DETAILS } from './constants';
 import * as api from './eventsApi';
+import { hasEnded } from './eventTime';
+import { stripSampleEvents } from './purgeSampleData';
 import { getUser } from './userStore';
 import { platformFeePerTicket, organizerPayoutPerTicket } from './ticketPricing';
 
@@ -19,6 +20,8 @@ export type EventStatus = 'upcoming' | 'active' | 'past' | 'draft';
  * own money, and must keep meaning that no matter who is looking at it.
  */
 export type Currency = 'USD' | 'CAD';
+export type RefundPolicy = 'flexible' | 'standard' | 'none';
+export type Lifecycle = 'scheduled' | 'postponed' | 'rescheduled' | 'cancelled';
 
 /** What the symbol alone cannot say, since both countries write it '$'. */
 export function formatPrice(amount: number, currency: Currency = 'USD'): string {
@@ -43,6 +46,26 @@ export type AppEvent = {
   type: string;
   price: string;
   isPaid: boolean;
+  /** 'flexible' | 'standard' | 'none'. What the organiser promised. */
+  refundPolicy: RefundPolicy;
+  /** Whether the event is still happening. Separate from `status`, which says
+   *  where it sits in time: an event can be past and cancelled at once. */
+  lifecycle: Lifecycle;
+  /**
+   * When the event actually finishes, as an ISO timestamp, for payout timing.
+   * `date` and `time` stay the text the organiser typed — see 33_payouts.sql
+   * for why both exist. Undefined on events made before this was recorded.
+   */
+  endsAt?: string;
+  /**
+   * IANA zone of the device that set the date and time, e.g. America/New_York.
+   * Recorded so endsAt can be corrected later; nothing reads it yet.
+   */
+  timezone?: string;
+  /** When the event begins. Undefined on events made before it was recorded. */
+  startsAt?: string;
+  /** An organiser's own cutoff, earlier than the default. */
+  registrationClosesAt?: string;
   ticketPrice: number;
   platformFee: number;
   creatorPayout: number;
@@ -73,6 +96,15 @@ export type AppEvent = {
   hasLiveStream: boolean;
   recurrence: RecurrenceType;
   notes: string;
+  /**
+   * Dead. Nothing has ever written this, on the server or the phone.
+   *
+   * The column exists, the API maps it, and it is always 0. Registrations —
+   * free and paid alike — are counted by the claim_seats trigger into
+   * `ticketsSold`, because every registration inserts a ticket row, a free
+   * one at a price of zero. Read `ticketsSold` for "how many people are
+   * coming"; this field is kept only so a row round-trips unchanged.
+   */
   attending: number;
   createdAt: number;
 };
@@ -86,56 +118,11 @@ const GRADIENTS: [string,string][] = [
   ['#c9a96e','#1a1a2e'],
 ];
 
-// Seed the real events store with the demo/discovery events too, so they're
-// uniformly findable by ID the same way user-created events are (matching
-// how postsStore.ts already seeds INITIAL_POSTS). Without this, sharing a
-// demo event produced a broken lookup since it existed only as route params,
-// never as a real stored record.
-const INITIAL_EVENTS: AppEvent[] = SEED_EVENTS.map((e: any, idx: number) => {
-  const details = (SEED_EVENT_DETAILS as any)[e.id] || {};
-  const isPaid = e.price !== 'Free';
-  const ticketPrice = isPaid ? parseFloat(String(e.price).replace('$','')) || 0 : 0;
-  return {
-    id: e.id,
-    status: 'upcoming',
-    title: e.title,
-    description: e.description || details.summary || '',
-    summary: details.summary || e.description || '',
-    organizer: '',
-    date: e.date,
-    time: '',
-    endTime: '',
-    location: e.location,
-    city: '',
-    state: '',
-    zip: '',
-    type: e.type,
-    price: e.price,
-    isPaid,
-    ticketPrice,
-    platformFee: 0,
-    creatorPayout: 0,
-    ticketsSold: 0,
-    bannerColor: details.bannerColor || GRADIENTS[idx % GRADIENTS.length],
-    speakers: details.speakers || [],
-    agenda: [],
-    experience: details.experience || [],
-    audience: details.audience || '',
-    venueType: 'in-person',
-    venueName: '',
-    venueAddress: '',
-    venueInstructions: '',
-    parking: '',
-    liveStreamUrl: '',
-    meetingUrl: '',
-    platform: '',
-    hasLiveStream: false,
-    recurrence: 'once',
-    notes: '',
-    attending: e.attending || 0,
-    createdAt: Date.now() - (SEED_EVENTS.length - idx) * 1000,
-  };
-});
+// No seed. Five invented events used to be merged in here so they were
+// findable by id the way real ones are. They showed in the events tab, in
+// search, and in an organiser's earnings, indistinguishable from anything
+// somebody had actually created.
+const INITIAL_EVENTS: AppEvent[] = [];
 
 let events: AppEvent[] = INITIAL_EVENTS;
 let hydrated = false;
@@ -168,19 +155,31 @@ async function hydrate() {
     // Merge: keep any real stored events, and backfill seed/demo events for
     // any IDs not already present, so demo events stay findable even for
     // users who already had (possibly empty) event data saved.
-    const storedIds = new Set(stored.map(e => e.id));
-    const missingSeed = INITIAL_EVENTS.filter(e => !storedIds.has(e.id));
-    events = [...stored, ...missingSeed];
+    // Drop the sample events this device saved under the old build before
+    // anything reads them, then write the cleaned list straight back so the
+    // next launch does not have to do it again.
+    const cleaned = stripSampleEvents(stored);
+    events = cleaned;
+    if (cleaned.length !== stored.length) void persist();
     notify();
   } catch {}
 }
 hydrate();
 
+/**
+ * When an event is over, as a number, or null when nobody can say.
+ *
+ * `ends_at` is the only real instant an event carries — `date` and `time` are
+ * whatever the organiser typed. Events made before that column existed have
+ * none, and null here is the honest answer for them.
+ */
 export function getEvents() { return [...events]; }
-export function getUpcomingEvents() { return events.filter(e => e.status !== 'past' && e.status !== 'draft'); }
+export function getUpcomingEvents() {
+  return events.filter(e => e.status !== 'past' && e.status !== 'draft' && !hasEnded(e));
+}
 export function getUserEvents() { return [...events].sort((a,b) => b.createdAt - a.createdAt); }
 
-export function addEvent(event: Omit<AppEvent, 'id' | 'createdAt' | 'bannerColor' | 'platformFee' | 'creatorPayout' | 'ticketsSold' | 'attending'> & { capacity?: number; currency?: Currency }) {
+export function addEvent(event: Omit<AppEvent, 'id' | 'createdAt' | 'bannerColor' | 'platformFee' | 'creatorPayout' | 'ticketsSold' | 'attending' | 'lifecycle'> & { capacity?: number; currency?: Currency }) {
   const idx = events.length % GRADIENTS.length;
   // Both from ticketPricing.ts, so the number quoted to the organiser here is
   // the number charged at checkout and the number the server bills. The fee is
@@ -192,6 +191,10 @@ export function addEvent(event: Omit<AppEvent, 'id' | 'createdAt' | 'bannerColor
     ...event,
     id: 'user_' + Date.now().toString(),
     createdAt: Date.now(),
+    // Every event is happening when it is made. Only cancelling, postponing
+    // or rescheduling moves this, and none of those is something you do while
+    // filling in the form.
+    lifecycle: 'scheduled',
     bannerColor: GRADIENTS[idx],
     platformFee,
     creatorPayout,
@@ -390,7 +393,6 @@ export function getEarnings() {
   const totalFees = paidEvents.reduce((sum, e) => sum + (e.platformFee * e.ticketsSold), 0);
   const netRevenue = grossRevenue;
   const totalTickets = events.reduce((sum, e) => sum + e.ticketsSold, 0);
-  const totalAttendees = events.reduce((sum, e) => sum + e.attending, 0);
   // Everything earned is owed until a transfer actually happens. These used to
   // be netRevenue * 0.7 and * 0.3 — placeholder numbers from before earnings
   // were wired to real ticket sales, which survived the wiring and turned into
@@ -401,7 +403,11 @@ export function getEarnings() {
   // completedPayout stays at zero until there are real transfers to count.
   // Stripe Connect owns that ledger — what moved, when, and to which account —
   // so this is where its payout total is read in, not something to model here.
-  return { grossRevenue, totalFees, netRevenue, totalTickets, totalAttendees, pendingPayout: netRevenue, completedPayout: 0 };
+  // totalAttendees used to be returned here, summing `attending` — the column
+  // nothing writes. Nothing read it any more either: the earnings hero moved to
+  // real ticket records. Removed rather than corrected, so the next person does
+  // not find a plausible-looking attendee total sitting here and use it.
+  return { grossRevenue, totalFees, netRevenue, totalTickets, pendingPayout: netRevenue, completedPayout: 0 };
 }
 
 /**

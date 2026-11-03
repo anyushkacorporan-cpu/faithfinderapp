@@ -19,36 +19,30 @@
  * Two fees, shown separately, because a fee a buyer cannot account for is a
  * fee they dispute:
  *
- *   Platform fee    ours, 5% capped at $5 a ticket
+ *   Platform fee    ours, 2% of the ticket plus 80c
  *   Processing      Stripe's, 2.9% + 30c per order, passed through at cost
  *
- * WHY THE CAP
+ * WHY A FLAT PART, AND WHY NO CAP
  *
- * Without it, a straight percentage eventually overtakes Eventbrite. Their
- * service fee is 3.7% plus a flat $1.79, and a flat component gets cheaper as
- * a share of the ticket the more expensive the ticket is — their effective
- * rate falls toward 3.7% while ours would stay at 5%.
+ * This was 5% capped at $5, which earned 51c on the $10 ticket that is most
+ * of what a church sells. A percentage alone cannot pay for a sale: the work
+ * of taking one — the card, the ticket, the support mail when somebody cannot
+ * find it — costs about the same whatever the ticket cost. The 80c is that
+ * part, and the 2% is the part that scales.
  *
- * The lines cross at $137.69, where 0.05p first exceeds 0.037p + 1.79. This
- * said $107 before, which was simply wrong; the working is one line, so here
- * it is rather than another number to take on trust:
+ * The cap is gone because it was protecting a claim this shape cannot break.
+ * Eventbrite charges 3.7% plus $1.79; ours is smaller in both terms, so
+ * 0.02p + 0.80 is below 0.037p + 1.79 at every price there is, and the gap
+ * widens as tickets get dearer rather than closing. The old 5% did overtake
+ * them, at $137.69, which is the whole reason a cap had to exist.
  *
- *     0.05p = 0.037p + 1.79  ->  0.013p = 1.79  ->  p = 137.69
+ * The comparison, with Stripe included on both sides:
  *
- * The cap means they never cross: this stays cheaper at every price, with no
- * asterisk.
- *
- * $5 binds at a $100 ticket, which is earlier than it has to be — a cap of up
- * to $6.88 would still bind before $137.69 and so keep the claim intact, while
- * earning about 30% more on anything above $130. That is left on the table on
- * purpose. These are churches already paying for the room before anyone walks
- * in, and a fee that grows with their biggest event of the year is the thing
- * that makes people resent a platform. "Never more than $5, whatever the
- * ticket" is worth more here than the difference.
- *
- * Anything above $6.88 would break the claim outright: a $10 cap makes this
- * dearer than Eventbrite at a $200 ticket by 81 cents, and one exception is
- * enough to cost the sentence.
+ *     ticket     buyer pays      Eventbrite      we keep
+ *     $5         $6.39           $7.18           $0.90
+ *     $10        $11.64          $12.51          $1.00
+ *     $25        $27.40          $28.52          $1.30
+ *     $100       $106.18         $108.55         $2.80
  *
  * WHY NOTHING IS CHARGED ON A FREE TICKET
  *
@@ -56,10 +50,10 @@
  * a free event would be a fee on the majority of what this app is for.
  */
 
-/** Ours. */
-export const PLATFORM_RATE = 0.05;
-/** Per ticket, so that an expensive ticket does not become the expensive option. */
-export const PLATFORM_CAP = 5;
+/** Ours, the part that scales with the ticket. */
+export const PLATFORM_RATE = 0.02;
+/** Ours, the part that does not: one sale costs about the same at any price. */
+export const PLATFORM_FLAT = 0.80;
 
 /**
  * Stripe's published US card rate. Passed through at cost rather than marked
@@ -85,7 +79,7 @@ function toCents(n: number): number {
 /** Our cut of one ticket at this price. Zero for a free ticket. */
 export function platformFeePerTicket(price: number): number {
   if (!(price > 0)) return 0;
-  return toCents(Math.min(price * PLATFORM_RATE, PLATFORM_CAP));
+  return toCents(price * PLATFORM_RATE + PLATFORM_FLAT);
 }
 
 export type Breakdown = {

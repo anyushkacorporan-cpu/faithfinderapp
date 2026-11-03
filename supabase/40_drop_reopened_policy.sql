@@ -1,0 +1,42 @@
+-- ============================================================================
+-- FourCircle — undoing a gate that 38 reopened
+--
+-- 23_church_photos_editable.sql deliberately dropped two policies:
+--
+--     drop policy if exists profiles_owner_insert on church_profiles;
+--     drop policy if exists profiles_owner_update on church_profiles;
+--
+-- and replaced the update with one behind an approval gate:
+--
+--     create policy church_profiles_owner_update on church_profiles
+--       for update using (owns_church(church_id)) with check (owns_church(church_id));
+--
+-- where owns_church() requires a claim that was actually granted -- claimed_at
+-- set, and the claimant's profile still verification_status 'approved'. Its
+-- own header said why: the loose version let a row rewrite a church's public
+-- listing, and it was "closed below rather than left beside a new approval
+-- gate it would have made pointless".
+--
+-- 38_update_policies.sql then recreated profiles_owner_update, from the
+-- original definition in 01_churches.sql, to add the `with check` clause it
+-- was missing. It should not have been recreated at all: a later migration had
+-- already removed it, and reading only the file that first defined a policy is
+-- how that was missed.
+--
+-- Permissive policies are ORed, so the weaker one wins. The effect was to put
+-- the approval gate back to sleep: anyone still named in claimed_by could edit
+-- that church's listing -- name, address, phone, website, photo -- even if
+-- their verification had since been rejected or revoked.
+--
+-- Not the full takeover 38 was closing. church_profiles_freeze_id is a
+-- trigger, and triggers fire whichever policy let the row through, so moving a
+-- claim to another church stayed blocked throughout. The insert policy was not
+-- recreated either, so rows still only come from grant_church_claim(). The gap
+-- was narrower than the one being fixed, and it was still a gap.
+-- ============================================================================
+
+drop policy if exists profiles_owner_update on church_profiles;
+
+-- Left in place: church_profiles_owner_update (approval-gated, from 23) and
+-- profiles_admin_update (from 30). Both already carry a with check clause,
+-- which is what 38 was for.
