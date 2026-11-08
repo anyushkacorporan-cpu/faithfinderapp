@@ -626,30 +626,40 @@ export default function ProfileScreen() {
               </View>
             </TouchableOpacity>
           </View>
+          {/* In the cover box rather than below it, because "level with the
+              bottom of the photo" is only expressible where the photo is:
+              the avatar hangs 45px past the cover, so this shares that
+              offset. Same destination as before. */}
+          <TouchableOpacity style={s.editPill} activeOpacity={0.7} onPress={() => router.push('/edit-profile')}>
+            <Ionicons name="pencil-outline" size={15} color={c.text}/>
+            <Text style={s.editPillTxt}>{t('editProfile')}</Text>
+          </TouchableOpacity>
         </View>
         <View style={s.personalInfo}>
           <Text style={s.name}>{user.firstName || 'Annie'} {user.lastName || 'Johnson'}</Text>
           {!!user.bio && (
             <Text style={s.bio}>{user.bio}</Text>
           )}
-          {/* Chips rather than a run of text separated by hairlines. Each
-              fact gets its own shape, which is what lets the connection count
-              read as tappable - as an inline number it did not. */}
-          <View style={s.statChipRow}>
-            <TouchableOpacity style={s.statChip} activeOpacity={0.7} onPress={() => router.push('/connections')}>
-              <Ionicons name="people-outline" size={14} color={c.textSecondary} />
-              <Text style={s.statChipTxt}>{connectionCount}</Text>
-            </TouchableOpacity>
+          {/* One line of plain facts rather than a row of filled chips.
+              Location first, then the count, which stays tappable and goes
+              to the same screen. Private keeps its lock and its gold and
+              loses its pill with the others, so the line reads as one thing
+              rather than two styles sharing a row. */}
+          <View style={s.infoLine}>
             {appSettings.privacy.showLocation && !!user.location && (
-              <View style={s.statChip}>
-                <Ionicons name="location-outline" size={14} color={c.textSecondary} />
-                <Text style={s.statChipTxt}>{user.location.split(',').slice(0,2).join(',').trim()}</Text>
+              <View style={s.infoItem}>
+                <Ionicons name="location-outline" size={14} color={c.gold} />
+                <Text style={s.infoGold}>{user.location.split(',').slice(0,2).join(',').trim()}</Text>
               </View>
             )}
+            <TouchableOpacity style={s.infoItem} activeOpacity={0.7} onPress={() => router.push('/connections')}>
+              <Ionicons name="people-outline" size={14} color={c.textSecondary} />
+              <Text style={s.infoTxt}>{connectionCount}</Text>
+            </TouchableOpacity>
             {!appSettings.privacy.publicProfile && (
-              <View style={[s.statChip, s.statChipPrivate]}>
+              <View style={s.infoItem}>
                 <Ionicons name="lock-closed" size={13} color={c.gold} />
-                <Text style={[s.statChipTxt, s.statChipTxtPrivate]}>{tx('Private')}</Text>
+                <Text style={s.infoGold}>{tx('Private')}</Text>
               </View>
             )}
           </View>
@@ -660,37 +670,9 @@ export default function ProfileScreen() {
               ))}
             </View>
           )}
-          {/* See Activity used to share this row. Activity is a tab now, and
-              a chip that pushes a separate screen showing the same posts —
-              with a back header the tab does not have — is two doors into one
-              room that do not match. Edit Profile already has flex:1, so it
-              takes the row back on its own. */}
-          <View style={s.actionRow}>
-            <TouchableOpacity style={s.editBtn} activeOpacity={0.7} onPress={() => router.push('/edit-profile')}>
-              <Ionicons name="pencil-outline" size={16} color={c.text}/>
-              <Text style={s.editTxt}>{t('editProfile')}</Text>
-            </TouchableOpacity>
-          </View>
-
-          {/* Rendered unconditionally before, so a profile with no life verse
-              still paid for verseItalic's lineHeight and the reference row --
-              about 44px of blank space between Edit Profile and See Activity.
-              Each line is gated separately so a verse without a reference does
-              not leave a phantom row behind it. */}
-          {!!(user.lifeVerse || user.lifeVerseRef) && (
-            <View style={s.verseWrap}>
-              {!!user.lifeVerse && <Text style={s.verseItalic}>{user.lifeVerse}</Text>}
-              {!!user.lifeVerseRef && (
-                <View style={s.verseRefRow}>
-                  <Text style={s.verseRef}>{user.lifeVerseRef}</Text>
-                </View>
-              )}
-            </View>
-          )}
-
-          {/* alignSelf overrides the parent's alignItems:'center' for this row
-              only, so the link sits right without moving the name, stats,
-              edit button or verse that share the container. */}
+          {/* Edit Profile is up in the cover box now, level with the photo.
+              The life verse is no longer shown here — it is still edited and
+              still stored, this screen just does not print it. */}
         </View>
 
         {/* ── TABS ───────────────────────────────────────────────────────
@@ -1038,29 +1020,45 @@ const makeStyles = (c: ThemeColors) => StyleSheet.create({
   cover:{width:'100%',height:200,backgroundColor:c.navy},
   addCoverBtn:{position:'absolute',bottom:50,left:12,flexDirection:'row',alignItems:'center',gap:5,backgroundColor:'rgba(0,0,0,0.4)',borderRadius:8,paddingHorizontal:10,paddingVertical:5},
   addCoverTxt:{color:'#fff',fontSize:12},
-  avatarWrap:{position:'absolute',bottom:-45,left:0,right:0,alignItems:'center'},
+  // left:20 and no right, so the wrap is as wide as the photo and sits at
+  // the margin. bottom is untouched: the overlap is the same 45px it was.
+  avatarWrap:{position:'absolute',bottom:-45,left:20,alignItems:'flex-start'},
+  // Shares the avatar's bottom offset, which is what puts the two level.
+  editPill:{position:'absolute',bottom:-45,right:20,height:40,flexDirection:'row',
+    alignItems:'center',justifyContent:'center',gap:7,paddingHorizontal:18,
+    borderWidth:1,borderColor:c.border,borderRadius:20},
+  editPillTxt:{fontSize:14,fontWeight:'700',color:c.text},
+  // Steps of 8 / 16 / 24. Each item carries its own top margin so a missing
+  // bio or location closes the gap rather than leaving one behind.
+  infoLine:{flexDirection:'row',alignItems:'center',flexWrap:'wrap',columnGap:14,rowGap:6,marginTop:16},
+  infoItem:{flexDirection:'row',alignItems:'center',gap:5},
+  infoGold:{fontSize:14,color:c.gold,fontWeight:'600'},
+  infoTxt:{fontSize:14,color:c.textSecondary,fontWeight:'600'},
   avatar:{width:90,height:90,borderRadius:45,backgroundColor:c.navy,borderWidth:3,borderColor:c.card,alignItems:'center',justifyContent:'center',shadowColor:c.navy,shadowOffset:{width:0,height:4},shadowOpacity:0.15,shadowRadius:12,elevation:6},
   avatarTxt:{color:'#fff',fontSize:32,fontWeight:'700'},
-  personalInfo:{paddingHorizontal:16,alignItems:'center',paddingBottom:16},
+  personalInfo:{paddingHorizontal:20,alignItems:'flex-start',paddingBottom:24},
   statChipRow:{flexDirection:'row',alignItems:'center',justifyContent:'center',flexWrap:'wrap',gap:8,marginBottom:16},
   statChip:{flexDirection:'row',alignItems:'center',gap:6,backgroundColor:c.cardAlt,borderRadius:20,paddingHorizontal:12,paddingVertical:7},
   statChipTxt:{fontSize:13,color:c.textSecondary,fontWeight:'600'},
   statChipPrivate:{backgroundColor:c.isDark?'rgba(201,169,110,0.14)':'rgba(201,169,110,0.10)'},
   statChipTxtPrivate:{color:c.gold},
-  name:{fontFamily:'PlayfairDisplay_700Bold',fontSize:24,lineHeight:30,letterSpacing:-0.3,color:c.text,marginBottom:2,textAlign:'center'},
+  name:{fontFamily:'PlayfairDisplay_700Bold',fontSize:22,lineHeight:28,letterSpacing:-0.3,color:c.text,textAlign:'left'},
   // System sans, not the serif italic this started as. Playfair is the app's
   // display face and nothing else uses it for body copy; setting the bio in it
   // too put the same voice twice under one another and read as a pull-quote.
   // Letting the name be the only serif on the screen is what makes it land.
   // 15/22 with a touch of tracking, in the secondary text colour rather than
   // the muted one, which at 14px was faint enough to look like placeholder.
-  bio:{fontSize:15,lineHeight:22,letterSpacing:0.1,color:c.textSecondary,textAlign:'center',marginTop:6,marginBottom:16,paddingHorizontal:24},
+  bio:{fontSize:16,lineHeight:24,letterSpacing:0.1,color:c.textSecondary,textAlign:'left',marginTop:8},
   connectionsRow:{flexDirection:'row',alignItems:'center',marginBottom:16},
   connectionsNum:{fontSize:15,fontWeight:'700',color:c.text},
   connectionsTxt:{fontSize:15,color:c.textMuted},
   churchPill:{flexDirection:'row',alignItems:'center',gap:8,backgroundColor:c.cardAlt,borderRadius:100,paddingHorizontal:16,paddingVertical:10,marginBottom:12,borderWidth:1,borderColor:c.border},
   churchPillTxt:{fontSize:14,color:c.text,fontWeight:'600'},
-  ministriesRow:{flexDirection:'row',flexWrap:'wrap',gap:10,marginBottom:14},
+  // marginTop replaces the gap the old chip row's marginBottom used to give
+  // this; marginBottom goes because personalInfo's paddingBottom is now the
+  // 24 before the tabs.
+  ministriesRow:{flexDirection:'row',flexWrap:'wrap',gap:10,marginTop:16},
   ministryTag:{borderWidth:1.5,borderColor:c.gold,borderRadius:100,paddingHorizontal:16,paddingVertical:6},
   ministryTagTxt:{fontSize:13,color:c.gold,fontWeight:'600'},
   actionRow:{flexDirection:'row',alignItems:'center',gap:10,width:'100%',marginBottom:16},
