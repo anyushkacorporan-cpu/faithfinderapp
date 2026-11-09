@@ -52,8 +52,6 @@ export default function EditProfileScreen() {
   const [avatar, setAvatar] = useState(user.avatar || '');
   const [profilePhoto, setProfilePhoto] = useState(user.profilePhoto || '');
   const [coverPhoto, setCoverPhoto] = useState(user.coverPhoto || '');
-  const [lifeVerse, setLifeVerse] = useState(user.lifeVerse || '');
-  const [lifeVerseRef, setLifeVerseRef] = useState(user.lifeVerseRef || '');
 
   async function handlePickProfilePhoto() {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -80,7 +78,7 @@ export default function EditProfileScreen() {
     if (isChurch) {
       setUser({ churchName, bio, location, phone, website, address, serviceTimes, avatar });
     } else {
-      setUser({ firstName, lastName, bio, location, phone, profilePhoto, coverPhoto, lifeVerse, lifeVerseRef });
+      setUser({ firstName, lastName, bio, location, phone, profilePhoto, coverPhoto });
     }
     // Up to the server, so the edit survives a reinstall and reaches other
     // devices. Fire-and-forget: a failed sync must not stop someone editing
@@ -99,8 +97,6 @@ export default function EditProfileScreen() {
         photo: isChurch ? avatar : profilePhoto,
         cover: isChurch ? undefined : coverPhoto,
         bio,
-        lifeVerse: isChurch ? undefined : lifeVerse,
-        lifeVerseRef: isChurch ? undefined : lifeVerseRef,
         initials,
         photos: u.photos,
       });
@@ -249,29 +245,6 @@ export default function EditProfileScreen() {
                     ))}
                   </View>
                 )}
-              </View>
-
-              <Text style={s.sectionTitle}>{t('favoriteVerse')}</Text>
-              <View style={s.fieldWrap}>
-                <Text style={s.label}>{t('verse')}</Text>
-                <TextInput
-                  style={[s.input, s.bioInput]}
-                  value={lifeVerse}
-                  onChangeText={setLifeVerse}
-                  placeholder={'"For I know the plans I have for you..."'}
-                  placeholderTextColor={c.placeholder}
-                  multiline
-                />
-              </View>
-              <View style={s.fieldWrap}>
-                <Text style={s.label}>{t('reference')}</Text>
-                <TextInput
-                  style={s.input}
-                  value={lifeVerseRef}
-                  onChangeText={setLifeVerseRef}
-                  placeholder={tx('Jeremiah 29:11')}
-                  placeholderTextColor={c.placeholder}
-                />
               </View>
 
               {/* Faith Gallery was here, and only here: this is already the

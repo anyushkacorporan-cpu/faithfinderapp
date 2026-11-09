@@ -263,8 +263,6 @@ function publishSelf(who: { name: string; color: string; initials: string; city?
     bio: u.bio,
     city: shareLocation ? (who.city || savedCity || undefined) : '',
     state: shareLocation ? (who.state || savedState || undefined) : '',
-    lifeVerse: u.lifeVerse,
-    lifeVerseRef: u.lifeVerseRef,
     color: who.color,
     initials: who.initials,
     connectionCount: getConnections().length,

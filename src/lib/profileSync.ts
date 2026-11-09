@@ -55,8 +55,6 @@ function toUser(row: any): Partial<User> {
     location: row.location || undefined,
     profilePhoto: row.profile_photo || undefined,
     coverPhoto: row.cover_photo || undefined,
-    lifeVerse: row.life_verse || undefined,
-    lifeVerseRef: row.life_verse_ref || undefined,
     churchName: row.church_name || undefined,
     phone: row.phone || undefined,
     // Read, never written. `toRow` leaves it out on purpose — see
@@ -86,8 +84,10 @@ function toRow(u: User) {
     location: u.location ?? null,
     profile_photo: u.profilePhoto ?? null,
     cover_photo: u.coverPhoto ?? null,
-    life_verse: u.lifeVerse ?? null,
-    life_verse_ref: u.lifeVerseRef ?? null,
+    // life_verse and life_verse_ref are deliberately absent rather than null.
+    // The columns still exist and still hold what people wrote; an update
+    // that named them with null would erase that on the next save of every
+    // profile that has one. Omitted, the update does not touch them.
     church_name: u.churchName ?? null,
     phone: u.phone ?? null,
     updated_at: new Date().toISOString(),
@@ -147,7 +147,7 @@ export async function syncProfileAfterSignIn(userId: string): Promise<void> {
 
   const local = getUser();
   const hasLocalContent = !!(local.bio || local.location || local.profilePhoto
-    || local.coverPhoto || local.lifeVerse || local.firstName);
+    || local.coverPhoto || local.firstName);
 
   // Only ever on a first sign-in for this account on this device, and only
   // into a profile nobody has filled in. Both conditions matter: without the

@@ -28,8 +28,6 @@ export type ProfileSnapshot = {
   bio?: string;
   city?: string;
   state?: string;
-  lifeVerse?: string;
-  lifeVerseRef?: string;
   color?: string;
   initials?: string;
   /** Their own connection count at publish time — not something a viewer
@@ -84,7 +82,7 @@ export function publishProfile(p: Omit<ProfileSnapshot, 'updatedAt'>) {
 function sameProfile(a: ProfileSnapshot, b: ProfileSnapshot): boolean {
   const keys: (keyof ProfileSnapshot)[] = [
     'name','accountType','photo','cover','bio','city','state',
-    'lifeVerse','lifeVerseRef','color','initials','connectionCount',
+    'color','initials','connectionCount',
   ];
   if (!keys.every(k => a[k] === b[k])) return false;
   // photos is an array: === compares references, so a rebuilt list identical

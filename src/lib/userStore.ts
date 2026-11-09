@@ -32,8 +32,6 @@ export type User = {
   location?: string;      // free-text "City, ST" the user typed
   profilePhoto?: string;  // local or remote image URI
   coverPhoto?: string;    // local or remote image URI
-  lifeVerse?: string;     // the verse text itself
-  lifeVerseRef?: string;  // e.g. "Philippians 4:13"
 
   // ── Church accounts ────────────────────────────────────────────────
   churchName?: string;

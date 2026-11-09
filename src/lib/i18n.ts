@@ -378,9 +378,6 @@ const translations: Record<string, Record<Lang, string>> = {
   lastName: { English: 'Last Name', Español: 'Apellido' },
   bio: { English: 'Bio', Español: 'Biografía' },
   cityState: { English: 'City & State', Español: 'Ciudad y Estado' },
-  favoriteVerse: { English: 'Favorite Bible Verse', Español: 'Versículo Favorito' },
-  verse: { English: 'Verse', Español: 'Versículo' },
-  reference: { English: 'Reference', Español: 'Referencia' },
   saveChanges: { English: 'Save Changes', Español: 'Guardar Cambios' },
   createEventTitle: { English: 'Create Event', Español: 'Crear Evento' },
   draft: { English: 'Draft', Español: 'Borrador' },
@@ -426,6 +423,10 @@ const translations: Record<string, Record<Lang, string>> = {
 
   // Connections screen
   connections: { English: 'Connections', Español: 'Conexiones' },
+  // Lower case, for the profile line "7 connections". The capitalised
+  // `connections` above labels a screen and is kept for it.
+  connectionsLower: { English: 'connections', Español: 'conexiones' },
+  connectionLower: { English: 'connection', Español: 'conexión' },
   noConnectionsYet: { English: 'No connections yet', Español: 'Aún no tienes conexiones' },
   discoverBelievers: { English: 'Discover believers and churches in the Community tab', Español: 'Descubre creyentes e iglesias en la pestaña de Comunidad' },
   goToCommunity: { English: 'Go to Community', Español: 'Ir a Comunidad' },

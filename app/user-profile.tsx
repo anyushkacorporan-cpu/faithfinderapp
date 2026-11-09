@@ -69,8 +69,6 @@ export default function OtherUserProfileScreen() {
     cover:        isSelf ? currentUser.coverPhoto   : snapshot?.cover,
     photo:        isSelf ? currentUser.profilePhoto : (snapshot?.photo || params.photo),
     bio:          isSelf ? currentUser.bio          : snapshot?.bio,
-    lifeVerse:    isSelf ? currentUser.lifeVerse    : snapshot?.lifeVerse,
-    lifeVerseRef: isSelf ? currentUser.lifeVerseRef : snapshot?.lifeVerseRef,
     // The directory wins outright once it has an entry, rather than falling
     // back on `||`. Somebody with "Show Location on Profile" off publishes an
     // empty city, and an empty string is falsy — so `||` reached past the
@@ -233,26 +231,6 @@ export default function OtherUserProfileScreen() {
             <Text style={{fontSize:14,color:c.textSecondary,textAlign:'center',lineHeight:20,marginTop:12,paddingHorizontal:8}}>{view.bio}</Text>
           )}
         </View>
-
-        {!!(view.lifeVerse || view.lifeVerseRef) && (
-          <>
-            <View style={s.divider} />
-            <View style={s.section}>
-              <View style={s.sectionHdr}>
-                <View style={{flexDirection:'row',alignItems:'center'}}>
-                  <Ionicons name="book-outline" size={16} color={c.gold} style={{marginRight:6}} />
-                  <Text style={s.sectionTitle}>{t('favoriteVerse')}</Text>
-                </View>
-              </View>
-              {!!view.lifeVerse && (
-                <Text style={{fontSize:15,fontStyle:'italic',color:c.text,lineHeight:22,textAlign:'center'}}>"{view.lifeVerse}"</Text>
-              )}
-              {!!view.lifeVerseRef && (
-                <Text style={{fontSize:13,fontWeight:'700',color:c.gold,textAlign:'center',marginTop:8}}>{view.lifeVerseRef}</Text>
-              )}
-            </View>
-          </>
-        )}
 
         {/* Faith Gallery */}
         {combinedGalleryPhotos.length > 0 && (

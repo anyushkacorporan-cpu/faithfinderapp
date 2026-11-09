@@ -54,6 +54,7 @@ const PERSONAL_TABS: { key: PersonalTab; labelKey: 'posts' | 'activity' }[] = [
 export default function ProfileScreen() {
   const c = useThemeColors();
   const s = makeStyles(c);
+  const hp = headerPalette(c);
   const insets = useSafeAreaInsets();
   const user = useUser();
   const appSettings = useSettings();
@@ -647,20 +648,28 @@ export default function ProfileScreen() {
               rather than two styles sharing a row. */}
           <View style={s.infoLine}>
             {appSettings.privacy.showLocation && !!user.location && (
-              <View style={s.infoItem}>
-                <Ionicons name="location-outline" size={14} color={c.gold} />
-                <Text style={s.infoGold}>{user.location.split(',').slice(0,2).join(',').trim()}</Text>
-              </View>
+              <>
+                <Ionicons name="location-outline" size={14} color={hp.gold} />
+                <Text style={s.infoPlace}>{user.location.split(',').slice(0,2).join(',').trim()}</Text>
+                {/* The dot belongs to the place, not the count: with no
+                    location there is nothing for it to separate. */}
+                <Text style={s.infoDot}>·</Text>
+              </>
             )}
-            <TouchableOpacity style={s.infoItem} activeOpacity={0.7} onPress={() => router.push('/connections')}>
-              <Ionicons name="people-outline" size={14} color={c.textSecondary} />
-              <Text style={s.infoTxt}>{connectionCount}</Text>
+            <TouchableOpacity activeOpacity={0.7} onPress={() => router.push('/connections')}>
+              <Text style={s.infoCount}>
+                {connectionCount}
+                <Text style={s.infoCountWord}>
+                  {' '}{connectionCount === 1 ? t('connectionLower') : t('connectionsLower')}
+                </Text>
+              </Text>
             </TouchableOpacity>
             {!appSettings.privacy.publicProfile && (
-              <View style={s.infoItem}>
-                <Ionicons name="lock-closed" size={13} color={c.gold} />
-                <Text style={s.infoGold}>{tx('Private')}</Text>
-              </View>
+              <>
+                <Text style={s.infoDot}>·</Text>
+                <Ionicons name="lock-closed" size={13} color={hp.gold} />
+                <Text style={s.infoPlace}>{tx('Private')}</Text>
+              </>
             )}
           </View>
           {user.ministries && user.ministries.length > 0 && (
@@ -901,6 +910,21 @@ function OwnPostActions({ post, onClose }: { post: Post | null; onClose: () => v
 }
 
 
+/**
+ * The four colours the profile header was specified in.
+ *
+ * Given as light-mode hex values. Used as given they would be dark text on a
+ * dark background the moment the app is in dark mode, so each falls back to
+ * the theme's own token there. Light mode is exactly what was asked for;
+ * dark mode stays readable.
+ */
+const headerPalette = (c: ThemeColors) => ({
+  body:  c.isDark ? c.textSecondary : '#3A3A46',
+  gold:  c.isDark ? c.gold          : '#957020',
+  muted: c.isDark ? c.textSecondary : '#6B6B76',
+  ink:   c.isDark ? c.text          : '#1F1B3A',
+});
+
 const makeStyles = (c: ThemeColors) => StyleSheet.create({
   // Copied from church-detail's tabsRow/tab/tabActive so a church's own profile
   // and its public page share one visual language.
@@ -1030,10 +1054,11 @@ const makeStyles = (c: ThemeColors) => StyleSheet.create({
   editPillTxt:{fontSize:14,fontWeight:'700',color:c.text},
   // Steps of 8 / 16 / 24. Each item carries its own top margin so a missing
   // bio or location closes the gap rather than leaving one behind.
-  infoLine:{flexDirection:'row',alignItems:'center',flexWrap:'wrap',columnGap:14,rowGap:6,marginTop:16},
-  infoItem:{flexDirection:'row',alignItems:'center',gap:5},
-  infoGold:{fontSize:14,color:c.gold,fontWeight:'600'},
-  infoTxt:{fontSize:14,color:c.textSecondary,fontWeight:'600'},
+  infoLine:{flexDirection:'row',alignItems:'center',flexWrap:'wrap',columnGap:6,rowGap:6,marginTop:16},
+  infoPlace:{fontSize:14,color:headerPalette(c).gold,fontWeight:'500'},
+  infoDot:{fontSize:14,color:headerPalette(c).muted},
+  infoCount:{fontSize:14,color:headerPalette(c).ink,fontWeight:'600'},
+  infoCountWord:{fontSize:14,color:headerPalette(c).muted,fontWeight:'400'},
   avatar:{width:90,height:90,borderRadius:45,backgroundColor:c.navy,borderWidth:3,borderColor:c.card,alignItems:'center',justifyContent:'center',shadowColor:c.navy,shadowOffset:{width:0,height:4},shadowOpacity:0.15,shadowRadius:12,elevation:6},
   avatarTxt:{color:'#fff',fontSize:32,fontWeight:'700'},
   personalInfo:{paddingHorizontal:20,alignItems:'flex-start',paddingBottom:24},
@@ -1049,7 +1074,7 @@ const makeStyles = (c: ThemeColors) => StyleSheet.create({
   // Letting the name be the only serif on the screen is what makes it land.
   // 15/22 with a touch of tracking, in the secondary text colour rather than
   // the muted one, which at 14px was faint enough to look like placeholder.
-  bio:{fontSize:16,lineHeight:24,letterSpacing:0.1,color:c.textSecondary,textAlign:'left',marginTop:8},
+  bio:{fontSize:16,lineHeight:24,letterSpacing:0.1,color:headerPalette(c).body,textAlign:'left',marginTop:8},
   connectionsRow:{flexDirection:'row',alignItems:'center',marginBottom:16},
   connectionsNum:{fontSize:15,fontWeight:'700',color:c.text},
   connectionsTxt:{fontSize:15,color:c.textMuted},
