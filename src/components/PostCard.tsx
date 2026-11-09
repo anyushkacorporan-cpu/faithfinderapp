@@ -228,7 +228,12 @@ function Caption({ text, style }: { text: string; style: any }) {
   const [overflows, setOverflows] = useState<boolean | null>(null);
 
   return (
-    <View style={{ marginBottom: 12 }}>
+    // 4, not 12. This margin is the only thing between the caption and
+    // whatever follows it, and TranslateRow adds just 4 of its own — so 12
+    // here put the Translate link 16pt below the text. Everything else that
+    // can follow a caption states a matching marginTop of its own below, so
+    // photos, link previews and quoted reposts sit exactly where they did.
+    <View style={{ marginBottom: 4 }}>
       {overflows === null && (
         <View pointerEvents="none" style={{ position: 'absolute', left: 0, right: 0, opacity: 0 }}>
           <Text
@@ -343,6 +348,9 @@ export function PostCard({post,showLocation,onLike,onComment,onShare,onOpenProfi
 }) {
   const c = useThemeColors();
   const p = makeStyles(c);
+  // The specified grey for the three action icons and their counts. A
+  // light-mode value, so dark mode keeps the theme's own muted tone.
+  const actionGrey = c.isDark ? c.textMuted : '#6B6B76';
   const { t, tx } = useTranslation();
   const { showToast } = useToast();
   // Subscribe so the badge disappears the moment the connection is made,
@@ -421,11 +429,12 @@ export function PostCard({post,showLocation,onLike,onComment,onShare,onOpenProfi
           {shown => <Caption text={shown} style={p.content}/>}
         </TranslateRow>
       )}
-      {!post.repostOf&&<PostPhotos uris={postImages(post)} />}
+      {/* marginTop 8 against the caption's 4: the same 12 it had before. */}
+      {!post.repostOf&&<PostPhotos uris={postImages(post)} style={{marginTop:8}} />}
 
       {!post.repostOf&&!!post.linkPreview&&!!post.linkUrl&&(
         <TouchableOpacity
-          style={{borderWidth:1,borderColor:c.border,borderRadius:14,overflow:'hidden',marginBottom:10,backgroundColor:c.cardAlt}}
+          style={{borderWidth:1,borderColor:c.border,borderRadius:14,overflow:'hidden',marginTop:8,marginBottom:10,backgroundColor:c.cardAlt}}
           onPress={() => require('react-native').Linking.openURL(post.linkUrl!).catch(()=>{})}
           activeOpacity={0.85}
         >
@@ -526,7 +535,7 @@ export function PostCard({post,showLocation,onLike,onComment,onShare,onOpenProfi
 
       {post.eventShareData&&(
         <TouchableOpacity
-          style={{backgroundColor:c.card,marginTop:8,borderRadius:20,overflow:'hidden',borderWidth:1,borderColor:c.border,shadowColor:'#000',shadowOffset:{width:0,height:2},shadowOpacity:0.06,shadowRadius:8}}
+          style={{backgroundColor:c.card,marginTop:16,borderRadius:20,overflow:'hidden',borderWidth:1,borderColor:c.border,shadowColor:'#000',shadowOffset:{width:0,height:2},shadowOpacity:0.06,shadowRadius:8}}
           onPress={()=>router.push({pathname:'/event-detail',params:{id:post.eventShareData!.id}})}
           activeOpacity={0.92}
         >
@@ -566,7 +575,7 @@ export function PostCard({post,showLocation,onLike,onComment,onShare,onOpenProfi
       )}
       {post.churchShareData&&(
         <TouchableOpacity
-          style={{backgroundColor:c.card,marginTop:8,borderRadius:20,overflow:'hidden',borderWidth:1,borderColor:c.border,shadowColor:'#000',shadowOffset:{width:0,height:2},shadowOpacity:0.06,shadowRadius:8}}
+          style={{backgroundColor:c.card,marginTop:16,borderRadius:20,overflow:'hidden',borderWidth:1,borderColor:c.border,shadowColor:'#000',shadowOffset:{width:0,height:2},shadowOpacity:0.06,shadowRadius:8}}
           onPress={()=>router.push({pathname:'/church-detail',params:{placeId: post.churchShareData!.placeId || post.churchShareData!.id}})}
           activeOpacity={0.92}
         >
@@ -607,18 +616,23 @@ export function PostCard({post,showLocation,onLike,onComment,onShare,onOpenProfi
 
       {/* Three plain icons on the left, evenly spaced. Repost used to be pushed
           to the far right by a space-between row, which read as a separate
-          control rather than one of the three things you can do with a post. */}
+          control rather than one of the three things you can do with a post.
+
+          hitSlop, not padding. The row's own padding was part of what held the
+          icons a long way off the text, so it is gone and the touch area is
+          stated instead — 44pt tall, which is more than the padding ever
+          gave, and costs no height on the card. */}
       <View style={p.actions}>
-        <TouchableOpacity style={p.actionBtn} onPress={onLike}>
-          <Ionicons name={post.liked?'heart':'heart-outline'} size={20} color={post.liked?c.red:c.textMuted}/>
+        <TouchableOpacity style={p.actionBtn} onPress={onLike} hitSlop={{top:12,bottom:12,left:4,right:4}}>
+          <Ionicons name={post.liked?'heart':'heart-outline'} size={20} color={post.liked?c.red:actionGrey}/>
           <Text style={[p.actionTxt,post.liked&&{color:c.red}]}>{post.likes}</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={p.actionBtn} onPress={onComment}>
-          <Ionicons name="chatbubble-outline" size={20} color={c.textMuted}/>
+        <TouchableOpacity style={p.actionBtn} onPress={onComment} hitSlop={{top:12,bottom:12,left:4,right:4}}>
+          <Ionicons name="chatbubble-outline" size={20} color={actionGrey}/>
           <Text style={p.actionTxt}>{post.comments.length}</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={p.actionBtn} onPress={onShare}>
-          <Ionicons name="repeat-outline" size={20} color={c.textMuted}/>
+        <TouchableOpacity style={p.actionBtn} onPress={onShare} hitSlop={{top:12,bottom:12,left:4,right:4}}>
+          <Ionicons name="repeat-outline" size={20} color={actionGrey}/>
           <Text style={p.actionTxt}>{post.repostsCount||0}</Text>
         </TouchableOpacity>
       </View>
@@ -649,8 +663,8 @@ const makeStyles = (c: ThemeColors) => StyleSheet.create({
   // The top padding is tighter than the bottom on purpose — the author row
   // belongs to the divider above it, and 18 left it floating in the middle of
   // its own gap.
-  card:{backgroundColor:c.card,paddingTop:12,paddingBottom:18,paddingHorizontal:CARD_INSET,borderBottomWidth:8,borderBottomColor:c.border},
-  authorRow:{flexDirection:'row',alignItems:'center',gap:12,marginBottom:14},
+  card:{backgroundColor:c.card,paddingTop:16,paddingBottom:16,paddingHorizontal:CARD_INSET,borderBottomWidth:1,borderBottomColor:c.isDark?c.border:'#ECE8E0'},
+  authorRow:{flexDirection:'row',alignItems:'center',gap:12,marginBottom:12},
   avatar:{width:44,height:44,borderRadius:22,alignItems:'center',justifyContent:'center'},
   avatarTxt:{color:c.white,fontWeight:'700',fontSize:15},
   authorName:{fontSize:14,fontWeight:'700',color:c.text},
@@ -663,14 +677,18 @@ const makeStyles = (c: ThemeColors) => StyleSheet.create({
   locationPill:{flexDirection:'row',alignItems:'center',gap:4,alignSelf:'flex-start',backgroundColor:'rgba(201,169,110,0.10)',borderRadius:100,paddingHorizontal:10,paddingVertical:4,marginBottom:14},
   locationPillTxt:{fontSize:12,color:c.gold,fontWeight:'600'},
   sharedCard:{borderWidth:1.5,borderColor:c.border,borderRadius:16,padding:14,marginBottom:14,backgroundColor:c.cardAlt},
-  repostCard:{borderWidth:1.5,borderColor:c.border,borderRadius:16,padding:14,marginBottom:14,backgroundColor:c.cardAlt},
-  // No rule above the actions. The card already ends with one, so a second
-  // line a few points higher boxed the caption in for no reason. The spacing
-  // that was holding the row off the text is kept — only the line is gone.
-  actions:{flexDirection:'row',alignItems:'center',gap:24,paddingTop:14,marginTop:4},
-  // No pill behind these. The grey fill made three mild actions look like three
-  // buttons; the icon and its count are enough. paddingVertical stays so the
-  // tap target is still taller than the 20pt glyph.
-  actionBtn:{flexDirection:'row',alignItems:'center',gap:6,paddingVertical:6},
-  actionTxt:{fontSize:13,color:c.textMuted,fontWeight:'500'},
+  // marginTop 8 against the caption's 4: the same 12 a repost comment left
+  // above the quote before.
+  repostCard:{borderWidth:1.5,borderColor:c.border,borderRadius:16,padding:14,marginTop:8,marginBottom:14,backgroundColor:c.cardAlt},
+  // No rule above the actions, and almost no space either. A short post used
+  // to show 36pt of nothing between its last line and these icons: 12 from the
+  // caption, 4 of margin here, 14 of padding here, and 6 more from the
+  // buttons' own padding, four values that each looked reasonable alone. Now
+  // the caption leaves 4 and this leaves 8, so the gap is 12.
+  actions:{flexDirection:'row',alignItems:'center',gap:24,paddingTop:8,marginTop:0},
+  // No pill behind these, and no padding: the grey fill made three mild
+  // actions look like three buttons, and the padding was part of the gap
+  // above. The touch area is hitSlop on each button instead.
+  actionBtn:{flexDirection:'row',alignItems:'center',gap:6},
+  actionTxt:{fontSize:14,color:c.isDark?c.textMuted:'#6B6B76',fontWeight:'500'},
 });

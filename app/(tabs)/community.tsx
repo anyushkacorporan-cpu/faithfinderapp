@@ -690,8 +690,11 @@ const makeStyles = (c: ThemeColors) => StyleSheet.create({
   // stays as quiet as the field beside it.
   composeRowAvatarEmpty:{backgroundColor:c.white,borderWidth:1,borderColor:c.border,alignItems:'center',justifyContent:'center'},
   composeRowInitials:{fontSize:14,fontWeight:'700',color:c.navy},
-  composeRowField:{flex:1,height:40,justifyContent:'center',paddingHorizontal:14,borderRadius:20,borderWidth:1,borderColor:c.border},
-  composeRowFieldTxt:{fontSize:14,color:c.placeholder},
+  // #D6D1C6 and #85858F are the specified light-mode values. Both are light
+  // shades, so in dark mode each falls back to the theme's own token rather
+  // than drawing a pale outline and pale text on a dark card.
+  composeRowField:{flex:1,height:40,justifyContent:'center',paddingHorizontal:14,borderRadius:20,borderWidth:1,borderColor:c.isDark?c.border:'#D6D1C6'},
+  composeRowFieldTxt:{fontSize:16,color:c.isDark?c.placeholder:'#85858F'},
   scroll:{flex:1},
   emptyFeed:{alignItems:'center',paddingVertical:64,paddingHorizontal:32,gap:12},
   emptyTitle:{fontSize:17,fontWeight:'700',color:c.text},
