@@ -240,25 +240,36 @@ export default function CommunityScreen() {
             </TouchableOpacity>
           ))}
         </View>
-        <TouchableOpacity style={s.composeBtn} onPress={() => setShowCreate(true)}>
-          <Ionicons name="create-outline" size={18} color={c.onPrimary} />
-          <Text style={s.composeBtnTxt}>{t('post')}</Text>
-        </TouchableOpacity>
       </View>
 
       {/* Daily verse — sits under the feed switcher so it reads as a banner
-          over the posts rather than a header over the whole app. */}
+          over the posts rather than a header over the whole app. Set small and
+          italic so it reads as a quiet epigraph over the feed rather than
+          competing with the posts under it. */}
       <View style={s.verseBar}>
         <View style={s.verseAccent} />
         <Text style={s.verseTxt}>{getDailyVerse(appSettings.appearance.language).text} <Text style={s.verseRef}>— {getDailyVerse(appSettings.appearance.language).reference}</Text></Text>
       </View>
 
-      {activeTab === 'discover' && (
-        <View style={s.discoverBanner}>
-          <Ionicons name="earth-outline" size={14} color={c.gold} />
-          <Text style={s.discoverTxt}>{t('discoverBanner')}</Text>
-        </View>
-      )}
+      {/* The way into the composer, in the place a feed puts it: your own face
+          and a field that is really a button. It opens the same modal the dark
+          Post button in the switcher row used to open — same state, same
+          screen, one call.
+
+          Only a bottom rule: the verse bar above already draws its own bottom
+          border, and a second one here would read as a 2px line. */}
+      <View style={s.composeRow}>
+        {(user.profilePhoto || user.avatar) ? (
+          <Image source={{uri: user.profilePhoto || user.avatar}} style={s.composeRowAvatar} resizeMode="cover" />
+        ) : (
+          <View style={[s.composeRowAvatar, s.composeRowAvatarEmpty]}>
+            <Text style={s.composeRowInitials}>{initials}</Text>
+          </View>
+        )}
+        <TouchableOpacity style={s.composeRowField} activeOpacity={0.7} onPress={() => setShowCreate(true)}>
+          <Text style={s.composeRowFieldTxt}>{tx('What\'s on your heart?')}</Text>
+        </TouchableOpacity>
+      </View>
 
       <ScrollView
             {...KEYBOARD_SCROLL_PROPS} style={s.scroll} showsVerticalScrollIndicator={false}
@@ -658,21 +669,29 @@ const makeStyles = (c: ThemeColors) => StyleSheet.create({
   announceIcon:{width:30,height:30,borderRadius:9,alignItems:'center',justifyContent:'center',backgroundColor:'rgba(201,169,110,0.16)'},
   announceLabel:{fontSize:13,fontWeight:'700',color:c.textSecondary},
   announceDesc:{fontSize:11,color:c.textMuted,marginTop:1},
-  verseBar:{flexDirection:'row',alignItems:'stretch',gap:12,paddingVertical:12,paddingRight:16,paddingLeft:14,borderTopWidth:1,borderTopColor:c.border,borderBottomWidth:1,borderBottomColor:c.border,backgroundColor:c.card},
+  verseBar:{flexDirection:'row',alignItems:'stretch',gap:12,paddingVertical:10,paddingRight:16,paddingLeft:14,borderTopWidth:1,borderTopColor:c.border,borderBottomWidth:1,borderBottomColor:c.border,backgroundColor:c.card},
   verseAccent:{width:3,backgroundColor:c.gold},
-  verseTxt:{flex:1,fontFamily:'PlayfairDisplay_400Regular',fontSize:14,color:c.text,lineHeight:20},
+  // PlayfairDisplay_400Regular_Italic is already loaded in app/_layout.tsx, so
+  // this is a real italic face rather than a slanted regular one.
+  verseTxt:{flex:1,fontFamily:'PlayfairDisplay_400Regular_Italic',fontSize:13,color:c.text,lineHeight:19},
   verseRef:{fontFamily:'PlayfairDisplay_400Regular',fontSize:12,color:c.textMuted},
   root:{flex:1,backgroundColor:c.bg},
-  tabBar:{flexDirection:'row',alignItems:'center',gap:10,paddingHorizontal:16,paddingTop:2,paddingBottom:10,backgroundColor:c.card},
+  // The switcher no longer shares this row with anything, so it spans the
+  // width inside the app's usual 16pt gutter.
+  tabBar:{flexDirection:'row',alignItems:'center',paddingHorizontal:16,paddingTop:2,paddingBottom:10,backgroundColor:c.card},
   tabToggle:{flex:1,flexDirection:'row',backgroundColor:c.cardAlt,borderRadius:100,padding:3},
   tabPill:{flex:1,paddingVertical:8,borderRadius:100,alignItems:'center'},
   tabPillActive:{backgroundColor:c.card,shadowColor:'#000',shadowOffset:{width:0,height:1},shadowOpacity:0.08,shadowRadius:3},
   tabPillTxt:{fontSize:13,fontWeight:'600',color:c.textMuted},
   tabPillTxtActive:{color:c.text,fontWeight:'700'},
-  composeBtn:{flexDirection:'row',alignItems:'center',gap:6,backgroundColor:c.primary,borderRadius:22,paddingHorizontal:16,paddingVertical:9},
-  composeBtnTxt:{color:c.onPrimary,fontSize:13,fontWeight:'700'},
-  discoverBanner:{flexDirection:'row',alignItems:'center',gap:8,paddingHorizontal:16,paddingVertical:9,backgroundColor:'rgba(201,169,110,0.10)',borderBottomWidth:1,borderBottomColor:'rgba(201,169,110,0.18)'},
-  discoverTxt:{fontSize:12,color:c.gold,fontWeight:'600'},
+  composeRow:{flexDirection:'row',alignItems:'center',gap:12,paddingHorizontal:16,paddingVertical:10,backgroundColor:c.card,borderBottomWidth:1,borderBottomColor:c.border},
+  composeRowAvatar:{width:40,height:40,borderRadius:20,overflow:'hidden'},
+  // No colour on the fallback: a plain white disc with a thin rule, so the row
+  // stays as quiet as the field beside it.
+  composeRowAvatarEmpty:{backgroundColor:c.white,borderWidth:1,borderColor:c.border,alignItems:'center',justifyContent:'center'},
+  composeRowInitials:{fontSize:14,fontWeight:'700',color:c.navy},
+  composeRowField:{flex:1,height:40,justifyContent:'center',paddingHorizontal:14,borderRadius:20,borderWidth:1,borderColor:c.border},
+  composeRowFieldTxt:{fontSize:14,color:c.placeholder},
   scroll:{flex:1},
   emptyFeed:{alignItems:'center',paddingVertical:64,paddingHorizontal:32,gap:12},
   emptyTitle:{fontSize:17,fontWeight:'700',color:c.text},

@@ -605,19 +605,20 @@ export function PostCard({post,showLocation,onLike,onComment,onShare,onOpenProfi
         </TouchableOpacity>
       )}
 
+      {/* Three plain icons on the left, evenly spaced. Repost used to be pushed
+          to the far right by a space-between row, which read as a separate
+          control rather than one of the three things you can do with a post. */}
       <View style={p.actions}>
-        <View style={{flexDirection:'row',alignItems:'center',gap:8}}>
-          <TouchableOpacity style={p.actionBtn} onPress={onLike}>
-            <Ionicons name={post.liked?'heart':'heart-outline'} size={20} color={post.liked?c.red:c.textMuted}/>
-            <Text style={[p.actionTxt,post.liked&&{color:c.red}]}>{post.likes}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={p.actionBtn} onPress={onComment}>
-            <Ionicons name="chatbubble-outline" size={19} color={c.textMuted}/>
-            <Text style={p.actionTxt}>{post.comments.length}</Text>
-          </TouchableOpacity>
-        </View>
+        <TouchableOpacity style={p.actionBtn} onPress={onLike}>
+          <Ionicons name={post.liked?'heart':'heart-outline'} size={20} color={post.liked?c.red:c.textMuted}/>
+          <Text style={[p.actionTxt,post.liked&&{color:c.red}]}>{post.likes}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={p.actionBtn} onPress={onComment}>
+          <Ionicons name="chatbubble-outline" size={20} color={c.textMuted}/>
+          <Text style={p.actionTxt}>{post.comments.length}</Text>
+        </TouchableOpacity>
         <TouchableOpacity style={p.actionBtn} onPress={onShare}>
-          <Ionicons name="repeat-outline" size={19} color={c.textMuted}/>
+          <Ionicons name="repeat-outline" size={20} color={c.textMuted}/>
           <Text style={p.actionTxt}>{post.repostsCount||0}</Text>
         </TouchableOpacity>
       </View>
@@ -666,7 +667,10 @@ const makeStyles = (c: ThemeColors) => StyleSheet.create({
   // No rule above the actions. The card already ends with one, so a second
   // line a few points higher boxed the caption in for no reason. The spacing
   // that was holding the row off the text is kept — only the line is gone.
-  actions:{flexDirection:'row',alignItems:'center',justifyContent:'space-between',paddingTop:14,marginTop:4},
-  actionBtn:{flexDirection:'row',alignItems:'center',justifyContent:'center',gap:6,paddingVertical:6,paddingHorizontal:12,backgroundColor:c.cardAlt,borderRadius:100},
+  actions:{flexDirection:'row',alignItems:'center',gap:24,paddingTop:14,marginTop:4},
+  // No pill behind these. The grey fill made three mild actions look like three
+  // buttons; the icon and its count are enough. paddingVertical stays so the
+  // tap target is still taller than the 20pt glyph.
+  actionBtn:{flexDirection:'row',alignItems:'center',gap:6,paddingVertical:6},
   actionTxt:{fontSize:13,color:c.textMuted,fontWeight:'500'},
 });
