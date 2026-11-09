@@ -493,7 +493,7 @@ export function PostCard({post,showLocation,onLike,onComment,onShare,onOpenProfi
                 </View>
                 <Text style={{fontFamily:'PlayfairDisplay_700Bold',fontSize:14,color:c.text}} numberOfLines={1}>{post.repostOf.eventShareData.title}</Text>
                 {!!post.repostOf.eventShareData.organizer && (
-                  <Text style={{fontSize:11,color:c.gold,fontWeight:'600',marginTop:2}}>by {post.repostOf.eventShareData.organizer}</Text>
+                  <Text style={{fontSize:11,color:c.gold,fontWeight:'600',marginTop:2}}>{t('byWord')} {post.repostOf.eventShareData.organizer}</Text>
                 )}
                 <Text style={{fontSize:11,color:c.textMuted,marginTop:4}}>{post.repostOf.eventShareData.date}{post.repostOf.eventShareData.time?' · '+post.repostOf.eventShareData.time:''}</Text>
                 {!!post.repostOf.eventShareData.location && (
@@ -555,7 +555,7 @@ export function PostCard({post,showLocation,onLike,onComment,onShare,onOpenProfi
             </View>
             <Text style={{fontFamily:'PlayfairDisplay_700Bold',fontSize:17,color:c.text,marginBottom:3}} numberOfLines={1}>{post.eventShareData.title}</Text>
             {!!post.eventShareData.organizer && (
-              <Text style={{fontSize:12,color:c.gold,fontWeight:'600',marginBottom:8}}>by {post.eventShareData.organizer}</Text>
+              <Text style={{fontSize:12,color:c.gold,fontWeight:'600',marginBottom:8}}>{t('byWord')} {post.eventShareData.organizer}</Text>
             )}
             <View style={{gap:5}}>
               <View style={{flexDirection:'row',alignItems:'center',gap:6}}>

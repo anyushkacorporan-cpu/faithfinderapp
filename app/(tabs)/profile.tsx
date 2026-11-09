@@ -254,7 +254,7 @@ export default function ProfileScreen() {
 
   function handleShare() {
     const name = isChurch ? user.churchName : `${user.firstName} ${user.lastName}`;
-    Share.share({ message: `Check out ${name} on FourCircle!` });
+    Share.share({ message: t('shareProfileMessage').replace('{name}', name || '') });
   }
 
   // ── CHURCH PROFILE ──────────────────────────────────
@@ -346,7 +346,7 @@ export default function ProfileScreen() {
                 </LinearGradient>
               )}
               <View style={s.churchNames}>
-                <Text style={s.churchName}>{user.churchName || 'Your Church'}</Text>
+                <Text style={s.churchName}>{user.churchName || t('yourChurch')}</Text>
                 {!!user.denomination && <Text style={s.churchDenom}>{user.denomination}</Text>}
                 {/* A pin on its own says a place exists and then does not name
                     it. The setting decides whether a location may be shown;

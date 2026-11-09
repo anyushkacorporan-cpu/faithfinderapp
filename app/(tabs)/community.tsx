@@ -344,7 +344,7 @@ export default function CommunityScreen() {
                     onPress={() => setVisibility(visibility === 'public' ? 'connections' : 'public')}
                   >
                     <Ionicons name={visibility==='public'?'earth':'people'} size={13} color={c.text}/>
-                    <Text style={s.visToggleTxt}>{visibility==='public'?'Public':'Connections'}</Text>
+                    <Text style={s.visToggleTxt}>{visibility==='public'?t('visibilityPublic'):t('connections')}</Text>
                     <Ionicons name="swap-horizontal" size={13} color={c.textMuted}/>
                   </TouchableOpacity>
                 </View>
@@ -505,7 +505,7 @@ export default function CommunityScreen() {
 
               <View style={s.composeHint}>
                 <Ionicons name={visibility==='public'?'earth-outline':'people-outline'} size={13} color={c.gold}/>
-                <Text style={s.composeHintTxt}>{visibility==='public'?'Visible to everyone in Discover':'Visible only to your connections in For You'}</Text>
+                <Text style={s.composeHintTxt}>{visibility==='public'?t('visibleInDiscover'):t('visibleToConnectionsOnly')}</Text>
               </View>
             </ScrollView>
           </KeyboardScreen>

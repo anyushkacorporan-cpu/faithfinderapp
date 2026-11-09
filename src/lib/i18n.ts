@@ -423,10 +423,30 @@ const translations: Record<string, Record<Lang, string>> = {
 
   // Connections screen
   connections: { English: 'Connections', Español: 'Conexiones' },
+  // The post-visibility toggle in the composer. Its other state reuses
+  // `connections` above.
+  visibilityPublic: { English: 'Public', Español: 'Público' },
+  // The line under the composer. Both name a feed tab, so each carries that
+  // tab's own Spanish: Discover is Descubrir and For You is Para Ti.
+  visibleInDiscover: { English: 'Visible to everyone in Discover', Español: 'Visible para todos en Descubrir' },
+  visibleToConnectionsOnly: { English: 'Visible only to your connections in For You', Español: 'Visible solo para tus conexiones en Para Ti' },
+  // Before an event organiser's name on a shared event card.
+  byWord: { English: 'by', Español: 'por' },
+  // The photo gallery on a profile. "See More" is followed by a count in
+  // brackets, which needs no translating.
+  seeMore: { English: 'See More', Español: 'Ver más' },
+  showLess: { English: 'Show Less', Español: 'Ver menos' },
+  // Stands in for a church account that has not been named yet.
+  yourChurch: { English: 'Your Church', Español: 'Tu Iglesia' },
+  // The share sheet. {name} is replaced with the profile's name at runtime.
+  shareProfileMessage: { English: 'Check out {name} on FourCircle!', Español: '¡Mira a {name} en FourCircle!' },
   // Lower case, for the profile line "7 connections". The capitalised
   // `connections` above labels a screen and is kept for it.
   connectionsLower: { English: 'connections', Español: 'conexiones' },
   connectionLower: { English: 'connection', Español: 'conexión' },
+  // Capitalised singular, for the count on someone's profile. `connections`
+  // above is the capitalised plural and keeps labelling the screen.
+  connection: { English: 'Connection', Español: 'Conexión' },
   noConnectionsYet: { English: 'No connections yet', Español: 'Aún no tienes conexiones' },
   discoverBelievers: { English: 'Discover believers and churches in the Community tab', Español: 'Descubre creyentes e iglesias en la pestaña de Comunidad' },
   goToCommunity: { English: 'Go to Community', Español: 'Ir a Comunidad' },

@@ -218,12 +218,12 @@ export default function OtherUserProfileScreen() {
           {isSelf ? (
             <TouchableOpacity style={{flexDirection:'row',alignItems:'center',gap:5,marginTop:10}} onPress={() => router.push('/connections')}>
               <Ionicons name="people-outline" size={14} color={c.textMuted} />
-              <Text style={{fontSize:13,color:c.textMuted}}>{connectionCount} {tx('Connections')}</Text>
+              <Text style={{fontSize:13,color:c.textMuted}}>{connectionCount} {connectionCount === 1 ? t('connection') : t('connections')}</Text>
             </TouchableOpacity>
           ) : typeof snapshot?.connectionCount === 'number' ? (
             <View style={{flexDirection:'row',alignItems:'center',gap:5,marginTop:10}}>
               <Ionicons name="people-outline" size={14} color={c.textMuted} />
-              <Text style={{fontSize:13,color:c.textMuted}}>{snapshot.connectionCount} {tx('Connections')}</Text>
+              <Text style={{fontSize:13,color:c.textMuted}}>{snapshot.connectionCount} {snapshot.connectionCount === 1 ? t('connection') : t('connections')}</Text>
             </View>
           ) : null}
 
@@ -257,7 +257,7 @@ export default function OtherUserProfileScreen() {
               {combinedGalleryPhotos.length > 3 && (
                 <TouchableOpacity onPress={() => setShowAllGallery(!showAllGallery)} style={{marginTop:10,alignSelf:'flex-start'}}>
                   <Text style={{fontSize:13,fontWeight:'600',color:c.gold}}>
-                    {showAllGallery ? 'Show Less' : `See More (${combinedGalleryPhotos.length - 3})`}
+                    {showAllGallery ? t('showLess') : `${t('seeMore')} (${combinedGalleryPhotos.length - 3})`}
                   </Text>
                 </TouchableOpacity>
               )}
