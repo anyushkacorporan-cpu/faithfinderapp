@@ -28,20 +28,23 @@ export function HeaderIcons({ overlay = false }: { overlay?: boolean } = {}) {
   const c = useThemeColors();
   const s = makeStyles(c);
   const unread = useUnreadCount();
+  // The specified glyph colour. A light-mode near-black, so dark mode keeps
+  // the theme's own text colour rather than drawing navy on near-black.
+  const glyph = c.isDark ? c.text : '#1F1B3A';
 
   return (
     <>
       <View style={s.icons}>
         <TouchableOpacity style={[s.iconBtn, overlay && s.iconBtnOverlay]} activeOpacity={0.7} onPress={() => router.push('/notifications')}>
           {overlay && <BlurView intensity={26} tint="dark" style={[StyleSheet.absoluteFill, s.overlayBlur]} />}
-          <Ionicons name="notifications-outline" size={22} color={overlay ? '#fff' : c.text} />
+          <Ionicons name="notifications-outline" size={20} color={overlay ? '#fff' : glyph} />
           {unread > 0 && (
             <View style={s.badge}><Text style={s.badgeTxt}>{unread > 9 ? '9+' : unread}</Text></View>
           )}
         </TouchableOpacity>
         <TouchableOpacity style={[s.iconBtn, overlay && s.iconBtnOverlay]} activeOpacity={0.7} onPress={() => router.push('/settings')}>
           {overlay && <BlurView intensity={26} tint="dark" style={[StyleSheet.absoluteFill, s.overlayBlur]} />}
-          <Ionicons name="settings-outline" size={22} color={overlay ? '#fff' : c.text} />
+          <Ionicons name="settings-outline" size={20} color={overlay ? '#fff' : glyph} />
         </TouchableOpacity>
       </View>
 
@@ -72,13 +75,19 @@ export default function Header({ left }: { left?: React.ReactNode } = {}) {
 }
 
 const makeStyles = (c: ThemeColors) => StyleSheet.create({
-  header:{flexDirection:'row',justifyContent:'flex-end',alignItems:'center',paddingHorizontal:16,paddingTop:6,paddingBottom:8,backgroundColor:c.card},
+  header:{flexDirection:'row',justifyContent:'flex-end',alignItems:'center',paddingHorizontal:20,paddingTop:6,paddingBottom:8,backgroundColor:c.card},
   headerWithLeft:{justifyContent:'space-between',gap:10},
   headerLeft:{flex:1,minWidth:0},
-  icons:{flexDirection:'row',gap:6},
-  iconBtn:{width:38,height:38,borderRadius:12,backgroundColor:c.cardAlt,alignItems:'center',justifyContent:'center',position:'relative'},
-  iconBtnOverlay:{backgroundColor:'rgba(255,255,255,0.20)',borderRadius:19,borderWidth:StyleSheet.hairlineWidth,borderColor:'rgba(255,255,255,0.35)'},
-  overlayBlur:{borderRadius:19,overflow:'hidden'},
+  icons:{flexDirection:'row',gap:10},
+  // 44 square, so a perfect circle at radius 22 — and the tap target Apple
+  // asks for, which 38 was not. #F4F2EF is the specified light-mode fill, so
+  // dark mode keeps the theme's own raised surface.
+  iconBtn:{width:44,height:44,borderRadius:22,backgroundColor:c.isDark?c.cardAlt:'#F4F2EF',alignItems:'center',justifyContent:'center',position:'relative'},
+  // The overlay variant keeps its hairline: it sits on a cover photo, where a
+  // frosted disc with no edge disappears against a pale one. Radius follows
+  // the new size.
+  iconBtnOverlay:{backgroundColor:'rgba(255,255,255,0.20)',borderRadius:22,borderWidth:StyleSheet.hairlineWidth,borderColor:'rgba(255,255,255,0.35)'},
+  overlayBlur:{borderRadius:22,overflow:'hidden'},
   badge:{position:'absolute',top:-5,right:-5,minWidth:20,height:20,borderRadius:10,backgroundColor:c.red,alignItems:'center',justifyContent:'center',paddingHorizontal:5,borderWidth:2,borderColor:c.card},
   // 9px in an 18px circle read as a plain red dot - the number was there and
   // nobody could see it. Big enough to actually count at a glance.

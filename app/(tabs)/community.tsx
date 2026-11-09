@@ -34,6 +34,9 @@ type Visibility = 'public' | 'connections';
 export default function CommunityScreen() {
   const c = useThemeColors();
   const s = makeStyles(c);
+  // The specified grey for the search field's icon and its placeholder. A
+  // light-mode value, so dark mode keeps the theme's own placeholder tone.
+  const searchGrey = c.isDark ? c.placeholder : '#6B6B76';
   const { showConfirm } = useConfirm();
   const [activeTab, setActiveTab] = useState<'foryou'|'discover'>('foryou');
   const allPosts = usePosts();
@@ -159,13 +162,13 @@ export default function CommunityScreen() {
       <Header
         left={
           <View style={s.peopleSearchRow}>
-            <Ionicons name="search" size={15} color={c.placeholder} />
+            <Ionicons name="search-outline" size={18} color={searchGrey} />
             <TextInput
               style={s.peopleSearchInput}
               value={peopleQuery}
               onChangeText={setPeopleQuery}
               placeholder={tx('Search for connections...')}
-              placeholderTextColor={c.placeholder}
+              placeholderTextColor={searchGrey}
               autoCorrect={false}
               autoCapitalize="words"
               returnKeyType="search"
@@ -651,8 +654,13 @@ export default function CommunityScreen() {
 
 
 const makeStyles = (c: ThemeColors) => StyleSheet.create({
-  peopleSearchRow:{flexDirection:'row',alignItems:'center',gap:7,backgroundColor:c.inputBg,borderRadius:12,paddingHorizontal:11,paddingVertical:9},
-  peopleSearchInput:{flex:1,fontSize:14,color:c.text,padding:0},
+  // A pill, 44 tall at radius 22, matching the two circles beside it. The
+  // height replaces the old vertical padding rather than adding to it.
+  // #F4F2EF is the specified light-mode fill; dark mode keeps c.inputBg.
+  peopleSearchRow:{flexDirection:'row',alignItems:'center',gap:10,height:44,borderRadius:22,paddingHorizontal:16,backgroundColor:c.isDark?c.inputBg:'#F4F2EF'},
+  // Typed text stays c.text. 15/#6B6B76 describes the placeholder, which is
+  // set where the field is drawn; what someone types has to stay readable.
+  peopleSearchInput:{flex:1,fontSize:15,color:c.text,padding:0},
   peopleResults:{backgroundColor:c.card,paddingHorizontal:16,paddingTop:12,paddingBottom:4,borderBottomWidth:1,borderBottomColor:c.border},
   peopleResultsTitle:{fontSize:12,fontWeight:'700',color:c.textMuted,textTransform:'uppercase',letterSpacing:0.5,marginBottom:8},
   peopleNoResults:{fontSize:13,color:c.textMuted,paddingBottom:14},
