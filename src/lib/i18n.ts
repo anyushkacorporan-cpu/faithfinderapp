@@ -994,6 +994,11 @@ const translations: Record<string, Record<Lang, string>> = {
   googleReviews: { English: 'Google reviews', Español: 'reseñas de Google' },
   discoverBanner: { English: 'Believers from all 50 states · Join the conversation', Español: 'Creyentes de los 50 estados · Únete a la conversación' },
   capacity: { English: 'Capacity', Español: 'Capacidad' },
+  // Shown where a cancelled event is opened from an old link or a share.
+  eventCancelled: { English: 'Cancelled', Español: 'Cancelado' },
+  eventCancelledNote: {
+    English: 'This event has been cancelled.',
+    Español: 'Este evento ha sido cancelado.' },
   // ── Six tickets per person, per event (46_tickets_per_user.sql) ──
   // {max}, {n} and {held} are replaced with numbers at runtime.
   ticketLimitReached: {

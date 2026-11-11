@@ -58,6 +58,10 @@ export default function EventDetailScreen() {
   // action for exactly the people entitled to it.
   const { attending: attendingEventIds } = useEventActions();
   const closedForRegistration = !!fullEvent && registrationClosed(fullEvent);
+  // Read from the store, not from a route parameter: the parameter is
+  // whatever the screen that pushed this one believed at the time, and a
+  // cancellation is exactly the kind of news it would not have.
+  const isCancelled = fullEvent?.lifecycle === 'cancelled';
   const attending = attendingEventIds.includes(params.id || '');
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [showShareComposer, setShowShareComposer] = useState(false);
@@ -502,24 +506,36 @@ export default function EventDetailScreen() {
               letting someone fill in a card and then refusing them is a worse
               way to learn the room is full. Someone already holding a ticket
               still sees their own registered state. */}
-          {!!remaining && remaining <= 10 && !attending && (
+          {/* An old link, a share, a notification tapped late. The event is
+              gone from every list but the link still resolves, so it says so
+              here rather than looking like an event anyone can still join. */}
+          {isCancelled && (
+            <View style={s.cancelledNote}>
+              <Ionicons name="close-circle" size={16} color={c.red} />
+              <Text style={s.cancelledNoteTxt}>{t('eventCancelledNote')}</Text>
+            </View>
+          )}
+          {!isCancelled && !!remaining && remaining <= 10 && !attending && (
             <Text style={s.seatsLeft}>
               {remaining === 1 ? tx('1 seat left') : `${remaining} ${tx('seats left')}`}
             </Text>
           )}
           <TouchableOpacity
-            style={[s.ticketBtn, attending && s.ticketBtnActive, soldOut && !attending && s.ticketBtnDisabled]}
+            style={[s.ticketBtn, attending && s.ticketBtnActive, (soldOut || isCancelled) && !attending && s.ticketBtnDisabled]}
             onPress={handleGetTicket}
-            disabled={(soldOut || closedForRegistration) && !attending}
+            disabled={isCancelled || ((soldOut || closedForRegistration) && !attending)}
             activeOpacity={0.88}
           >
             <Ionicons
-              name={attending ? 'checkmark-circle' : soldOut ? 'close-circle-outline' : 'ticket-outline'}
+              name={isCancelled ? 'close-circle-outline'
+                : attending ? 'checkmark-circle'
+                : soldOut ? 'close-circle-outline' : 'ticket-outline'}
               size={22}
               color={c.onPrimary}
             />
             <Text style={s.ticketBtnTxt}>
-              {attending ? t('youreRegistered')
+              {isCancelled ? t('eventCancelled')
+                : attending ? t('youreRegistered')
                 : closedForRegistration ? t('registrationClosedShort')
                 : soldOut ? t('soldOut') : t('register')}
             </Text>
@@ -977,6 +993,8 @@ const makeStyles = (c: ThemeColors) => StyleSheet.create({
   ticketBtnActive:{backgroundColor:c.green},
   ticketBtnDisabled:{opacity:0.45},
   seatsLeft:{fontSize:13,fontWeight:'700',color:c.red,textAlign:'center',marginBottom:8},
+  cancelledNote:{flexDirection:'row',alignItems:'center',justifyContent:'center',gap:7,marginBottom:10},
+  cancelledNoteTxt:{fontSize:14,fontWeight:'700',color:c.red},
   ticketBtnTxt:{color:c.onPrimary,fontSize:16,fontWeight:'700'},
   modalOverlay:{position:'absolute',top:0,left:0,right:0,bottom:0,justifyContent:'flex-end'},
   modalBg:{position:'absolute',top:0,left:0,right:0,bottom:0,backgroundColor:'rgba(0,0,0,0.5)'},

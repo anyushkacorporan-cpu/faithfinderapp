@@ -101,8 +101,18 @@ export default function EventsScreen() {
   // the event somebody just reported and shows it again on the way back.
   const hiddenEvents = useHiddenEvents();
 
+  // The one list the tab, the search box, the filters and both counts are all
+  // built from, so what is excluded here is excluded everywhere on this
+  // screen — including the "Saved (1)" over an empty list that a cancelled
+  // event used to leave behind.
+  //
+  // 'cancelled' is the only lifecycle that hides an event. 'postponed' and
+  // 'rescheduled' are still happening and still want an audience; an event
+  // whose registration has closed or sold out is still happening too, and
+  // keeps its place with the label the card already gives it.
   const allEvents = useMemo(() =>
-    userEvents.filter(e => e.status !== 'draft' && !isEventHidden(e.id))
+    userEvents.filter(e =>
+      e.status !== 'draft' && e.lifecycle !== 'cancelled' && !isEventHidden(e.id))
   , [userEvents, hiddenEvents]);
 
   /**
