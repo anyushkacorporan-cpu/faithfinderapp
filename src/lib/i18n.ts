@@ -996,6 +996,12 @@ const translations: Record<string, Record<Lang, string>> = {
   capacity: { English: 'Capacity', Español: 'Capacidad' },
   // Shown where a cancelled event is opened from an old link or a share.
   eventCancelled: { English: 'Cancelled', Español: 'Cancelado' },
+  // Shown when the server refuses a delete, which it does for anyone who is
+  // not the organiser.
+  couldNotDelete: { English: 'Could not delete it', Español: 'No se pudo eliminar' },
+  onlyCreatorDeletes: {
+    English: 'Only the account that created this event can delete it.',
+    Español: 'Solo la cuenta que creó este evento puede eliminarlo.' },
   eventCancelledNote: {
     English: 'This event has been cancelled.',
     Español: 'Este evento ha sido cancelado.' },

@@ -86,7 +86,11 @@ export default function MyEventsScreen() {
       message: t('deleteEventMsg').replace('{title}', title),
       buttons: [
         { text: t('cancel'), style: 'cancel' },
-        { text: t('delete'), style: 'destructive', onPress: () => deleteEvent(id) },
+        { text: t('delete'), style: 'destructive', onPress: () => {
+          void deleteEvent(id).then(gone => {
+            if (!gone) showToast(tx('Could not delete it'), tx('Only the account that created this event can delete it.'), 'error');
+          });
+        } },
       ],
     });
   }

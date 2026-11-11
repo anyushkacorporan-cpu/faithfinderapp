@@ -92,6 +92,7 @@ function rowToEvent(r: Record<string, any>): AppEvent {
     startsAt: r.starts_at ?? undefined,
     registrationClosesAt: r.registration_closes_at ?? undefined,
     ticketPrice: Number(r.ticket_price) || 0,
+    organizerId: r.organizer_id || undefined,
     platformFee: Number(r.platform_fee) || 0,
     creatorPayout: Number(r.creator_payout) || 0,
     ticketsSold: r.tickets_sold || 0,
@@ -172,11 +173,19 @@ export async function updateEventRemote(e: AppEvent): Promise<void> {
   writeFailed('save changes to an event', error);
 }
 
-export async function deleteEventRemote(id: string): Promise<void> {
+/** The signed-in account's server id, or null when signed out. */
+export function currentUserId(): string | null {
+  return getAuthUser()?.id ?? null;
+}
+
+/** True when the row is gone from the server. */
+export async function deleteEventRemote(id: string): Promise<boolean> {
   const db = supabase();
-  if (!db || !getAuthUser()) return;
+  // Signed out, or no server configured: nothing to delete remotely, and the
+  // local copy is free to go.
+  if (!db || !getAuthUser()) return true;
   const { error } = await db.from('events').delete().eq('id', id);
-  writeFailed('delete an event', error);
+  return !writeFailed('delete an event', error);
 }
 
 // ── Tickets ────────────────────────────────────────────────────────────────

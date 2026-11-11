@@ -36,6 +36,18 @@ export type AppEvent = {
   description: string;
   summary: string;
   organizer: string;
+  /**
+   * The server id of the account that created this event.
+   *
+   * `organizer` above is a display name, which is not an identity: two
+   * churches can share one and nobody can be matched by it. Without this the
+   * app could not tell its own events from anybody else's, and My Events
+   * listed the whole directory with Cancel and Delete on every row.
+   *
+   * Absent on an event made on this device and not yet pushed. Absent means
+   * mine — it was made here — which is why getUserEvents treats it that way.
+   */
+  organizerId?: string;
   date: string;
   time: string;
   endTime: string;
@@ -177,7 +189,26 @@ export function getEvents() { return [...events]; }
 export function getUpcomingEvents() {
   return events.filter(e => e.status !== 'past' && e.status !== 'draft' && !hasEnded(e));
 }
-export function getUserEvents() { return [...events].sort((a,b) => b.createdAt - a.createdAt); }
+/**
+ * The signed-in account's own events, newest first.
+ *
+ * This used to return every event the device held. Sync pulls in everybody's
+ * published events — that is what the Events tab is — so My Events showed the
+ * public directory as though the person had created all of it, and offered
+ * Cancel and Delete on each. The server refused the damage (cancel checks the
+ * organiser and returns 403, and RLS refuses the delete), but the delete was
+ * fire-and-forget, so it looked to the person like an event that would not
+ * delete.
+ *
+ * An event with no organizerId was made on this device and not yet pushed, so
+ * it is theirs by construction.
+ */
+export function getUserEvents() {
+  const me = api.currentUserId();
+  return [...events]
+    .filter(e => !e.organizerId || (!!me && e.organizerId === me))
+    .sort((a, b) => b.createdAt - a.createdAt);
+}
 
 export function addEvent(event: Omit<AppEvent, 'id' | 'createdAt' | 'bannerColor' | 'platformFee' | 'creatorPayout' | 'ticketsSold' | 'attending' | 'lifecycle'> & { capacity?: number; currency?: Currency }) {
   const idx = events.length % GRADIENTS.length;
@@ -269,11 +300,28 @@ export function isSoldOut(event: Pick<AppEvent, 'capacity' | 'ticketsSold'>): bo
   return seatsLeft(event) === 0;
 }
 
-export function deleteEvent(id: string) {
+/**
+ * Delete an event, and say so if it did not happen.
+ *
+ * This used to drop the event locally and fire the server call into the void.
+ * When the server refused — RLS allows the organiser and nobody else — the
+ * event disappeared from the screen, stayed on the server, and came back on
+ * the next sync. From the outside that is an event that will not delete, with
+ * nothing anywhere saying why.
+ *
+ * So the server goes first and the local copy only follows if it agreed.
+ * Returns whether it is actually gone, for the screen to report.
+ */
+export async function deleteEvent(id: string): Promise<boolean> {
+  const local = events.find(e => e.id === id);
+  // An event that was never pushed has nothing to refuse it.
+  const onServer = !!local?.organizerId;
+  if (onServer && !(await api.deleteEventRemote(id))) return false;
+
   events = events.filter(e => e.id !== id);
   persist();
   notify();
-  void api.deleteEventRemote(id);
+  return true;
 }
 
 /**
