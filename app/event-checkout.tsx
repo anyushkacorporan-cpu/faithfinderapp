@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   View, Text, TouchableOpacity, StyleSheet,
   ScrollView, TextInput, Alert
@@ -10,8 +10,8 @@ import { useThemeColors, ThemeColors } from '../src/lib/theme';
 import { useTranslation } from '../src/lib/i18n';
 import { addAttending } from '../src/lib/eventActionsStore';
 import { useStripe } from '../src/lib/payments';
-import { purchaseTicket, syncTicketsFromServer } from '../src/lib/ticketStore';
-import { recordTicketSale, syncEventsFromServer, ensureEventOnServer, getEvents } from '../src/lib/eventsStore';
+import { purchaseTicket, syncTicketsFromServer, useTickets } from '../src/lib/ticketStore';
+import { recordTicketSale, syncEventsFromServer, ensureEventOnServer, getEvents, seatsLeft } from '../src/lib/eventsStore';
 import { startPayment, confirmPayment } from '../src/lib/paymentsApi';
 import { hasStripe } from '../src/lib/stripeConfig';
 import { priceBreakdown } from '../src/lib/ticketPricing';
@@ -19,6 +19,7 @@ import { RefundPolicyNote } from '../src/components/RefundPolicyNote';
 import { registrationClosed } from '../src/lib/eventTime';
 import { KeyboardScreen } from '../src/components/KeyboardScreen';
 import { useConfirm } from '../src/components/Confirm';
+import { heldForEvent, maxAddable, limitReason, MAX_TICKETS_PER_EVENT } from '../src/lib/ticketLimit';
 
 export default function EventCheckoutScreen() {
   const { t, tx } = useTranslation();
@@ -50,6 +51,27 @@ export default function EventCheckoutScreen() {
   // here, and the server charged the base price without the fee — the summary
   // below said one number and the card was debited another.
   const { subtotal, platformFee, processingFee, total } = priceBreakdown(ticketPrice, quantity);
+
+  // What this person may add, which is the lower of two ceilings: what is
+  // left of their six for this event, and what is left of the event. The
+  // trigger in 46_tickets_per_user.sql is what enforces the first and
+  // claim_seats the second — this only stops the picker offering a number
+  // that would be refused at the end, after the card details are in.
+  const myTickets = useTickets();
+  const alreadyHeld = heldForEvent(myTickets, params.id || '');
+  const left = fullEvent ? seatsLeft(fullEvent) : null;
+  const ceiling = maxAddable(alreadyHeld, left);
+  const reason = limitReason(alreadyHeld, left);
+  // Never below 1: at a ceiling of 0 the picker is pinned at 1 and the notice
+  // below says why nothing can be bought, rather than showing a quantity of
+  // zero and a Pay button for nothing.
+  const pickerMax = Math.max(1, ceiling);
+
+  // Someone who had six, opened this screen, and refunded one on another
+  // device would otherwise sit above their own ceiling with no way down.
+  useEffect(() => {
+    setQuantity(q => Math.min(q, pickerMax));
+  }, [pickerMax]);
 
 
   async function handlePay() {
@@ -272,11 +294,35 @@ export default function EventCheckoutScreen() {
                   <Text style={[s.qBtnTxt, quantity<=1&&s.qBtnTxtOff]}>−</Text>
                 </TouchableOpacity>
                 <Text style={s.qNum}>{quantity}</Text>
-                <TouchableOpacity style={[s.qBtn, quantity>=10&&s.qBtnOff]} onPress={()=>setQuantity(q=>Math.min(10,q+1))} disabled={quantity>=10}>
-                  <Text style={[s.qBtnTxt, quantity>=10&&s.qBtnTxtOff]}>+</Text>
+                <TouchableOpacity style={[s.qBtn, quantity>=pickerMax&&s.qBtnOff]} onPress={()=>setQuantity(q=>Math.min(pickerMax,q+1))} disabled={quantity>=pickerMax}>
+                  <Text style={[s.qBtnTxt, quantity>=pickerMax&&s.qBtnTxtOff]}>+</Text>
                 </TouchableOpacity>
               </View>
             </View>
+            {/* One sentence, and only when a ceiling is actually reached.
+                limitReason decides which of the two stopped them, because
+                "only 2 left" when their own six is what stopped them is a
+                lie about the reason. */}
+            {reason === 'soldOut' && (
+              <Text style={s.limitNote}>{t('soldOut')}</Text>
+            )}
+            {reason === 'atPersonalLimit' && (
+              <Text style={s.limitNote}>
+                {t('ticketLimitReached').replace('{max}', String(MAX_TICKETS_PER_EVENT))}
+              </Text>
+            )}
+            {reason === 'fewSeatsLeft' && left !== null && (
+              <Text style={s.limitNote}>
+                {(left === 1 ? t('oneTicketLeft') : t('ticketsLeft')).replace('{n}', String(left))}
+              </Text>
+            )}
+            {reason === null && alreadyHeld > 0 && (
+              <Text style={s.limitNote}>
+                {t('ticketsYouHold')
+                  .replace('{held}', String(alreadyHeld))
+                  .replace('{max}', String(MAX_TICKETS_PER_EVENT))}
+              </Text>
+            )}
           </View>
 
           <View style={s.divider} />
@@ -428,6 +474,7 @@ const makeStyles = (c: ThemeColors) => StyleSheet.create({
   sectionTitle:{fontSize:15,fontWeight:'700',color:c.text,marginBottom:10},
   divider:{height:8,backgroundColor:c.cardAlt},
   input:{borderWidth:1.5,borderColor:c.border,borderRadius:10,paddingHorizontal:14,paddingVertical:12,fontSize:14,color:c.text,backgroundColor:c.card},
+  limitNote:{fontSize:13,color:c.textMuted,marginTop:10},
   quantityRow:{flexDirection:'row',alignItems:'center',justifyContent:'space-between'},
   quantityEventTitle:{fontSize:15,fontWeight:'700',color:c.text,maxWidth:200},
   quantityPrice:{fontSize:13,color:c.textMuted,marginTop:3},

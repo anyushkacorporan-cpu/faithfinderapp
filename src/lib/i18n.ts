@@ -994,6 +994,20 @@ const translations: Record<string, Record<Lang, string>> = {
   googleReviews: { English: 'Google reviews', Español: 'reseñas de Google' },
   discoverBanner: { English: 'Believers from all 50 states · Join the conversation', Español: 'Creyentes de los 50 estados · Únete a la conversación' },
   capacity: { English: 'Capacity', Español: 'Capacidad' },
+  // ── Six tickets per person, per event (46_tickets_per_user.sql) ──
+  // {max}, {n} and {held} are replaced with numbers at runtime.
+  ticketLimitReached: {
+    English: 'You can buy up to {max} tickets for this event.',
+    Español: 'Puedes comprar hasta {max} entradas para este evento.' },
+  ticketsYouHold: {
+    English: 'You already have {held} of {max} tickets for this event.',
+    Español: 'Ya tienes {held} de {max} entradas para este evento.' },
+  oneTicketLeft: {
+    English: 'Only 1 ticket left',
+    Español: 'Solo queda 1 entrada' },
+  ticketsLeft: {
+    English: 'Only {n} tickets left',
+    Español: 'Solo quedan {n} entradas' },
   churchNotListedAddIt: { English: 'My church isn\u2019t listed — Add it', Español: 'Mi iglesia no aparece — Añadirla' },
   churchAlreadyListed: { English: 'Your church is already listed on FourCircle. Claim it as the official account.', Español: 'Tu iglesia ya aparece en FourCircle. Reclámala como la cuenta oficial.' },
   photoRemovedFromGallery: { English: 'This photo will be removed from your Faith Gallery.', Español: 'Esta foto se quitará de tu Galería de Fe.' },
