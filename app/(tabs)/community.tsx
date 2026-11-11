@@ -175,7 +175,10 @@ export default function CommunityScreen() {
             />
             {!!peopleQuery && (
               <TouchableOpacity onPress={() => setPeopleQuery('')}>
-                <Ionicons name="close-circle" size={15} color={c.placeholder} />
+                {/* Same 18 and same grey as the magnifier at the other end
+                    of the field, which it had drifted away from. Still the
+                    filled glyph: this one is a button, not a label. */}
+                <Ionicons name="close-circle" size={18} color={searchGrey} />
               </TouchableOpacity>
             )}
           </View>
