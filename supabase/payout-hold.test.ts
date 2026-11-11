@@ -468,6 +468,19 @@ test('attendees are not shown each other addresses', () => {
   assert.doesNotMatch(flat(fn), /to: to,/);
 });
 
+test('a cancellation still reaches people whose ticket was just refunded', () => {
+  const fn = readFileSync(
+    join(here, 'functions', 'event-notify', 'index.ts'), 'utf8');
+  const c = flat(fn);
+  // Cancelling refunds every paid ticket before this runs, so a plain
+  // .eq('status', 'paid') here finds nobody and the cancellation notice goes
+  // to no one while reporting success. This is that bug, pinned.
+  assert.match(c, /row\.kind === 'cancelled' \? \['paid', 'refunded'\] : \['paid'\]/,
+    'the cancellation notice is back to paid-only — it would reach nobody');
+  assert.doesNotMatch(c, /\.eq\('event_id', row\.event_id\)\.eq\('status', 'paid'\)/,
+    'recipients are filtered to paid only, whatever the notice is');
+});
+
 test('one message each, however many tickets they hold', () => {
   const fn = readFileSync(
     join(here, 'functions', 'event-notify', 'index.ts'), 'utf8');

@@ -188,8 +188,18 @@ Deno.serve(async (req) => {
       .select('id, title, is_paid').eq('id', row.event_id).maybeSingle();
     if (!event) continue;
 
+    // Who to tell. A change goes to the people who still hold a ticket.
+    //
+    // A cancellation has to include refunded ones, and this is why: cancelling
+    // an event refunds every paid ticket FIRST (payments/index.ts marks each
+    // one 'refunded', free registrations included), and only then does this
+    // run. Filtering to 'paid' therefore found nobody at all — the single
+    // notice that matters most went to no one, counted 0 recipients, recorded
+    // no error, and reported success. Caught by cancelling a real event with a
+    // real attendee; nothing short of that would have shown it.
+    const statuses = row.kind === 'cancelled' ? ['paid', 'refunded'] : ['paid'];
     const { data: tickets } = await admin.from('tickets')
-      .select('email').eq('event_id', row.event_id).eq('status', 'paid');
+      .select('email').eq('event_id', row.event_id).in('status', statuses);
 
     // One message each, however many tickets they hold. A person who bought
     // four seats does not want four copies.
