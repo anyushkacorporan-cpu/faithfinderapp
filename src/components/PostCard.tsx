@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useThemeColors, ThemeColors } from '../lib/theme';
 import { Post, formatRelativeTime, postImages, isEmptyPost } from '../lib/postsStore';
+import { getEvents } from '../lib/eventsStore';
 import { translateText, detectLanguage, clearRefusal } from '../lib/translate';
 import { useSettings } from '../lib/settingsStore';
 import { useTranslation } from '../lib/i18n';
@@ -357,6 +358,14 @@ export function PostCard({post,showLocation,onLike,onComment,onShare,onOpenProfi
   // including when it was made from somewhere else.
   useConnections();
   const alreadyConnected = isConnectedTo(post.authorId, post.authorName);
+  // eventShareData is a snapshot taken when the post was written, so it goes
+  // on advertising an event that has since been called off. The event itself
+  // is the only thing that knows, so it is asked. Best effort: an event this
+  // device has never synced is not in the store, and a card that cannot be
+  // shown to be cancelled is left as it was rather than guessed at.
+  const sharedEventId = post.eventShareData?.id || post.repostOf?.eventShareData?.id || '';
+  const sharedEventOff = !!sharedEventId
+    && getEvents().find(e => e.id === sharedEventId)?.lifecycle === 'cancelled';
   const canConnect = !isOwnPost && !alreadyConnected;
 
   function handleConnect() {
@@ -549,9 +558,20 @@ export function PostCard({post,showLocation,onLike,onComment,onShare,onOpenProfi
               <View style={{backgroundColor:c.navy,borderRadius:100,paddingHorizontal:10,paddingVertical:4}}>
                 <Text style={{fontSize:11,fontWeight:'700',color:c.white}}>{post.eventShareData.type}</Text>
               </View>
-              <View style={{backgroundColor: post.eventShareData.price==='Free' ? c.green : '#e67e22', borderRadius:100, paddingHorizontal:10, paddingVertical:4}}>
-                <Text style={{fontSize:11,fontWeight:'700',color:c.white}}>{post.eventShareData.price}</Text>
-              </View>
+              {/* A cancelled event keeps its card rather than vanishing: a
+                  post whose whole content is a share would be left blank,
+                  and the post is somebody's own writing. It says plainly
+                  that the event is off instead, and the price badge goes,
+                  because a price on a cancelled event invites a tap. */}
+              {sharedEventOff ? (
+                <View style={{backgroundColor:c.red, borderRadius:100, paddingHorizontal:10, paddingVertical:4}}>
+                  <Text style={{fontSize:11,fontWeight:'700',color:c.white}}>{t('eventCancelled')}</Text>
+                </View>
+              ) : (
+                <View style={{backgroundColor: post.eventShareData.price==='Free' ? c.green : '#e67e22', borderRadius:100, paddingHorizontal:10, paddingVertical:4}}>
+                  <Text style={{fontSize:11,fontWeight:'700',color:c.white}}>{post.eventShareData.price}</Text>
+                </View>
+              )}
             </View>
             <Text style={{fontFamily:'PlayfairDisplay_700Bold',fontSize:17,color:c.text,marginBottom:3}} numberOfLines={1}>{post.eventShareData.title}</Text>
             {!!post.eventShareData.organizer && (
