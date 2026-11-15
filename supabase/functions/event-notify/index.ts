@@ -246,7 +246,14 @@ Deno.serve(async (req) => {
       continue;
     }
 
-    const kind = row.kind === 'refunded' ? 'refunded' as const : 'registered' as const;
+    // Four kinds reach this queue. Anything unrecognised is treated as a
+    // registration rather than skipped: a row that cannot be classified has
+    // still been claimed, and sending the mildest of the four beats sending
+    // nothing and leaving somebody wondering.
+    const KINDS = ['registered', 'refunded', 'refund_requested', 'refund_declined'] as const;
+    const kind = (KINDS as readonly string[]).includes(String(row.kind))
+      ? row.kind as typeof KINDS[number]
+      : 'registered';
     const title = String(row.title ?? 'Your event');
     const facts: EventFacts = {
       id: String(row.event_id),
@@ -268,6 +275,11 @@ Deno.serve(async (req) => {
       // processing fee, and the email says so, so the number beside it has
       // to be the number that is actually coming back.
       amount: kind === 'refunded' ? money(row.price_paid, row.currency) : null,
+      // Only on the email that is about them. The attendee's words go to the
+      // organiser deciding; the organiser's words go to the attendee who was
+      // turned down. Neither needs to be read back their own sentence.
+      reason: kind === 'refund_requested' ? (row.reason as string) ?? null : null,
+      declineReason: kind === 'refund_declined' ? (row.decline_reason as string) ?? null : null,
     };
 
     try {

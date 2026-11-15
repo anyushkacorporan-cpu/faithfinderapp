@@ -69,9 +69,17 @@ export type TicketFacts = {
   quantity?: number | null;
   /** Formatted with its currency, e.g. "$24.00". Refunds only. */
   amount?: string | null;
+  /** What the attendee wrote when asking. Shown to the organiser. */
+  reason?: string | null;
+  /** Why the organiser said no. Shown to the attendee, and required of them. */
+  declineReason?: string | null;
 };
 
-export type EmailKind = 'registered' | 'changed' | 'cancelled' | 'refunded';
+export type EmailKind =
+  | 'registered' | 'changed' | 'cancelled' | 'refunded'
+  // These two are about a refund REQUEST, not a refund. refund_requested
+  // goes to the organiser; refund_declined goes to the attendee.
+  | 'refund_requested' | 'refund_declined';
 
 export type Change = { field: string; old?: string | null; new?: string | null };
 
@@ -96,6 +104,8 @@ export function subjectFor(kind: EmailKind, title: string): string {
     case 'changed':    return `Update: ${title} has changed`;
     case 'cancelled':  return `Cancelled: ${title}`;
     case 'refunded':   return `Refunded: ${title}`;
+    case 'refund_requested': return `Refund request: ${title}`;
+    case 'refund_declined':  return `About your refund request: ${title}`;
   }
 }
 
@@ -114,6 +124,8 @@ function statusLine(kind: EmailKind, paid: boolean): string {
     case 'refunded':   return paid
       ? 'Your refund is on its way.'
       : 'Your registration has been cancelled.';
+    case 'refund_requested': return 'Someone has asked for a refund.';
+    case 'refund_declined':  return 'Your refund was declined.';
   }
 }
 
@@ -128,6 +140,12 @@ function bodyLine(kind: EmailKind, paid: boolean): string {
     case 'refunded':   return paid
       ? "We've sent the ticket price back to the card you paid with. It usually takes 5 to 10 business days. Service fees aren't included."
       : "Your spot is free again. Nothing was paid, so there's nothing to refund.";
+    // The organiser's. Five business days is what the terms promise the
+    // attendee, so it is the only number that belongs in this email.
+    case 'refund_requested': return "You have 5 business days to approve or decline this. Open FourCircle to answer it. If you don't, they can bring it to us.";
+    // The attendee's. It says who said no and what they can do next,
+    // because a decline with no way forward is just a dead end.
+    case 'refund_declined':  return "The organizer said no. Their reason is below. If you think that's wrong, write to us and we'll look at it.";
   }
 }
 
@@ -154,7 +172,7 @@ function detailRow(label: string, value: string): string {
     </tr>`;
 }
 
-function detailsBlock(ev: EventFacts, ticket: TicketFacts): string {
+function detailsBlock(kind: EmailKind, ev: EventFacts, ticket: TicketFacts): string {
   const venue = [ev.venueName, ev.venueAddress].filter(Boolean).join(' · ');
   const qty = ticket.quantity && ticket.quantity > 0
     ? `${ticket.quantity} ${ticket.quantity === 1 ? 'ticket' : 'tickets'}`
@@ -166,6 +184,12 @@ function detailsBlock(ev: EventFacts, ticket: TicketFacts): string {
     detailRow('Tickets', qty),
     detailRow('Order', String(ticket.orderId ?? '')),
     detailRow('Refunded', String(ticket.amount ?? '')),
+    // Each reason belongs to exactly one email, and the check is here rather
+    // than only in the caller: a template that prints whatever it is handed
+    // will eventually read somebody their own sentence back, or worse, show
+    // an attendee's reason to the wrong person.
+    detailRow('Their reason', kind === 'refund_requested' ? String(ticket.reason ?? '') : ''),
+    detailRow('Reason', kind === 'refund_declined' ? String(ticket.declineReason ?? '') : ''),
   ].join('');
   if (!rows.trim()) return '';
   return `
@@ -229,7 +253,7 @@ ${photoBlock(ev)}
       <p style="margin:12px 0 18px;font-family:${SANS};font-size:14px;line-height:1.55;color:${INK}">${esc(bodyLine(kind, paid))}</p>
     </td></tr>
 ${changesBlock(changes)}
-${detailsBlock(ev, ticket)}
+${detailsBlock(kind, ev, ticket)}
     <tr><td style="padding:22px 28px 0">
       <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr><td
         style="background:${GOLD};border-radius:8px">
@@ -290,6 +314,8 @@ export function renderText(
     ['Tickets', qty],
     ['Order', String(ticket.orderId ?? '')],
     ['Refunded', String(ticket.amount ?? '')],
+    ['Their reason', kind === 'refund_requested' ? String(ticket.reason ?? '') : ''],
+    ['Reason', kind === 'refund_declined' ? String(ticket.declineReason ?? '') : ''],
   ];
   const shown = details.filter(([, v]) => !!v);
   if (shown.length) {

@@ -133,6 +133,45 @@ test('a queued row with no address is claimed, not retried forever', () => {
   assert.match(notify(), /if \(!address\) \{/);
 });
 
+// ── The two refund-request emails ─────────────────────────────────────────
+
+const sql49 = () => readFileSync(join(here, '49_refund_mail.sql'), 'utf8');
+
+test('a refund request emails the organizer, not the person who asked', () => {
+  // Sending it to the attendee would tell them what they already know and
+  // tell the organiser nothing, which is the whole bug.
+  assert.match(sql49(), /when q\.kind = 'refund_requested' then[\s\S]{0,400}au\.email/);
+});
+
+test('approving queues nothing extra', () => {
+  // The refund marks the ticket refunded and 48 sends the refund email off
+  // the back of that. A second email would say less and arrive first.
+  const sql = sql49();
+  assert.match(sql, /new\.status = 'declined'/);
+  assert.doesNotMatch(sql, /new\.status = 'approved'/);
+});
+
+test('the organizer is told the clock, and the attendee is told the reason', () => {
+  const r = renderText('refund_requested', event, { reason: 'Childcare fell through' });
+  assert.match(r, /5 business days/);
+  assert.match(r, /Childcare fell through/);
+
+  const d = renderText('refund_declined', event, { declineReason: 'Catering is already paid' });
+  assert.match(d, /Catering is already paid/);
+});
+
+test('neither person is read back their own words', () => {
+  // The attendee's reason belongs in the organiser's email and nowhere else.
+  const d = renderText('refund_declined', event, { reason: 'Childcare fell through' });
+  assert.doesNotMatch(d, /Childcare/);
+});
+
+test('every kind has a subject naming the event', () => {
+  for (const kind of ['refund_requested', 'refund_declined'] as const) {
+    assert.match(subjectFor(kind, 'Spring Retreat'), /Spring Retreat/);
+  }
+});
+
 // ── Subjects ──────────────────────────────────────────────────────────────
 
 test('every subject names the event', () => {
