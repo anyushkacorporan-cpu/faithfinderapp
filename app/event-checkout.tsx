@@ -17,6 +17,7 @@ import { hasStripe } from '../src/lib/stripeConfig';
 import { priceBreakdown } from '../src/lib/ticketPricing';
 import { RefundPolicyNote } from '../src/components/RefundPolicyNote';
 import { registrationClosed } from '../src/lib/eventTime';
+import { flushEventNotices } from '../src/lib/eventNotifyApi';
 import { KeyboardScreen } from '../src/components/KeyboardScreen';
 import { useConfirm } from '../src/components/Confirm';
 import { heldForEvent, maxAddable, limitReason, MAX_TICKETS_PER_EVENT } from '../src/lib/ticketLimit';
@@ -246,6 +247,17 @@ export default function EventCheckoutScreen() {
    * disagrees with the bank statement is worse than no receipt.
    */
   function goToTicket(ticketIds: string[], charged?: number) {
+    // Nudge the server to send the confirmation. A trigger on the tickets
+    // table already queued it (48_ticket_mail_queue.sql), so this is only
+    // about it going out now rather than whenever somebody next edits an
+    // event — which, before this line, is the only thing that flushed.
+    //
+    // Not awaited and its failure never shown, for the same reason the edit
+    // screen does not await it: the row is recorded, so the worst case is a
+    // late email, and nobody should be held on a confirmation screen while
+    // Resend is asked a question.
+    void flushEventNotices(params.id || '');
+
     router.replace({
       pathname: '/ticket-success',
       params: {

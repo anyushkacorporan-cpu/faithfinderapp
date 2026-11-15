@@ -118,6 +118,17 @@ test('a queued row is claimed before it is sent', () => {
   assert.ok(claim.test(fn), 'the ticket queue claim is missing');
 });
 
+test('buying a ticket flushes the queue', () => {
+  // The queue was only ever flushed when an organiser edited or cancelled an
+  // event, so a confirmation would have sat there until that happened to
+  // somebody else's event. Checked on the checkout screen, which is the one
+  // place both the free and the paid path pass through.
+  const checkout = readFileSync(
+    join(here, '..', 'app', 'event-checkout.tsx'), 'utf8');
+  assert.match(checkout, /function goToTicket[\s\S]{0,800}flushEventNotices/,
+    'nothing nudges the server after a purchase');
+});
+
 test('a queued row with no address is claimed, not retried forever', () => {
   assert.match(notify(), /if \(!address\) \{/);
 });
