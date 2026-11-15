@@ -28,6 +28,10 @@
  */
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.58.0';
+import {
+  FROM, REPLY_TO, renderHtml, renderText, subjectFor,
+  type Change, type EventFacts, type TicketFacts,
+} from './eventEmail.ts';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
 const RESEND_KEY = Deno.env.get('RESEND_API_KEY') ?? '';
@@ -47,10 +51,6 @@ function serviceKey(): string {
 }
 
 const SERVICE_KEY = serviceKey();
-const FROM = 'FourCircle <hello@fourcircle.app>';
-const REPLY_TO = 'support@fourcircle.app';
-const EVENT_URL = (id: string) => `https://fourcircle.app/e/${encodeURIComponent(id)}`;
-
 const CORS = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -62,94 +62,25 @@ function json(body: unknown, status = 200) {
   });
 }
 
-const FIELD_NAME: Record<string, string> = {
-  title: 'Event name',
-  date: 'Date',
-  time: 'Time',
-  location: 'Location',
-};
-
-const esc = (s: string) =>
-  s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-   .replace(/"/g, '&quot;');
-
-type Change = { field: string; old: string | null; new: string | null };
-
-function changedText(title: string, changes: Change[], url: string): string {
-  const lines = changes.map(ch =>
-    `${FIELD_NAME[ch.field] ?? ch.field}\n  was: ${ch.old ?? '—'}\n  now: ${ch.new ?? '—'}`);
-  return [
-    `${title} has been updated.`,
-    '',
-    ...lines,
-    '',
-    `See the event: ${url}`,
-    '',
-    'If you can no longer make it, you can cancel your registration in the app.',
-    '',
-    'FourCircle',
-  ].join('\n');
-}
-
-function changedHtml(title: string, changes: Change[], url: string): string {
-  const rows = changes.map(ch => `
-    <tr>
-      <td style="padding:8px 12px 8px 0;color:#6b6b6b;font-size:14px;white-space:nowrap">
-        ${esc(FIELD_NAME[ch.field] ?? ch.field)}
-      </td>
-      <td style="padding:8px 0;font-size:14px;color:#1a1a1a">
-        <span style="text-decoration:line-through;color:#9a9a9a">${esc(ch.old ?? '—')}</span>
-        &nbsp;→&nbsp;
-        <strong>${esc(ch.new ?? '—')}</strong>
-      </td>
-    </tr>`).join('');
-
-  return `<!doctype html><html><body style="margin:0;background:#faf8f5;font-family:-apple-system,Segoe UI,Roboto,sans-serif">
-  <div style="max-width:520px;margin:0 auto;padding:28px 20px">
-    <h1 style="font-size:19px;margin:0 0 4px;color:#1a1a1a">${esc(title)} has been updated</h1>
-    <p style="margin:0 0 18px;color:#6b6b6b;font-size:14px">Here is what the organiser changed.</p>
-    <table style="width:100%;border-collapse:collapse;background:#fff;border:1px solid #ece7df;border-radius:10px;padding:4px 14px">
-      ${rows}
-    </table>
-    <p style="margin:22px 0 0">
-      <a href="${esc(url)}" style="background:#c9a96e;color:#1a1208;text-decoration:none;font-weight:600;padding:11px 20px;border-radius:9px;display:inline-block;font-size:15px">See the event</a>
-    </p>
-    <p style="margin:20px 0 0;color:#8a8a8a;font-size:12.5px">
-      If you can no longer make it, you can cancel your registration in the app.
-    </p>
-  </div></body></html>`;
-}
-
-function cancelledText(title: string, url: string, paid: boolean): string {
-  return [
-    `${title} has been cancelled.`,
-    '',
-    paid
-      ? 'Your ticket has been refunded in full, including fees. It goes back to the card you paid with, and your bank usually shows it within 5 to 10 days.'
-      : 'Your registration was free, so there is nothing to refund.',
-    '',
-    `The event: ${url}`,
-    '',
-    'We are sorry about this one.',
-    '',
-    'FourCircle',
-  ].join('\n');
-}
-
-function cancelledHtml(title: string, url: string, paid: boolean): string {
-  return `<!doctype html><html><body style="margin:0;background:#faf8f5;font-family:-apple-system,Segoe UI,Roboto,sans-serif">
-  <div style="max-width:520px;margin:0 auto;padding:28px 20px">
-    <h1 style="font-size:19px;margin:0 0 10px;color:#1a1a1a">${esc(title)} has been cancelled</h1>
-    <p style="margin:0 0 16px;color:#3a3a3a;font-size:14.5px;line-height:1.55">${
-      paid
-        ? 'Your ticket has been <strong>refunded in full</strong>, including fees. It goes back to the card you paid with, and your bank usually shows it within 5 to 10 days.'
-        : 'Your registration was free, so there is nothing to refund.'
-    }</p>
-    <p style="margin:0 0 20px;color:#6b6b6b;font-size:14px">We are sorry about this one.</p>
-    <p style="margin:0">
-      <a href="${esc(url)}" style="background:#c9a96e;color:#1a1208;text-decoration:none;font-weight:600;padding:11px 20px;border-radius:9px;display:inline-block;font-size:15px">See the event</a>
-    </p>
-  </div></body></html>`;
+/**
+ * When the event is, in words a reader can act on.
+ *
+ * Built from the columns the event already carries rather than reformatted
+ * from a timestamp: date and time are what the organiser typed, and the
+ * timezone is what 41_event_timezone.sql recorded at creation. An event at
+ * 9am in New York has to say so to somebody reading in Los Angeles.
+ */
+function whenText(ev: Record<string, unknown>): string {
+  const date = String(ev.date ?? '').trim();
+  const time = String(ev.time ?? '').trim();
+  const end = String(ev.end_time ?? '').trim();
+  const zone = String(ev.timezone ?? '').trim();
+  if (!date && !time) return '';
+  // "to", never a dash: a dash in an email reads as a typo or a hyphenated
+  // word depending on the client's font.
+  const clock = time && end ? `${time} to ${end}` : time;
+  const zoneShort = zone ? ` (${zone.split('/').pop()?.replace(/_/g, ' ')})` : '';
+  return [date, clock].filter(Boolean).join(', ') + (clock ? zoneShort : '');
 }
 
 Deno.serve(async (req) => {
@@ -184,8 +115,12 @@ Deno.serve(async (req) => {
       .eq('id', row.id).is('sent_at', null);
     if (claimErr) continue;
 
+    // Everything the email's details block needs. It used to read three
+    // columns and the email said the event's name and nothing else: a
+    // cancellation that never mentioned when the event had been, or where.
     const { data: event } = await admin.from('events')
-      .select('id, title, is_paid').eq('id', row.event_id).maybeSingle();
+      .select('id, title, is_paid, date, time, end_time, timezone, organizer, venue_name, venue_address, banner_image')
+      .eq('id', row.event_id).maybeSingle();
     if (!event) continue;
 
     // Who to tell. A change goes to the people who still hold a ticket.
@@ -199,37 +134,55 @@ Deno.serve(async (req) => {
     // real attendee; nothing short of that would have shown it.
     const statuses = row.kind === 'cancelled' ? ['paid', 'refunded'] : ['paid'];
     const { data: tickets } = await admin.from('tickets')
-      .select('email').eq('event_id', row.event_id).in('status', statuses);
+      .select('id, email, quantity').eq('event_id', row.event_id).in('status', statuses);
 
     // One message each, however many tickets they hold. A person who bought
-    // four seats does not want four copies.
-    const to = [...new Set(
-      (tickets ?? []).map(t => String(t.email ?? '').trim().toLowerCase()).filter(Boolean),
-    )];
-    if (!to.length) {
+    // four seats does not want four copies — but the one they get now has to
+    // name their own order, so the orders are folded together per address
+    // rather than thrown away. Two separate orders become "3 tickets" and
+    // the most recent order number, which is the one they will quote.
+    const perAddress = new Map<string, { quantity: number; orderId: string }>();
+    for (const tk of tickets ?? []) {
+      const address = String(tk.email ?? '').trim().toLowerCase();
+      if (!address) continue;
+      const seen = perAddress.get(address);
+      perAddress.set(address, {
+        quantity: (seen?.quantity ?? 0) + (Number(tk.quantity) || 0),
+        orderId: String(tk.id ?? seen?.orderId ?? ''),
+      });
+    }
+    if (!perAddress.size) {
       await admin.from('event_change_log')
         .update({ recipients: 0 }).eq('id', row.id);
       continue;
     }
 
     const title = String(event.title ?? 'Your event');
-    const url = EVENT_URL(String(event.id));
-    const cancelled = row.kind === 'cancelled';
-    const paid = event.is_paid === true;
+    const kind = row.kind === 'cancelled' ? 'cancelled' as const : 'changed' as const;
+    const changes = (row.changes ?? []) as Change[];
 
-    const subject = cancelled ? `Cancelled: ${title}` : `Updated: ${title}`;
-    const text = cancelled
-      ? cancelledText(title, url, paid)
-      : changedText(title, (row.changes ?? []) as Change[], url);
-    const html = cancelled
-      ? cancelledHtml(title, url, paid)
-      : changedHtml(title, (row.changes ?? []) as Change[], url);
+    const facts: EventFacts = {
+      id: String(event.id),
+      title,
+      whenText: whenText(event as Record<string, unknown>),
+      venueName: (event as any).venue_name ?? null,
+      venueAddress: (event as any).venue_address ?? null,
+      organizer: (event as any).organizer ?? null,
+      photoUrl: (event as any).banner_image ?? null,
+      isPaid: event.is_paid === true,
+    };
+    const subject = subjectFor(kind, title);
 
     try {
       // One request per address. Resend's `to` array puts everybody in the
       // same header, which would show every attendee each other's address.
       let delivered = 0;
-      for (const address of to) {
+      for (const [address, order] of perAddress) {
+        // Each person's own ticket count and order number, so the details
+        // block is about them rather than about the event in general.
+        const ticket: TicketFacts = { quantity: order.quantity, orderId: order.orderId };
+        const html = renderHtml(kind, facts, ticket, changes);
+        const text = renderText(kind, facts, ticket, changes);
         const res = await fetch('https://api.resend.com/emails', {
           method: 'POST',
           headers: {

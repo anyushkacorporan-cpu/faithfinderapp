@@ -38,6 +38,44 @@ test('both deployed copies are identical to the canonical template', () => {
   }
 });
 
+// ── event-notify actually uses it ─────────────────────────────────────────
+
+const notify = () => readFileSync(join(here, 'functions/event-notify/index.ts'), 'utf8');
+
+test('event-notify sends the shared layout, not its own inline one', () => {
+  const fn = notify();
+  assert.match(fn, /from '\.\/eventEmail\.ts'/);
+  assert.match(fn, /renderHtml\(kind, facts, ticket, changes\)/);
+  assert.doesNotMatch(fn, /function changedHtml/,
+    'the old inline template is back');
+  assert.doesNotMatch(fn, /function cancelledHtml/,
+    'the old inline template is back');
+});
+
+test('it reads the columns the details block needs', () => {
+  // The email used to say the event's name and nothing else because this
+  // select only asked for three columns.
+  const fn = notify();
+  for (const col of ['venue_name', 'venue_address', 'organizer', 'banner_image', 'timezone', 'end_time']) {
+    assert.ok(fn.includes(col), `events select is missing ${col}`);
+  }
+});
+
+test('two orders from one person become one email, with both counted', () => {
+  // The old code deduplicated addresses and threw the orders away. The email
+  // now names a ticket count, so they are folded instead.
+  const fn = notify();
+  assert.match(fn, /perAddress\.set\(address, \{/);
+  assert.match(fn, /quantity: \(seen\?\.quantity \?\? 0\) \+/);
+});
+
+test('the time range never uses a dash', () => {
+  // A dash in an email reads as a typo or a hyphen depending on the client's
+  // font, which is why whenText joins with the word.
+  const fn = notify();
+  assert.match(fn, /\$\{time\} to \$\{end\}/);
+});
+
 // ── Subjects ──────────────────────────────────────────────────────────────
 
 test('every subject names the event', () => {

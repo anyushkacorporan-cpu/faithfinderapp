@@ -463,7 +463,9 @@ test('attendees are not shown each other addresses', () => {
   const fn = readFileSync(
     join(here, 'functions', 'event-notify', 'index.ts'), 'utf8');
   // One request per address. Resend's `to` array puts them all in one header.
-  assert.match(flat(fn), /for \(const address of to\)/);
+  // The loop is now over a Map, because each person's email names their own
+  // order; what is pinned here is still one address per request.
+  assert.match(flat(fn), /for \(const \[address, order\] of perAddress\)/);
   assert.match(flat(fn), /to: \[address\]/);
   assert.doesNotMatch(flat(fn), /to: to,/);
 });
@@ -484,14 +486,26 @@ test('a cancellation still reaches people whose ticket was just refunded', () =>
 test('one message each, however many tickets they hold', () => {
   const fn = readFileSync(
     join(here, 'functions', 'event-notify', 'index.ts'), 'utf8');
-  assert.match(flat(fn), /const to = \[\.\.\.new Set\(/);
+  // A Set of addresses did this before. It still has to be one message per
+  // person, but their orders are now summed rather than discarded, so the
+  // email can say how many tickets they hold.
+  assert.match(flat(fn), /const perAddress = new Map/);
+  assert.match(flat(fn), /quantity: \(seen\?\.quantity \?\? 0\)/);
 });
 
 test('it sends from the right address, with replies going somewhere answered', () => {
+  // These moved into the shared template when every email started coming
+  // from one place. Checked there, and checked that event-notify still uses
+  // them rather than declaring its own.
+  const tpl = readFileSync(
+    join(here, 'functions', 'event-notify', 'eventEmail.ts'), 'utf8');
+  assert.match(tpl, /export const FROM = 'FourCircle <hello@fourcircle\.app>';/);
+  assert.match(tpl, /export const REPLY_TO = 'support@fourcircle\.app';/);
+
   const fn = readFileSync(
     join(here, 'functions', 'event-notify', 'index.ts'), 'utf8');
-  assert.match(fn, /const FROM = 'FourCircle <hello@fourcircle\.app>';/);
-  assert.match(fn, /const REPLY_TO = 'support@fourcircle\.app';/);
+  assert.match(flat(fn), /FROM, REPLY_TO,/);
+  assert.match(flat(fn), /from: FROM, to: \[address\], reply_to: REPLY_TO/);
 });
 
 // ── The door ──────────────────────────────────────────────────────────────
