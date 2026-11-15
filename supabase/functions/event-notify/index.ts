@@ -70,6 +70,15 @@ function json(body: unknown, status = 200) {
  * timezone is what 41_event_timezone.sql recorded at creation. An event at
  * 9am in New York has to say so to somebody reading in Los Angeles.
  */
+/** "$48.00". Only ever used for a refund, where the number matters. */
+function money(amount: unknown, currency: unknown): string {
+  const n = Number(amount);
+  if (!Number.isFinite(n) || n <= 0) return '';
+  const code = String(currency || 'USD').toUpperCase();
+  const symbol = code === 'USD' ? '$' : '';
+  return symbol ? `${symbol}${n.toFixed(2)}` : `${n.toFixed(2)} ${code}`;
+}
+
 function whenText(ev: Record<string, unknown>): string {
   const date = String(ev.date ?? '').trim();
   const time = String(ev.time ?? '').trim();
@@ -102,11 +111,27 @@ Deno.serve(async (req) => {
 
   const { data: pending, error: readErr } = await q;
   if (readErr) return json({ error: readErr.message }, 500);
-  if (!pending?.length) return json({ ok: true, sent: 0 });
 
   let sent = 0, recipients = 0;
 
-  for (const row of pending) {
+  /** One address, one request. Returns whether Resend took it. */
+  async function post(address: string, subject: string, text: string, html: string) {
+    const res = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${RESEND_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        from: FROM, to: [address], reply_to: REPLY_TO, subject, text, html,
+      }),
+    });
+    if (res.ok) return true;
+    console.error('resend refused', res.status, await res.text());
+    return false;
+  }
+
+  for (const row of pending ?? []) {
     // Claimed before the send, not after: a function that dies halfway has
     // already told the next caller not to repeat it. Sending nothing beats
     // sending it three times.
@@ -183,18 +208,7 @@ Deno.serve(async (req) => {
         const ticket: TicketFacts = { quantity: order.quantity, orderId: order.orderId };
         const html = renderHtml(kind, facts, ticket, changes);
         const text = renderText(kind, facts, ticket, changes);
-        const res = await fetch('https://api.resend.com/emails', {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${RESEND_KEY}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            from: FROM, to: [address], reply_to: REPLY_TO, subject, text, html,
-          }),
-        });
-        if (res.ok) delivered += 1;
-        else console.error('resend refused', res.status, await res.text());
+        if (await post(address, subject, text, html)) delivered += 1;
       }
       await admin.from('event_change_log')
         .update({ recipients: delivered }).eq('id', row.id);
@@ -202,6 +216,70 @@ Deno.serve(async (req) => {
       recipients += delivered;
     } catch (err) {
       await admin.from('event_change_log')
+        .update({ send_error: String((err as Error).message).slice(0, 500) })
+        .eq('id', row.id);
+    }
+  }
+
+  // ── Tickets: the confirmation and the refund ─────────────────────────────
+  //
+  // A second queue, filled by a trigger on the tickets table itself
+  // (48_ticket_mail_queue.sql), because a free registration is written by the
+  // phone and a paid one by the payments function. The table is the one thing
+  // both roads go through.
+  //
+  // One row is one ticket, so there is no folding to do here: the person who
+  // placed this order is the person being told about it.
+  const { data: queued } = await admin.rpc('pending_ticket_mail', { p_limit: 50 });
+
+  for (const row of (queued as Record<string, unknown>[] | null) ?? []) {
+    const address = String(row.email ?? '').trim().toLowerCase();
+    // Claimed first, whether or not it can be sent. A row with no address on
+    // it can never be sent, and leaving it unclaimed means reading it again
+    // on every flush forever.
+    const { error: claimErr } = await admin.from('ticket_mail_queue')
+      .update({ sent_at: new Date().toISOString() })
+      .eq('id', row.id).is('sent_at', null);
+    if (claimErr) continue;
+    if (!address) {
+      await admin.from('ticket_mail_queue').update({ recipients: 0 }).eq('id', row.id);
+      continue;
+    }
+
+    const kind = row.kind === 'refunded' ? 'refunded' as const : 'registered' as const;
+    const title = String(row.title ?? 'Your event');
+    const facts: EventFacts = {
+      id: String(row.event_id),
+      title,
+      whenText: whenText({
+        date: row.event_date, time: row.event_time,
+        end_time: row.end_time, timezone: row.timezone,
+      }),
+      venueName: (row.venue_name as string) ?? null,
+      venueAddress: (row.venue_address as string) ?? null,
+      organizer: (row.organizer as string) ?? null,
+      photoUrl: (row.banner_image as string) ?? null,
+      isPaid: row.is_paid === true,
+    };
+    const ticket: TicketFacts = {
+      quantity: Number(row.quantity) || 1,
+      orderId: String(row.ticket_id ?? ''),
+      // The ticket price only. A refund never returns the platform or
+      // processing fee, and the email says so, so the number beside it has
+      // to be the number that is actually coming back.
+      amount: kind === 'refunded' ? money(row.price_paid, row.currency) : null,
+    };
+
+    try {
+      const ok = await post(
+        address, subjectFor(kind, title),
+        renderText(kind, facts, ticket), renderHtml(kind, facts, ticket),
+      );
+      await admin.from('ticket_mail_queue')
+        .update({ recipients: ok ? 1 : 0 }).eq('id', row.id);
+      if (ok) { sent += 1; recipients += 1; }
+    } catch (err) {
+      await admin.from('ticket_mail_queue')
         .update({ send_error: String((err as Error).message).slice(0, 500) })
         .eq('id', row.id);
     }

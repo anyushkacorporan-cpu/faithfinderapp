@@ -76,6 +76,52 @@ test('the time range never uses a dash', () => {
   assert.match(fn, /\$\{time\} to \$\{end\}/);
 });
 
+// ── The confirmation and the refund actually get sent ─────────────────────
+
+const sql48 = () => readFileSync(join(here, '48_ticket_mail_queue.sql'), 'utf8');
+
+test('a free registration queues a confirmation too', () => {
+  // A free ticket is INSERTed already paid by the phone; a paid one is
+  // inserted pending by the server and UPDATEd when the card clears. A
+  // trigger that only watched one road would email half the people.
+  const sql = sql48();
+  assert.match(sql, /tg_op = 'INSERT' and new\.status = 'paid'/);
+  assert.match(sql, /tg_op = 'UPDATE' and new\.status = 'paid' and old\.status is distinct from 'paid'/);
+});
+
+test('cancelling an event does not also send everyone a refund email', () => {
+  // Cancelling refunds every ticket, so without this an attendee gets two
+  // emails a second apart. The cancellation already says the money is
+  // coming back, and it says why.
+  assert.match(sql48(), /if ev\.lifecycle is distinct from 'cancelled' then/);
+});
+
+test('the refund email quotes the ticket price, not what was paid', () => {
+  // total_paid includes the platform and processing fees. The email says
+  // fees are not returned, so the number beside it must not include them.
+  assert.match(sql48(), /round\(coalesce\(t\.price_per_ticket, 0\) \* coalesce\(t\.quantity, 1\), 2\)/);
+  const fn = notify();
+  assert.match(fn, /amount: kind === 'refunded' \? money\(row\.price_paid/);
+});
+
+test('event-notify flushes the ticket queue as well as the change log', () => {
+  const fn = notify();
+  assert.match(fn, /rpc\('pending_ticket_mail'/);
+  assert.match(fn, /from\('ticket_mail_queue'\)/);
+});
+
+test('a queued row is claimed before it is sent', () => {
+  // Same bargain as the change log: a function that dies halfway has already
+  // told the next caller not to repeat it.
+  const fn = notify();
+  const claim = /update\(\{ sent_at: new Date\(\)\.toISOString\(\) \}\)\s*\.eq\('id', row\.id\)\.is\('sent_at', null\)/;
+  assert.ok(claim.test(fn), 'the ticket queue claim is missing');
+});
+
+test('a queued row with no address is claimed, not retried forever', () => {
+  assert.match(notify(), /if \(!address\) \{/);
+});
+
 // ── Subjects ──────────────────────────────────────────────────────────────
 
 test('every subject names the event', () => {
