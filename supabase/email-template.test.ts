@@ -110,10 +110,12 @@ test('there is a button and a footer', () => {
 // ── What each email says ──────────────────────────────────────────────────
 
 test('a cancelled paid event promises everything back, fees included', () => {
-  const html = renderHtml('cancelled', event, ticket);
-  assert.match(html, /This event has been cancelled/);
-  assert.match(html, /including fees/);
-  assert.match(html, /5 to 10 business days/);
+  // Checked on the text part, so an apostrophe escaped into &#39; in the HTML
+  // cannot fail a test that is really about the promise being made.
+  const text = renderText('cancelled', event, ticket);
+  assert.match(text, /This event has been cancelled/);
+  assert.match(text, /fees included/);
+  assert.match(text, /5 to 10 business days/);
 });
 
 test('a cancelled free event does not promise a refund', () => {
@@ -124,10 +126,12 @@ test('a cancelled free event does not promise a refund', () => {
 });
 
 test('an approved refund says the fees are not coming back', () => {
-  // The opposite of a cancellation, and the difference is the whole point.
-  const html = renderHtml('refunded', event, { ...ticket, amount: '$48.00' });
-  assert.match(html, /Platform and processing fees are not refunded/);
-  assert.match(html, /\$48\.00/);
+  // The opposite of a cancellation, and the difference is the whole point:
+  // cancelled gives everything back, an approved refund keeps the fees.
+  const text = renderText('refunded', event, { ...ticket, amount: '$48.00' });
+  assert.match(text, /Service fees/);
+  assert.doesNotMatch(text, /fees included/);
+  assert.match(renderHtml('refunded', event, { ...ticket, amount: '$48.00' }), /\$48\.00/);
 });
 
 test('only the fields that changed are listed', () => {

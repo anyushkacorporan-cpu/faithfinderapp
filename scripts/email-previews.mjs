@@ -27,7 +27,7 @@ mkdirSync(OUT, { recursive: true });
 const event = {
   id: 'user_1794420965664',
   title: 'Women’s Conference 2026',
-  whenText: 'Saturday, 14 March 2026, 9:00 AM – 4:00 PM (EST)',
+  whenText: 'Saturday, 14 March 2026, 9:00 AM to 4:00 PM (EST)',
   venueName: 'Grace Community Church',
   venueAddress: '128 Faith Street, Glen Cove, NY 11542',
   organizer: 'Grace Community Church',
@@ -50,7 +50,7 @@ const changes = [
 // about the email.
 const movedEvent = {
   ...event,
-  whenText: 'Saturday, 21 March 2026, 10:00 AM \u2013 4:00 PM (EST)',
+  whenText: 'Saturday, 21 March 2026, 10:00 AM to 4:00 PM (EST)',
   venueName: 'Glen Cove Community Hall',
 };
 

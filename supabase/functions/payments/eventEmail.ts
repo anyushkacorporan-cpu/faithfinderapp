@@ -99,11 +99,17 @@ export function subjectFor(kind: EmailKind, title: string): string {
   }
 }
 
-/** The line under the event's name, saying what this email is. */
+/**
+ * The line under the event's name, saying what this email is.
+ *
+ * Plain sentences with contractions, and no long dashes anywhere. Copy built
+ * out of em dashes and "we are pleased to inform you" reads as written by a
+ * machine, which is not what anybody wants from their church's app.
+ */
 function statusLine(kind: EmailKind, paid: boolean): string {
   switch (kind) {
-    case 'registered': return "You're registered for this event.";
-    case 'changed':    return 'Details have changed.';
+    case 'registered': return "You're going.";
+    case 'changed':    return 'Some details have changed.';
     case 'cancelled':  return 'This event has been cancelled.';
     case 'refunded':   return paid
       ? 'Your refund is on its way.'
@@ -114,14 +120,14 @@ function statusLine(kind: EmailKind, paid: boolean): string {
 /** The paragraph under the status line, where one is owed. */
 function bodyLine(kind: EmailKind, paid: boolean): string {
   switch (kind) {
-    case 'registered': return 'Your ticket details are below. Bring the QR code in the app to the door.';
-    case 'changed':    return 'Here is what the organiser changed.';
+    case 'registered': return "Your ticket is in the app. Show the QR code at the door and you're in.";
+    case 'changed':    return "Here's what the organizer changed.";
     case 'cancelled':  return paid
-      ? 'You will be refunded in full — everything you paid, including fees — to the card you used. Refunds usually arrive within 5 to 10 business days.'
-      : 'Nothing was paid for this event, so there is nothing to refund.';
+      ? "You'll get all of your money back, fees included, to the card you paid with. It usually takes 5 to 10 business days."
+      : "This one was free, so there's nothing to refund.";
     case 'refunded':   return paid
-      ? 'The ticket price has been returned to the card you used. It usually arrives within 5 to 10 business days. Platform and processing fees are not refunded.'
-      : 'Your spot has been given back. Nothing was paid, so there is nothing to refund.';
+      ? "We've sent the ticket price back to the card you paid with. It usually takes 5 to 10 business days. Service fees aren't included."
+      : "Your spot is free again. Nothing was paid, so there's nothing to refund.";
   }
 }
 
@@ -156,7 +162,7 @@ function detailsBlock(ev: EventFacts, ticket: TicketFacts): string {
   const rows = [
     detailRow('When', String(ev.whenText ?? '')),
     detailRow('Where', venue),
-    detailRow('Organiser', String(ev.organizer ?? '')),
+    detailRow('Organizer', String(ev.organizer ?? '')),
     detailRow('Tickets', qty),
     detailRow('Order', String(ticket.orderId ?? '')),
     detailRow('Refunded', String(ticket.amount ?? '')),
@@ -177,9 +183,9 @@ function changesBlock(changes: Change[]): string {
     <tr>
       <td style="padding:7px 14px 7px 0;font-family:${SANS};font-size:13px;color:${MUTED};white-space:nowrap;vertical-align:top">${esc(FIELD_NAME[ch.field] ?? ch.field)}</td>
       <td style="padding:7px 0;font-family:${SANS};font-size:14px;color:${INK};vertical-align:top">
-        <span style="color:${MUTED};text-decoration:line-through">${esc(ch.old ?? '—')}</span>
+        <span style="color:${MUTED};text-decoration:line-through">${esc(ch.old ?? 'Not set')}</span>
         <span style="color:${MUTED}">&nbsp;&rarr;&nbsp;</span>
-        <strong style="color:${NAVY}">${esc(ch.new ?? '—')}</strong>
+        <strong style="color:${NAVY}">${esc(ch.new ?? 'Not set')}</strong>
       </td>
     </tr>`).join('');
   return `
@@ -269,7 +275,7 @@ export function renderText(
   if (changes.length) {
     lines.push('');
     for (const ch of changes) {
-      lines.push(`${FIELD_NAME[ch.field] ?? ch.field}: ${ch.old ?? '—'} -> ${ch.new ?? '—'}`);
+      lines.push(`${FIELD_NAME[ch.field] ?? ch.field}: ${ch.old ?? 'Not set'} to ${ch.new ?? 'Not set'}`);
     }
   }
 
@@ -280,7 +286,7 @@ export function renderText(
   const details: [string, string][] = [
     ['When', String(ev.whenText ?? '')],
     ['Where', venue],
-    ['Organiser', String(ev.organizer ?? '')],
+    ['Organizer', String(ev.organizer ?? '')],
     ['Tickets', qty],
     ['Order', String(ticket.orderId ?? '')],
     ['Refunded', String(ticket.amount ?? '')],
