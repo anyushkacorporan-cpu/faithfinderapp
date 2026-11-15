@@ -348,7 +348,7 @@ export default function EventsScreen() {
               return (
                 <TouchableOpacity key={'nb-'+event.id} style={s.card} activeOpacity={0.92} onPress={() => router.push({pathname:'/event-detail',params:{id:event.id,title:event.title,date:event.date,location:event.location,type:event.type,price:event.price,organizer:event.organizer||'',description:event.description||event.summary||''}})}>
                   {event.bannerImage ? (
-                    <ImageBackground source={{uri: event.bannerImage}} style={s.cardBanner} resizeMode="contain">
+                    <ImageBackground source={{uri: event.bannerImage}} style={s.cardBanner} resizeMode="cover">
                     <View style={{position:'absolute',top:12,right:12,backgroundColor:c.green,borderRadius:6,paddingHorizontal:10,paddingVertical:4}}>
                       <Text style={{color:'#fff',fontSize:11,fontWeight:'700',letterSpacing:0.5}}>{t('nearbyBadge')}</Text>
                     </View>
@@ -456,7 +456,7 @@ export default function EventsScreen() {
               })}
             >
               {event.bannerImage ? (
-                <ImageBackground source={{uri: event.bannerImage}} style={s.cardBanner} resizeMode="contain">
+                <ImageBackground source={{uri: event.bannerImage}} style={s.cardBanner} resizeMode="cover">
                 {nearbyEvents.some((ne) => ne.id === event.id) && (
                 <View style={{position:'absolute',top:12,right:12,backgroundColor:c.green,borderRadius:6,paddingHorizontal:10,paddingVertical:4}}>
                     <Text style={{color:'#fff',fontSize:11,fontWeight:'700',letterSpacing:0.5}}>{t('nearbyBadge')}</Text>
@@ -807,7 +807,11 @@ const makeStyles = (c: ThemeColors) => StyleSheet.create({
   // shot portrait lost its top and bottom, which on an event flyer is usually
   // the date and the address. The backgroundColor fills what contain leaves
   // over, so the letterboxing reads as a frame rather than a hole.
-  cardBanner:{aspectRatio:16/9,justifyContent:'flex-start',padding:14,backgroundColor:c.cardAlt},
+  // No background. "contain" fitted the photo inside the frame and left this
+  // showing down both sides as grey bars; "cover" fills the frame, so the
+  // colour can only ever be seen in the moment before an image loads. Gone,
+  // so this frame is the same as the one in my-events, which never had it.
+  cardBanner:{aspectRatio:16/9,justifyContent:'flex-start',padding:14},
   heartBtn:{alignSelf:'flex-end',width:36,height:36,borderRadius:18,backgroundColor:'rgba(255,255,255,0.15)',alignItems:'center',justifyContent:'center'},
   bannerBadges:{flexDirection:'row',gap:6,flexWrap:'wrap'},
   badgeType:{backgroundColor:'rgba(0,0,0,0.5)',borderRadius:8,paddingHorizontal:10,paddingVertical:4},

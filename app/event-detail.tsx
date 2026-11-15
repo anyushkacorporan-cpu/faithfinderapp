@@ -286,7 +286,7 @@ export default function EventDetailScreen() {
         {/* Banner */}
         {fullEvent?.bannerImage ? (
           <TouchableOpacity activeOpacity={0.95} onPress={() => setShowFullPhoto(true)} style={s.banner}>
-          <ImageBackground source={{uri: fullEvent.bannerImage}} style={{flex:1}} resizeMode="contain">
+          <ImageBackground source={{uri: fullEvent.bannerImage}} style={{flex:1}} resizeMode="cover">
             <View style={s.bannerTop}>
               <TouchableOpacity style={s.backBtn} onPress={() => router.back()}>
                 <Ionicons name="arrow-back" size={20} color={c.onPrimary} />
@@ -935,7 +935,10 @@ const makeStyles = (c: ThemeColors) => StyleSheet.create({
   root:{flex:1,backgroundColor:c.card},
   // See the note on cardBanner in events.tsx: the whole flyer, with the
   // background filling whatever contain leaves over.
-  banner:{aspectRatio:16/9,justifyContent:'flex-start',padding:16,backgroundColor:c.cardAlt},
+  // Same as the cards: the background existed only to be seen through the
+  // gaps "contain" left. The gradient shown when an event has no photo
+  // paints over this anyway, so nothing about that case changes.
+  banner:{aspectRatio:16/9,justifyContent:'flex-start',padding:16},
   venueMapWrap:{marginHorizontal:16,marginBottom:16,borderRadius:14,overflow:'hidden',
     borderWidth:1,borderColor:c.border,backgroundColor:c.cardAlt},
   venueMapImg:{width:'100%',height:220},
