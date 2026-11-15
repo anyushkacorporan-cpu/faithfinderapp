@@ -26,6 +26,18 @@ import {
  * onBarcodeScanned many times a second, and restarting the camera for each
  * one is both slow and a good way to miss the next person.
  */
+/**
+ * A time somebody at a door can read, in their own timezone.
+ *
+ * Locale left to the device rather than pinned to en-US: the screen is
+ * already translated, and a Spanish door should not read 7:42 PM.
+ */
+function clockTime(iso: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return '';
+  return d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+}
+
 export default function EventCheckinScreen() {
   const c = useThemeColors();
   const s = makeStyles(c);
@@ -57,10 +69,13 @@ export default function EventCheckinScreen() {
       setAttendees(list);
       const used = new Set<string>();
       for (const a of list) {
-        // The list says how many of a holder's seats are in, not which, so
-        // the first N codes stand in for them. It only has to be right about
-        // the count; the server decides which code is actually spent.
-        a.codes.slice(0, a.checkedIn).forEach(code => used.add(code));
+        // Which seats are in, when the server can say (47_checkin_detail.sql).
+        // Before that it could only say how many, so the first N codes stood
+        // in for them — right about the count, wrong about which seat, and
+        // the button could offer a code that was already spent while a free
+        // one sat beside it. That fallback stays for a database without 47.
+        if (a.usedCodes.length) a.usedCodes.forEach(code => used.add(code));
+        else a.codes.slice(0, a.checkedIn).forEach(code => used.add(code));
       }
       usedRef.current = used;
       // The server's own count now includes anything this device sent, so
@@ -121,12 +136,20 @@ export default function EventCheckinScreen() {
       : result.status === 'cancelled' ? t('eventCancelledWord')
       : result.status === 'forbidden' ? t('notYourEvent')
       : t('ticketNotValid');
-    const sub =
-      result.status === 'ok'
-        ? `${(result as any).name} · ${(result as any).seats} ${(result as any).seats === 1 ? t('seatWord') : t('seatsWord')}`
-        : result.status === 'already' && (result as any).at
-          ? new Date((result as any).at).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
-          : result.code || '';
+    // Name first, then the detail. A person on a door reads the top line and
+    // the name; everything else is for the one case in twenty where the
+    // answer is argued with.
+    const name = (result as any).name as string | undefined;
+    const seats = (result as any).seats as number | undefined;
+    const at = (result as any).at as string | undefined;
+    const parts: string[] = [];
+    if (name) parts.push(name);
+    if (seats) parts.push(`${seats} ${seats === 1 ? t('seatWord') : t('seatsWord')}`);
+    if (at) parts.push(clockTime(at));
+    // Only when there is nothing better to say. The raw code is for the
+    // answers that have no person behind them — a code from another event,
+    // or no code at all.
+    const sub = parts.length ? parts.join(' · ') : (result.code || '');
     return (
       <View style={[s.banner, { backgroundColor: bg }]}>
         <Ionicons
@@ -229,18 +252,30 @@ export default function EventCheckinScreen() {
                       <Text style={s.rowName}>{item.name}</Text>
                       <Text style={s.rowMeta}>
                         {item.seats} {item.seats === 1 ? t('seatWord') : t('seatsWord')}
-                        {item.checkedIn > 0 ? ` · ${item.checkedIn} ${t('inWord')}` : ''}
+                        {/* A part of four who came in separately is one row, so
+                            the count is still worth saying when some of them
+                            are in and some are not. */}
+                        {item.checkedIn > 0 && !allIn
+                          ? ` · ${item.checkedIn} ${t('inWord')}` : ''}
                       </Text>
+                      {/* Everybody on this row is in, and this says when the
+                          last of them arrived. The row used to say "all in"
+                          on the button and nothing about the time at all. */}
+                      {allIn && (
+                        <Text style={s.rowIn}>
+                          {'\u2705 '}{t('checkedIn')}
+                          {item.lastCheckedInAt ? ` · ${clockTime(item.lastCheckedInAt)}` : ''}
+                        </Text>
+                      )}
                     </View>
-                    <TouchableOpacity
-                      style={[s.admitBtn, allIn && s.admitBtnDone]}
-                      disabled={allIn}
-                      onPress={() => { if (next) void admit(next); }}
-                    >
-                      <Text style={[s.admitTxt, allIn && s.admitTxtDone]}>
-                        {allIn ? t('allInWord') : t('checkInAction')}
-                      </Text>
-                    </TouchableOpacity>
+                    {!allIn && (
+                      <TouchableOpacity
+                        style={s.admitBtn}
+                        onPress={() => { if (next) void admit(next); }}
+                      >
+                        <Text style={s.admitTxt}>{t('checkInAction')}</Text>
+                      </TouchableOpacity>
+                    )}
                   </View>
                 );
               }}
@@ -303,6 +338,7 @@ function makeStyles(c: ThemeColors) {
     },
     rowName: { fontSize: 15, fontWeight: '600', color: c.text },
     rowMeta: { fontSize: 12.5, color: c.textMuted, marginTop: 2 },
+    rowIn: { fontSize: 12.5, color: c.green, fontWeight: '700', marginTop: 3 },
     admitBtn: { backgroundColor: c.gold, borderRadius: 9, paddingHorizontal: 15, paddingVertical: 9 },
     admitBtnDone: { backgroundColor: c.cardAlt },
     admitTxt: { fontSize: 13, fontWeight: '700', color: '#1a1208' },

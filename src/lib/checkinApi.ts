@@ -25,11 +25,28 @@ export type Attendee = {
   seats: number;
   codes: string[];
   checkedIn: number;
+  /**
+   * When this holder's most recent seat was admitted, or null if none were.
+   *
+   * The list used to say how many of someone's seats were in and never when,
+   * so a row reading "2 in" could mean a minute ago or the door before lunch.
+   */
+  lastCheckedInAt: string | null;
+  /**
+   * Which of this holder's codes have actually been admitted.
+   *
+   * The screen used to stand in the first `checkedIn` codes for these, which
+   * was right about the count and wrong about which seat — so the button
+   * could offer a code that was already spent while a free one sat beside it.
+   * Empty until 47_checkin_detail.sql has been run, and the old
+   * approximation covers that case.
+   */
+  usedCodes: string[];
 };
 
 export type ScanOutcome =
-  | { status: 'ok'; name: string; seats: number }
-  | { status: 'already'; name?: string; at?: string }
+  | { status: 'ok'; name: string; seats: number; at?: string }
+  | { status: 'already'; name?: string; seats?: number; at?: string }
   | { status: 'wrong_event' }
   | { status: 'refunded' }
   | { status: 'cancelled' }
@@ -59,14 +76,36 @@ export async function fetchAttendees(eventId: string): Promise<Attendee[] | null
   if (!db) return null;
   const { data, error } = await db.rpc('event_attendees', { p_event_id: eventId });
   if (error || !data) return null;
-  return (data as any[]).map(r => ({
-    ticketId: String(r.ticket_id),
-    name: String(r.name ?? 'Guest'),
-    email: r.email ?? null,
-    seats: Number(r.seats) || 1,
-    codes: Array.isArray(r.codes) ? r.codes.map(String) : [],
-    checkedIn: Number(r.checked_in) || 0,
-  }));
+
+  // When each seat came in, as a second call rather than extra columns on the
+  // first: widening a set-returning function means dropping it, and this
+  // schema does not drop things. Failure here is not failure of the list —
+  // the door still works without the times, so a null just means no time
+  // shown. 47_checkin_detail.sql; absent until that file has been run.
+  const times = new Map<string, string>();
+  try {
+    const { data: rows } = await db.rpc('event_checkins', { p_event_id: eventId });
+    for (const r of (rows as any[] | null) ?? []) {
+      if (r?.code && r?.checked_in_at) times.set(String(r.code), String(r.checked_in_at));
+    }
+  } catch { /* no times, same list */ }
+
+  return (data as any[]).map(r => {
+    const codes = Array.isArray(r.codes) ? r.codes.map(String) : [];
+    const seen = codes.map((code: string) => times.get(code)).filter(Boolean) as string[];
+    return {
+      ticketId: String(r.ticket_id),
+      name: String(r.name ?? 'Guest'),
+      email: r.email ?? null,
+      seats: Number(r.seats) || 1,
+      codes,
+      checkedIn: Number(r.checked_in) || 0,
+      // The latest, not the first: a party of four arriving separately is one
+      // row, and what the door wants to know is when it last saw them.
+      lastCheckedInAt: seen.length ? seen.sort()[seen.length - 1] : null,
+      usedCodes: codes.filter((code: string) => times.has(code)),
+    };
+  });
 }
 
 /**
@@ -106,15 +145,24 @@ export async function checkIn(
   }
 
   // ── Offline ──
-  if (localUsed.has(code)) return { status: 'already' };
+  // The holder is looked up before the already-check, so a second scan with
+  // no signal names the person too. It used to answer with nothing at all,
+  // and the screen fell back to printing the raw code.
   const holder = localList.find(a => a.codes.includes(code));
+  if (localUsed.has(code)) {
+    return holder
+      ? { status: 'already', name: holder.name, seats: holder.seats,
+          at: holder.lastCheckedInAt ?? undefined }
+      : { status: 'already' };
+  }
   if (!holder) return { status: 'not_found' };
 
   const queue = await readQueue();
   queue.push({ eventId, code, at: new Date().toISOString() });
   await writeQueue(queue);
 
-  return { status: 'ok', name: holder.name, seats: holder.seats };
+  return { status: 'ok', name: holder.name, seats: holder.seats,
+           at: new Date().toISOString() };
 }
 
 /**
