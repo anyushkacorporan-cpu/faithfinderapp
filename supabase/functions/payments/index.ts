@@ -157,9 +157,17 @@ async function refundTicket(
   if (ticket.status !== 'paid') return { ok: false, error: 'That ticket was never paid.' };
 
   const eventId = String(ticket.event_id ?? '');
+  // Everything needed to find this refund again from the Stripe side without
+  // a database to hand. event_id and event_name were here; the ticket is
+  // what somebody actually quotes when they write in, and it was missing.
+  // ticket_id and order_id are the same value — the ticket's own id is the
+  // order number shown on the ticket and in every email — and both names are
+  // sent because a person searching Stripe will try whichever one they read.
   const meta = {
     'metadata[event_id]': eventId,
     'metadata[event_name]': eventName.slice(0, 500),
+    'metadata[ticket_id]': String(ticket.id ?? ''),
+    'metadata[order_id]': String(ticket.id ?? ''),
   };
 
   const ticketPrice = +(Number(ticket.price_per_ticket ?? 0) * Number(ticket.quantity ?? 1)).toFixed(2);
@@ -559,6 +567,69 @@ Deno.serve(async (req) => {
     }
 
     return json({ ok: true, respondBy, policyRequires });
+  }
+
+  // ── Giving up a free seat ────────────────────────────────────────────────
+  //
+  // A free registration had no way out. The refund flow is built around a
+  // payment, and a free ticket has none, so somebody who could no longer
+  // come simply kept the seat and the event stayed full with a person in it
+  // who was not coming. There is no organiser to ask here: nobody is owed
+  // anything, so there is nothing to decide.
+  if (action === 'registration_cancel') {
+    const ticketId = String(body.ticketId ?? '');
+    if (!ticketId) return json({ error: 'Missing ticket.' }, 400);
+
+    const { data: ticket } = await admin
+      .from('tickets')
+      .select('id, buyer_id, event_id, status, quantity, total_paid, payment_intent_id, ticket_codes')
+      .eq('id', ticketId)
+      .single();
+
+    if (!ticket) return json({ error: 'That ticket no longer exists.' }, 404);
+    if (ticket.buyer_id !== user.id) return json({ error: 'That is not your ticket.' }, 403);
+    // Already given up. Said as success, so a second tap is harmless.
+    if (ticket.status === 'refunded') return json({ ok: true, released: 0 });
+    if (ticket.status !== 'paid') return json({ error: 'That registration cannot be cancelled.' }, 409);
+
+    // Free only. A ticket with money on it goes through the refund request,
+    // because somebody has to send the money back and an organiser has to
+    // be told. Routing it here would release the seat and keep the cash.
+    if (ticket.payment_intent_id || Number(ticket.total_paid ?? 0) > 0) {
+      return json({ error: 'Ask for a refund on a paid ticket instead.' }, 409);
+    }
+
+    // Not after the door. A code that has been admitted has been used, and
+    // handing the seat back then would let somebody attend and free it for
+    // a second person.
+    const codes = (ticket.ticket_codes ?? []) as string[];
+    if (codes.length) {
+      const { count } = await admin
+        .from('ticket_checkins')
+        .select('code', { count: 'exact', head: true })
+        .in('code', codes);
+      if ((count ?? 0) > 0) {
+        return json({ error: 'You have already been checked in to this event.' }, 409);
+      }
+    }
+
+    // 'refunded' is the status a given-up seat already uses everywhere else:
+    // it is what stops the code at the door (check_in_ticket), what returns
+    // the buyer's allowance (46_tickets_per_user.sql), and what cancelling a
+    // whole free event marks its tickets as. A new status would have to be
+    // taught to all three.
+    await admin.from('tickets').update({
+      status: 'refunded',
+      refunded_amount: 0,
+      refunded_at: new Date().toISOString(),
+    }).eq('id', ticket.id);
+
+    await admin.rpc('release_seats', {
+      p_event_id: ticket.event_id,
+      p_quantity: Number(ticket.quantity ?? 1),
+    });
+
+    return json({ ok: true, released: Number(ticket.quantity ?? 1) });
   }
 
   // ── The organiser answers ────────────────────────────────────────────────

@@ -96,6 +96,22 @@ export async function requestRefund(
   return { ok: true, policyRequires: !!data?.policyRequires, respondBy: data?.respondBy };
 }
 
+/**
+ * Give up a free seat.
+ *
+ * Not a refund and not a request: nobody is owed anything, so there is
+ * nobody to ask. The seat goes straight back on sale. A paid ticket is
+ * refused here and has to go through requestRefund, because money has to be
+ * sent back and an organiser has to be told.
+ */
+export async function cancelRegistration(
+  ticketId: string,
+): Promise<{ ok?: true; error?: string }> {
+  const { data, error } = await call({ action: 'registration_cancel', ticketId });
+  if (error) return { error };
+  return data?.ok ? { ok: true } : { error: 'Could not cancel that registration.' };
+}
+
 /** Put it in front of FourCircle, after a decline or after the five days. */
 export async function escalateRefund(requestId: string): Promise<{ ok?: true; error?: string }> {
   const { data, error } = await call({ action: 'refund_escalate', requestId });

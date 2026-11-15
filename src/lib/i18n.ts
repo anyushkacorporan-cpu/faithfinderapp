@@ -996,6 +996,15 @@ const translations: Record<string, Record<Lang, string>> = {
   capacity: { English: 'Capacity', Español: 'Capacidad' },
   // Shown where a cancelled event is opened from an old link or a share.
   eventCancelled: { English: 'Cancelled', Español: 'Cancelado' },
+  // Giving up a free seat. Not a refund: nothing was paid.
+  cancelRegistration: { English: 'Cancel my registration', Español: 'Cancelar mi inscripción' },
+  cancelRegistrationMsg: {
+    English: 'Your spot goes back so someone else can take it. This cannot be undone.',
+    Español: 'Tu lugar vuelve a estar disponible para otra persona. Esto no se puede deshacer.' },
+  registrationCancelled: { English: 'Registration cancelled', Español: 'Inscripción cancelada' },
+  seatGivenBack: {
+    English: 'Your spot is free again.',
+    Español: 'Tu lugar está libre de nuevo.' },
   // Shown when the server refuses a delete, which it does for anyone who is
   // not the organiser.
   couldNotDelete: { English: 'Could not delete it', Español: 'No se pudo eliminar' },

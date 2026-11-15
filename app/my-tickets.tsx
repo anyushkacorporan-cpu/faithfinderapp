@@ -9,9 +9,10 @@ import QRCode from 'react-native-qrcode-svg';
 import { useThemeColors, ThemeColors } from '../src/lib/theme';
 import { useTranslation } from '../src/lib/i18n';
 import { useToast } from '../src/components/Toast';
+import { useConfirm } from '../src/components/Confirm';
 import { useTickets, syncTicketsFromServer, Ticket } from '../src/lib/ticketStore';
 import {
-  fetchMyRefundRequests, requestRefund, escalateRefund, RefundRequest,
+  fetchMyRefundRequests, requestRefund, escalateRefund, cancelRegistration, RefundRequest,
 } from '../src/lib/refundsApi';
 
 /**
@@ -43,6 +44,7 @@ export default function MyTicketsScreen() {
   const s = makeStyles(c);
   const { t, tx } = useTranslation();
   const { showToast } = useToast();
+  const { showConfirm } = useConfirm();
   const tickets = useTickets();
 
   const [requests, setRequests] = useState<RefundRequest[]>([]);
@@ -81,6 +83,17 @@ export default function MyTicketsScreen() {
         : tx('The organiser has 5 business days to respond.'),
       'success',
     );
+    void refresh();
+  }
+
+  async function giveUpSeat(ticket: Ticket) {
+    const { ok, error } = await cancelRegistration(ticket.id);
+    if (!ok) {
+      showToast(tx('Could not cancel it'), error || '', 'error');
+      return;
+    }
+    showToast(t('registrationCancelled'), t('seatGivenBack'), 'success');
+    // The seat count and the ticket's own status both live on the server.
     void refresh();
   }
 
@@ -226,6 +239,31 @@ export default function MyTicketsScreen() {
               {paid && !refunded && !request && (
                 <TouchableOpacity style={s.askBtn} onPress={() => { setAsking(ticket); setReason(''); }}>
                   <Text style={s.askTxt}>{t('requestRefund')}</Text>
+                </TouchableOpacity>
+              )}
+
+              {/* A free seat had no way out at all: the refund flow is built
+                  around a payment, so somebody who could no longer come kept
+                  the seat and the event stayed full with a person in it who
+                  was not coming. Nothing is owed, so nobody is asked — it
+                  just goes back on sale. */}
+              {!paid && !refunded && (
+                <TouchableOpacity
+                  style={s.askBtn}
+                  onPress={() => showConfirm({
+                    title: t('cancelRegistration'),
+                    message: t('cancelRegistrationMsg'),
+                    buttons: [
+                      { text: t('cancel'), style: 'cancel' },
+                      {
+                        text: t('cancelRegistration'),
+                        style: 'destructive',
+                        onPress: () => { void giveUpSeat(ticket); },
+                      },
+                    ],
+                  })}
+                >
+                  <Text style={s.askTxt}>{t('cancelRegistration')}</Text>
                 </TouchableOpacity>
               )}
 
