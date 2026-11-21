@@ -67,6 +67,25 @@ create trigger refund_requests_queue_mail after insert or update on refund_reque
 -- other kind goes to the person holding the ticket. Sending a request notice
 -- to the attendee would tell them what they already know and tell the
 -- organiser nothing, which is the bug this file exists to fix.
+--
+-- DROPPED FIRST, AND IT HAS TO BE
+--
+-- Two columns are added to the returned table, which changes the function's
+-- return type, and Postgres refuses `create or replace` for that:
+--
+--     ERROR: cannot change return type of existing function
+--
+-- Without this line the whole file stops here. Found by replaying every
+-- migration into an empty Postgres rather than by reading it, because
+-- reading it is exactly how it got written this way — the same trap was
+-- noted for event_attendees in 47 and then walked into here.
+--
+-- Nothing is lost. pending_ticket_mail was created by 48, one commit ago,
+-- holds no data, and is recreated four lines below. The "drop nothing" rule
+-- is about data and about objects that existed before this work; this is
+-- neither.
+drop function if exists pending_ticket_mail(integer);
+
 create or replace function pending_ticket_mail(p_limit integer default 50)
 returns table (
   id            uuid,
