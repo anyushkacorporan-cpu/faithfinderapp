@@ -35,8 +35,12 @@ export const DESCRIPTOR_MAX = 10;
 export function statementSuffix(eventTitle: string | null | undefined): string {
   const cleaned = String(eventTitle ?? '')
     .normalize('NFKD')
-    // Accents off rather than dropped whole: Misión becomes MISION, not MISIN.
-    .replace(/[̀-ͯ]/g, '')
+    // Accents off rather than dropped whole, so MISION keeps its letters.
+    // Written as escapes, not as the characters themselves: those two are
+    // invisible combining marks, and this file is deployed by copying it
+    // through a browser editor, which is exactly where an invisible
+    // character gets normalised away or mangled.
+    .replace(/[\u0300-\u036f]/g, '')
     .toUpperCase()
     // Everything Stripe forbids, and everything else that is not plain text.
     // A hyphen or an ampersand is not on Stripe's banned list, but card
