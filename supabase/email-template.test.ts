@@ -31,11 +31,13 @@ const ticket = { orderId: 'FC-8KQ2', quantity: 2 };
  */
 test('both deployed copies are identical to the canonical template', () => {
   const canonical = readFileSync(join(here, 'functions/_shared/eventEmail.ts'), 'utf8');
-  for (const fn of ['event-notify', 'payments']) {
-    const copy = readFileSync(join(here, 'functions', fn, 'eventEmail.ts'), 'utf8');
-    assert.equal(copy, canonical,
-      `${fn}/eventEmail.ts has drifted from _shared/eventEmail.ts — copy it across`);
-  }
+  // event-notify only. payments carried a copy for a while and never
+  // imported it — it sends no mail itself; it writes to ticket_mail_queue
+  // and event-notify sends. An unused copy is one more file to paste by
+  // hand on every deploy and one more thing to drift.
+  const copy = readFileSync(join(here, 'functions/event-notify/eventEmail.ts'), 'utf8');
+  assert.equal(copy, canonical,
+    'event-notify/eventEmail.ts has drifted from _shared/eventEmail.ts — copy it across');
 });
 
 // ── event-notify actually uses it ─────────────────────────────────────────
