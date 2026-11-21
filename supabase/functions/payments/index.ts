@@ -18,6 +18,7 @@
  */
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.58.0';
+import { statementSuffix } from './statementDescriptor.ts';
 
 const STRIPE_SECRET = Deno.env.get('STRIPE_SECRET_KEY') ?? '';
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
@@ -435,6 +436,8 @@ Deno.serve(async (req) => {
       // subtraction is what guarantees it.
       const applicationFee = Math.round(total * 100) - Math.round(subtotal * 100);
 
+      const descriptor = statementSuffix(event.title as string | null);
+
       const intent = await stripe('payment_intents', 'POST', {
         // Stripe counts in the smallest unit, so dollars must become cents
         // exactly once. Rounding here rather than earlier keeps the float
@@ -463,6 +466,15 @@ Deno.serve(async (req) => {
         'metadata[event_id]': event.id,
         'metadata[event_name]': String(event.title ?? '').slice(0, 500),
         'metadata[organizer_id]': String(event.organizer_id ?? ''),
+        // What the buyer's bank statement says. Without it the line reads as
+        // the platform account's name and nothing else, and a charge nobody
+        // recognises is the most common reason a card payment is disputed.
+        //
+        // Spread, not assigned: an empty suffix is not the same as no
+        // suffix, and Stripe refuses the payment outright for a suffix with
+        // no letter in it. statementSuffix returns '' when nothing usable
+        // survives, and then the key is simply not sent.
+        ...(descriptor ? { statement_descriptor_suffix: descriptor } : {}),
       });
 
       await admin.from('tickets')
