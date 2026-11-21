@@ -18,7 +18,6 @@
  */
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.58.0';
-import { statementSuffix } from './statementDescriptor.ts';
 
 const STRIPE_SECRET = Deno.env.get('STRIPE_SECRET_KEY') ?? '';
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
@@ -83,6 +82,63 @@ async function stripe(path: string, method: 'GET' | 'POST', form?: Record<string
  * crypto.getRandomValues rather than Math.random: this one authorises entry.
  * The modulo is unbiased because 256 divides evenly by 32.
  */
+/**
+ * What a ticket buyer sees on their bank statement.
+ *
+ * Inlined rather than imported, and that is a deployment decision, not a
+ * design one. This function is deployed by pasting it into a browser
+ * editor by hand, and a second file has to be created there before the
+ * first one will even bundle. That went wrong twice and left payments
+ * down both times. One file cannot half-arrive.
+ *
+ * supabase/functions/_shared/statementDescriptor.ts is the same code with
+ * the tests against it, and a test asserts this copy has not drifted from
+ * it. Change that file, then copy it here.
+ *
+ * Why the rules are the way they are is explained there and not repeated.
+ */
+/** Room left for this once the platform's own prefix and "* " are counted. */
+const DESCRIPTOR_MAX = 10;
+
+/**
+ * Turn an event's name into something a bank statement can carry.
+ *
+ * Returns '' when nothing usable survives, which the caller must treat as
+ * "send no suffix at all" rather than "send an empty one".
+ */
+function statementSuffix(eventTitle: string | null | undefined): string {
+  const cleaned = String(eventTitle ?? '')
+    .normalize('NFKD')
+    // Accents off rather than dropped whole, so MISION keeps its letters.
+    // Written as escapes, not as the characters themselves: those two are
+    // invisible combining marks, and this file is deployed by copying it
+    // through a browser editor, which is exactly where an invisible
+    // character gets normalised away or mangled.
+    .replace(/[\u0300-\u036f]/g, '')
+    .toUpperCase()
+    // Everything Stripe forbids, and everything else that is not plain text.
+    // A hyphen or an ampersand is not on Stripe's banned list, but card
+    // networks mangle punctuation differently and a space always survives.
+    .replace(/[^A-Z0-9 ]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!cleaned) return '';
+
+  // Cut at a word boundary where one is close to the limit, so "WOMENS
+  // CONFERENCE" reads as "WOMENS" rather than "WOMENS CON".
+  let out = cleaned.slice(0, DESCRIPTOR_MAX).trim();
+  if (cleaned.length > DESCRIPTOR_MAX) {
+    const lastSpace = out.lastIndexOf(' ');
+    if (lastSpace >= 4) out = out.slice(0, lastSpace);
+  }
+  out = out.trim();
+
+  // At least one letter, or Stripe refuses the payment. A name that is all
+  // digits leaves nothing worth sending.
+  return /[A-Z]/.test(out) ? out : '';
+}
+
 function newTicketCode(): string {
   const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   const bytes = crypto.getRandomValues(new Uint8Array(8));

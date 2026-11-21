@@ -7,10 +7,27 @@ import { statementSuffix, DESCRIPTOR_MAX } from './functions/_shared/statementDe
 
 const here = dirname(fileURLToPath(import.meta.url));
 
-test('the deployed copy matches the canonical one', () => {
-  const canonical = readFileSync(join(here, 'functions/_shared/statementDescriptor.ts'), 'utf8');
-  const copy = readFileSync(join(here, 'functions/payments/statementDescriptor.ts'), 'utf8');
-  assert.equal(copy, canonical, 'payments/statementDescriptor.ts has drifted');
+/**
+ * payments carries this inlined rather than imported, because that function
+ * is deployed by pasting one file into a browser editor and a second file
+ * has to exist there before the first will bundle. That went wrong twice.
+ * One file cannot half-arrive.
+ *
+ * So the copy is compared, not the file: everything from DESCRIPTOR_MAX to
+ * the end of statementSuffix, with the two `export` keywords the shared
+ * version needs and the inlined one does not.
+ */
+test('the copy inlined into payments has not drifted', () => {
+  const grab = (src: string) => {
+    const from = src.indexOf('/** Room left for this');
+    const to = src.indexOf('\n}', src.indexOf('function statementSuffix'));
+    assert.ok(from > -1 && to > from, 'could not find the function to compare');
+    return src.slice(from, to).replace(/\bexport /g, '').trim();
+  };
+  const canonical = grab(readFileSync(join(here, 'functions/_shared/statementDescriptor.ts'), 'utf8'));
+  const inlined = grab(readFileSync(join(here, 'functions/payments/index.ts'), 'utf8'));
+  assert.equal(inlined, canonical,
+    'payments/index.ts has drifted from _shared/statementDescriptor.ts — copy it across');
 });
 
 test('an ordinary name comes through readable', () => {
